@@ -1,0 +1,51 @@
+# ==============================================================================
+# PitStop - Development Configuration Template
+# ==============================================================================
+#
+# IMPORTANT:
+# - This is a TEMPLATE file with FAKE credentials
+# - Copy this file to application-dev.yml and fill with your REAL credentials
+# - NEVER commit application-dev.yml to Git (already in .gitignore)
+#
+# How to use:
+# 1. Copy this file: cp application-dev.yml.example application-dev.yml
+# 2. Fill in your real Neon PostgreSQL credentials
+# 3. Update JWT_SECRET with a secure Base64-encoded key
+# 4. Restart the application
+#
+# ==============================================================================
+
+spring:
+  # Datasource Configuration (Neon PostgreSQL 17) - DEVELOPMENT
+  datasource:
+    url: jdbc:postgresql://your-host.region.aws.neon.tech/your_database?sslmode=require&channel_binding=require
+    username: your_username
+    password: YOUR_SECURE_PASSWORD_HERE
+
+  # Redis Configuration - DEVELOPMENT
+  data:
+    redis:
+      host: localhost
+      port: 6379
+
+# Application Custom Properties - DEVELOPMENT
+application:
+  jwt:
+    # CRITICAL: Generate a secure 512-bit (64 characters) Base64-encoded secret
+    #
+    # How to generate:
+    # - Visit: http://localhost:8080/api/debug/generate-jwt-secret
+    # - OR use: openssl rand -base64 64 (Linux/Mac)
+    # - OR use: [Convert]::ToBase64String((1..64 | ForEach-Object { Get-Random -Minimum 0 -Maximum 256 }))
+    #
+    # NEVER use a weak secret in production!
+    secret: CHANGE_THIS_TO_A_SECURE_BASE64_ENCODED_JWT_SECRET_512_BITS_MIN
+
+# ==============================================================================
+# Security Notes:
+# ==============================================================================
+# 1. Get Neon credentials from: https://console.neon.tech/
+# 2. JWT_SECRET must be at least 512 bits (64 Base64 characters) for HS512
+# 3. This file should NEVER be committed to Git
+# 4. In production, use environment variables or secrets manager
+# ==============================================================================

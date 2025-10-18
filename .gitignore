@@ -1,0 +1,111 @@
+HELP.md
+target/
+.mvn/wrapper/maven-wrapper.jar
+!**/src/main/**/target/
+!**/src/test/**/target/
+
+### STS ###
+.apt_generated
+.classpath
+.factorypath
+.project
+.settings
+.springBeans
+.sts4-cache
+
+### IntelliJ IDEA ###
+.idea
+*.iws
+*.iml
+*.ipr
+.idea/
+.idea/*
+.idea/httpRequests/
+http-client.private.env.json
+
+### NetBeans ###
+/nbproject/private/
+/nbbuild/
+/dist/
+/nbdist/
+/.nb-gradle/
+build/
+!**/src/main/**/build/
+!**/src/test/**/build/
+
+### VS Code ###
+.vscode/
+
+### Environment Variables & Secrets ###
+.env
+.env.local
+.env.*.local
+*.env
+application-*.yml
+!application.yml
+!application-dev.yml.example
+
+### Application Configuration (sensitive) ###
+# IMPORTANT: Never commit files with real credentials
+src/main/resources/application-dev.yml
+src/main/resources/application-prod.yml
+src/main/resources/application-local.yml
+
+### Database ###
+*.db
+*.sqlite
+*.sqlite3
+*.sql.gz
+/data/
+/postgres-data/
+
+### Logs ###
+*.log
+logs/
+*.log.*
+/log/
+/logs/
+
+### Security & Credentials ###
+**/secret*
+**/secrets*
+*.key
+*.pem
+*.p12
+*.jks
+*.keystore
+*.truststore
+credentials.json
+serviceAccountKey.json
+
+### Docker ###
+docker-compose.override.yml
+.docker/
+
+### Temporary Files ###
+*.tmp
+*.temp
+*.bak
+*.swp
+*.swo
+*~
+
+### OS Files ###
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+### PDF Reports & Exports ###
+# Ignore generated reports (optional - remove if you want to commit them)
+/reports/*.pdf
+/exports/*.xlsx
+/exports/*.csv
+
+### IntelliJ HTTP Client ###
+# Keep api-tests.http but ignore private environment variables
+http-client.private.env.json
+.idea/httpRequests/http-client.cookies

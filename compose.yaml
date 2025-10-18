@@ -1,0 +1,27 @@
+services:
+  # PostgreSQL is now hosted on Neon Console (PostgreSQL 17)
+  # Connection configured in application.yml via DATABASE_URL environment variable
+
+  redis:
+    image: 'redis:7-alpine'
+    container_name: pitstop-redis
+    ports:
+      - '6379:6379'
+    volumes:
+      - redis_data:/data
+    networks:
+      - pitstop-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    command: redis-server --appendonly yes
+
+networks:
+  pitstop-network:
+    driver: bridge
+
+volumes:
+  redis_data:
+    driver: local

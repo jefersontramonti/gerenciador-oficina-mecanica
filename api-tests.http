@@ -1,0 +1,451 @@
+###############################################################################
+# PitStop API Tests - IntelliJ HTTP Client
+###############################################################################
+#
+# Instruções:
+# 1. Execute os requests na ordem (use o ícone ▶ ao lado de cada request)
+# 2. O IntelliJ salva automaticamente os tokens retornados
+# 3. Use {{accessToken}} e {{refreshToken}} nos requests subsequentes
+# 4. Para ver a resposta, clique na aba "Response" abaixo
+#
+###############################################################################
+
+### ============================================================================
+### 1. AUTHENTICATION - Autenticação JWT
+### ============================================================================
+
+### 1.1. Login com credenciais válidas (Admin)
+# @name login
+POST http://localhost:8080/api/auth/login
+Content-Type: application/json
+
+{
+  "email": "admin@pitstop.com",
+  "senha": "admin123"
+}
+
+> {%
+    client.global.set("accessToken", response.body.accessToken);
+    client.global.set("refreshToken", response.body.refreshToken);
+    client.global.set("userId", response.body.usuario.id);
+    client.log("Access Token: " + response.body.accessToken);
+    client.log("Refresh Token: " + response.body.refreshToken);
+%}
+
+###
+
+### 1.2. Login com credenciais inválidas (deve retornar 401)
+POST http://localhost:8080/api/auth/login
+Content-Type: application/json
+
+{
+  "email": "admin@pitstop.com",
+  "senha": "senhaerrada"
+}
+
+###
+
+### 1.3. Login com usuário inexistente (deve retornar 401)
+POST http://localhost:8080/api/auth/login
+Content-Type: application/json
+
+{
+  "email": "usuario@naoexiste.com",
+  "senha": "qualquersenha"
+}
+
+###
+
+### 1.4. Refresh Token - Obter novo access token
+# Prerequisite: Execute o login (1.1) primeiro para obter o refreshToken
+POST http://localhost:8080/api/auth/refresh
+Content-Type: application/json
+
+{
+  "refreshToken": "{{refreshToken}}"
+}
+
+> {%
+    client.global.set("accessToken", response.body.accessToken);
+    client.global.set("refreshToken", response.body.refreshToken);
+    client.log("New Access Token: " + response.body.accessToken);
+%}
+
+###
+
+### 1.5. Logout - Revogar refresh token
+# Prerequisite: Execute o login (1.1) primeiro
+POST http://localhost:8080/api/auth/logout
+Content-Type: application/json
+Authorization: Bearer {{accessToken}}
+
+{
+  "refreshToken": "{{refreshToken}}"
+}
+
+###
+
+### 1.6. Tentar usar refresh token após logout (deve retornar 401)
+POST http://localhost:8080/api/auth/refresh
+Content-Type: application/json
+
+{
+  "refreshToken": "{{refreshToken}}"
+}
+
+###
+
+### ============================================================================
+### 2. HEALTH CHECK - Verificação de Saúde do Sistema
+### ============================================================================
+
+### 2.1. Health Check Completo (público - sem autenticação)
+GET http://localhost:8080/api/health
+Accept: application/json
+
+###
+
+### ============================================================================
+### 3. USUARIOS - Gerenciamento de Usuários
+### ============================================================================
+
+### 3.1. Listar todos os usuários (requer autenticação)
+# Prerequisite: Execute o login (1.1) primeiro
+GET http://localhost:8080/api/usuarios
+Authorization: Bearer {{accessToken}}
+Accept: application/json
+
+###
+
+### 3.2. Buscar usuário por ID (requer autenticação)
+# Prerequisite: Execute o login (1.1) primeiro
+GET http://localhost:8080/api/usuarios/{{userId}}
+Authorization: Bearer {{accessToken}}
+Accept: application/json
+
+###
+
+### 3.3. Criar novo usuário (requer autenticação e perfil ADMIN)
+# Prerequisite: Execute o login (1.1) primeiro
+POST http://localhost:8080/api/usuarios
+Authorization: Bearer {{accessToken}}
+Content-Type: application/json
+
+{
+  "nome": "joel garcia",
+  "email": "joelgarcia@pitstop.com",
+  "senha": "senha123",
+  "perfil": "MECANICO",
+  "ativo": true
+}
+
+###
+
+### 3.4. Atualizar usuário existente (requer autenticação e perfil ADMIN)
+# Prerequisite: Execute o login (1.1) primeiro
+# Substitua {id} pelo ID do usuário criado no request 3.3
+PUT http://localhost:8080/api/usuarios/0825fa04-8e51-4abd-80c6-878ea6114acb
+Authorization: Bearer {{accessToken}}
+Content-Type: application/json
+
+{
+  "nome": "Jo de preve",
+  "email": "joaoc43los@pitstop.com",
+  "perfil": "ATENDENTE",
+  "ativo": true
+}
+
+###
+
+### 3.5. Desativar usuário (requer autenticação e perfil ADMIN)
+# Prerequisite: Execute o login (1.1) primeiro
+# Substitua {id} pelo ID do usuário
+DELETE http://localhost:8080/api/usuarios/0825fa04-8e51-4abd-80c6-878ea6114acb
+Authorization: Bearer {{accessToken}}
+
+###
+
+### 3.6. Buscar usuário por email (requer autenticação)
+# Prerequisite: Execute o login (1.1) primeiro
+GET http://localhost:8080/api/usuarios/email/admin@pitstop.com
+Authorization: Bearer {{accessToken}}
+Accept: application/json
+
+###
+
+### ============================================================================
+### 4. DEBUG - Endpoints de Desenvolvimento (REMOVER EM PRODUÇÃO)
+### ============================================================================
+
+### 4.1. Gerar hash BCrypt para senha (público)
+GET http://localhost:8080/api/debug/hash/minhasenha123
+Accept: text/plain
+
+###
+
+### 4.2. Verificar senha contra hash BCrypt (público)
+GET http://localhost:8080/api/debug/verify?password=admin123&hash=$2a$12$5X6A2XFxLZDOIF6cPjOiGuO08u5JA6fOJwNOlrGrlqcFUYJmi/xdO
+Accept: text/plain
+
+###
+
+### 4.3. Gerar novo JWT_SECRET (público)
+GET http://localhost:8080/api/debug/generate-jwt-secret
+Accept: text/plain
+
+###
+
+### ============================================================================
+### 5. ACTUATOR - Monitoramento (parcialmente público)
+### ============================================================================
+
+### 5.1. Health Check do Actuator (público)
+GET http://localhost:8080/actuator/health
+Accept: application/json
+
+###
+
+### 5.2. Informações da Aplicação (público)
+GET http://localhost:8080/actuator/info
+Accept: application/json
+
+###
+
+### 5.3. Métricas da Aplicação (requer autenticação)
+# Prerequisite: Execute o login (1.1) primeiro
+GET http://localhost:8080/actuator/metrics
+Authorization: Bearer {{accessToken}}
+Accept: application/json
+
+###
+
+### 5.4. Métrica específica - JVM Memory (requer autenticação)
+# Prerequisite: Execute o login (1.1) primeiro
+GET http://localhost:8080/actuator/metrics/jvm.memory.used
+Authorization: Bearer {{accessToken}}
+Accept: application/json
+
+###
+
+### 5.5. Prometheus Metrics (requer autenticação)
+# Prerequisite: Execute o login (1.1) primeiro
+GET http://localhost:8080/actuator/prometheus
+Authorization: Bearer {{accessToken}}
+Accept: text/plain
+
+###
+
+### ============================================================================
+### 6. SWAGGER/OpenAPI - Documentação da API
+### ============================================================================
+
+### 6.1. OpenAPI JSON (público)
+GET http://localhost:8080/v3/api-docs
+Accept: application/json
+
+###
+
+### 6.2. Swagger UI (abrir no navegador)
+# URL: http://localhost:8080/swagger-ui.html
+
+###
+
+### ============================================================================
+### 7. TESTES DE SEGURANÇA
+### ============================================================================
+
+### 7.1. Acessar endpoint protegido SEM token (deve retornar 401)
+GET http://localhost:8080/api/usuarios
+Accept: application/json
+
+###
+
+### 7.2. Acessar endpoint protegido com token INVÁLIDO (deve retornar 401)
+GET http://localhost:8080/api/usuarios
+Authorization: Bearer eyJhbGciOiJIUzUxMiJ9.invalid.token
+Accept: application/json
+
+###
+
+### 7.3. Acessar endpoint protegido com token EXPIRADO (deve retornar 401)
+# Nota: Para testar, use um token de mais de 15 minutos atrás
+# Ou altere temporariamente access-token-expiration para 10000 (10 segundos) em application-dev.yml
+GET http://localhost:8080/api/usuarios
+Authorization: Bearer {{accessToken}}
+Accept: application/json
+
+###
+
+### 7.4. Testar CORS - Preflight request
+OPTIONS http://localhost:8080/api/auth/login
+Origin: http://localhost:5173
+Access-Control-Request-Method: POST
+Access-Control-Request-Headers: Content-Type
+
+###
+
+### ============================================================================
+### 8. TESTES DE VALIDAÇÃO
+### ============================================================================
+
+### 8.1. Login com email inválido (deve retornar 400 - Bad Request)
+POST http://localhost:8080/api/auth/login
+Content-Type: application/json
+
+{
+  "email": "emailinvalido",
+  "senha": "admin123"
+}
+
+###
+
+### 8.2. Login com senha vazia (deve retornar 400 - Bad Request)
+POST http://localhost:8080/api/auth/login
+Content-Type: application/json
+
+{
+  "email": "admin@pitstop.com",
+  "senha": ""
+}
+
+###
+
+### 8.3. Criar usuário com dados inválidos (deve retornar 400)
+# Prerequisite: Execute o login (1.1) primeiro
+POST http://localhost:8080/api/usuarios
+Authorization: Bearer {{accessToken}}
+Content-Type: application/json
+
+{
+  "nome": "AB",
+  "email": "emailinvalido",
+  "senha": "123",
+  "perfil": "PERFIL_INEXISTENTE"
+}
+
+###
+
+### ============================================================================
+### 9. CENÁRIO COMPLETO - Fluxo de Autenticação
+### ============================================================================
+
+### 9.1. PASSO 1: Login
+# @name fullFlowLogin
+POST http://localhost:8080/api/auth/login
+Content-Type: application/json
+
+{
+  "email": "admin@pitstop.com",
+  "senha": "admin123"
+}
+
+> {%
+    client.global.set("flowAccessToken", response.body.accessToken);
+    client.global.set("flowRefreshToken", response.body.refreshToken);
+%}
+
+###
+
+### 9.2. PASSO 2: Usar access token para acessar recurso protegido
+GET http://localhost:8080/api/usuarios
+Authorization: Bearer {{flowAccessToken}}
+
+###
+
+### 9.3. PASSO 3: Refresh token (simular expiração do access token)
+POST http://localhost:8080/api/auth/refresh
+Content-Type: application/json
+
+{
+  "refreshToken": "{{flowRefreshToken}}"
+}
+
+> {%
+    client.global.set("flowAccessToken", response.body.accessToken);
+    client.global.set("flowRefreshToken", response.body.refreshToken);
+%}
+
+###
+
+### 9.4. PASSO 4: Usar NOVO access token
+GET http://localhost:8080/api/usuarios
+Authorization: Bearer {{flowAccessToken}}
+
+###
+
+### 9.5. PASSO 5: Logout
+POST http://localhost:8080/api/auth/logout
+Content-Type: application/json
+Authorization: Bearer {{flowAccessToken}}
+
+{
+  "refreshToken": "{{flowRefreshToken}}"
+}
+
+###
+
+### 9.6. PASSO 6: Tentar refresh após logout (deve falhar com 401)
+POST http://localhost:8080/api/auth/refresh
+Content-Type: application/json
+
+{
+  "refreshToken": "{{flowRefreshToken}}"
+}
+
+###
+
+### ============================================================================
+### 10. PERFORMANCE E CARGA
+### ============================================================================
+
+### 10.1. Múltiplas requisições simultâneas (execute 10x)
+# Clique com botão direito no request → "Run All Requests in File"
+GET http://localhost:8080/api/health
+
+###
+
+### ============================================================================
+### NOTAS IMPORTANTES
+### ============================================================================
+#
+# 1. ORDEM DE EXECUÇÃO:
+#    - Sempre execute o login (1.1) PRIMEIRO para obter os tokens
+#    - Os tokens são salvos automaticamente e usados nos requests subsequentes
+#
+# 2. TOKENS:
+#    - Access Token: Expira em 15 minutos
+#    - Refresh Token: Expira em 7 dias
+#    - Se receber 401, execute o login novamente
+#
+# 3. VARIÁVEIS GLOBAIS (salvos automaticamente):
+#    - {{accessToken}} - Token JWT para autenticação
+#    - {{refreshToken}} - Token para renovação
+#    - {{userId}} - ID do usuário logado
+#
+# 4. PERFIS DE USUÁRIO:
+#    - ADMIN: Acesso total (criar/editar/deletar usuários)
+#    - GERENTE: Acesso a todos os módulos exceto usuários
+#    - ATENDENTE: CRUD clientes/veículos/OS, pagamentos
+#    - MECANICO: Visualizar e atualizar OS atribuídas
+#
+# 5. ENDPOINTS PÚBLICOS (sem autenticação):
+#    - POST /api/auth/login
+#    - POST /api/auth/refresh
+#    - GET /api/health
+#    - GET /api/debug/** (REMOVER EM PRODUÇÃO)
+#    - GET /actuator/health
+#    - GET /actuator/info
+#    - GET /swagger-ui/**
+#    - GET /v3/api-docs
+#
+# 6. DEBUGGING:
+#    - Logs detalhados no console da aplicação
+#    - Use o endpoint /api/debug/** para gerar hashes e secrets
+#    - Swagger UI disponível em: http://localhost:8080/swagger-ui.html
+#
+# 7. VALIDAÇÃO JWT:
+#    - Copie o accessToken e cole em https://jwt.io
+#    - Verifique os claims: sub (userId), email, perfil, iat, exp
+#    - Algorithm deve ser HS512
+#
+###############################################################################
