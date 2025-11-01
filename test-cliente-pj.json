@@ -1,0 +1,15 @@
+{
+  "tipo": "PESSOA_JURIDICA",
+  "nome": "Auto Peças Paulista Ltda",
+  "cpfCnpj": "12.345.678/0001-90",
+  "email": "contato@autopecaspaulista.com.br",
+  "telefone": "(11) 3000-5000",
+  "celular": "(11) 97777-6666",
+  "logradouro": "Av. Brigadeiro Faria Lima",
+  "numero": "2500",
+  "complemento": "Sala 301",
+  "bairro": "Jardim Paulistano",
+  "cidade": "São Paulo",
+  "estado": "SP",
+  "cep": "01452-000"
+}

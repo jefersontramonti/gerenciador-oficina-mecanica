@@ -1,6 +1,7 @@
 package com.pitstop.shared.exception;
 
 import com.pitstop.usuario.exception.*;
+import com.pitstop.cliente.exception.*;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ProblemDetail;
@@ -163,6 +164,74 @@ public class GlobalExceptionHandler {
         );
         problemDetail.setTitle("Erro de Validação");
         problemDetail.setType(URI.create("https://pitstop.com/errors/validation-error"));
+        problemDetail.setProperty("timestamp", Instant.now());
+
+        return problemDetail;
+    }
+
+    // ========== EXCEÇÕES DO MÓDULO DE CLIENTE ==========
+
+    /**
+     * Trata exceção quando um cliente não é encontrado.
+     * HTTP 404 - Not Found
+     */
+    @ExceptionHandler(ClienteNotFoundException.class)
+    public ProblemDetail handleClienteNotFoundException(
+            ClienteNotFoundException ex,
+            WebRequest request
+    ) {
+        log.warn("Cliente não encontrado: {}", ex.getMessage());
+
+        ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(
+                HttpStatus.NOT_FOUND,
+                ex.getMessage()
+        );
+        problemDetail.setTitle("Cliente Não Encontrado");
+        problemDetail.setType(URI.create("https://pitstop.com/errors/cliente-not-found"));
+        problemDetail.setProperty("timestamp", Instant.now());
+
+        return problemDetail;
+    }
+
+    /**
+     * Trata exceção quando tenta-se usar um CPF/CNPJ já existente.
+     * HTTP 409 - Conflict
+     */
+    @ExceptionHandler(CpfCnpjAlreadyExistsException.class)
+    public ProblemDetail handleCpfCnpjAlreadyExistsException(
+            CpfCnpjAlreadyExistsException ex,
+            WebRequest request
+    ) {
+        log.warn("CPF/CNPJ duplicado: {}", ex.getMessage());
+
+        ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(
+                HttpStatus.CONFLICT,
+                ex.getMessage()
+        );
+        problemDetail.setTitle("CPF/CNPJ Duplicado");
+        problemDetail.setType(URI.create("https://pitstop.com/errors/cpf-cnpj-already-exists"));
+        problemDetail.setProperty("timestamp", Instant.now());
+
+        return problemDetail;
+    }
+
+    /**
+     * Trata exceção genérica de validação de cliente.
+     * HTTP 400 - Bad Request
+     */
+    @ExceptionHandler(ClienteValidationException.class)
+    public ProblemDetail handleClienteValidationException(
+            ClienteValidationException ex,
+            WebRequest request
+    ) {
+        log.warn("Erro de validação de cliente: {}", ex.getMessage());
+
+        ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(
+                HttpStatus.BAD_REQUEST,
+                ex.getMessage()
+        );
+        problemDetail.setTitle("Erro de Validação de Cliente");
+        problemDetail.setType(URI.create("https://pitstop.com/errors/cliente-validation-error"));
         problemDetail.setProperty("timestamp", Instant.now());
 
         return problemDetail;

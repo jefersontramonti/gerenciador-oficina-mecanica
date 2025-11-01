@@ -1,0 +1,15 @@
+{
+  "tipo": "PESSOA_FISICA",
+  "nome": "João da Silva Santos",
+  "cpfCnpj": "123.456.789-00",
+  "email": "joao.cliente@email.com",
+  "telefone": "(11) 3333-4444",
+  "celular": "(11) 98888-7777",
+  "logradouro": "Rua das Flores",
+  "numero": "123",
+  "complemento": "Apto 45B",
+  "bairro": "Centro",
+  "cidade": "São Paulo",
+  "estado": "SP",
+  "cep": "01310-100"
+}

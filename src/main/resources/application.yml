@@ -20,6 +20,9 @@ spring:
       max-lifetime: 600000
       keepalive-time: 120000
       leak-detection-threshold: 60000
+      data-source-properties:
+        characterEncoding: UTF-8
+        useUnicode: true
 
   # JPA/Hibernate Configuration
   jpa:
@@ -38,6 +41,9 @@ spring:
           batch_size: 20
         order_inserts: true
         order_updates: true
+        connection:
+          characterEncoding: UTF-8
+          useUnicode: true
     open-in-view: false
 
   # Liquibase Configuration
@@ -81,10 +87,33 @@ spring:
       fail-on-unknown-properties: false
     default-property-inclusion: non_null
     time-zone: America/Sao_Paulo
+    locale: pt_BR
+
+  # HTTP Encoding Configuration (UTF-8 for all requests/responses)
+  http:
+    encoding:
+      charset: UTF-8
+      enabled: true
+      force: true
+      force-request: true
+      force-response: true
+
+  # Message Source Configuration (i18n)
+  messages:
+    encoding: UTF-8
+    basename: messages
+    fallback-to-system-locale: false
 
 # Server Configuration
 server:
   port: 8080
+  servlet:
+    encoding:
+      charset: UTF-8
+      enabled: true
+      force: true
+      force-request: true
+      force-response: true
   error:
     include-message: always
     include-binding-errors: always

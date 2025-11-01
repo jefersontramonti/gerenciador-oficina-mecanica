@@ -1,0 +1,13 @@
+{
+  "nome": "João da Silva Santos",
+  "email": "joao.atualizado@email.com",
+  "telefone": "(11) 3333-9999",
+  "celular": "(11) 99999-8888",
+  "logradouro": "Av. Paulista",
+  "numero": "1000",
+  "complemento": "Conjunto 1001",
+  "bairro": "Bela Vista",
+  "cidade": "São Paulo",
+  "estado": "SP",
+  "cep": "01310-100"
+}

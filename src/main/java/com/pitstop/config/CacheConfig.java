@@ -33,6 +33,7 @@ public class CacheConfig {
 
     public static final String CATEGORIAS_CACHE = "categorias";
     public static final String PECAS_CACHE = "pecas";
+    public static final String CLIENTES_CACHE = "clientes";
     public static final String CONSULTAS_CACHE = "consultas";
     public static final String RELATORIOS_CACHE = "relatorios";
 
@@ -64,6 +65,9 @@ public class CacheConfig {
             .entryTtl(Duration.ofHours(24)));
 
         cacheConfigurations.put(PECAS_CACHE, defaultConfig
+            .entryTtl(Duration.ofHours(24)));
+
+        cacheConfigurations.put(CLIENTES_CACHE, defaultConfig
             .entryTtl(Duration.ofHours(24)));
 
         cacheConfigurations.put(CONSULTAS_CACHE, defaultConfig

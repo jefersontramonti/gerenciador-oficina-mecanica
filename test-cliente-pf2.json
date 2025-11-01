@@ -1,0 +1,15 @@
+{
+  "tipo": "PESSOA_FISICA",
+  "nome": "Maria Silva Oliveira",
+  "cpfCnpj": "987.654.321-00",
+  "email": "maria.oliveira@email.com",
+  "telefone": "(21) 2222-3333",
+  "celular": "(21) 99999-8888",
+  "logradouro": "Rua Copacabana",
+  "numero": "500",
+  "complemento": "",
+  "bairro": "Copacabana",
+  "cidade": "Rio de Janeiro",
+  "estado": "RJ",
+  "cep": "22000-000"
+}

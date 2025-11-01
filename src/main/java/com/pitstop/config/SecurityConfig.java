@@ -44,10 +44,18 @@ import java.util.List;
  *
  * <p><b>Public endpoints (no authentication required):</b>
  * <ul>
- *   <li>/api/auth/** - Login, refresh, logout</li>
+ *   <li>/api/auth/login - User login</li>
+ *   <li>/api/auth/refresh - Token refresh</li>
  *   <li>/swagger-ui/** - API documentation</li>
  *   <li>/v3/api-docs/** - OpenAPI specs</li>
  *   <li>/actuator/health - Health check</li>
+ * </ul>
+ *
+ * <p><b>Protected endpoints (authentication required):</b>
+ * <ul>
+ *   <li>/api/auth/logout - User logout (requires valid JWT)</li>
+ *   <li>/api/usuarios/** - User management (requires ADMIN role)</li>
+ *   <li>All other /api/** endpoints</li>
  * </ul>
  *
  * <p><b>Single-tenant note:</b>
@@ -91,7 +99,8 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         // Public endpoints (no authentication required)
                         .requestMatchers(
-                                "/api/auth/**",
+                                "/api/auth/login",
+                                "/api/auth/refresh",
                                 "/api/health",
                                 "/api/debug/**",
                                 "/swagger-ui/**",
