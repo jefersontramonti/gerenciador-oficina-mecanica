@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useClientes, useDeleteCliente, useReativarCliente } from '../hooks/useClientes';
-import { Plus, Search, Edit, Trash2, RotateCw, Eye } from 'lucide-react';
+import { Plus, Search, Edit, Trash2, RotateCw, Eye, CheckCircle, XCircle, FilterX } from 'lucide-react';
 import type { ClienteFilters, TipoCliente } from '../types';
 
 const ITEMS_PER_PAGE = 20;
@@ -118,8 +118,9 @@ export const ClientesListPage = () => {
               onClick={() =>
                 setFilters({ page: 0, size: ITEMS_PER_PAGE, sort: 'nome,asc' })
               }
-              className="w-full rounded-lg border border-gray-300 px-4 py-2 text-gray-700 hover:bg-gray-50"
+              className="flex w-full items-center justify-center gap-2 rounded-lg border border-orange-300 bg-orange-50 px-4 py-2 text-orange-700 hover:bg-orange-100"
             >
+              <FilterX className="h-4 w-4" />
               Limpar Filtros
             </button>
           </div>
@@ -182,11 +183,13 @@ export const ClientesListPage = () => {
                     </td>
                     <td className="px-6 py-4 text-sm">
                       {cliente.ativo ? (
-                        <span className="inline-flex rounded-full bg-green-100 px-2 py-1 text-xs font-semibold text-green-800">
+                        <span className="inline-flex items-center gap-1 rounded-full bg-green-100 px-2 py-1 text-xs font-semibold text-green-800">
+                          <CheckCircle className="h-3 w-3" />
                           Ativo
                         </span>
                       ) : (
-                        <span className="inline-flex rounded-full bg-gray-100 px-2 py-1 text-xs font-semibold text-gray-800">
+                        <span className="inline-flex items-center gap-1 rounded-full bg-gray-100 px-2 py-1 text-xs font-semibold text-gray-800">
+                          <XCircle className="h-3 w-3" />
                           Inativo
                         </span>
                       )}
