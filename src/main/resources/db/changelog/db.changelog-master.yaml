@@ -11,3 +11,15 @@ databaseChangeLog:
   - include:
       file: db/changelog/migrations/V004__create_veiculos_table.sql
       relativeToChangelogFile: false
+  - include:
+      file: db/changelog/migrations/V005__create_ordem_servico_table.sql
+      relativeToChangelogFile: false
+  - include:
+      file: db/changelog/migrations/V006__create_item_os_table.sql
+      relativeToChangelogFile: false
+  - include:
+      file: db/changelog/migrations/V007__reset_test_users.sql
+      relativeToChangelogFile: false
+  - include:
+      file: db/changelog/migrations/V008__fix_user_passwords.sql
+      relativeToChangelogFile: false

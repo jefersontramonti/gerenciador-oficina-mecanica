@@ -2,6 +2,7 @@ package com.pitstop.shared.exception;
 
 import com.pitstop.usuario.exception.*;
 import com.pitstop.cliente.exception.*;
+import com.pitstop.ordemservico.exception.*;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ProblemDetail;
@@ -390,6 +391,120 @@ public class GlobalExceptionHandler {
 
         return problemDetail;
     }
+
+    // ========== EXCEÇÕES DO MÓDULO DE ORDEM DE SERVIÇO ==========
+
+    /**
+     * Trata exceção quando uma OS não é encontrada.
+     * HTTP 404 - Not Found
+     */
+    @ExceptionHandler(OrdemServicoNotFoundException.class)
+    public ProblemDetail handleOrdemServicoNotFoundException(
+            OrdemServicoNotFoundException ex,
+            WebRequest request
+    ) {
+        log.warn("Ordem de Serviço não encontrada: {}", ex.getMessage());
+
+        ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(
+                HttpStatus.NOT_FOUND,
+                ex.getMessage()
+        );
+        problemDetail.setTitle("Ordem de Serviço Não Encontrada");
+        problemDetail.setType(URI.create("https://pitstop.com/errors/ordem-servico-not-found"));
+        problemDetail.setProperty("timestamp", Instant.now());
+
+        return problemDetail;
+    }
+
+    /**
+     * Trata exceção quando uma transição de status é inválida.
+     * HTTP 400 - Bad Request
+     */
+    @ExceptionHandler(TransicaoStatusInvalidaException.class)
+    public ProblemDetail handleTransicaoStatusInvalidaException(
+            TransicaoStatusInvalidaException ex,
+            WebRequest request
+    ) {
+        log.warn("Transição de status inválida: {}", ex.getMessage());
+
+        ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(
+                HttpStatus.BAD_REQUEST,
+                ex.getMessage()
+        );
+        problemDetail.setTitle("Transição de Status Inválida");
+        problemDetail.setType(URI.create("https://pitstop.com/errors/transicao-status-invalida"));
+        problemDetail.setProperty("timestamp", Instant.now());
+
+        return problemDetail;
+    }
+
+    /**
+     * Trata exceção quando tenta-se editar uma OS não editável.
+     * HTTP 400 - Bad Request
+     */
+    @ExceptionHandler(OrdemServicoNaoEditavelException.class)
+    public ProblemDetail handleOrdemServicoNaoEditavelException(
+            OrdemServicoNaoEditavelException ex,
+            WebRequest request
+    ) {
+        log.warn("OS não editável: {}", ex.getMessage());
+
+        ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(
+                HttpStatus.BAD_REQUEST,
+                ex.getMessage()
+        );
+        problemDetail.setTitle("Ordem de Serviço Não Editável");
+        problemDetail.setType(URI.create("https://pitstop.com/errors/ordem-servico-nao-editavel"));
+        problemDetail.setProperty("timestamp", Instant.now());
+
+        return problemDetail;
+    }
+
+    /**
+     * Trata exceção quando desconto excede o limite permitido.
+     * HTTP 400 - Bad Request
+     */
+    @ExceptionHandler(DescontoExcedidoException.class)
+    public ProblemDetail handleDescontoExcedidoException(
+            DescontoExcedidoException ex,
+            WebRequest request
+    ) {
+        log.warn("Desconto excedido: {}", ex.getMessage());
+
+        ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(
+                HttpStatus.BAD_REQUEST,
+                ex.getMessage()
+        );
+        problemDetail.setTitle("Desconto Excedido");
+        problemDetail.setType(URI.create("https://pitstop.com/errors/desconto-excedido"));
+        problemDetail.setProperty("timestamp", Instant.now());
+
+        return problemDetail;
+    }
+
+    /**
+     * Trata exceções de validação de OS.
+     * HTTP 400 - Bad Request
+     */
+    @ExceptionHandler(OrdemServicoValidationException.class)
+    public ProblemDetail handleOrdemServicoValidationException(
+            OrdemServicoValidationException ex,
+            WebRequest request
+    ) {
+        log.warn("Validação de OS falhou: {}", ex.getMessage());
+
+        ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(
+                HttpStatus.BAD_REQUEST,
+                ex.getMessage()
+        );
+        problemDetail.setTitle("Erro de Validação");
+        problemDetail.setType(URI.create("https://pitstop.com/errors/ordem-servico-validation"));
+        problemDetail.setProperty("timestamp", Instant.now());
+
+        return problemDetail;
+    }
+
+    // ========== EXCEÇÕES GENÉRICAS ==========
 
     /**
      * Trata IllegalStateException.

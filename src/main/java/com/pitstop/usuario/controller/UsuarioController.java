@@ -31,7 +31,7 @@ import java.util.UUID;
  *
  * Endpoints com controle de acesso baseado em perfis (RBAC):
  * - ADMIN: Acesso completo (criar, editar, visualizar, desativar usuários)
- * - GERENTE: Pode visualizar usuários
+ * - GERENTE: Acesso completo (criar, editar, visualizar, desativar usuários)
  * - ATENDENTE/MECANICO: Sem acesso
  *
  * Base path: /api/usuarios
@@ -48,14 +48,14 @@ public class UsuarioController {
     /**
      * Cria um novo usuário no sistema.
      *
-     * Apenas ADMIN pode criar usuários.
+     * ADMIN e GERENTE podem criar usuários.
      *
      * @param request Dados do novo usuário
      * @return Usuário criado com status 201
      */
     @PostMapping
-    @PreAuthorize("hasAuthority('ADMIN')")
-    @Operation(summary = "Criar novo usuário", description = "Cria um novo usuário no sistema. Apenas administradores podem criar usuários.")
+    @PreAuthorize("hasAnyAuthority('ADMIN', 'GERENTE')")
+    @Operation(summary = "Criar novo usuário", description = "Cria um novo usuário no sistema. Administradores e gerentes podem criar usuários.")
     @ApiResponses({
             @ApiResponse(responseCode = "201", description = "Usuário criado com sucesso",
                     content = @Content(schema = @Schema(implementation = UsuarioResponse.class))),
@@ -191,7 +191,7 @@ public class UsuarioController {
     /**
      * Atualiza os dados de um usuário existente.
      *
-     * Apenas ADMIN pode atualizar usuários.
+     * ADMIN e GERENTE podem atualizar usuários.
      * Apenas campos não-nulos do request serão atualizados.
      *
      * @param id ID do usuário a ser atualizado
@@ -199,7 +199,7 @@ public class UsuarioController {
      * @return Usuário atualizado
      */
     @PutMapping("/{id}")
-    @PreAuthorize("hasAuthority('ADMIN')")
+    @PreAuthorize("hasAnyAuthority('ADMIN', 'GERENTE')")
     @Operation(summary = "Atualizar usuário", description = "Atualiza os dados de um usuário existente. Apenas campos fornecidos serão atualizados.")
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "Usuário atualizado com sucesso",
@@ -220,14 +220,14 @@ public class UsuarioController {
     /**
      * Desativa um usuário (soft delete).
      *
-     * Apenas ADMIN pode desativar usuários.
+     * ADMIN e GERENTE podem desativar usuários.
      * Não permite desativar o último admin ativo.
      *
      * @param id ID do usuário a ser desativado
      * @return Status 204 (sem conteúdo)
      */
     @DeleteMapping("/{id}")
-    @PreAuthorize("hasAuthority('ADMIN')")
+    @PreAuthorize("hasAnyAuthority('ADMIN', 'GERENTE')")
     @Operation(summary = "Desativar usuário", description = "Desativa um usuário do sistema (soft delete). Não permite desativar o último admin.")
     @ApiResponses({
             @ApiResponse(responseCode = "204", description = "Usuário desativado com sucesso"),
@@ -246,13 +246,13 @@ public class UsuarioController {
     /**
      * Reativa um usuário previamente desativado.
      *
-     * Apenas ADMIN pode reativar usuários.
+     * ADMIN e GERENTE podem reativar usuários.
      *
      * @param id ID do usuário a ser reativado
      * @return Usuário reativado
      */
     @PatchMapping("/{id}/reativar")
-    @PreAuthorize("hasAuthority('ADMIN')")
+    @PreAuthorize("hasAnyAuthority('ADMIN', 'GERENTE')")
     @Operation(summary = "Reativar usuário", description = "Reativa um usuário previamente desativado")
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "Usuário reativado com sucesso",

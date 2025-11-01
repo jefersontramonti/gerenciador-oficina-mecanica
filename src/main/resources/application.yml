@@ -175,3 +175,12 @@ application:
     allowed-methods: GET,POST,PUT,DELETE,PATCH,OPTIONS
     allowed-headers: "*"
     allow-credentials: true
+
+# PitStop Configuration
+pitstop:
+  oficina:
+    nome: ${PITSTOP_OFICINA_NOME:PitStop Auto Center}
+    cnpj: ${PITSTOP_OFICINA_CNPJ:00.000.000/0001-00}
+    endereco: ${PITSTOP_OFICINA_ENDERECO:Rua Exemplo, 123 - São Paulo/SP - CEP 01234-567}
+    telefone: ${PITSTOP_OFICINA_TELEFONE:(11) 98765-4321}
+    email: ${PITSTOP_OFICINA_EMAIL:contato@pitstop.com.br}

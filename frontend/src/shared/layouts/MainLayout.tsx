@@ -13,6 +13,7 @@ import {
   Menu,
   X,
   Wrench,
+  UserCog,
 } from 'lucide-react';
 import { cn } from '@/shared/utils/cn';
 
@@ -21,6 +22,7 @@ const navigation = [
   { name: 'Clientes', href: '/clientes', icon: Users },
   { name: 'Veículos', href: '/veiculos', icon: Car },
   { name: 'Ordens de Serviço', href: '/ordens-servico', icon: FileText },
+  { name: 'Usuários', href: '/usuarios', icon: UserCog },
   { name: 'Estoque', href: '/estoque', icon: Package },
   { name: 'Financeiro', href: '/financeiro', icon: DollarSign },
   { name: 'Configurações', href: '/configuracoes', icon: Settings },

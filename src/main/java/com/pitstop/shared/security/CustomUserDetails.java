@@ -43,6 +43,8 @@ public class CustomUserDetails implements UserDetails {
      * Returns the authorities granted to the user.
      *
      * <p>Maps the user's {@code perfil} (role) to a Spring Security authority.
+     * <p>Returns the role name without "ROLE_" prefix for use with {@code @PreAuthorize("hasAnyAuthority()")}.
+     * If using {@code hasAnyRole()}, the prefix should be added here.
      *
      * @return a collection containing a single GrantedAuthority (the user's role)
      */

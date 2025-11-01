@@ -222,3 +222,10 @@ O frontend está completamente configurado e pronto para ser integrado com o bac
 **Build Status**: ✅ Passing
 **TypeScript**: ✅ No errors
 **Linter**: ✅ Configured
+
+4 Usuários já criados:
+- admin@pitstop.com / admin123
+- gerente@pitstop.com / senha123
+- atendente@pitstop.com / senha123
+- mecanico@pitstop.com / senha123
+- mecanico2@pitstop.com / senha123

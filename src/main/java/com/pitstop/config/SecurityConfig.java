@@ -101,6 +101,7 @@ public class SecurityConfig {
                         .requestMatchers(
                                 "/api/auth/login",
                                 "/api/auth/refresh",
+                                "/api/admin/seed", // TODO: REMOVE IN PRODUCTION!
                                 "/api/health",
                                 "/api/debug/**",
                                 "/swagger-ui/**",

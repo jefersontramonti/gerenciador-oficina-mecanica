@@ -4,7 +4,9 @@
       "Bash(mkdir:*)",
       "Bash(docker-compose up:*)",
       "Bash(ping:*)",
-      "Bash(taskkill:*)"
+      "Bash(taskkill:*)",
+      "Bash(./mvnw.cmd clean:*)",
+      "Bash(tree:*)"
     ],
     "deny": [],
     "ask": []

@@ -10,6 +10,10 @@ import { ClienteDetailPage } from './features/clientes/pages/ClienteDetailPage';
 import { VeiculosListPage } from './features/veiculos/pages/VeiculosListPage';
 import { VeiculoFormPage } from './features/veiculos/pages/VeiculoFormPage';
 import { VeiculoDetailPage } from './features/veiculos/pages/VeiculoDetailPage';
+import { OrdemServicoListPage } from './features/ordens-servico/pages/OrdemServicoListPage';
+import { OrdemServicoFormPage } from './features/ordens-servico/pages/OrdemServicoFormPage';
+import { OrdemServicoDetailPage } from './features/ordens-servico/pages/OrdemServicoDetailPage';
+import { UsuariosListPage, UsuarioFormPage } from './features/usuarios/pages';
 import { PerfilUsuario } from './features/auth/types';
 
 function App() {
@@ -119,10 +123,78 @@ function App() {
           </Route>
 
           {/* Ordens de Serviço - Todos podem ver */}
-          <Route
-            path="ordens-servico"
-            element={<ComingSoonPage title="Ordens de Serviço" />}
-          />
+          <Route path="ordens-servico">
+            <Route
+              index
+              element={
+                <ProtectedRoute>
+                  <OrdemServicoListPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="novo"
+              element={
+                <ProtectedRoute
+                  requiredRoles={[PerfilUsuario.ADMIN, PerfilUsuario.GERENTE, PerfilUsuario.ATENDENTE]}
+                >
+                  <OrdemServicoFormPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path=":id"
+              element={
+                <ProtectedRoute>
+                  <OrdemServicoDetailPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path=":id/editar"
+              element={
+                <ProtectedRoute
+                  requiredRoles={[PerfilUsuario.ADMIN, PerfilUsuario.GERENTE, PerfilUsuario.ATENDENTE]}
+                >
+                  <OrdemServicoFormPage />
+                </ProtectedRoute>
+              }
+            />
+          </Route>
+
+          {/* Usuários - ADMIN e GERENTE */}
+          <Route path="usuarios">
+            <Route
+              index
+              element={
+                <ProtectedRoute
+                  requiredRoles={[PerfilUsuario.ADMIN, PerfilUsuario.GERENTE]}
+                >
+                  <UsuariosListPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="novo"
+              element={
+                <ProtectedRoute
+                  requiredRoles={[PerfilUsuario.ADMIN, PerfilUsuario.GERENTE]}
+                >
+                  <UsuarioFormPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path=":id/editar"
+              element={
+                <ProtectedRoute
+                  requiredRoles={[PerfilUsuario.ADMIN, PerfilUsuario.GERENTE]}
+                >
+                  <UsuarioFormPage />
+                </ProtectedRoute>
+              }
+            />
+          </Route>
 
           {/* Estoque - Todos podem ver, mas só ADMIN e GERENTE podem modificar */}
           <Route
