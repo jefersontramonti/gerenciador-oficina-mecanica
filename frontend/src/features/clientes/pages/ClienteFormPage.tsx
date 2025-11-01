@@ -20,7 +20,7 @@ export const ClienteFormPage = () => {
   const { id } = useParams<{ id: string }>();
   const isEditMode = !!id;
 
-  const { data: cliente, isLoading: loadingCliente } = useCliente(id!, !!id);
+  const { data: cliente, isLoading: loadingCliente } = useCliente(id);
   const createMutation = useCreateCliente();
   const updateMutation = useUpdateCliente();
 

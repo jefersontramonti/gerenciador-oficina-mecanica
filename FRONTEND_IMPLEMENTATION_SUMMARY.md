@@ -2,10 +2,10 @@
 
 ## 📊 Status Geral do Projeto
 
-**Data:** 31 de Outubro de 2025
-**Build Status:** ✅ Passing (5.15s)
+**Data:** 01 de Novembro de 2025
+**Build Status:** ✅ Passing (6.21s)
 **TypeScript:** ✅ No errors
-**Bundle Size:** 714.46 kB (211.50 kB gzipped)
+**Bundle Size:** 865.93 kB (233.28 kB gzipped)
 
 ---
 
@@ -41,7 +41,7 @@ auth/
 
 ---
 
-### 2. **Clientes** (75% Completo)
+### 2. **Clientes** (100% Completo) ✅
 **Localização:** `features/clientes/`
 
 #### Funcionalidades Implementadas:
@@ -63,14 +63,14 @@ auth/
   - Ações: visualizar, editar, desativar/reativar
   - Loading/error/empty states
 
-#### Funcionalidades Pendentes:
-- 🚧 Página de criação (`ClienteFormPage` modo create)
-- 🚧 Página de edição (`ClienteFormPage` modo edit)
-- 🚧 Página de detalhes (`ClienteDetailPage`)
-- 🚧 Componentes de formulário:
+#### Funcionalidades Implementadas (COMPLETO):
+- ✅ Página de criação (`ClienteFormPage` modo create)
+- ✅ Página de edição (`ClienteFormPage` modo edit)
+- ✅ Página de detalhes (`ClienteDetailPage`)
+- ✅ Componentes de formulário:
   - InputMask (CPF, CNPJ, telefone, CEP)
-  - AddressFields
-  - Integração ViaCEP
+  - Máscaras brasileiras com validação
+- ⏳ Integração ViaCEP (pendente)
 
 #### Arquivos:
 ```
@@ -78,7 +78,9 @@ clientes/
 ├── hooks/
 │   └── useClientes.ts (10 hooks)
 ├── pages/
-│   └── ClientesListPage.tsx
+│   ├── ClientesListPage.tsx
+│   ├── ClienteFormPage.tsx
+│   └── ClienteDetailPage.tsx
 ├── services/
 │   └── clienteService.ts
 ├── types/
@@ -109,6 +111,72 @@ clientes/
   - ApiResponse, PaginatedResponse, ApiError
 - ✅ **Utils**
   - cn (Tailwind class merger)
+  - masks (CPF, CNPJ, telefone, CEP, placa, chassi)
+
+---
+
+### 3. **Veículos** (100% Completo) ✅
+**Localização:** `features/veiculos/`
+
+#### Funcionalidades Implementadas (COMPLETO):
+- ✅ **Types completos** baseados na API
+  - Veiculo, ClienteResumo, CreateVeiculoRequest, UpdateVeiculoRequest, UpdateQuilometragemRequest
+- ✅ **Service com 12 métodos**
+  - findAll, findById, findByPlaca, findByClienteId
+  - create, update, updateQuilometragem, delete
+  - getEstatisticasCliente, getMarcas, getModelos, getAnos
+- ✅ **Hooks React Query** (12 hooks)
+  - Queries: useVeiculos, useVeiculo, useVeiculoByPlaca, useVeiculosByCliente
+  - Mutations: useCreateVeiculo, useUpdateVeiculo, useUpdateQuilometragem, useDeleteVeiculo
+  - Filtros: useMarcas, useModelos, useAnos, useVeiculoEstatisticasCliente
+- ✅ **Validação com Zod**
+  - createVeiculoSchema, updateVeiculoSchema, updateQuilometragemSchema
+  - Validações de formato (placa, chassi VIN, ano, quilometragem)
+- ✅ **Máscaras de input**
+  - Placa (ABC-1234 ou ABC1D23 Mercosul)
+  - Chassi (VIN - 17 caracteres sem I, O, Q)
+- ✅ **Página de Listagem** (`VeiculosListPage.tsx`)
+  - Tabela responsiva com dados do proprietário
+  - Filtros (placa, marca, modelo, ano)
+  - Paginação completa
+  - Ações: visualizar, editar, remover
+  - Loading/error/empty states
+
+- ✅ **Página de Formulário** (`VeiculoFormPage.tsx`)
+  - Modo criar/editar unificado
+  - Seletor de cliente com busca em tempo real (modo criar)
+  - Dropdown de anos (1950 até ano atual + 1)
+  - Validação completa com feedback visual
+  - Loading states durante submit
+- ✅ **Página de Detalhes** (`VeiculoDetailPage.tsx`)
+  - Visualização completa dos dados
+  - Link para perfil do cliente
+  - Botões de ação rápida (Nova OS, Ver histórico)
+  - Formatação de datas e quilometragem
+  - Metadata (criado em, atualizado em)
+
+#### Rotas Integradas:
+- ✅ `/veiculos` - Listagem
+- ✅ `/veiculos/novo` - Criar veículo
+- ✅ `/veiculos/:id` - Detalhes do veículo
+- ✅ `/veiculos/:id/editar` - Editar veículo
+
+#### Arquivos:
+```
+veiculos/
+├── hooks/
+│   └── useVeiculos.ts (12 hooks)
+├── pages/
+│   ├── VeiculosListPage.tsx
+│   ├── VeiculoFormPage.tsx
+│   └── VeiculoDetailPage.tsx
+├── services/
+│   └── veiculoService.ts
+├── types/
+│   └── index.ts
+└── utils/
+    └── validation.ts
+```
 
 ---
 
@@ -183,9 +251,9 @@ frontend/
 │   │   └── queryClient.ts
 │   ├── features/
 │   │   ├── auth/          ✅ 100%
-│   │   ├── clientes/      ✅ 75%
+│   │   ├── clientes/      ✅ 100%
+│   │   ├── veiculos/      ✅ 100%
 │   │   ├── dashboard/     ✅ 50%
-│   │   ├── veiculos/      🚧 0%
 │   │   ├── ordens-servico/🚧 0%
 │   │   ├── estoque/       🚧 0%
 │   │   └── financeiro/    🚧 0%
@@ -237,11 +305,9 @@ http://localhost:8080
 ## 🎯 Próximos Passos Recomendados
 
 ### Curto Prazo (Prioridade Alta)
-1. **Finalizar módulo de Clientes:**
-   - Criar `ClienteFormPage` (create/edit)
-   - Criar `ClienteDetailPage`
-   - Implementar máscaras de input
-   - Integrar ViaCEP
+1. **Integração ViaCEP:**
+   - Autocompletar endereço em ClienteFormPage
+   - Validação de CEP existente
 
 2. **Criar componentes UI base:**
    - Button, Input, Select, Checkbox
@@ -255,12 +321,7 @@ http://localhost:8080
    - Tabela de atividades recentes
 
 ### Médio Prazo (Prioridade Média)
-4. **Módulo de Veículos:**
-   - Types, service, hooks
-   - CRUD completo
-   - Vinculação com clientes
-
-5. **Módulo de Ordens de Serviço:**
+4. **Módulo de Ordens de Serviço:**
    - Fluxo completo (criar, aprovar, em andamento, finalizar)
    - Gestão de status
    - Impressão de OS

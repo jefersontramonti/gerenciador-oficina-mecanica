@@ -8,7 +8,7 @@ export const ClienteDetailPage = () => {
   const navigate = useNavigate();
   const { id } = useParams<{ id: string }>();
 
-  const { data: cliente, isLoading, error } = useCliente(id!);
+  const { data: cliente, isLoading, error } = useCliente(id);
   const deleteMutation = useDeleteCliente();
   const reativarMutation = useReativarCliente();
 

@@ -7,6 +7,9 @@ import { DashboardPage } from './features/dashboard/pages/DashboardPage';
 import { ClientesListPage } from './features/clientes/pages/ClientesListPage';
 import { ClienteFormPage } from './features/clientes/pages/ClienteFormPage';
 import { ClienteDetailPage } from './features/clientes/pages/ClienteDetailPage';
+import { VeiculosListPage } from './features/veiculos/pages/VeiculosListPage';
+import { VeiculoFormPage } from './features/veiculos/pages/VeiculoFormPage';
+import { VeiculoDetailPage } from './features/veiculos/pages/VeiculoDetailPage';
 import { PerfilUsuario } from './features/auth/types';
 
 function App() {
@@ -72,16 +75,48 @@ function App() {
           </Route>
 
           {/* Veículos - Acessível por ADMIN, GERENTE, ATENDENTE */}
-          <Route
-            path="veiculos"
-            element={
-              <ProtectedRoute
-                requiredRoles={[PerfilUsuario.ADMIN, PerfilUsuario.GERENTE, PerfilUsuario.ATENDENTE]}
-              >
-                <ComingSoonPage title="Veículos" />
-              </ProtectedRoute>
-            }
-          />
+          <Route path="veiculos">
+            <Route
+              index
+              element={
+                <ProtectedRoute
+                  requiredRoles={[PerfilUsuario.ADMIN, PerfilUsuario.GERENTE, PerfilUsuario.ATENDENTE]}
+                >
+                  <VeiculosListPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="novo"
+              element={
+                <ProtectedRoute
+                  requiredRoles={[PerfilUsuario.ADMIN, PerfilUsuario.GERENTE, PerfilUsuario.ATENDENTE]}
+                >
+                  <VeiculoFormPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path=":id"
+              element={
+                <ProtectedRoute
+                  requiredRoles={[PerfilUsuario.ADMIN, PerfilUsuario.GERENTE, PerfilUsuario.ATENDENTE]}
+                >
+                  <VeiculoDetailPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path=":id/editar"
+              element={
+                <ProtectedRoute
+                  requiredRoles={[PerfilUsuario.ADMIN, PerfilUsuario.GERENTE, PerfilUsuario.ATENDENTE]}
+                >
+                  <VeiculoFormPage />
+                </ProtectedRoute>
+              }
+            />
+          </Route>
 
           {/* Ordens de Serviço - Todos podem ver */}
           <Route

@@ -76,6 +76,33 @@ export const masks = {
 
     return masks.cnpj(value);
   },
+
+  /**
+   * Placa de veículo mask: ABC-1234 ou ABC1D23 (Mercosul)
+   */
+  placa: (value: string): string => {
+    const cleaned = value.replace(/[^A-Za-z0-9]/g, '').toUpperCase();
+
+    // Formato antigo: ABC-1234
+    if (cleaned.length <= 7) {
+      return cleaned
+        .replace(/^([A-Z]{0,3})/, '$1')
+        .replace(/^([A-Z]{3})([0-9]{0,4})/, '$1-$2');
+    }
+
+    // Formato Mercosul: ABC1D23
+    return cleaned.substring(0, 7);
+  },
+
+  /**
+   * Chassi (VIN) mask: 17 caracteres alfanuméricos (sem I, O, Q)
+   */
+  chassi: (value: string): string => {
+    return value
+      .replace(/[^A-HJ-NPR-Z0-9]/gi, '')
+      .toUpperCase()
+      .substring(0, 17);
+  },
 };
 
 /**

@@ -35,11 +35,11 @@ export const useClientes = (filters: ClienteFilters = {}) => {
 /**
  * Hook to fetch single cliente by ID
  */
-export const useCliente = (id: string, enabled = true) => {
+export const useCliente = (id?: string) => {
   return useQuery({
-    queryKey: clienteKeys.detail(id),
-    queryFn: () => clienteService.findById(id),
-    enabled: enabled && !!id,
+    queryKey: clienteKeys.detail(id || ''),
+    queryFn: () => clienteService.findById(id!),
+    enabled: !!id,
     staleTime: 2 * 60 * 1000, // 2 minutes
   });
 };

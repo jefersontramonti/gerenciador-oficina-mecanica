@@ -2,7 +2,7 @@ import { forwardRef, type InputHTMLAttributes } from 'react';
 import { masks } from '@/shared/utils/masks';
 import { cn } from '@/shared/utils/cn';
 
-type MaskType = 'cpf' | 'cnpj' | 'cpfCnpj' | 'phone' | 'cep';
+type MaskType = 'cpf' | 'cnpj' | 'cpfCnpj' | 'phone' | 'cep' | 'placa' | 'chassi';
 
 interface InputMaskProps extends Omit<InputHTMLAttributes<HTMLInputElement>, 'onChange'> {
   mask: MaskType;
