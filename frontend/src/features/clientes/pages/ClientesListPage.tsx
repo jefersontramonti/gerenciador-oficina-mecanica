@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useClientes, useDeleteCliente, useReativarCliente } from '../hooks/useClientes';
-import { Plus, Search, Edit, Trash2, RotateCw, Eye, CheckCircle, XCircle, FilterX } from 'lucide-react';
+import { Plus, Search, Edit, Eye, CheckCircle, XCircle, FilterX, Trash2 } from 'lucide-react';
 import type { ClienteFilters, TipoCliente } from '../types';
 
 const ITEMS_PER_PAGE = 20;
@@ -211,22 +211,32 @@ export const ClientesListPage = () => {
                           <Edit className="h-5 w-5" />
                         </Link>
                         {cliente.ativo ? (
-                          <button
-                            onClick={() => handleDelete(cliente.id)}
-                            className="text-red-600 hover:text-red-800"
-                            title="Desativar"
-                            disabled={deleteMutation.isPending}
-                          >
-                            <Trash2 className="h-5 w-5" />
-                          </button>
+                          <>
+                            <button
+                              onClick={() => handleDelete(cliente.id)}
+                              className="text-green-600 hover:text-green-800"
+                              title="Desativar Cliente"
+                              disabled={deleteMutation.isPending}
+                            >
+                              <CheckCircle className="h-5 w-5" />
+                            </button>
+                            <button
+                              onClick={() => handleDelete(cliente.id)}
+                              className="text-red-600 hover:text-red-800"
+                              title="Desativar Cliente"
+                              disabled={deleteMutation.isPending}
+                            >
+                              <Trash2 className="h-5 w-5" />
+                            </button>
+                          </>
                         ) : (
                           <button
                             onClick={() => handleReativar(cliente.id)}
-                            className="text-green-600 hover:text-green-800"
-                            title="Reativar"
+                            className="text-gray-500 hover:text-gray-700"
+                            title="Reativar Cliente"
                             disabled={reativarMutation.isPending}
                           >
-                            <RotateCw className="h-5 w-5" />
+                            <XCircle className="h-5 w-5" />
                           </button>
                         )}
                       </div>
