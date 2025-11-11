@@ -6,7 +6,8 @@
       "Bash(ping:*)",
       "Bash(taskkill:*)",
       "Bash(./mvnw.cmd clean:*)",
-      "Bash(tree:*)"
+      "Bash(tree:*)",
+      "Bash(\"C:\\Users\\maninho\\Desktop\\Projeto oficina mecanica\\PitStop\\frontend\\src\\features\\estoque\\services\\localArmazenamentoService.ts\")"
     ],
     "deny": [],
     "ask": []

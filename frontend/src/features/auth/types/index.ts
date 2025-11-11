@@ -26,6 +26,7 @@ export interface Usuario {
 export interface LoginRequest {
   email: string;
   senha: string;
+  rememberMe?: boolean;
 }
 
 export interface RegisterRequest {
@@ -39,6 +40,15 @@ export interface LoginResponse {
   accessToken: string;
   refreshToken: string;
   usuario: Usuario;
+}
+
+export interface ForgotPasswordRequest {
+  email: string;
+}
+
+export interface ResetPasswordRequest {
+  token: string;
+  newPassword: string;
 }
 
 export interface AuthState {

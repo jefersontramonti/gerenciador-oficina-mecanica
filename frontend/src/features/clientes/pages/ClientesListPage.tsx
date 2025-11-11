@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useClientes, useDeleteCliente, useReativarCliente } from '../hooks/useClientes';
 import { Plus, Search, Edit, Eye, CheckCircle, XCircle, FilterX, Trash2 } from 'lucide-react';
+import { showError } from '@/shared/utils/notifications';
 import type { ClienteFilters, TipoCliente } from '../types';
 
 const ITEMS_PER_PAGE = 20;
@@ -34,7 +35,7 @@ export const ClientesListPage = () => {
       try {
         await deleteMutation.mutateAsync(id);
       } catch (error) {
-        alert('Erro ao desativar cliente');
+        showError('Erro ao desativar cliente');
       }
     }
   };
@@ -43,7 +44,7 @@ export const ClientesListPage = () => {
     try {
       await reativarMutation.mutateAsync(id);
     } catch (error) {
-      alert('Erro ao reativar cliente');
+      showError('Erro ao reativar cliente');
     }
   };
 

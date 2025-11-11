@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useNavigate, useLocation, Link } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -15,12 +15,9 @@ type LoginFormData = z.infer<typeof loginSchema>;
 
 export const LoginPage = () => {
   const navigate = useNavigate();
-  const location = useLocation();
   const { login, isLoading, error } = useAuth();
   const [apiError, setApiError] = useState<string | null>(null);
   const [rememberMe, setRememberMe] = useState(false);
-
-  const from = (location.state as any)?.from?.pathname || '/';
 
   const {
     register,
@@ -33,8 +30,9 @@ export const LoginPage = () => {
   const onSubmit = async (data: LoginFormData) => {
     try {
       setApiError(null);
-      await login(data);
-      navigate(from, { replace: true });
+      await login({ ...data, rememberMe });
+      // Sempre redireciona para o dashboard após login bem-sucedido
+      navigate('/', { replace: true });
     } catch (err: any) {
       setApiError(err.message || 'Erro ao fazer login');
     }
@@ -137,12 +135,12 @@ export const LoginPage = () => {
               </div>
 
               <div className="text-sm">
-                <a
-                  href="#"
+                <Link
+                  to="/forgot-password"
                   className="font-medium text-blue-400 hover:text-blue-300 hover:underline"
                 >
                   Esqueceu sua senha?
-                </a>
+                </Link>
               </div>
             </div>
 

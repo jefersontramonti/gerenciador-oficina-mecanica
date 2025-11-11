@@ -123,4 +123,15 @@ public class CustomUserDetails implements UserDetails {
     public boolean isEnabled() {
         return usuario.isAtivo();
     }
+
+    /**
+     * Returns the user's unique identifier (UUID).
+     *
+     * <p>Useful for retrieving the authenticated user's ID in services and controllers.
+     *
+     * @return the user's UUID
+     */
+    public java.util.UUID getUserId() {
+        return usuario.getId();
+    }
 }

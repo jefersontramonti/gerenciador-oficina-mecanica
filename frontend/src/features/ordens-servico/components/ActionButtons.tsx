@@ -6,6 +6,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { CheckCircle, Play, XCircle, TruckIcon, Edit } from 'lucide-react';
+import { showError, showSuccess, showWarning } from '@/shared/utils/notifications';
 import { useAuth } from '@/features/auth/hooks/useAuth';
 import type { OrdemServico } from '../types';
 import { getAvailableActions, getConfirmationMessage, type ActionType } from '../utils/statusTransitions';
@@ -81,18 +82,18 @@ export const ActionButtons: React.FC<ActionButtonsProps> = ({ ordemServico, onAc
           break;
       }
 
-      alert('Ação realizada com sucesso!');
+      showSuccess('Ação realizada com sucesso!');
       onActionComplete?.();
     } catch (error: any) {
       const errorMessage =
         error.response?.data?.message || error.message || 'Erro ao realizar ação';
-      alert(`Erro: ${errorMessage}`);
+      showError(`Erro: ${errorMessage}`);
     }
   };
 
   const handleCancelConfirm = async () => {
     if (!cancelMotivo.trim()) {
-      alert('Informe o motivo do cancelamento');
+      showWarning('Informe o motivo do cancelamento');
       return;
     }
 
@@ -102,14 +103,14 @@ export const ActionButtons: React.FC<ActionButtonsProps> = ({ ordemServico, onAc
         data: { motivo: cancelMotivo },
       });
 
-      alert('OS cancelada com sucesso!');
+      showSuccess('OS cancelada com sucesso!');
       setShowCancelModal(false);
       setCancelMotivo('');
       onActionComplete?.();
     } catch (error: any) {
       const errorMessage =
         error.response?.data?.message || error.message || 'Erro ao cancelar OS';
-      alert(`Erro: ${errorMessage}`);
+      showError(`Erro: ${errorMessage}`);
     }
   };
 

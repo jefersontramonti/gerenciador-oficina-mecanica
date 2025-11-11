@@ -3,6 +3,8 @@ import type {
   LoginRequest,
   LoginResponse,
   RegisterRequest,
+  ForgotPasswordRequest,
+  ResetPasswordRequest,
   Usuario,
 } from '../types';
 
@@ -34,9 +36,21 @@ export const authService = {
   /**
    * Register new user
    */
-  async register(data: RegisterRequest): Promise<Usuario> {
-    const response = await api.post<Usuario>('/auth/register', data);
-    return response.data;
+  async register(data: RegisterRequest): Promise<LoginResponse> {
+    const response = await api.post<LoginResponse>(
+      '/auth/register',
+      data,
+      {
+        withCredentials: true, // Important: Send/receive cookies for refresh token
+      }
+    );
+
+    const loginData = response.data;
+
+    // Store access token in memory
+    setAccessToken(loginData.accessToken);
+
+    return loginData;
   },
 
   /**
@@ -99,5 +113,20 @@ export const authService = {
       currentPassword,
       newPassword,
     });
+  },
+
+  /**
+   * Request password reset (forgot password)
+   * Sends a reset link to the user's email
+   */
+  async forgotPassword(data: ForgotPasswordRequest): Promise<void> {
+    await api.post('/auth/forgot-password', data);
+  },
+
+  /**
+   * Reset password using token
+   */
+  async resetPassword(data: ResetPasswordRequest): Promise<void> {
+    await api.post('/auth/reset-password', data);
   },
 };

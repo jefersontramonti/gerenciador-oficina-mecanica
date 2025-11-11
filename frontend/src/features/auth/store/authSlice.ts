@@ -3,9 +3,56 @@ import type { PayloadAction } from '@reduxjs/toolkit';
 import { authService } from '../services/authService';
 import type { AuthState, LoginRequest, Usuario } from '../types';
 
+// LocalStorage keys
+const STORAGE_KEY_USER = 'pitstop_user';
+const STORAGE_KEY_REMEMBER = 'pitstop_remember_me';
+
+// Load user from localStorage if remember me is active
+const loadUserFromStorage = (): Usuario | null => {
+  try {
+    const rememberMe = localStorage.getItem(STORAGE_KEY_REMEMBER);
+    if (rememberMe === 'true') {
+      const userJson = localStorage.getItem(STORAGE_KEY_USER);
+      if (userJson) {
+        return JSON.parse(userJson);
+      }
+    }
+  } catch (error) {
+    console.error('Error loading user from localStorage:', error);
+  }
+  return null;
+};
+
+// Save user to localStorage
+const saveUserToStorage = (user: Usuario, rememberMe: boolean) => {
+  try {
+    if (rememberMe) {
+      localStorage.setItem(STORAGE_KEY_USER, JSON.stringify(user));
+      localStorage.setItem(STORAGE_KEY_REMEMBER, 'true');
+    } else {
+      localStorage.removeItem(STORAGE_KEY_USER);
+      localStorage.removeItem(STORAGE_KEY_REMEMBER);
+    }
+  } catch (error) {
+    console.error('Error saving user to localStorage:', error);
+  }
+};
+
+// Clear user from localStorage
+const clearUserFromStorage = () => {
+  try {
+    localStorage.removeItem(STORAGE_KEY_USER);
+    localStorage.removeItem(STORAGE_KEY_REMEMBER);
+  } catch (error) {
+    console.error('Error clearing user from localStorage:', error);
+  }
+};
+
+const storedUser = loadUserFromStorage();
+
 const initialState: AuthState = {
-  user: null,
-  isAuthenticated: false,
+  user: storedUser,
+  isAuthenticated: !!storedUser,
   isLoading: false,
   error: null,
 };
@@ -19,7 +66,7 @@ export const loginUser = createAsyncThunk(
   async (credentials: LoginRequest, { rejectWithValue }) => {
     try {
       const response = await authService.login(credentials);
-      return response.usuario;
+      return { usuario: response.usuario, rememberMe: credentials.rememberMe || false };
     } catch (error: any) {
       return rejectWithValue(error.message || 'Erro ao fazer login');
     }
@@ -76,9 +123,12 @@ const authSlice = createSlice({
       })
       .addCase(loginUser.fulfilled, (state, action) => {
         state.isLoading = false;
-        state.user = action.payload;
+        state.user = action.payload.usuario;
         state.isAuthenticated = true;
         state.error = null;
+
+        // Save to localStorage if remember me is active
+        saveUserToStorage(action.payload.usuario, action.payload.rememberMe);
       })
       .addCase(loginUser.rejected, (state, action) => {
         state.isLoading = false;
@@ -95,12 +145,18 @@ const authSlice = createSlice({
         state.user = null;
         state.isAuthenticated = false;
         state.error = null;
+
+        // Clear localStorage
+        clearUserFromStorage();
       })
       .addCase(logoutUser.rejected, (state) => {
         // Force logout even on error
         state.isLoading = false;
         state.user = null;
         state.isAuthenticated = false;
+
+        // Clear localStorage even on error
+        clearUserFromStorage();
       });
 
     // Get current user

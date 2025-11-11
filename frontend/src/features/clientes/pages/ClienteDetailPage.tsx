@@ -1,6 +1,7 @@
 import { useNavigate, useParams, Link } from 'react-router-dom';
 import { useCliente, useDeleteCliente, useReativarCliente } from '../hooks/useClientes';
 import { ArrowLeft, Edit, Trash2, RotateCw, Mail, Phone, MapPin } from 'lucide-react';
+import { showError } from '@/shared/utils/notifications';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 
@@ -18,7 +19,7 @@ export const ClienteDetailPage = () => {
         await deleteMutation.mutateAsync(id!);
         navigate('/clientes');
       } catch (error) {
-        alert('Erro ao desativar cliente');
+        showError('Erro ao desativar cliente');
       }
     }
   };
@@ -27,7 +28,7 @@ export const ClienteDetailPage = () => {
     try {
       await reativarMutation.mutateAsync(id!);
     } catch (error) {
-      alert('Erro ao reativar cliente');
+      showError('Erro ao reativar cliente');
     }
   };
 

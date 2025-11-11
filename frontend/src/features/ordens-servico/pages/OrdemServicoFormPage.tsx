@@ -7,7 +7,8 @@ import { useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useForm, useFieldArray, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { ArrowLeft, Save, Plus, Trash2, Wrench, Package } from 'lucide-react';
+import { ArrowLeft, Save, Plus, Trash2, Package } from 'lucide-react';
+import { showError } from '@/shared/utils/notifications';
 import { useOrdemServico, useCreateOrdemServico, useUpdateOrdemServico } from '../hooks/useOrdensServico';
 import { ordemServicoFormSchema } from '../utils/validation';
 import { canEdit } from '../utils/statusTransitions';
@@ -32,10 +33,13 @@ export const OrdemServicoFormPage = () => {
     watch,
     setValue,
     formState: { errors },
-  } = useForm<OrdemServicoFormData>({
+  } = useForm({
     resolver: zodResolver(ordemServicoFormSchema),
     defaultValues: {
       dataAbertura: new Date().toISOString().split('T')[0],
+      diagnostico: '',
+      observacoes: '',
+      dataPrevisao: '',
       valorMaoObra: 0,
       valorPecas: 0,
       valorTotal: 0,
@@ -105,13 +109,17 @@ export const OrdemServicoFormPage = () => {
     if (ordemServico && isEditMode) {
       // Verificar se pode editar
       if (!canEdit(ordemServico.status)) {
-        alert('Esta OS não pode ser editada neste status.');
+        showError('Esta OS não pode ser editada neste status.');
         navigate(`/ordens-servico/${id}`);
         return;
       }
 
-      setValue('veiculoId', ordemServico.veiculoId);
-      setValue('usuarioId', ordemServico.usuarioId);
+      if (ordemServico.veiculoId) {
+        setValue('veiculoId', ordemServico.veiculoId);
+      }
+      if (ordemServico.usuarioId) {
+        setValue('usuarioId', ordemServico.usuarioId);
+      }
       setValue('problemasRelatados', ordemServico.problemasRelatados);
       setValue('diagnostico', ordemServico.diagnostico || '');
       setValue('observacoes', ordemServico.observacoes || '');
@@ -175,7 +183,7 @@ export const OrdemServicoFormPage = () => {
       navigate('/ordens-servico');
     } catch (error: any) {
       const errorMessage = error.response?.data?.message || error.message || 'Erro ao salvar OS';
-      alert(`Erro: ${errorMessage}`);
+      showError(`Erro: ${errorMessage}`);
     }
   };
 

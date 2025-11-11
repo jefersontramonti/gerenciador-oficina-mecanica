@@ -1,6 +1,7 @@
 import { useNavigate, useParams, Link } from 'react-router-dom';
 import { useVeiculo, useDeleteVeiculo } from '../hooks/useVeiculos';
 import { ArrowLeft, Edit, Trash2, Car, User, Calendar, Gauge } from 'lucide-react';
+import { showError } from '@/shared/utils/notifications';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 
@@ -18,9 +19,9 @@ export const VeiculoDetailPage = () => {
         navigate('/veiculos');
       } catch (error: any) {
         if (error.response?.status === 409) {
-          alert('Não é possível remover este veículo pois há ordens de serviço vinculadas.');
+          showError('Não é possível remover este veículo pois há ordens de serviço vinculadas.');
         } else {
-          alert('Erro ao remover veículo');
+          showError('Erro ao remover veículo');
         }
       }
     }

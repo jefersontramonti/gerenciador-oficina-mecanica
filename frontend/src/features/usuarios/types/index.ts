@@ -16,16 +16,18 @@ export type PerfilUsuario = (typeof PerfilUsuario)[keyof typeof PerfilUsuario];
 
 /**
  * Interface do usuário (resposta da API)
+ * Nota: LocalDateTime pode vir como string ISO ou array [year, month, day, hour, minute, second]
  */
 export interface Usuario {
   id: string;
   nome: string;
   email: string;
   perfil: PerfilUsuario;
+  perfilNome?: string;
   ativo: boolean;
-  ultimoAcesso?: string;
-  createdAt: string;
-  updatedAt: string;
+  ultimoAcesso?: string | number[] | null;
+  createdAt: string | number[];
+  updatedAt: string | number[];
 }
 
 /**

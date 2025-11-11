@@ -14,11 +14,37 @@ export const api = axios.create({
   timeout: 30000, // 30 seconds
 });
 
-// Token management
+// Token management with localStorage persistence
+const TOKEN_STORAGE_KEY = 'pitstop_access_token';
+
 let accessToken: string | null = null;
+
+// Load token from localStorage on app init
+const loadTokenFromStorage = (): string | null => {
+  try {
+    return localStorage.getItem(TOKEN_STORAGE_KEY);
+  } catch (error) {
+    console.error('Error loading token from localStorage:', error);
+    return null;
+  }
+};
+
+// Initialize token from storage
+accessToken = loadTokenFromStorage();
 
 export const setAccessToken = (token: string | null) => {
   accessToken = token;
+
+  // Persist to localStorage
+  try {
+    if (token) {
+      localStorage.setItem(TOKEN_STORAGE_KEY, token);
+    } else {
+      localStorage.removeItem(TOKEN_STORAGE_KEY);
+    }
+  } catch (error) {
+    console.error('Error saving token to localStorage:', error);
+  }
 };
 
 export const getAccessToken = () => accessToken;

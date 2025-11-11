@@ -6,6 +6,7 @@ import { ArrowLeft, Save } from 'lucide-react';
 import { useCliente, useCreateCliente, useUpdateCliente } from '../hooks/useClientes';
 import { createClienteSchema, updateClienteSchema } from '../utils/validation';
 import { InputMask } from '@/shared/components/forms/InputMask';
+import { showError } from '@/shared/utils/notifications';
 import { TipoCliente } from '../types';
 import type { CreateClienteFormData, UpdateClienteFormData } from '../utils/validation';
 
@@ -72,7 +73,7 @@ export const ClienteFormPage = () => {
       }
       navigate('/clientes');
     } catch (error: any) {
-      alert(error.message || 'Erro ao salvar cliente');
+      showError(error.message || 'Erro ao salvar cliente');
     }
   };
 

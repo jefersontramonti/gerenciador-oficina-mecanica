@@ -9,12 +9,12 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { ArrowLeft, Save } from 'lucide-react';
+import { showError } from '@/shared/utils/notifications';
 import {
   useUsuario,
   useCreateUsuario,
   useUpdateUsuario,
 } from '../hooks/useUsuarios';
-import type { PerfilUsuario } from '../types';
 
 /**
  * Schema de validação Zod
@@ -24,7 +24,7 @@ const createUsuarioSchema = z.object({
   email: z.string().email('Email inválido'),
   senha: z.string().min(6, 'Senha deve ter no mínimo 6 caracteres'),
   perfil: z.enum(['ADMIN', 'GERENTE', 'ATENDENTE', 'MECANICO'], {
-    required_error: 'Selecione um perfil',
+    message: 'Selecione um perfil',
   }),
 });
 
@@ -33,7 +33,7 @@ const updateUsuarioSchema = z.object({
   email: z.string().email('Email inválido'),
   senha: z.string().min(6, 'Senha deve ter no mínimo 6 caracteres').optional().or(z.literal('')),
   perfil: z.enum(['ADMIN', 'GERENTE', 'ATENDENTE', 'MECANICO'], {
-    required_error: 'Selecione um perfil',
+    message: 'Selecione um perfil',
   }),
 });
 
@@ -91,13 +91,13 @@ export const UsuarioFormPage = () => {
       navigate('/usuarios');
     } catch (error: any) {
       if (error.response?.status === 409) {
-        alert('Email já está em uso por outro usuário.');
+        showError('Email já está em uso por outro usuário.');
       } else if (error.response?.status === 404) {
-        alert('Usuário não encontrado.');
+        showError('Usuário não encontrado.');
       } else {
         const errorMessage =
           error.response?.data?.message || error.message || 'Erro ao salvar usuário';
-        alert(`Erro: ${errorMessage}`);
+        showError(`Erro: ${errorMessage}`);
       }
     }
   };

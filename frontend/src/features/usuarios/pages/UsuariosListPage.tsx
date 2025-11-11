@@ -6,6 +6,8 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Plus, Edit, Eye, UserX, UserCheck } from 'lucide-react';
+import { formatDateTime } from '@/shared/utils/dateFormatter';
+import { showError } from '@/shared/utils/notifications';
 import {
   useUsuarios,
   useDeleteUsuario,
@@ -40,26 +42,6 @@ const PerfilBadge = ({ perfil }: { perfil: PerfilUsuario }) => {
   );
 };
 
-/**
- * Formata data/hora para exibição
- */
-const formatDateTime = (dateString?: string): string => {
-  if (!dateString) return 'Nunca';
-
-  const date = new Date(dateString);
-
-  // Verifica se a data é válida
-  if (isNaN(date.getTime())) return 'Data inválida';
-
-  return new Intl.DateTimeFormat('pt-BR', {
-    day: '2-digit',
-    month: '2-digit',
-    year: 'numeric',
-    hour: '2-digit',
-    minute: '2-digit',
-  }).format(date);
-};
-
 export const UsuariosListPage = () => {
   const [filters, setFilters] = useState<UsuarioFilters>({
     page: 0,
@@ -88,7 +70,7 @@ export const UsuariosListPage = () => {
       await deleteMutation.mutateAsync(id);
       refetch();
     } catch (error: any) {
-      alert(`Erro ao desativar usuário: ${error.message}`);
+      showError(`Erro ao desativar usuário: ${error.message}`);
     }
   };
 
@@ -101,7 +83,7 @@ export const UsuariosListPage = () => {
       await reactivateMutation.mutateAsync(id);
       refetch();
     } catch (error: any) {
-      alert(`Erro ao reativar usuário: ${error.message}`);
+      showError(`Erro ao reativar usuário: ${error.message}`);
     }
   };
 

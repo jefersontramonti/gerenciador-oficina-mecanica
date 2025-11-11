@@ -3,6 +3,7 @@ package com.pitstop.shared.exception;
 import com.pitstop.usuario.exception.*;
 import com.pitstop.cliente.exception.*;
 import com.pitstop.ordemservico.exception.*;
+import com.pitstop.estoque.exception.*;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ProblemDetail;
@@ -238,6 +239,160 @@ public class GlobalExceptionHandler {
         return problemDetail;
     }
 
+    // ========== EXCEÇÕES DO MÓDULO DE ESTOQUE ==========
+
+    /**
+     * Trata exceção quando uma peça não é encontrada.
+     * HTTP 404 - Not Found
+     */
+    @ExceptionHandler(PecaNotFoundException.class)
+    public ProblemDetail handlePecaNotFoundException(
+            PecaNotFoundException ex,
+            WebRequest request
+    ) {
+        log.warn("Peça não encontrada: {}", ex.getMessage());
+
+        ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(
+                HttpStatus.NOT_FOUND,
+                ex.getMessage()
+        );
+        problemDetail.setTitle("Peça Não Encontrada");
+        problemDetail.setType(URI.create("https://pitstop.com/errors/peca-not-found"));
+        problemDetail.setProperty("timestamp", Instant.now());
+
+        if (ex.getPecaId() != null) {
+            problemDetail.setProperty("pecaId", ex.getPecaId());
+        }
+        if (ex.getCodigo() != null) {
+            problemDetail.setProperty("codigo", ex.getCodigo());
+        }
+
+        return problemDetail;
+    }
+
+    /**
+     * Trata exceção de estoque insuficiente.
+     * HTTP 409 - Conflict
+     */
+    @ExceptionHandler(EstoqueInsuficienteException.class)
+    public ProblemDetail handleEstoqueInsuficienteException(
+            EstoqueInsuficienteException ex,
+            WebRequest request
+    ) {
+        log.error("Estoque insuficiente: {}", ex.getMessage());
+
+        ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(
+                HttpStatus.CONFLICT,
+                ex.getMessage()
+        );
+        problemDetail.setTitle("Estoque Insuficiente");
+        problemDetail.setType(URI.create("https://pitstop.com/errors/estoque-insuficiente"));
+        problemDetail.setProperty("timestamp", Instant.now());
+        problemDetail.setProperty("pecaId", ex.getPecaId());
+        problemDetail.setProperty("quantidadeRequerida", ex.getQuantidadeRequerida());
+        problemDetail.setProperty("quantidadeDisponivel", ex.getQuantidadeDisponivel());
+        problemDetail.setProperty("deficit", ex.getDeficit());
+
+        if (ex.getCodigoPeca() != null) {
+            problemDetail.setProperty("codigoPeca", ex.getCodigoPeca());
+        }
+        if (ex.getDescricaoPeca() != null) {
+            problemDetail.setProperty("descricaoPeca", ex.getDescricaoPeca());
+        }
+
+        return problemDetail;
+    }
+
+    /**
+     * Trata exceção de código de peça duplicado.
+     * HTTP 409 - Conflict
+     */
+    @ExceptionHandler(CodigoPecaDuplicadoException.class)
+    public ProblemDetail handleCodigoPecaDuplicadoException(
+            CodigoPecaDuplicadoException ex,
+            WebRequest request
+    ) {
+        log.warn("Código de peça duplicado: {}", ex.getMessage());
+
+        ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(
+                HttpStatus.CONFLICT,
+                ex.getMessage()
+        );
+        problemDetail.setTitle("Código de Peça Duplicado");
+        problemDetail.setType(URI.create("https://pitstop.com/errors/codigo-peca-duplicado"));
+        problemDetail.setProperty("timestamp", Instant.now());
+        problemDetail.setProperty("codigo", ex.getCodigo());
+
+        return problemDetail;
+    }
+
+    /**
+     * Trata exceção de movimentação inválida.
+     * HTTP 400 - Bad Request
+     */
+    @ExceptionHandler(MovimentacaoInvalidaException.class)
+    public ProblemDetail handleMovimentacaoInvalidaException(
+            MovimentacaoInvalidaException ex,
+            WebRequest request
+    ) {
+        log.warn("Movimentação inválida: {}", ex.getMessage());
+
+        ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(
+                HttpStatus.BAD_REQUEST,
+                ex.getMessage()
+        );
+        problemDetail.setTitle("Movimentação Inválida");
+        problemDetail.setType(URI.create("https://pitstop.com/errors/movimentacao-invalida"));
+        problemDetail.setProperty("timestamp", Instant.now());
+
+        return problemDetail;
+    }
+
+    /**
+     * Trata exceção de ciclo hierárquico em locais de armazenamento.
+     * HTTP 400 - Bad Request
+     */
+    @ExceptionHandler(CicloHierarquicoException.class)
+    public ProblemDetail handleCicloHierarquicoException(
+            CicloHierarquicoException ex,
+            WebRequest request
+    ) {
+        log.warn("Ciclo hierárquico detectado: {}", ex.getMessage());
+
+        ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(
+                HttpStatus.BAD_REQUEST,
+                ex.getMessage()
+        );
+        problemDetail.setTitle("Ciclo Hierárquico");
+        problemDetail.setType(URI.create("https://pitstop.com/errors/ciclo-hierarquico"));
+        problemDetail.setProperty("timestamp", Instant.now());
+
+        return problemDetail;
+    }
+
+    /**
+     * Trata exceção quando tenta-se excluir local com peças vinculadas.
+     * HTTP 409 - Conflict
+     */
+    @ExceptionHandler(LocalComPecasVinculadasException.class)
+    public ProblemDetail handleLocalComPecasVinculadasException(
+            LocalComPecasVinculadasException ex,
+            WebRequest request
+    ) {
+        log.warn("Tentativa de excluir local com peças: {}", ex.getMessage());
+
+        ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(
+                HttpStatus.CONFLICT,
+                ex.getMessage()
+        );
+        problemDetail.setTitle("Local Com Peças Vinculadas");
+        problemDetail.setType(URI.create("https://pitstop.com/errors/local-com-pecas-vinculadas"));
+        problemDetail.setProperty("timestamp", Instant.now());
+        problemDetail.setProperty("quantidadePecas", ex.getQuantidadePecas());
+
+        return problemDetail;
+    }
+
     // ========== EXCEÇÕES DE VALIDAÇÃO (BEAN VALIDATION) ==========
 
     /**
@@ -341,6 +496,28 @@ public class GlobalExceptionHandler {
     }
 
     // ========== EXCEÇÕES GENÉRICAS ==========
+
+    /**
+     * Trata exceção genérica de recurso não encontrado.
+     * HTTP 404 - Not Found
+     */
+    @ExceptionHandler(ResourceNotFoundException.class)
+    public ProblemDetail handleResourceNotFoundException(
+            ResourceNotFoundException ex,
+            WebRequest request
+    ) {
+        log.warn("Recurso não encontrado: {}", ex.getMessage());
+
+        ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(
+                HttpStatus.NOT_FOUND,
+                ex.getMessage()
+        );
+        problemDetail.setTitle("Recurso Não Encontrado");
+        problemDetail.setType(URI.create("https://pitstop.com/errors/resource-not-found"));
+        problemDetail.setProperty("timestamp", Instant.now());
+
+        return problemDetail;
+    }
 
     /**
      * Trata exceções genéricas não capturadas por outros handlers.

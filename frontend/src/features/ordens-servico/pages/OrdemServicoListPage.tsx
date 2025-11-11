@@ -6,7 +6,7 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useOrdensServico } from '../hooks/useOrdensServico';
-import { Eye, Edit, Plus, Search, FilterX } from 'lucide-react';
+import { Eye, Edit, Plus, FilterX } from 'lucide-react';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import type { OrdemServicoFilters } from '../types';

@@ -1,11 +1,10 @@
 package com.pitstop.shared.controller;
 
-import com.pitstop.shared.dto.LoginRequest;
-import com.pitstop.shared.dto.LoginResponse;
-import com.pitstop.shared.dto.RefreshResponse;
-import com.pitstop.shared.dto.RefreshTokenRequest;
+import com.pitstop.shared.dto.*;
 import com.pitstop.shared.security.AuthenticationService;
 import com.pitstop.shared.security.CustomUserDetails;
+import com.pitstop.shared.security.PasswordResetService;
+import com.pitstop.usuario.dto.UsuarioResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -29,8 +28,14 @@ import java.util.UUID;
  * <p>Provides endpoints for:
  * <ul>
  *   <li>Login (POST /api/auth/login)</li>
+ *   <li>Register (POST /api/auth/register)</li>
  *   <li>Refresh token (POST /api/auth/refresh)</li>
  *   <li>Logout (POST /api/auth/logout)</li>
+ *   <li>Get current user profile (GET /api/auth/me)</li>
+ *   <li>Update profile (PUT /api/auth/profile)</li>
+ *   <li>Change password (PUT /api/auth/password)</li>
+ *   <li>Forgot password (POST /api/auth/forgot-password)</li>
+ *   <li>Reset password (POST /api/auth/reset-password)</li>
  * </ul>
  *
  * <p><b>Security notes:</b>
@@ -57,6 +62,7 @@ import java.util.UUID;
 public class AuthController {
 
     private final AuthenticationService authenticationService;
+    private final PasswordResetService passwordResetService;
 
     /**
      * Authenticates a user and returns JWT tokens.
@@ -222,5 +228,261 @@ public class AuthController {
         return ResponseEntity.ok()
                 .header(HttpHeaders.SET_COOKIE, cookie.toString())
                 .build();
+    }
+
+    /**
+     * Registers a new user in the system.
+     *
+     * <p>Creates a new user account with ATENDENTE profile and immediately logs them in.
+     * Returns JWT tokens for immediate authentication.
+     *
+     * @param request registration data (name, email, password)
+     * @return login response with access token, refresh token, and user data
+     */
+    @PostMapping("/register")
+    @Operation(
+            summary = "Registro de novo usuário",
+            description = "Cria uma nova conta de usuário no sistema e retorna tokens JWT"
+    )
+    @ApiResponses(value = {
+            @ApiResponse(
+                    responseCode = "201",
+                    description = "Usuário registrado com sucesso",
+                    content = @Content(schema = @Schema(implementation = LoginResponse.class))
+            ),
+            @ApiResponse(
+                    responseCode = "409",
+                    description = "Email já está em uso",
+                    content = @Content
+            ),
+            @ApiResponse(
+                    responseCode = "400",
+                    description = "Dados de entrada inválidos",
+                    content = @Content
+            )
+    })
+    public ResponseEntity<LoginResponse> register(@Valid @RequestBody RegisterRequest request) {
+        log.debug("POST /api/auth/register - email: {}", request.email());
+
+        LoginResponse response = authenticationService.register(request);
+
+        // Create HttpOnly cookie with refresh token (7 days)
+        ResponseCookie cookie = ResponseCookie.from("refreshToken", response.refreshToken())
+                .httpOnly(true)
+                .secure(false) // TODO: Set to true in production
+                .path("/api/auth")
+                .maxAge(7 * 24 * 60 * 60)
+                .sameSite("Strict")
+                .build();
+
+        log.info("Registration successful - email: {}", request.email());
+
+        return ResponseEntity.status(201)
+                .header(HttpHeaders.SET_COOKIE, cookie.toString())
+                .body(response);
+    }
+
+    /**
+     * Gets the current authenticated user's profile.
+     *
+     * <p>Returns the profile information of the user making the request.
+     *
+     * @param userDetails authenticated user from SecurityContext
+     * @return user profile information
+     */
+    @GetMapping("/me")
+    @Operation(
+            summary = "Obter perfil do usuário atual",
+            description = "Retorna os dados do usuário autenticado"
+    )
+    @ApiResponses(value = {
+            @ApiResponse(
+                    responseCode = "200",
+                    description = "Perfil retornado com sucesso",
+                    content = @Content(schema = @Schema(implementation = UsuarioResponse.class))
+            ),
+            @ApiResponse(
+                    responseCode = "401",
+                    description = "Usuário não autenticado",
+                    content = @Content
+            )
+    })
+    public ResponseEntity<UsuarioResponse> getCurrentUser(@AuthenticationPrincipal CustomUserDetails userDetails) {
+        log.debug("GET /api/auth/me");
+
+        UUID userId = userDetails.getUsuario().getId();
+        UsuarioResponse response = authenticationService.getCurrentUser(userId);
+
+        return ResponseEntity.ok(response);
+    }
+
+    /**
+     * Updates the authenticated user's profile.
+     *
+     * <p>Allows the user to update their name and email address.
+     * Password changes must be done through the dedicated endpoint.
+     *
+     * @param userDetails authenticated user from SecurityContext
+     * @param request update data (name, email)
+     * @return updated user profile
+     */
+    @PutMapping("/profile")
+    @Operation(
+            summary = "Atualizar perfil do usuário",
+            description = "Atualiza nome e email do usuário autenticado"
+    )
+    @ApiResponses(value = {
+            @ApiResponse(
+                    responseCode = "200",
+                    description = "Perfil atualizado com sucesso",
+                    content = @Content(schema = @Schema(implementation = UsuarioResponse.class))
+            ),
+            @ApiResponse(
+                    responseCode = "409",
+                    description = "Email já está em uso por outro usuário",
+                    content = @Content
+            ),
+            @ApiResponse(
+                    responseCode = "401",
+                    description = "Usuário não autenticado",
+                    content = @Content
+            ),
+            @ApiResponse(
+                    responseCode = "400",
+                    description = "Dados de entrada inválidos",
+                    content = @Content
+            )
+    })
+    public ResponseEntity<UsuarioResponse> updateProfile(
+            @AuthenticationPrincipal CustomUserDetails userDetails,
+            @Valid @RequestBody UpdateProfileRequest request
+    ) {
+        log.debug("PUT /api/auth/profile");
+
+        UUID userId = userDetails.getUsuario().getId();
+        UsuarioResponse response = authenticationService.updateProfile(userId, request);
+
+        log.info("Profile updated - userId: {}", userId);
+
+        return ResponseEntity.ok(response);
+    }
+
+    /**
+     * Changes the authenticated user's password.
+     *
+     * <p>Requires the current password for security verification.
+     * The new password must meet minimum security requirements.
+     *
+     * @param userDetails authenticated user from SecurityContext
+     * @param request password change data (current password, new password)
+     * @return 200 OK if successful
+     */
+    @PutMapping("/password")
+    @Operation(
+            summary = "Trocar senha do usuário",
+            description = "Altera a senha do usuário autenticado (requer senha atual)"
+    )
+    @ApiResponses(value = {
+            @ApiResponse(
+                    responseCode = "200",
+                    description = "Senha alterada com sucesso",
+                    content = @Content
+            ),
+            @ApiResponse(
+                    responseCode = "401",
+                    description = "Senha atual incorreta ou usuário não autenticado",
+                    content = @Content
+            ),
+            @ApiResponse(
+                    responseCode = "400",
+                    description = "Dados de entrada inválidos",
+                    content = @Content
+            )
+    })
+    public ResponseEntity<Void> changePassword(
+            @AuthenticationPrincipal CustomUserDetails userDetails,
+            @Valid @RequestBody ChangePasswordRequest request
+    ) {
+        log.debug("PUT /api/auth/password");
+
+        UUID userId = userDetails.getUsuario().getId();
+        authenticationService.changePassword(userId, request);
+
+        log.info("Password changed - userId: {}", userId);
+
+        return ResponseEntity.ok().build();
+    }
+
+    /**
+     * Initiates password reset process by sending a reset link to user's email.
+     *
+     * <p>Always returns 200 OK to prevent user enumeration.
+     * If email doesn't exist, no email is sent but response is the same.
+     *
+     * @param request forgot password request with email
+     * @return 200 OK with message
+     */
+    @PostMapping("/forgot-password")
+    @Operation(
+            summary = "Solicitar reset de senha",
+            description = "Envia um link de recuperação de senha para o email informado"
+    )
+    @ApiResponses(value = {
+            @ApiResponse(
+                    responseCode = "200",
+                    description = "Se o email existir, um link de recuperação será enviado",
+                    content = @Content
+            ),
+            @ApiResponse(
+                    responseCode = "400",
+                    description = "Dados de entrada inválidos",
+                    content = @Content
+            )
+    })
+    public ResponseEntity<Void> forgotPassword(@Valid @RequestBody ForgotPasswordRequest request) {
+        log.debug("POST /api/auth/forgot-password - email: {}", request.email());
+
+        passwordResetService.forgotPassword(request);
+
+        // Always return success to prevent user enumeration
+        return ResponseEntity.ok().build();
+    }
+
+    /**
+     * Resets user password using a valid reset token.
+     *
+     * @param request reset password request with token and new password
+     * @return 200 OK if successful
+     */
+    @PostMapping("/reset-password")
+    @Operation(
+            summary = "Resetar senha com token",
+            description = "Define uma nova senha usando o token recebido por email"
+    )
+    @ApiResponses(value = {
+            @ApiResponse(
+                    responseCode = "200",
+                    description = "Senha alterada com sucesso",
+                    content = @Content
+            ),
+            @ApiResponse(
+                    responseCode = "401",
+                    description = "Token inválido ou expirado",
+                    content = @Content
+            ),
+            @ApiResponse(
+                    responseCode = "400",
+                    description = "Dados de entrada inválidos",
+                    content = @Content
+            )
+    })
+    public ResponseEntity<Void> resetPassword(@Valid @RequestBody ResetPasswordRequest request) {
+        log.debug("POST /api/auth/reset-password");
+
+        passwordResetService.resetPassword(request);
+
+        log.info("Password reset successful");
+
+        return ResponseEntity.ok().build();
     }
 }

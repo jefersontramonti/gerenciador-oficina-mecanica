@@ -7,6 +7,7 @@ import { useVeiculo, useCreateVeiculo, useUpdateVeiculo } from '../hooks/useVeic
 import { useClientes } from '@/features/clientes/hooks/useClientes';
 import { createVeiculoSchema, updateVeiculoSchema } from '../utils/validation';
 import { InputMask } from '@/shared/components/forms/InputMask';
+import { showError } from '@/shared/utils/notifications';
 import type { CreateVeiculoFormData, UpdateVeiculoFormData } from '../utils/validation';
 
 const currentYear = new Date().getFullYear();
@@ -60,11 +61,11 @@ export const VeiculoFormPage = () => {
       navigate('/veiculos');
     } catch (error: any) {
       if (error.response?.status === 409) {
-        alert('Esta placa já está cadastrada.');
+        showError('Esta placa já está cadastrada.');
       } else if (error.response?.status === 404) {
-        alert('Cliente não encontrado.');
+        showError('Cliente não encontrado.');
       } else {
-        alert(error.message || 'Erro ao salvar veículo');
+        showError(error.message || 'Erro ao salvar veículo');
       }
     }
   };

@@ -45,6 +45,7 @@ import java.util.List;
  * <p><b>Public endpoints (no authentication required):</b>
  * <ul>
  *   <li>/api/auth/login - User login</li>
+ *   <li>/api/auth/register - User registration</li>
  *   <li>/api/auth/refresh - Token refresh</li>
  *   <li>/swagger-ui/** - API documentation</li>
  *   <li>/v3/api-docs/** - OpenAPI specs</li>
@@ -100,7 +101,10 @@ public class SecurityConfig {
                         // Public endpoints (no authentication required)
                         .requestMatchers(
                                 "/api/auth/login",
+                                "/api/auth/register",
                                 "/api/auth/refresh",
+                                "/api/auth/forgot-password",
+                                "/api/auth/reset-password",
                                 "/api/admin/seed", // TODO: REMOVE IN PRODUCTION!
                                 "/api/health",
                                 "/api/debug/**",
@@ -108,7 +112,8 @@ public class SecurityConfig {
                                 "/swagger-ui.html",
                                 "/v3/api-docs/**",
                                 "/actuator/health",
-                                "/actuator/info"
+                                "/actuator/info",
+                                "/ws/**" // WebSocket endpoint
                         ).permitAll()
 
                         // All other endpoints require authentication

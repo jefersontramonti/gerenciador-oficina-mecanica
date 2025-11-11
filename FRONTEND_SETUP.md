@@ -229,3 +229,46 @@ O frontend está completamente configurado e pronto para ser integrado com o bac
 - atendente@pitstop.com / senha123
 - mecanico@pitstop.com / senha123
 - mecanico2@pitstop.com / senha123
+- mecanico1234@pitstop.com / senha1313
+
+
+1. Locais de Armazenamento (Feature Completa)
+   - Criar frontend/src/features/estoque/services/localArmazenamentoService.ts
+   - Criar hooks React Query
+   - Criar páginas (ListPage, FormPage, DetailPage)
+   - Impacto: Organização física do estoque é essencial
+2. Recuperação de Senha (Auth)
+   - Adicionar forgotPassword() no authService.ts
+   - Adicionar resetPassword() no authService.ts
+   - Criar páginas ForgotPasswordPage.tsx e ResetPasswordPage.tsx
+   - Impacto: UX crítico para usuários que esquecem senha
+3. Dashboard Real (substituir mock)
+   - Integrar endpoints reais de dashboard
+   - Criar endpoint backend para stats gerais (se não existir)
+   - Impacto: Métricas reais do negócio
+
+🟡 Média Prioridade
+
+4. Ticket Médio (Dashboard OS)
+   - Adicionar chamada getDashboardTicketMedio() no ordemServicoService.ts
+   - Impacto: KPI financeiro importante
+5. Gerenciamento de Localização de Peças
+   - Adicionar endpoints /sem-localizacao, /dashboard/sem-localizacao, /definir-localizacao no pecaService.ts
+   - Impacto: Melhora organização do estoque
+
+🟢 Baixa Prioridade
+
+6. Ajuste de Tipagem - Movimentações por OS
+   - Backend retorna List<MovimentacaoEstoque> mas frontend espera PagedResponse
+   - Alinhar tipos ou adicionar paginação no backend
+   - Impacto: Funcionalidade já existe, só precisa ajuste de tipo
+
+  ---
+📝 Próximos Passos Recomendados
+
+1. Verificar Swagger UI em http://localhost:8080/swagger-ui.html para testar endpoints
+2. Priorizar Locais de Armazenamento - módulo completo ausente
+3. Implementar Recuperação de Senha - UX essencial
+4. Remover mock data do Dashboard - usar endpoints reais
+5. Criar hooks React Query para os novos endpoints
+6. Documentar padrões no CLAUDE.md do frontend

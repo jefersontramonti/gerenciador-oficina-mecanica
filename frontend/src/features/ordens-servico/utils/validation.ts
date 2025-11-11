@@ -10,7 +10,7 @@ import { TipoItem } from '../types';
  */
 export const itemOSSchema = z.object({
   tipo: z.enum([TipoItem.PECA, TipoItem.SERVICO], {
-    required_error: 'Tipo é obrigatório',
+    message: 'Tipo é obrigatório',
   }),
   pecaId: z.string().uuid().optional(),
   descricao: z
@@ -18,22 +18,15 @@ export const itemOSSchema = z.object({
     .min(3, 'Descrição deve ter pelo menos 3 caracteres')
     .max(255, 'Descrição deve ter no máximo 255 caracteres'),
   quantidade: z
-    .number({
-      required_error: 'Quantidade é obrigatória',
-      invalid_type_error: 'Quantidade deve ser um número',
-    })
+    .number()
     .int('Quantidade deve ser um número inteiro')
     .min(1, 'Quantidade deve ser pelo menos 1'),
-  valorUnitario: z
-    .number({
-      required_error: 'Valor unitário é obrigatório',
-      invalid_type_error: 'Valor unitário deve ser um número',
-    })
-    .min(0, 'Valor unitário deve ser positivo'),
+  valorUnitario: z.number().min(0, 'Valor unitário deve ser positivo'),
   desconto: z
     .number()
     .min(0, 'Desconto deve ser positivo')
     .default(0),
+  valorTotal: z.number().min(0).default(0), // Campo calculado para o formulário
 });
 
 /**
@@ -69,12 +62,7 @@ export const createOrdemServicoSchema = z.object({
       },
       { message: 'Data de previsão não pode ser no passado' }
     ),
-  valorMaoObra: z
-    .number({
-      required_error: 'Valor da mão de obra é obrigatório',
-      invalid_type_error: 'Valor da mão de obra deve ser um número',
-    })
-    .min(0, 'Valor da mão de obra deve ser positivo'),
+  valorMaoObra: z.number().min(0, 'Valor da mão de obra deve ser positivo'),
   descontoPercentual: z
     .number()
     .min(0, 'Desconto percentual deve ser entre 0 e 100')
@@ -117,18 +105,10 @@ export const ordemServicoFormSchema = z.object({
     .string()
     .min(10, 'Problemas relatados devem ter pelo menos 10 caracteres')
     .max(1000, 'Problemas relatados devem ter no máximo 1000 caracteres'),
-  diagnostico: z
-    .string()
-    .max(1000, 'Diagnóstico deve ter no máximo 1000 caracteres')
-    .optional()
-    .default(''),
-  observacoes: z
-    .string()
-    .max(1000, 'Observações devem ter no máximo 1000 caracteres')
-    .optional()
-    .default(''),
+  diagnostico: z.string().max(1000, 'Diagnóstico deve ter no máximo 1000 caracteres').default(''),
+  observacoes: z.string().max(1000, 'Observações devem ter no máximo 1000 caracteres').default(''),
   dataAbertura: z.string(),
-  dataPrevisao: z.string().optional().default(''),
+  dataPrevisao: z.string().default(''),
   valorMaoObra: z.number().min(0, 'Valor da mão de obra deve ser positivo').default(0),
   valorPecas: z.number().min(0).default(0), // Calculado
   valorTotal: z.number().min(0).default(0), // Calculado

@@ -37,6 +37,7 @@ export interface ClienteResumo {
   cpfCnpj: string;
   telefone?: string;
   celular?: string;
+  email?: string;
 }
 
 /**
@@ -203,9 +204,13 @@ export interface DashboardContagem {
  * Faturamento do dashboard
  */
 export interface DashboardFaturamento {
-  periodo: string;
-  totalServicos: number;
-  faturamentoTotal: number;
+  faturamento: number;
+}
+
+/**
+ * Ticket médio do dashboard
+ */
+export interface DashboardTicketMedio {
   ticketMedio: number;
 }
 

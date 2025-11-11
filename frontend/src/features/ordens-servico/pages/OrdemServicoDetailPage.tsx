@@ -5,6 +5,7 @@
 
 import { Link, useParams } from 'react-router-dom';
 import { ArrowLeft, Edit, Car, User, Phone, Mail, FileText, FileDown } from 'lucide-react';
+import { showError } from '@/shared/utils/notifications';
 import { useOrdemServico, useGerarPDF } from '../hooks/useOrdensServico';
 import { StatusBadge } from '../components/StatusBadge';
 import { StatusTimeline } from '../components/StatusTimeline';
@@ -48,7 +49,7 @@ export const OrdemServicoDetailPage = () => {
       window.URL.revokeObjectURL(url);
     } catch (error: any) {
       const errorMessage = error.response?.data?.message || error.message || 'Erro ao gerar PDF';
-      alert(`Erro: ${errorMessage}`);
+      showError(`Erro: ${errorMessage}`);
     }
   };
 

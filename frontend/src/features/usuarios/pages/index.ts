@@ -4,3 +4,4 @@
 
 export { UsuariosListPage } from './UsuariosListPage';
 export { UsuarioFormPage } from './UsuarioFormPage';
+export { UsuarioDetailPage } from './UsuarioDetailPage';

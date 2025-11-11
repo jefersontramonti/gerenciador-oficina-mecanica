@@ -48,14 +48,16 @@ public interface UsuarioMapper {
      * Atualiza uma entidade Usuario existente com dados de UpdateUsuarioRequest.
      *
      * Apenas atualiza os campos não-nulos do request.
-     * Campos ignorados: id, timestamps (controlados pelo JPA Auditing).
+     * Campos ignorados: id, timestamps (controlados pelo JPA Auditing), senha (tratada manualmente).
      *
-     * IMPORTANTE: A senha será criptografada no Service antes de chamar este método.
+     * IMPORTANTE: A senha é criptografada manualmente no Service ANTES de chamar este método,
+     * por isso é ignorada aqui para evitar sobrescrever o hash com texto plano.
      *
      * @param request DTO de atualização
      * @param usuario Entidade existente a ser atualizada
      */
     @Mapping(target = "id", ignore = true)
+    @Mapping(target = "senha", ignore = true)
     @Mapping(target = "createdAt", ignore = true)
     @Mapping(target = "updatedAt", ignore = true)
     @Mapping(target = "ultimoAcesso", ignore = true)

@@ -119,10 +119,12 @@ export const useCreateOrdemServico = () => {
       // Invalidar listas
       queryClient.invalidateQueries({ queryKey: ordemServicoKeys.lists() });
 
-      // Invalidar histórico do veículo
-      queryClient.invalidateQueries({
-        queryKey: ordemServicoKeys.historicoVeiculo(newOS.veiculoId),
-      });
+      // Invalidar histórico do veículo (se veiculoId existir)
+      if (newOS.veiculoId) {
+        queryClient.invalidateQueries({
+          queryKey: ordemServicoKeys.historicoVeiculo(newOS.veiculoId),
+        });
+      }
 
       // Invalidar dashboard
       queryClient.invalidateQueries({ queryKey: ordemServicoKeys.dashboardContagem() });
@@ -146,10 +148,12 @@ export const useUpdateOrdemServico = () => {
       // Invalidar listas
       queryClient.invalidateQueries({ queryKey: ordemServicoKeys.lists() });
 
-      // Invalidar histórico do veículo
-      queryClient.invalidateQueries({
-        queryKey: ordemServicoKeys.historicoVeiculo(updatedOS.veiculoId),
-      });
+      // Invalidar histórico do veículo (se veiculoId existir)
+      if (updatedOS.veiculoId) {
+        queryClient.invalidateQueries({
+          queryKey: ordemServicoKeys.historicoVeiculo(updatedOS.veiculoId),
+        });
+      }
 
       // Invalidar dashboard
       queryClient.invalidateQueries({ queryKey: ordemServicoKeys.dashboardContagem() });

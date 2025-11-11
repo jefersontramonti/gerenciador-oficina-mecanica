@@ -17,10 +17,13 @@ import com.pitstop.usuario.repository.UsuarioRepository;
 import com.pitstop.veiculo.domain.Veiculo;
 import com.pitstop.veiculo.exception.VeiculoNotFoundException;
 import com.pitstop.veiculo.repository.VeiculoRepository;
+import com.pitstop.ordemservico.event.OrdemServicoFinalizadaEvent;
+import com.pitstop.ordemservico.event.OrdemServicoCanceladaEvent;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -61,6 +64,7 @@ public class OrdemServicoService {
     private final ClienteRepository clienteRepository;
     private final OrdemServicoMapper mapper;
     private final ItemOSMapper itemMapper;
+    private final ApplicationEventPublisher applicationEventPublisher;
 
     // ===== CREATE =====
 
@@ -288,11 +292,12 @@ public class OrdemServicoService {
 
     /**
      * Finaliza OS (EM_ANDAMENTO/AGUARDANDO_PECA → FINALIZADO).
-     * Neste ponto ocorre a baixa automática de peças do estoque.
+     * Neste ponto ocorre a baixa automática de peças do estoque via evento.
      *
      * @param id ID da OS
      * @throws OrdemServicoNotFoundException se não encontrada
      * @throws TransicaoStatusInvalidaException se transição inválida
+     * @throws com.pitstop.estoque.exception.EstoqueInsuficienteException se estoque insuficiente (rollback completo)
      */
     @Transactional
     @CacheEvict(value = {"ordemServico", "osCountByStatus"}, allEntries = true)
@@ -305,17 +310,23 @@ public class OrdemServicoService {
         try {
             os.finalizar();
 
-            // TODO: Integrar com EstoqueService para baixa de peças
-            // List<ItemOS> pecas = os.getItens().stream()
-            //     .filter(item -> item.getTipo() == TipoItem.PECA)
-            //     .toList();
-            // estoqueService.baixarPecas(pecas);
+            // Dispara evento para baixa automática de estoque (síncrono - mesma transação)
+            OrdemServicoFinalizadaEvent event = new OrdemServicoFinalizadaEvent(
+                this,
+                os.getId(),
+                os.getNumero(),
+                os.getUsuarioId(),
+                os.getItens()
+            );
+            applicationEventPublisher.publishEvent(event);
+            log.debug("Evento OrdemServicoFinalizadaEvent publicado para OS #{}", os.getNumero());
 
             repository.save(os);
             log.info("OS #{} finalizada com sucesso", os.getNumero());
         } catch (IllegalStateException e) {
             throw new TransicaoStatusInvalidaException(e.getMessage());
         }
+        // Nota: EstoqueInsuficienteException será propagada causando rollback automático
     }
 
     /**
@@ -349,6 +360,7 @@ public class OrdemServicoService {
 
     /**
      * Cancela OS (qualquer status exceto ENTREGUE).
+     * Se OS estava FINALIZADA, dispara evento para estorno de estoque.
      *
      * @param id ID da OS
      * @param dto dados do cancelamento (motivo obrigatório)
@@ -364,7 +376,24 @@ public class OrdemServicoService {
             .orElseThrow(() -> new OrdemServicoNotFoundException(id));
 
         try {
+            // Captura status anterior ANTES de cancelar
+            StatusOS statusAnterior = os.getStatus();
+
             os.cancelar(dto.motivo());
+
+            // Dispara evento para estorno de estoque (se OS estava finalizada)
+            OrdemServicoCanceladaEvent event = new OrdemServicoCanceladaEvent(
+                this,
+                os.getId(),
+                os.getNumero(),
+                os.getUsuarioId(),
+                statusAnterior,
+                dto.motivo()
+            );
+            applicationEventPublisher.publishEvent(event);
+            log.debug("Evento OrdemServicoCanceladaEvent publicado para OS #{} (status anterior: {})",
+                    os.getNumero(), statusAnterior);
+
             repository.save(os);
             log.info("OS #{} cancelada com sucesso", os.getNumero());
         } catch (IllegalStateException e) {

@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useVeiculos, useDeleteVeiculo } from '../hooks/useVeiculos';
 import { Eye, Edit, Trash2, Plus, Search, FilterX } from 'lucide-react';
+import { showError } from '@/shared/utils/notifications';
 import type { VeiculoFilters } from '../types';
 
 const ITEMS_PER_PAGE = 20;
@@ -34,9 +35,9 @@ export const VeiculosListPage = () => {
         await deleteMutation.mutateAsync(id);
       } catch (error: any) {
         if (error.response?.status === 409) {
-          alert('Não é possível remover este veículo pois há ordens de serviço vinculadas.');
+          showError('Não é possível remover este veículo pois há ordens de serviço vinculadas.');
         } else {
-          alert('Erro ao remover veículo');
+          showError('Erro ao remover veículo');
         }
       }
     }

@@ -1,12 +1,10 @@
 package com.pitstop.shared.security;
 
-import com.pitstop.shared.dto.LoginRequest;
-import com.pitstop.shared.dto.LoginResponse;
-import com.pitstop.shared.dto.RefreshResponse;
+import com.pitstop.shared.dto.*;
+import com.pitstop.usuario.domain.PerfilUsuario;
 import com.pitstop.usuario.domain.Usuario;
-import com.pitstop.usuario.exception.InvalidCredentialsException;
-import com.pitstop.usuario.exception.UsuarioInativoException;
-import com.pitstop.usuario.exception.UsuarioNotFoundException;
+import com.pitstop.usuario.dto.UsuarioResponse;
+import com.pitstop.usuario.exception.*;
 import com.pitstop.usuario.mapper.UsuarioMapper;
 import com.pitstop.usuario.repository.UsuarioRepository;
 import lombok.RequiredArgsConstructor;
@@ -194,5 +192,158 @@ public class AuthenticationService {
         refreshTokenService.deleteRefreshToken(userId);
 
         log.info("Logout successful for user: {}", userId);
+    }
+
+    /**
+     * Registers a new user in the system.
+     *
+     * <p>New users are automatically created with ATENDENTE profile and active status.
+     * The password is hashed using BCrypt before storage.
+     *
+     * @param request registration request containing name, email, and password
+     * @return login response with access token, refresh token, and user data
+     * @throws EmailAlreadyExistsException if email is already registered
+     */
+    @Transactional
+    public LoginResponse register(RegisterRequest request) {
+        log.debug("Registration attempt for email: {}", request.email());
+
+        // 1. Verify email is not already in use
+        if (usuarioRepository.findByEmail(request.email()).isPresent()) {
+            log.warn("Registration failed: email already exists - {}", request.email());
+            throw new EmailAlreadyExistsException(request.email());
+        }
+
+        // 2. Create new user entity
+        Usuario newUsuario = Usuario.builder()
+                .nome(request.nome())
+                .email(request.email())
+                .senha(passwordEncoder.encode(request.senha())) // BCrypt hash
+                .perfil(PerfilUsuario.ATENDENTE) // Default profile for self-registration
+                .ativo(true)
+                .build();
+
+        // 3. Save to database
+        Usuario savedUsuario = usuarioRepository.save(newUsuario);
+
+        log.info("User registered successfully: {} (ID: {})", savedUsuario.getEmail(), savedUsuario.getId());
+
+        // 4. Generate JWT tokens for immediate login
+        String accessToken = jwtService.generateAccessToken(savedUsuario);
+        String refreshToken = jwtService.generateRefreshToken(savedUsuario);
+
+        // 5. Store refresh token in Redis
+        refreshTokenService.storeRefreshToken(savedUsuario.getId(), refreshToken);
+
+        // 6. Update last access timestamp
+        savedUsuario.atualizarUltimoAcesso();
+        usuarioRepository.save(savedUsuario);
+
+        // 7. Return response with tokens and user data
+        return new LoginResponse(
+                accessToken,
+                refreshToken,
+                usuarioMapper.toResponse(savedUsuario)
+        );
+    }
+
+    /**
+     * Gets the current authenticated user's profile.
+     *
+     * @param userId the ID of the authenticated user (from JWT)
+     * @return user response with profile information
+     * @throws UsuarioNotFoundException if user not found
+     */
+    @Transactional(readOnly = true)
+    public UsuarioResponse getCurrentUser(UUID userId) {
+        log.debug("Get profile request for user: {}", userId);
+
+        Usuario usuario = usuarioRepository.findById(userId)
+                .orElseThrow(() -> {
+                    log.error("Get profile failed: user not found - {}", userId);
+                    return new UsuarioNotFoundException(userId);
+                });
+
+        return usuarioMapper.toResponse(usuario);
+    }
+
+    /**
+     * Updates the authenticated user's profile (name and email).
+     *
+     * <p>If the email is changed, verifies that the new email is not already in use.
+     *
+     * @param userId the ID of the authenticated user (from JWT)
+     * @param request update request containing new name and email
+     * @return updated user response
+     * @throws UsuarioNotFoundException if user not found
+     * @throws EmailAlreadyExistsException if new email is already in use by another user
+     */
+    @Transactional
+    public UsuarioResponse updateProfile(UUID userId, UpdateProfileRequest request) {
+        log.debug("Update profile request for user: {}", userId);
+
+        // 1. Load user from database
+        Usuario usuario = usuarioRepository.findById(userId)
+                .orElseThrow(() -> {
+                    log.error("Update profile failed: user not found - {}", userId);
+                    return new UsuarioNotFoundException(userId);
+                });
+
+        // 2. If email is being changed, verify new email is not in use
+        if (!usuario.getEmail().equals(request.email())) {
+            usuarioRepository.findByEmail(request.email())
+                    .ifPresent(existingUser -> {
+                        log.warn("Update profile failed: email already in use - {}", request.email());
+                        throw new EmailAlreadyExistsException(request.email());
+                    });
+        }
+
+        // 3. Update user data
+        usuario.setNome(request.nome());
+        usuario.setEmail(request.email());
+
+        // 4. Save changes
+        Usuario updatedUsuario = usuarioRepository.save(usuario);
+
+        log.info("Profile updated successfully for user: {} (ID: {})", updatedUsuario.getEmail(), updatedUsuario.getId());
+
+        return usuarioMapper.toResponse(updatedUsuario);
+    }
+
+    /**
+     * Changes the authenticated user's password.
+     *
+     * <p>Requires the current password for security verification.
+     * The new password is hashed using BCrypt before storage.
+     *
+     * @param userId the ID of the authenticated user (from JWT)
+     * @param request change password request with current and new passwords
+     * @throws UsuarioNotFoundException if user not found
+     * @throws InvalidCredentialsException if current password is incorrect
+     */
+    @Transactional
+    public void changePassword(UUID userId, ChangePasswordRequest request) {
+        log.debug("Change password request for user: {}", userId);
+
+        // 1. Load user from database
+        Usuario usuario = usuarioRepository.findById(userId)
+                .orElseThrow(() -> {
+                    log.error("Change password failed: user not found - {}", userId);
+                    return new UsuarioNotFoundException(userId);
+                });
+
+        // 2. Verify current password is correct
+        if (!passwordEncoder.matches(request.senhaAtual(), usuario.getSenha())) {
+            log.warn("Change password failed: incorrect current password for user {}", userId);
+            throw new InvalidCredentialsException();
+        }
+
+        // 3. Hash and update password
+        usuario.setSenha(passwordEncoder.encode(request.novaSenha()));
+
+        // 4. Save changes
+        usuarioRepository.save(usuario);
+
+        log.info("Password changed successfully for user: {} (ID: {})", usuario.getEmail(), usuario.getId());
     }
 }

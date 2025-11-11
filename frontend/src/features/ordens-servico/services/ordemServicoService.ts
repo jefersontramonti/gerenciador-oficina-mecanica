@@ -13,6 +13,7 @@ import type {
   OrdemServicoFilters,
   DashboardContagem,
   DashboardFaturamento,
+  DashboardTicketMedio,
 } from '../types';
 
 export const ordemServicoService = {
@@ -152,6 +153,21 @@ export const ordemServicoService = {
 
     const response = await api.get<DashboardFaturamento>(
       `/ordens-servico/dashboard/faturamento?${params.toString()}`
+    );
+    return response.data;
+  },
+
+  /**
+   * Obter ticket médio do período (dashboard)
+   */
+  async getDashboardTicketMedio(dataInicio: string, dataFim: string): Promise<DashboardTicketMedio> {
+    const params = new URLSearchParams({
+      dataInicio,
+      dataFim,
+    });
+
+    const response = await api.get<DashboardTicketMedio>(
+      `/ordens-servico/dashboard/ticket-medio?${params.toString()}`
     );
     return response.data;
   },
