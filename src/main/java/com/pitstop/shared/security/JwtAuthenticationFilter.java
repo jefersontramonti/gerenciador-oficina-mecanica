@@ -99,6 +99,8 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 // Load full user from database
                 UserDetails userDetails = userDetailsService.loadUserByUsername(userEmail);
 
+                log.info("Loading user: {} with authorities: {}", userEmail, userDetails.getAuthorities());
+
                 // Create authentication token with authorities
                 UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
                         userDetails,
@@ -112,7 +114,8 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 // Populate SecurityContext with authenticated user
                 SecurityContextHolder.getContext().setAuthentication(authToken);
 
-                log.debug("User authenticated successfully: {} (URI: {})", userEmail, request.getRequestURI());
+                log.info("User authenticated successfully: {} with authorities: {} (URI: {})",
+                    userEmail, userDetails.getAuthorities(), request.getRequestURI());
             }
 
         } catch (Exception e) {

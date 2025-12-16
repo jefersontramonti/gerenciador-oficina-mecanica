@@ -4,10 +4,10 @@
  */
 
 import { useEffect } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { useForm, useFieldArray, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { ArrowLeft, Save, Plus, Trash2, Package } from 'lucide-react';
+import { ArrowLeft, Save, Plus, Trash2, Package, AlertCircle } from 'lucide-react';
 import { showError } from '@/shared/utils/notifications';
 import { useOrdemServico, useCreateOrdemServico, useUpdateOrdemServico } from '../hooks/useOrdensServico';
 import { ordemServicoFormSchema } from '../utils/validation';
@@ -16,13 +16,18 @@ import { TipoItem } from '../types';
 import type { OrdemServicoFormData } from '../utils/validation';
 import { VeiculoAutocomplete } from '../components/VeiculoAutocomplete';
 import { MecanicoSelect } from '../components/MecanicoSelect';
+import { PecaAutocomplete } from '../components/PecaAutocomplete';
 
 export const OrdemServicoFormPage = () => {
   const navigate = useNavigate();
   const { id } = useParams<{ id: string }>();
-  const isEditMode = !!id;
+  const [searchParams] = useSearchParams();
 
-  const { data: ordemServico, isLoading: loadingOS } = useOrdemServico(id);
+  // Previne que "novo" seja tratado como ID válido
+  const actualId = id === 'novo' ? undefined : id;
+  const isEditMode = !!actualId;
+
+  const { data: ordemServico, isLoading: loadingOS } = useOrdemServico(actualId);
   const createMutation = useCreateOrdemServico();
   const updateMutation = useUpdateOrdemServico();
 
@@ -36,6 +41,9 @@ export const OrdemServicoFormPage = () => {
   } = useForm({
     resolver: zodResolver(ordemServicoFormSchema),
     defaultValues: {
+      veiculoId: undefined,
+      usuarioId: undefined,
+      problemasRelatados: '',
       dataAbertura: new Date().toISOString().split('T')[0],
       diagnostico: '',
       observacoes: '',
@@ -50,16 +58,36 @@ export const OrdemServicoFormPage = () => {
     },
   });
 
+  // Log de erros de validação
+  useEffect(() => {
+    if (Object.keys(errors).length > 0) {
+      console.log('[OrdemServicoForm] Erros de validação:', errors);
+      // Log detalhado do veiculoId
+      const currentVeiculoId = watch('veiculoId');
+      console.log('[OrdemServicoForm] Valor atual de veiculoId:', currentVeiculoId);
+      console.log('[OrdemServicoForm] Tipo de veiculoId:', typeof currentVeiculoId);
+      console.log('[OrdemServicoForm] É string?', typeof currentVeiculoId === 'string');
+      console.log('[OrdemServicoForm] Comprimento:', currentVeiculoId?.length);
+      console.log('[OrdemServicoForm] Tem espaços?', currentVeiculoId?.includes(' '));
+      console.log('[OrdemServicoForm] Código char primeiro:', currentVeiculoId?.charCodeAt(0));
+      console.log('[OrdemServicoForm] Código char último:', currentVeiculoId?.charCodeAt(currentVeiculoId.length - 1));
+      // Teste manual de UUID regex
+      const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+      console.log('[OrdemServicoForm] Match UUID regex?', uuidRegex.test(currentVeiculoId || ''));
+    }
+  }, [errors, watch]);
+
   const { fields, append, remove } = useFieldArray({
     control,
     name: 'itens',
   });
 
-  // Watch para cálculos automáticos
-  const itens = watch('itens');
-  const valorMaoObra = watch('valorMaoObra') || 0;
-  const descontoPercentual = watch('descontoPercentual') || 0;
-  const descontoValor = watch('descontoValor') || 0;
+  // Watch para cálculos automáticos - observa todo o formulário
+  const formValues = watch();
+  const itens = formValues.itens || [];
+  const valorMaoObra = formValues.valorMaoObra || 0;
+  const descontoPercentual = formValues.descontoPercentual || 0;
+  const descontoValor = formValues.descontoValor || 0;
 
   // Cálculos automáticos de valores
   useEffect(() => {
@@ -82,27 +110,47 @@ export const OrdemServicoFormPage = () => {
     // Calcular valor final
     const valorFinal = Math.max(0, valorTotal - desconto);
 
-    // Atualizar campos calculados
-    setValue('valorPecas', valorPecas);
-    setValue('valorTotal', valorTotal);
-    setValue('valorFinal', valorFinal);
+    // Atualizar campos calculados apenas se mudaram (evita loop)
+    if (formValues.valorPecas !== valorPecas) {
+      setValue('valorPecas', valorPecas, { shouldValidate: false });
+    }
+    if (formValues.valorTotal !== valorTotal) {
+      setValue('valorTotal', valorTotal, { shouldValidate: false });
+    }
+    if (formValues.valorFinal !== valorFinal) {
+      setValue('valorFinal', valorFinal, { shouldValidate: false });
+    }
 
     // Se descontoPercentual mudou, zerar descontoValor
-    if (descontoPercentual > 0) {
-      setValue('descontoValor', 0);
+    if (descontoPercentual > 0 && descontoValor > 0) {
+      setValue('descontoValor', 0, { shouldValidate: false });
     }
-  }, [itens, valorMaoObra, descontoPercentual, descontoValor, setValue]);
+  }, [formValues, setValue]);
 
   // Calcular valorTotal de cada item
   useEffect(() => {
     itens.forEach((item, index) => {
       const valorItem =
         (item.quantidade || 0) * (item.valorUnitario || 0) - (item.desconto || 0);
-      if (item.valorTotal !== valorItem) {
-        setValue(`itens.${index}.valorTotal`, Math.max(0, valorItem));
+      const valorCalculado = Math.max(0, valorItem);
+
+      if (item.valorTotal !== valorCalculado) {
+        setValue(`itens.${index}.valorTotal`, valorCalculado, { shouldValidate: false });
       }
     });
-  }, [itens, setValue]);
+  }, [formValues, setValue, itens]);
+
+  // Pre-select vehicle from URL parameter (only when creating new OS)
+  useEffect(() => {
+    if (!isEditMode) {
+      const veiculoId = searchParams.get('veiculoId');
+      console.log('[OrdemServicoForm] VeiculoId da URL:', veiculoId);
+      if (veiculoId) {
+        console.log('[OrdemServicoForm] Definindo veiculoId no form:', veiculoId);
+        setValue('veiculoId', veiculoId, { shouldValidate: true });
+      }
+    }
+  }, [isEditMode, searchParams, setValue]);
 
   // Load OS data when editing
   useEffect(() => {
@@ -151,6 +199,12 @@ export const OrdemServicoFormPage = () => {
   }, [ordemServico, isEditMode, setValue, navigate, id]);
 
   const onSubmit = async (data: OrdemServicoFormData) => {
+    console.log('[OrdemServicoForm] Iniciando submit...');
+    console.log('[OrdemServicoForm] Dados do formulário:', data);
+    console.log('[OrdemServicoForm] veiculoId tipo:', typeof data.veiculoId);
+    console.log('[OrdemServicoForm] veiculoId valor:', data.veiculoId);
+    console.log('[OrdemServicoForm] veiculoId é string?', typeof data.veiculoId === 'string');
+
     try {
       const payload = {
         veiculoId: data.veiculoId,
@@ -171,6 +225,8 @@ export const OrdemServicoFormPage = () => {
           desconto: item.desconto || 0,
         })),
       };
+
+      console.log('[OrdemServicoForm] Payload para envio:', payload);
 
       if (isEditMode) {
         await updateMutation.mutateAsync({
@@ -233,6 +289,38 @@ export const OrdemServicoFormPage = () => {
 
       {/* Form */}
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+        {/* Validation Error Summary */}
+        {Object.keys(errors).length > 0 && (
+          <div className="rounded-lg border-2 border-red-500 bg-red-50 p-4">
+            <div className="flex items-start gap-3">
+              <AlertCircle className="h-5 w-5 flex-shrink-0 text-red-600" />
+              <div className="flex-1">
+                <h3 className="font-semibold text-red-900">
+                  Corrija os seguintes erros antes de salvar:
+                </h3>
+                <ul className="mt-2 list-inside list-disc space-y-1 text-sm text-red-800">
+                  {errors.veiculoId && <li>{errors.veiculoId.message}</li>}
+                  {errors.usuarioId && <li>{errors.usuarioId.message}</li>}
+                  {errors.problemasRelatados && <li>{errors.problemasRelatados.message}</li>}
+                  {errors.diagnostico && <li>{errors.diagnostico.message}</li>}
+                  {errors.observacoes && <li>{errors.observacoes.message}</li>}
+                  {errors.dataAbertura && <li>{errors.dataAbertura.message}</li>}
+                  {errors.dataPrevisao && <li>{errors.dataPrevisao.message}</li>}
+                  {errors.valorMaoObra && <li>{errors.valorMaoObra.message}</li>}
+                  {errors.descontoPercentual && <li>{errors.descontoPercentual.message}</li>}
+                  {errors.descontoValor && <li>{errors.descontoValor.message}</li>}
+                  {errors.itens && typeof errors.itens === 'object' && 'message' in errors.itens && (
+                    <li>{errors.itens.message as string}</li>
+                  )}
+                  {errors.itens && Array.isArray(errors.itens) && errors.itens.some(item => item) && (
+                    <li>Há erros em um ou mais itens - verifique os campos destacados</li>
+                  )}
+                </ul>
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* Seção: Veículo e Mecânico */}
         <div className="rounded-lg bg-white p-6 shadow">
           <h2 className="mb-4 text-lg font-semibold text-gray-900">Veículo e Mecânico</h2>
@@ -241,14 +329,20 @@ export const OrdemServicoFormPage = () => {
             <Controller
               name="veiculoId"
               control={control}
-              render={({ field }) => (
-                <VeiculoAutocomplete
-                  value={field.value}
-                  onChange={field.onChange}
-                  error={errors.veiculoId?.message}
-                  required
-                />
-              )}
+              render={({ field }) => {
+                console.log('[Controller veiculoId] Field value:', field.value);
+                return (
+                  <VeiculoAutocomplete
+                    value={field.value}
+                    onChange={(veiculoId) => {
+                      console.log('[Controller veiculoId] onChange chamado com:', veiculoId);
+                      field.onChange(veiculoId);
+                    }}
+                    error={errors.veiculoId?.message}
+                    required
+                  />
+                );
+              }}
             />
 
             {/* Mecânico - Select */}
@@ -401,21 +495,44 @@ export const OrdemServicoFormPage = () => {
                     </select>
                   </div>
 
-                  {/* Descrição */}
+                  {/* Descrição ou Seleção de Peça */}
                   <div className="md:col-span-2">
-                    <label className="mb-1 block text-sm font-medium text-gray-700">
-                      Descrição
-                    </label>
-                    <input
-                      type="text"
-                      {...register(`itens.${index}.descricao`)}
-                      className="w-full rounded-lg border border-gray-300 px-3 py-2 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
-                      placeholder="Descrição do item"
-                    />
-                    {errors.itens?.[index]?.descricao && (
-                      <p className="mt-1 text-sm text-red-500">
-                        {errors.itens[index]?.descricao?.message}
-                      </p>
+                    {watch(`itens.${index}.tipo`) === TipoItem.PECA ? (
+                      <Controller
+                        name={`itens.${index}.pecaId`}
+                        control={control}
+                        render={({ field }) => (
+                          <PecaAutocomplete
+                            value={field.value || ''}
+                            onChange={(pecaId, valorVenda, descricao) => {
+                              field.onChange(pecaId);
+                              // Preencher automaticamente o valor unitário com o valor de venda
+                              setValue(`itens.${index}.valorUnitario`, valorVenda);
+                              // Preencher automaticamente a descrição
+                              setValue(`itens.${index}.descricao`, descricao);
+                            }}
+                            error={errors.itens?.[index]?.pecaId?.message}
+                            required
+                          />
+                        )}
+                      />
+                    ) : (
+                      <>
+                        <label className="mb-1 block text-sm font-medium text-gray-700">
+                          Descrição
+                        </label>
+                        <input
+                          type="text"
+                          {...register(`itens.${index}.descricao`)}
+                          className="w-full rounded-lg border border-gray-300 px-3 py-2 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+                          placeholder="Descrição do serviço"
+                        />
+                        {errors.itens?.[index]?.descricao && (
+                          <p className="mt-1 text-sm text-red-500">
+                            {errors.itens[index]?.descricao?.message}
+                          </p>
+                        )}
+                      </>
                     )}
                   </div>
 

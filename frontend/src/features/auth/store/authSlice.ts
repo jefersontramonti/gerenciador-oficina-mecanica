@@ -1,11 +1,13 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import type { PayloadAction } from '@reduxjs/toolkit';
 import { authService } from '../services/authService';
+import { getAccessToken } from '@/shared/services/api';
 import type { AuthState, LoginRequest, Usuario } from '../types';
 
 // LocalStorage keys
 const STORAGE_KEY_USER = 'pitstop_user';
 const STORAGE_KEY_REMEMBER = 'pitstop_remember_me';
+const TOKEN_STORAGE_KEY = 'pitstop_access_token';
 
 // Load user from localStorage if remember me is active
 const loadUserFromStorage = (): Usuario | null => {
@@ -21,6 +23,17 @@ const loadUserFromStorage = (): Usuario | null => {
     console.error('Error loading user from localStorage:', error);
   }
   return null;
+};
+
+// Check if there is a valid token in localStorage
+const hasValidToken = (): boolean => {
+  try {
+    const token = localStorage.getItem(TOKEN_STORAGE_KEY);
+    return !!token;
+  } catch (error) {
+    console.error('Error checking token:', error);
+    return false;
+  }
 };
 
 // Save user to localStorage
@@ -50,16 +63,48 @@ const clearUserFromStorage = () => {
 
 const storedUser = loadUserFromStorage();
 
+// If there's no stored user but there's a token, we need to fetch the user
+// This will be handled by the initializeAuth thunk
 const initialState: AuthState = {
   user: storedUser,
   isAuthenticated: !!storedUser,
-  isLoading: false,
+  isLoading: hasValidToken() && !storedUser, // Set loading if token exists but no user
   error: null,
 };
 
 /**
  * Async thunks for authentication
  */
+
+/**
+ * Initialize authentication on app startup
+ * If there's a token but no user data, fetch the user
+ */
+export const initializeAuth = createAsyncThunk(
+  'auth/initialize',
+  async (_, { rejectWithValue }) => {
+    try {
+      // Check if there's a token
+      const token = getAccessToken();
+      if (!token) {
+        return null; // No token, no user
+      }
+
+      // Check if we already have user data (remember me was active)
+      const storedUser = loadUserFromStorage();
+      if (storedUser) {
+        return storedUser; // User already loaded from storage
+      }
+
+      // We have a token but no user data, fetch from server
+      const user = await authService.getCurrentUser();
+      return user;
+    } catch (error: any) {
+      // Token is invalid or expired, clear it
+      return rejectWithValue(error.message || 'Sessão expirada');
+    }
+  }
+);
 
 export const loginUser = createAsyncThunk(
   'auth/login',
@@ -115,6 +160,32 @@ const authSlice = createSlice({
     },
   },
   extraReducers: (builder) => {
+    // Initialize auth
+    builder
+      .addCase(initializeAuth.pending, (state) => {
+        state.isLoading = true;
+        state.error = null;
+      })
+      .addCase(initializeAuth.fulfilled, (state, action) => {
+        state.isLoading = false;
+        if (action.payload) {
+          state.user = action.payload;
+          state.isAuthenticated = true;
+        } else {
+          // No token or token expired
+          state.user = null;
+          state.isAuthenticated = false;
+        }
+        state.error = null;
+      })
+      .addCase(initializeAuth.rejected, (state) => {
+        // Token is invalid, clear auth state
+        state.isLoading = false;
+        state.user = null;
+        state.isAuthenticated = false;
+        state.error = null; // Don't show error for initialization failure
+      });
+
     // Login
     builder
       .addCase(loginUser.pending, (state) => {

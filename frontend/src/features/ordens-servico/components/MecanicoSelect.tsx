@@ -38,12 +38,17 @@ export const MecanicoSelect: React.FC<MecanicoSelectProps> = ({
   const fetchMecanicos = async () => {
     setIsLoading(true);
     try {
+      console.log('[MecanicoSelect] Buscando mecânicos...');
       const { data } = await api.get<Mecanico[]>('/usuarios/perfil/MECANICO');
+      console.log('[MecanicoSelect] Mecânicos recebidos:', data);
       // Filtra apenas ativos
       const ativos = data.filter((m) => m.ativo);
+      console.log('[MecanicoSelect] Mecânicos ativos:', ativos);
       setMecanicos(ativos);
-    } catch (error) {
-      console.error('Erro ao buscar mecânicos:', error);
+    } catch (error: any) {
+      console.error('[MecanicoSelect] Erro ao buscar mecânicos:', error);
+      console.error('[MecanicoSelect] Status:', error.response?.status);
+      console.error('[MecanicoSelect] Data:', error.response?.data);
       setMecanicos([]);
     } finally {
       setIsLoading(false);

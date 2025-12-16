@@ -13,7 +13,7 @@
     <version>0.0.1-SNAPSHOT</version>
     <name>PitStop</name>
     <description>Sistema de Gerenciamento para Oficinas Mecânicas - Gestão completa de ordens de serviço, clientes, veículos, estoque e financeiro</description>
-    <url>https://github.com/your-username/pitstop</url>
+    <url>https://github.com/jefersontramonti/pitstop</url>
     <licenses>
         <license>
             <name>MIT License</name>
@@ -28,17 +28,22 @@
         </developer>
     </developers>
     <scm>
-        <connection>scm:git:git://github.com/your-username/pitstop.git</connection>
-        <developerConnection>scm:git:ssh://github.com:your-username/pitstop.git</developerConnection>
-        <url>https://github.com/your-username/pitstop/tree/master</url>
+        <connection>scm:git:git://github.com/jefersontramonti/pitstop.git</connection>
+        <developerConnection>scm:git:ssh://github.com:jefersontramonti/pitstop.git</developerConnection>
+        <url>https://github.com/jefersontramonti/pitstop/tree/master</url>
     </scm>
     <properties>
         <java.version>25</java.version>
         <mapstruct.version>1.6.0</mapstruct.version>
         <jjwt.version>0.12.6</jjwt.version>
         <springdoc.version>2.7.0</springdoc.version>
+        <commons-lang3.version>3.18.0</commons-lang3.version>
+        <commons-compress.version>1.27.0</commons-compress.version>
+        <guava.version>33.2.1-jre</guava.version>
     </properties>
+
     <dependencies>
+        <!-- Spring Boot Core Starters -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-actuator</artifactId>
@@ -72,6 +77,7 @@
             <artifactId>spring-boot-starter-websocket</artifactId>
         </dependency>
 
+        <!-- Runtime Dependencies -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-docker-compose</artifactId>
@@ -88,6 +94,8 @@
             <artifactId>lombok</artifactId>
             <optional>true</optional>
         </dependency>
+
+        <!-- Test Dependencies -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-test</artifactId>
@@ -213,7 +221,44 @@
             <artifactId>guice</artifactId>
             <version>7.0.0</version>
         </dependency>
+
+        <!-- Explicit transitive dependency overrides (Security patches) -->
+        <dependency>
+            <groupId>org.apache.commons</groupId>
+            <artifactId>commons-lang3</artifactId>
+            <version>${commons-lang3.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.commons</groupId>
+            <artifactId>commons-compress</artifactId>
+            <version>${commons-compress.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.google.guava</groupId>
+            <artifactId>guava</artifactId>
+            <version>${guava.version}</version>
+        </dependency>
     </dependencies>
+
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>org.apache.commons</groupId>
+                <artifactId>commons-lang3</artifactId>
+                <version>${commons-lang3.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.commons</groupId>
+                <artifactId>commons-compress</artifactId>
+                <version>${commons-compress.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.google.guava</groupId>
+                <artifactId>guava</artifactId>
+                <version>${guava.version}</version>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
 
     <build>
         <plugins>
@@ -255,6 +300,7 @@
             </plugin>
         </plugins>
     </build>
+
     <repositories>
         <repository>
             <id>spring-snapshots</id>
@@ -265,6 +311,7 @@
             </releases>
         </repository>
     </repositories>
+
     <pluginRepositories>
         <pluginRepository>
             <id>spring-snapshots</id>

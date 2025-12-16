@@ -16,6 +16,7 @@ import {
   Wrench,
   UserCog,
   MapPin,
+  Receipt,
 } from 'lucide-react';
 import { cn } from '@/shared/utils/cn';
 import { useWebSocket } from '@/shared/hooks/useWebSocket';
@@ -73,10 +74,16 @@ const navigationItems: NavigationItem[] = [
     // Todos têm acesso para visualizar
   },
   {
-    name: 'Financeiro',
+    name: 'Pagamentos',
     href: '/financeiro',
     icon: DollarSign,
-    requiredRoles: [PerfilUsuario.ADMIN, PerfilUsuario.GERENTE],
+    requiredRoles: [PerfilUsuario.ADMIN, PerfilUsuario.GERENTE, PerfilUsuario.ATENDENTE],
+  },
+  {
+    name: 'Notas Fiscais',
+    href: '/financeiro/notas-fiscais',
+    icon: Receipt,
+    requiredRoles: [PerfilUsuario.ADMIN, PerfilUsuario.GERENTE, PerfilUsuario.ATENDENTE],
   },
   {
     name: 'Configurações',

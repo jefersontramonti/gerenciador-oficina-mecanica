@@ -1,6 +1,7 @@
 import { BrowserRouter, Routes, Route, Navigate, Link } from 'react-router-dom';
 import { ShieldAlert, Home, ArrowLeft, FileQuestion } from 'lucide-react';
 import { useAuth } from './features/auth/hooks/useAuth';
+import { AuthInitializer } from './features/auth/components/AuthInitializer';
 import { ProtectedRoute } from './shared/components/common/ProtectedRoute';
 import { MainLayout } from './shared/layouts/MainLayout';
 import { LoginPage, RegisterPage, ForgotPasswordPage, ResetPasswordPage } from './features/auth/pages';
@@ -25,12 +26,17 @@ import {
   LocalArmazenamentoFormPage,
   LocalArmazenamentoDetailPage,
 } from './features/estoque/pages';
+import { PagamentosPage } from './features/financeiro/pages/PagamentosPage';
+import { NotasFiscaisListPage } from './features/financeiro/pages/NotasFiscaisListPage';
+import { NotaFiscalFormPage } from './features/financeiro/pages/NotaFiscalFormPage';
+import { NotaFiscalDetailPage } from './features/financeiro/pages/NotaFiscalDetailPage';
 import { PerfilUsuario } from './features/auth/types';
 
 function App() {
   return (
     <BrowserRouter>
-      <Routes>
+      <AuthInitializer>
+        <Routes>
         {/* Public routes */}
         <Route path="/login" element={<PublicRoute><LoginPage /></PublicRoute>} />
         <Route path="/register" element={<PublicRoute><RegisterPage /></PublicRoute>} />
@@ -316,17 +322,61 @@ function App() {
             </Route>
           </Route>
 
-          {/* Financeiro - Apenas ADMIN e GERENTE */}
-          <Route
-            path="financeiro"
-            element={
-              <ProtectedRoute
-                requiredRoles={[PerfilUsuario.ADMIN, PerfilUsuario.GERENTE]}
-              >
-                <ComingSoonPage title="Financeiro" />
-              </ProtectedRoute>
-            }
-          />
+          {/* Financeiro - ADMIN, GERENTE e ATENDENTE */}
+          <Route path="financeiro">
+            <Route
+              index
+              element={
+                <ProtectedRoute
+                  requiredRoles={[PerfilUsuario.ADMIN, PerfilUsuario.GERENTE, PerfilUsuario.ATENDENTE]}
+                >
+                  <PagamentosPage />
+                </ProtectedRoute>
+              }
+            />
+
+            {/* Notas Fiscais */}
+            <Route path="notas-fiscais">
+              <Route
+                index
+                element={
+                  <ProtectedRoute
+                    requiredRoles={[PerfilUsuario.ADMIN, PerfilUsuario.GERENTE, PerfilUsuario.ATENDENTE]}
+                  >
+                    <NotasFiscaisListPage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="novo"
+                element={
+                  <ProtectedRoute
+                    requiredRoles={[PerfilUsuario.ADMIN, PerfilUsuario.GERENTE, PerfilUsuario.ATENDENTE]}
+                  >
+                    <NotaFiscalFormPage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path=":id"
+                element={
+                  <ProtectedRoute>
+                    <NotaFiscalDetailPage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path=":id/editar"
+                element={
+                  <ProtectedRoute
+                    requiredRoles={[PerfilUsuario.ADMIN, PerfilUsuario.GERENTE, PerfilUsuario.ATENDENTE]}
+                  >
+                    <NotaFiscalFormPage />
+                  </ProtectedRoute>
+                }
+              />
+            </Route>
+          </Route>
 
           {/* Configurações */}
           <Route
@@ -341,6 +391,7 @@ function App() {
         {/* 404 */}
         <Route path="*" element={<NotFoundPage />} />
       </Routes>
+      </AuthInitializer>
     </BrowserRouter>
   );
 }

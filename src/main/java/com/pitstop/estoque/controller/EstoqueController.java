@@ -230,6 +230,7 @@ public class EstoqueController {
     @Operation(summary = "Quantidade de peças com estoque baixo", description = "Retorna contador para dashboard")
     public ResponseEntity<Long> contarEstoqueBaixo() {
         long count = estoqueService.contarEstoqueBaixo();
+        log.info("GET /api/estoque/dashboard/estoque-baixo - Retornando contagem: {}", count);
         return ResponseEntity.ok(count);
     }
 

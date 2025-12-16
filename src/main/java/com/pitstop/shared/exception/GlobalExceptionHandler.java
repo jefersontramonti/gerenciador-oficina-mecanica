@@ -681,6 +681,28 @@ public class GlobalExceptionHandler {
         return problemDetail;
     }
 
+    /**
+     * Trata exceção quando tenta-se entregar uma OS não paga.
+     * HTTP 402 - Payment Required
+     */
+    @ExceptionHandler(OrdemServicoNaoPagaException.class)
+    public ProblemDetail handleOrdemServicoNaoPagaException(
+            OrdemServicoNaoPagaException ex,
+            WebRequest request
+    ) {
+        log.warn("OS não paga: {}", ex.getMessage());
+
+        ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(
+                HttpStatus.PAYMENT_REQUIRED,
+                ex.getMessage()
+        );
+        problemDetail.setTitle("Pagamento Pendente");
+        problemDetail.setType(URI.create("https://pitstop.com/errors/ordem-servico-nao-paga"));
+        problemDetail.setProperty("timestamp", Instant.now());
+
+        return problemDetail;
+    }
+
     // ========== EXCEÇÕES GENÉRICAS ==========
 
     /**

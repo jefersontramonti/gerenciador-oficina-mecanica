@@ -7,8 +7,6 @@ import com.pitstop.estoque.exception.PecaNotFoundException;
 import com.pitstop.estoque.repository.PecaRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.cache.annotation.CacheEvict;
-import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -45,7 +43,6 @@ public class EstoqueService {
      * @throws IllegalStateException se validações falharem
      */
     @Transactional
-    @CacheEvict(value = {"pecas", "estoqueBaixo"}, allEntries = true)
     public Peca criar(Peca peca) {
         log.info("Criando nova peça com código: {}", peca.getCodigo());
 
@@ -78,7 +75,6 @@ public class EstoqueService {
      * @throws CodigoPecaDuplicadoException se novo código já existe
      */
     @Transactional
-    @CacheEvict(value = {"pecas", "estoqueBaixo"}, allEntries = true)
     public Peca atualizar(UUID id, Peca pecaAtualizada) {
         log.info("Atualizando peça ID: {}", id);
 
@@ -119,7 +115,6 @@ public class EstoqueService {
      * @throws PecaNotFoundException se não encontrada
      */
     @Transactional(readOnly = true)
-    @Cacheable(value = "pecas", key = "#id")
     public Peca buscarPorId(UUID id) {
         log.debug("Buscando peça por ID: {}", id);
         return pecaRepository.findById(id)
@@ -134,7 +129,6 @@ public class EstoqueService {
      * @throws PecaNotFoundException se não encontrada
      */
     @Transactional(readOnly = true)
-    @Cacheable(value = "pecas", key = "'codigo:' + #codigo")
     public Peca buscarPorCodigo(String codigo) {
         log.debug("Buscando peça por código: {}", codigo);
         return pecaRepository.findByCodigoAndAtivoTrue(codigo)
@@ -187,7 +181,6 @@ public class EstoqueService {
      * @return página de peças com estoque baixo
      */
     @Transactional(readOnly = true)
-    @Cacheable(value = "estoqueBaixo")
     public Page<Peca> listarEstoqueBaixo(Pageable pageable) {
         log.debug("Listando peças com estoque baixo");
         return pecaRepository.findEstoqueBaixo(pageable);
@@ -238,7 +231,6 @@ public class EstoqueService {
      * @throws PecaNotFoundException se não encontrada
      */
     @Transactional
-    @CacheEvict(value = {"pecas", "estoqueBaixo"}, allEntries = true)
     public void desativar(UUID id) {
         log.info("Desativando peça ID: {}", id);
 
@@ -258,7 +250,6 @@ public class EstoqueService {
      * @throws PecaNotFoundException se não encontrada
      */
     @Transactional
-    @CacheEvict(value = {"pecas", "estoqueBaixo"}, allEntries = true)
     public void reativar(UUID id) {
         log.info("Reativando peça ID: {}", id);
 
@@ -356,7 +347,6 @@ public class EstoqueService {
      * @throws PecaNotFoundException se peça não encontrada
      */
     @Transactional
-    @CacheEvict(value = {"pecas"}, allEntries = true)
     public Peca definirLocalizacaoPeca(UUID pecaId, UUID localId) {
         log.info("Definindo localização da peça {} para local {}", pecaId, localId);
 

@@ -1,6 +1,6 @@
 import { useAppSelector } from '@/shared/hooks/useAppSelector';
 import { useAppDispatch } from '@/shared/hooks/useAppDispatch';
-import { loginUser, logoutUser, getCurrentUser, clearError } from '../store/authSlice';
+import { loginUser, logoutUser, getCurrentUser, initializeAuth, clearError } from '../store/authSlice';
 import type { LoginRequest } from '../types';
 
 /**
@@ -22,6 +22,10 @@ export const useAuth = () => {
     return dispatch(getCurrentUser()).unwrap();
   };
 
+  const initialize = async () => {
+    return dispatch(initializeAuth()).unwrap();
+  };
+
   const clearAuthError = () => {
     dispatch(clearError());
   };
@@ -34,6 +38,7 @@ export const useAuth = () => {
     login,
     logout,
     fetchCurrentUser,
+    initialize,
     clearAuthError,
   };
 };

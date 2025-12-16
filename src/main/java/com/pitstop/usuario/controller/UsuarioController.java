@@ -147,13 +147,14 @@ public class UsuarioController {
     /**
      * Lista usuários por perfil.
      *
-     * ADMIN e GERENTE podem listar por perfil.
+     * ADMIN, GERENTE e ATENDENTE podem listar por perfil.
+     * ATENDENTE precisa acessar para selecionar mecânicos ao criar OS.
      *
      * @param perfil Perfil de acesso (ADMIN, GERENTE, ATENDENTE, MECANICO)
      * @return Lista de usuários com o perfil especificado
      */
     @GetMapping("/perfil/{perfil}")
-    @PreAuthorize("hasAnyAuthority('ADMIN', 'GERENTE')")
+    @PreAuthorize("hasAnyAuthority('ADMIN', 'GERENTE', 'ATENDENTE')")
     @Operation(summary = "Listar usuários por perfil", description = "Retorna lista de usuários com perfil específico")
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "Lista retornada com sucesso"),

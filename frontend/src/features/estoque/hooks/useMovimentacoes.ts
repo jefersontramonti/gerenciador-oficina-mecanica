@@ -21,8 +21,8 @@ export const movimentacaoKeys = {
   list: (filters: MovimentacaoFilters) => [...movimentacaoKeys.lists(), filters] as const,
   historicoPeca: (pecaId: string, page: number) =>
     [...movimentacaoKeys.all, 'historico', pecaId, page] as const,
-  porOS: (osId: string, page: number) =>
-    [...movimentacaoKeys.all, 'os', osId, page] as const,
+  porOS: (osId: string) =>
+    [...movimentacaoKeys.all, 'os', osId] as const,
 };
 
 // ==================== QUERIES ====================
@@ -52,11 +52,12 @@ export const useHistoricoPeca = (pecaId?: string, page = 0, size = 20) => {
 
 /**
  * Obter movimentações de uma Ordem de Serviço
+ * Nota: Este endpoint retorna lista completa (não paginada)
  */
-export const useMovimentacoesPorOS = (osId?: string, page = 0, size = 20) => {
+export const useMovimentacoesPorOS = (osId?: string) => {
   return useQuery({
-    queryKey: movimentacaoKeys.porOS(osId!, page),
-    queryFn: () => movimentacaoService.obterMovimentacoesPorOS(osId!, page, size),
+    queryKey: movimentacaoKeys.porOS(osId!),
+    queryFn: () => movimentacaoService.obterMovimentacoesPorOS(osId!),
     enabled: !!osId,
     staleTime: 2 * 60 * 1000,
   });

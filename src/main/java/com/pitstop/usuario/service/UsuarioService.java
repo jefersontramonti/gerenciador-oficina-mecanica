@@ -149,7 +149,7 @@ public class UsuarioService {
      * @param perfil Perfil de acesso
      * @return Lista de usuários com o perfil especificado
      */
-    @Cacheable(value = "usuarios", key = "'perfil:' + #perfil.name()")
+    // @Cacheable(value = "usuarios", key = "'perfil:' + #perfil.name()") // Temporariamente desabilitado
     public List<UsuarioResponse> findByPerfil(PerfilUsuario perfil) {
         log.debug("Buscando usuários com perfil: {}", perfil);
 

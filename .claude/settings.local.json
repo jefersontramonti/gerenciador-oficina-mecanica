@@ -7,7 +7,11 @@
       "Bash(taskkill:*)",
       "Bash(./mvnw.cmd clean:*)",
       "Bash(tree:*)",
-      "Bash(\"C:\\Users\\maninho\\Desktop\\Projeto oficina mecanica\\PitStop\\frontend\\src\\features\\estoque\\services\\localArmazenamentoService.ts\")"
+      "Bash(\"C:\\Users\\maninho\\Desktop\\Projeto oficina mecanica\\PitStop\\frontend\\src\\features\\estoque\\services\\localArmazenamentoService.ts\")",
+      "Bash(npm run build:*)",
+      "Bash(netstat:*)",
+      "Bash(findstr:*)",
+      "Bash(./mvnw.cmd spring-boot:run)"
     ],
     "deny": [],
     "ask": []

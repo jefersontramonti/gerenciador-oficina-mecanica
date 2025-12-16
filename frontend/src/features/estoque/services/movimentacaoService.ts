@@ -60,20 +60,13 @@ export const obterHistoricoPeca = async (
 
 /**
  * Obter movimentações vinculadas a uma Ordem de Serviço
+ * Nota: Backend retorna List (não paginado), diferente dos outros endpoints
  */
 export const obterMovimentacoesPorOS = async (
-  osId: string,
-  page = 0,
-  size = 20
-): Promise<PagedResponse<MovimentacaoEstoque>> => {
-  const params = new URLSearchParams();
-  params.append('page', page.toString());
-  params.append('size', size.toString());
-  params.append('sort', 'dataMovimentacao,desc');
-
-  const { data } = await api.get<PagedResponse<MovimentacaoEstoque>>(
-    `${BASE_URL}/ordem-servico/${osId}`,
-    { params }
+  osId: string
+): Promise<MovimentacaoEstoque[]> => {
+  const { data } = await api.get<MovimentacaoEstoque[]>(
+    `${BASE_URL}/ordem-servico/${osId}`
   );
   return data;
 };

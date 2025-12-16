@@ -32,11 +32,17 @@ export const PecaDetailPage = () => {
   const navigate = useNavigate();
   const { id } = useParams<{ id: string }>();
 
-  const { data: peca, isLoading, refetch } = usePeca(id);
+  console.log('PecaDetailPage - ID from params:', id);
+
+  const { data: peca, isLoading, error, refetch } = usePeca(id);
   const { data: movimentacoesData, isLoading: isLoadingMovimentacoes } =
     useHistoricoPeca(id);
   const desativarPeca = useDesativarPeca();
   const reativarPeca = useReativarPeca();
+
+  console.log('PecaDetailPage - peca:', peca);
+  console.log('PecaDetailPage - isLoading:', isLoading);
+  console.log('PecaDetailPage - error:', error);
 
   const [movimentacaoModal, setMovimentacaoModal] = useState<{
     isOpen: boolean;
@@ -66,6 +72,28 @@ export const PecaDetailPage = () => {
     return (
       <div className="flex justify-center items-center py-12">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+        <p className="ml-3 text-muted-foreground">Carregando dados da peça...</p>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="text-center py-12">
+        <div className="bg-destructive/10 border border-destructive rounded-lg p-6 max-w-md mx-auto">
+          <h2 className="text-lg font-semibold text-destructive mb-2">Erro ao carregar peça</h2>
+          <p className="text-muted-foreground mb-4">
+            {error instanceof Error ? error.message : 'Erro desconhecido ao buscar dados da peça'}
+          </p>
+          <div className="flex gap-2 justify-center">
+            <Button variant="outline" onClick={() => refetch()}>
+              Tentar Novamente
+            </Button>
+            <Button variant="default" onClick={() => navigate('/estoque')}>
+              Voltar para listagem
+            </Button>
+          </div>
+        </div>
       </div>
     );
   }
@@ -73,10 +101,15 @@ export const PecaDetailPage = () => {
   if (!peca) {
     return (
       <div className="text-center py-12">
-        <p className="text-muted-foreground">Peça não encontrada</p>
-        <Button variant="link" onClick={() => navigate('/estoque')}>
-          Voltar para listagem
-        </Button>
+        <div className="bg-muted border rounded-lg p-6 max-w-md mx-auto">
+          <h2 className="text-lg font-semibold mb-2">Peça não encontrada</h2>
+          <p className="text-muted-foreground mb-4">
+            A peça com ID "{id}" não foi encontrada no sistema.
+          </p>
+          <Button variant="default" onClick={() => navigate('/estoque')}>
+            Voltar para listagem
+          </Button>
+        </div>
       </div>
     );
   }

@@ -4,7 +4,7 @@
  */
 
 import { Link, useParams } from 'react-router-dom';
-import { ArrowLeft, Edit, Car, User, Phone, Mail, FileText, FileDown } from 'lucide-react';
+import { ArrowLeft, Edit, Car, User, Phone, Mail, FileText, FileDown, DollarSign } from 'lucide-react';
 import { showError } from '@/shared/utils/notifications';
 import { useOrdemServico, useGerarPDF } from '../hooks/useOrdensServico';
 import { StatusBadge } from '../components/StatusBadge';
@@ -12,6 +12,11 @@ import { StatusTimeline } from '../components/StatusTimeline';
 import { ItemOSTable } from '../components/ItemOSTable';
 import { ActionButtons } from '../components/ActionButtons';
 import { canEdit } from '../utils/statusTransitions';
+import { ResumoFinanceiro } from '@/features/financeiro/components/ResumoFinanceiro';
+import { ListaPagamentos } from '@/features/financeiro/components/ListaPagamentos';
+import { PagamentoModal } from '@/features/financeiro/components/PagamentoModal';
+import { useResumoFinanceiro } from '@/features/financeiro/hooks/usePagamentos';
+import { useState } from 'react';
 
 /**
  * Formata valor monetário
@@ -26,7 +31,9 @@ const formatCurrency = (value: number): string => {
 export const OrdemServicoDetailPage = () => {
   const { id } = useParams<{ id: string }>();
   const { data: ordemServico, isLoading, error, refetch } = useOrdemServico(id);
+  const { data: resumoFinanceiro } = useResumoFinanceiro(id || '');
   const gerarPDFMutation = useGerarPDF();
+  const [mostrarModalPagamento, setMostrarModalPagamento] = useState(false);
 
   const handleGerarPDF = async () => {
     if (!ordemServico) return;
@@ -332,6 +339,29 @@ export const OrdemServicoDetailPage = () => {
               </div>
             </div>
           </div>
+
+          {/* Seção: Pagamentos */}
+          <div className="rounded-lg bg-white p-6 shadow">
+            <div className="mb-4 flex items-center justify-between">
+              <h2 className="text-lg font-semibold text-gray-900">Pagamentos</h2>
+              <button
+                onClick={() => setMostrarModalPagamento(true)}
+                className="flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-white hover:bg-blue-700"
+              >
+                <DollarSign className="h-4 w-4" />
+                Adicionar Pagamento
+              </button>
+            </div>
+
+            {/* Resumo Financeiro */}
+            <ResumoFinanceiro ordemServicoId={ordemServico.id} />
+
+            {/* Lista de Pagamentos */}
+            <div className="mt-6">
+              <h3 className="mb-4 text-sm font-semibold text-gray-900">Histórico de Pagamentos</h3>
+              <ListaPagamentos ordemServicoId={ordemServico.id} />
+            </div>
+          </div>
         </div>
 
         {/* Coluna Lateral (1/3) */}
@@ -344,10 +374,22 @@ export const OrdemServicoDetailPage = () => {
           {/* Seção: Ações */}
           <div className="rounded-lg bg-white p-6 shadow">
             <h3 className="mb-4 text-sm font-medium text-gray-700">Ações Disponíveis</h3>
-            <ActionButtons ordemServico={ordemServico} onActionComplete={() => refetch()} />
+            <ActionButtons
+              ordemServico={ordemServico}
+              resumoFinanceiro={resumoFinanceiro}
+              onActionComplete={() => refetch()}
+            />
           </div>
         </div>
       </div>
+
+      {/* Modal de Pagamento */}
+      <PagamentoModal
+        isOpen={mostrarModalPagamento}
+        onClose={() => setMostrarModalPagamento(false)}
+        ordemServicoId={ordemServico.id}
+        valorDefault={ordemServico.valorFinal}
+      />
     </div>
   );
 };

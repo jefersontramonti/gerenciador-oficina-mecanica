@@ -262,4 +262,74 @@ public interface OrdemServicoRepository extends JpaRepository<OrdemServico, UUID
      */
     @Query("SELECT os FROM OrdemServico os WHERE os.veiculoId = :veiculoId ORDER BY os.dataAbertura DESC")
     Page<OrdemServico> findHistoricoVeiculo(@Param("veiculoId") UUID veiculoId, Pageable pageable);
+
+    // ========== QUERIES PARA DASHBOARD ==========
+
+    /**
+     * Conta OS ativas (não canceladas nem entregues).
+     * Útil para dashboard - mostra OS em progresso.
+     *
+     * @return quantidade de OS ativas
+     */
+    @Query("SELECT COUNT(os) FROM OrdemServico os WHERE os.status NOT IN ('CANCELADO', 'ENTREGUE')")
+    long countOSAtivas();
+
+    /**
+     * Calcula faturamento do mês atual.
+     * Considera apenas OS entregues (status = ENTREGUE) no mês corrente.
+     *
+     * @return valor total faturado no mês atual
+     */
+    @Query("""
+        SELECT COALESCE(SUM(os.valorFinal), 0)
+        FROM OrdemServico os
+        WHERE os.status = 'ENTREGUE'
+        AND YEAR(os.dataEntrega) = YEAR(CURRENT_DATE)
+        AND MONTH(os.dataEntrega) = MONTH(CURRENT_DATE)
+        """)
+    BigDecimal calcularFaturamentoMesAtual();
+
+    /**
+     * Busca OS recentes com dados de cliente e veículo.
+     * Usa native query com JOINs para performance otimizada.
+     *
+     * @param limit quantidade máxima de resultados
+     * @return lista de arrays com dados da OS [id, numero, status, clienteNome, veiculoPlaca, dataAbertura, valorFinal]
+     */
+    @Query(value = """
+        SELECT
+            os.id,
+            os.numero,
+            os.status,
+            c.nome AS cliente_nome,
+            v.placa AS veiculo_placa,
+            os.data_abertura,
+            os.valor_final
+        FROM ordem_servico os
+        INNER JOIN veiculos v ON os.veiculo_id = v.id
+        INNER JOIN clientes c ON v.cliente_id = c.id
+        ORDER BY os.data_abertura DESC
+        LIMIT :limit
+        """, nativeQuery = true)
+    List<Object[]> findRecentOS(@Param("limit") int limit);
+
+    /**
+     * Calcula faturamento mensal dos últimos N meses.
+     * Retorna array com [ano, mês, valor] ordenado do mais antigo para o mais recente.
+     *
+     * @param meses quantidade de meses para buscar
+     * @return lista de arrays [ano, mês, valorTotal]
+     */
+    @Query(value = """
+        SELECT
+            EXTRACT(YEAR FROM os.data_entrega) AS ano,
+            EXTRACT(MONTH FROM os.data_entrega) AS mes,
+            COALESCE(SUM(os.valor_final), 0) AS valor_total
+        FROM ordem_servico os
+        WHERE os.status = 'ENTREGUE'
+        AND os.data_entrega >= CURRENT_DATE - CAST(:meses || ' months' AS INTERVAL)
+        GROUP BY EXTRACT(YEAR FROM os.data_entrega), EXTRACT(MONTH FROM os.data_entrega)
+        ORDER BY ano, mes
+        """, nativeQuery = true)
+    List<Object[]> calcularFaturamentoMensal(@Param("meses") int meses);
 }

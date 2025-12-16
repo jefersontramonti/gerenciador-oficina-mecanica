@@ -89,12 +89,25 @@ export const MovimentacaoList = ({
             const sinal = getMovimentacaoSinal(mov.tipo);
             const quantidadeFormatada = `${sinal}${mov.quantidade}`;
 
+            // Formata data com validação
+            const formatarData = () => {
+              if (!mov.dataMovimentacao) return '-';
+
+              try {
+                const date = new Date(mov.dataMovimentacao);
+                if (isNaN(date.getTime())) return '-';
+
+                return format(date, 'dd/MM/yyyy HH:mm', { locale: ptBR });
+              } catch (error) {
+                console.error('Erro ao formatar data:', error, mov.dataMovimentacao);
+                return '-';
+              }
+            };
+
             return (
               <TableRow key={mov.id}>
                 <TableCell className="whitespace-nowrap">
-                  {format(new Date(mov.dataMovimentacao), 'dd/MM/yyyy HH:mm', {
-                    locale: ptBR,
-                  })}
+                  {formatarData()}
                 </TableCell>
 
                 {showPecaInfo && (

@@ -68,3 +68,9 @@ databaseChangeLog:
   - include:
       file: db/changelog/migrations/V023__create_oficinas_table.sql
       relativeToChangelogFile: false
+  - include:
+      file: db/changelog/migrations/V024__create_pagamentos_table.sql
+      relativeToChangelogFile: false
+  - include:
+      file: db/changelog/migrations/V025__create_notas_fiscais_tables.sql
+      relativeToChangelogFile: false

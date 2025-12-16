@@ -34,8 +34,7 @@ public class OpenAPIConfig {
                     - Controle de estoque de peças
                     - Gestão financeira e pagamentos
                     - Notificações em tempo real (WebSocket)
-
-                    Autenticação: JWT Bearer Token (será implementado na Fase 1)
+             
                     """)
                 .contact(new Contact()
                     .name("PitStop Team")

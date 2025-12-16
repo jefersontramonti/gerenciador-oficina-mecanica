@@ -13,7 +13,7 @@ import type {
 import { StatusOS } from '@/features/ordens-servico/types';
 
 // Flag para usar mock data (quando endpoints não estiverem prontos)
-const USE_MOCK_DATA = true;
+const USE_MOCK_DATA = false;
 
 /**
  * Gera mock data para estatísticas
@@ -33,43 +33,43 @@ const mockOSByStatus: OSStatusCount[] = [
     status: StatusOS.ORCAMENTO,
     count: 5,
     label: 'Orçamento',
-    color: '#3b82f6',
+    color: '#3b82f6', // Azul
   },
   {
     status: StatusOS.APROVADO,
     count: 2,
     label: 'Aprovado',
-    color: '#10b981',
+    color: '#8b5cf6', // Roxo
   },
   {
     status: StatusOS.EM_ANDAMENTO,
     count: 7,
     label: 'Em Andamento',
-    color: '#f59e0b',
+    color: '#f59e0b', // Laranja
   },
   {
     status: StatusOS.AGUARDANDO_PECA,
     count: 3,
     label: 'Aguardando Peça',
-    color: '#f97316',
+    color: '#ec4899', // Rosa/Pink
   },
   {
     status: StatusOS.FINALIZADO,
     count: 15,
     label: 'Finalizado',
-    color: '#059669',
+    color: '#10b981', // Verde
   },
   {
     status: StatusOS.ENTREGUE,
     count: 23,
     label: 'Entregue',
-    color: '#10b981',
+    color: '#06b6d4', // Ciano/Azul claro
   },
   {
     status: StatusOS.CANCELADO,
     count: 4,
     label: 'Cancelado',
-    color: '#ef4444',
+    color: '#ef4444', // Vermelho
   },
 ];
 
@@ -209,7 +209,7 @@ export const dashboardService = {
       return mockOSByStatus;
     }
 
-    const { data } = await api.get<OSStatusCount[]>('/dashboard/os-by-status');
+    const { data } = await api.get<OSStatusCount[]>('/dashboard/os-por-status');
     return data;
   },
 
@@ -240,7 +240,7 @@ export const dashboardService = {
       return mockRecentOS;
     }
 
-    const { data } = await api.get<RecentOS[]>('/dashboard/recent-os', {
+    const { data } = await api.get<RecentOS[]>('/dashboard/os-recentes', {
       params: { limit: 10 },
     });
     return data;

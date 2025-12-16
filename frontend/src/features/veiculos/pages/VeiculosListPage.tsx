@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useVeiculos, useDeleteVeiculo } from '../hooks/useVeiculos';
-import { Eye, Edit, Trash2, Plus, Search, FilterX } from 'lucide-react';
+import { Eye, Edit, Trash2, Plus, Search, FilterX, FileText } from 'lucide-react';
 import { showError } from '@/shared/utils/notifications';
 import type { VeiculoFilters } from '../types';
 
@@ -233,6 +233,13 @@ export const VeiculosListPage = () => {
                           title="Editar"
                         >
                           <Edit className="h-5 w-5" />
+                        </Link>
+                        <Link
+                          to={`/ordens-servico/novo?veiculoId=${veiculo.id}`}
+                          className="rounded p-1 text-green-600 hover:bg-green-50"
+                          title="Criar OS"
+                        >
+                          <FileText className="h-5 w-5" />
                         </Link>
                         <button
                           onClick={() => handleDelete(veiculo.id, veiculo.placa)}

@@ -5,10 +5,11 @@
 
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { CheckCircle, Play, XCircle, TruckIcon, Edit } from 'lucide-react';
+import { CheckCircle, Play, XCircle, TruckIcon, Edit, AlertCircle } from 'lucide-react';
 import { showError, showSuccess, showWarning } from '@/shared/utils/notifications';
 import { useAuth } from '@/features/auth/hooks/useAuth';
 import type { OrdemServico } from '../types';
+import type { ResumoFinanceiro } from '@/features/financeiro/types/pagamento';
 import { getAvailableActions, getConfirmationMessage, type ActionType } from '../utils/statusTransitions';
 import {
   useAprovarOrdemServico,
@@ -20,10 +21,11 @@ import {
 
 interface ActionButtonsProps {
   ordemServico: OrdemServico;
+  resumoFinanceiro?: ResumoFinanceiro;
   onActionComplete?: () => void;
 }
 
-export const ActionButtons: React.FC<ActionButtonsProps> = ({ ordemServico, onActionComplete }) => {
+export const ActionButtons: React.FC<ActionButtonsProps> = ({ ordemServico, resumoFinanceiro, onActionComplete }) => {
   const navigate = useNavigate();
   const { user } = useAuth();
   const [showCancelModal, setShowCancelModal] = useState(false);
@@ -44,6 +46,12 @@ export const ActionButtons: React.FC<ActionButtonsProps> = ({ ordemServico, onAc
   }
 
   const handleAction = async (action: ActionType) => {
+    // Validação de pagamento para entrega
+    if (action === 'entregar' && !resumoFinanceiro?.quitada) {
+      showError('A OS deve estar quitada antes da entrega');
+      return;
+    }
+
     const confirmMessage = getConfirmationMessage(action);
 
     // Ação de editar (navegar para página de edição)
@@ -146,20 +154,37 @@ export const ActionButtons: React.FC<ActionButtonsProps> = ({ ordemServico, onAc
   return (
     <>
       <div className="flex flex-wrap gap-3">
-        {availableActions.map((action) => (
-          <button
-            key={action.type}
-            type="button"
-            onClick={() => handleAction(action.type)}
-            disabled={isLoading}
-            className={`flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-medium transition-colors disabled:opacity-50 ${getButtonVariant(
-              action.variant
-            )}`}
-          >
-            {getActionIcon(action.type)}
-            {action.label}
-          </button>
-        ))}
+        {availableActions.map((action) => {
+          const isEntregarDisabled = action.type === 'entregar' && !resumoFinanceiro?.quitada;
+
+          return (
+            <div key={action.type} className="relative">
+              <button
+                type="button"
+                onClick={() => handleAction(action.type)}
+                disabled={isLoading || isEntregarDisabled}
+                className={`flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed ${getButtonVariant(
+                  action.variant
+                )}`}
+                title={
+                  isEntregarDisabled
+                    ? 'A OS deve estar quitada antes da entrega'
+                    : undefined
+                }
+              >
+                {getActionIcon(action.type)}
+                {action.label}
+              </button>
+
+              {/* Alerta visual para entrega bloqueada */}
+              {isEntregarDisabled && (
+                <div className="absolute -right-1 -top-1" title="Pagamento pendente">
+                  <AlertCircle className="h-4 w-4 text-red-600" />
+                </div>
+              )}
+            </div>
+          );
+        })}
       </div>
 
       {/* Modal de Cancelamento */}

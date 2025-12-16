@@ -45,10 +45,17 @@ export const VeiculoAutocomplete: React.FC<VeiculoAutocompleteProps> = ({
 
   // Busca veículo selecionado ao carregar (para modo de edição)
   useEffect(() => {
+    console.log('[VeiculoAutocomplete] Value recebido:', value);
+    console.log('[VeiculoAutocomplete] selectedVeiculo atual:', selectedVeiculo);
     if (value && !selectedVeiculo) {
+      console.log('[VeiculoAutocomplete] Buscando veículo por ID:', value);
       fetchVeiculoById(value);
+    } else if (!value && selectedVeiculo) {
+      // Se value foi limpo mas ainda há veículo selecionado, limpar
+      console.log('[VeiculoAutocomplete] Value foi limpo, limpando selectedVeiculo');
+      setSelectedVeiculo(null);
     }
-  }, [value]);
+  }, [value, selectedVeiculo]);
 
   // Fecha dropdown ao clicar fora
   useEffect(() => {
@@ -77,10 +84,13 @@ export const VeiculoAutocomplete: React.FC<VeiculoAutocompleteProps> = ({
 
   const fetchVeiculoById = async (id: string) => {
     try {
+      console.log('[VeiculoAutocomplete] Fazendo requisição para /veiculos/' + id);
       const { data } = await api.get<Veiculo>(`/veiculos/${id}`);
+      console.log('[VeiculoAutocomplete] Veículo encontrado:', data);
       setSelectedVeiculo(data);
+      console.log('[VeiculoAutocomplete] Veículo setado, NÃO chamando onChange (valor já está no form)');
     } catch (error) {
-      console.error('Erro ao buscar veículo:', error);
+      console.error('[VeiculoAutocomplete] Erro ao buscar veículo:', error);
     }
   };
 

@@ -12,7 +12,9 @@ export const itemOSSchema = z.object({
   tipo: z.enum([TipoItem.PECA, TipoItem.SERVICO], {
     message: 'Tipo é obrigatório',
   }),
-  pecaId: z.string().uuid().optional(),
+  pecaId: z.string()
+    .regex(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i, 'Peça inválida')
+    .optional(),
   descricao: z
     .string()
     .min(3, 'Descrição deve ter pelo menos 3 caracteres')
@@ -33,8 +35,12 @@ export const itemOSSchema = z.object({
  * Schema para criar Ordem de Serviço
  */
 export const createOrdemServicoSchema = z.object({
-  veiculoId: z.string().uuid('Veículo inválido'),
-  usuarioId: z.string().uuid('Mecânico inválido'),
+  veiculoId: z.string()
+    .regex(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i, 'Veículo inválido')
+    .min(1, 'Selecione um veículo'),
+  usuarioId: z.string()
+    .regex(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i, 'Mecânico inválido')
+    .min(1, 'Selecione um mecânico'),
   problemasRelatados: z
     .string()
     .min(10, 'Problemas relatados devem ter pelo menos 10 caracteres')
@@ -99,8 +105,12 @@ export const cancelarOrdemServicoSchema = z.object({
  * Schema para formulário (com campos calculados)
  */
 export const ordemServicoFormSchema = z.object({
-  veiculoId: z.string().uuid('Veículo inválido'),
-  usuarioId: z.string().uuid('Mecânico inválido'),
+  veiculoId: z.string()
+    .regex(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i, 'Veículo inválido')
+    .min(1, 'Selecione um veículo'),
+  usuarioId: z.string()
+    .regex(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i, 'Mecânico inválido')
+    .min(1, 'Selecione um mecânico'),
   problemasRelatados: z
     .string()
     .min(10, 'Problemas relatados devem ter pelo menos 10 caracteres')

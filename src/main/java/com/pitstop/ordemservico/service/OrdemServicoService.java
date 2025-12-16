@@ -65,6 +65,7 @@ public class OrdemServicoService {
     private final OrdemServicoMapper mapper;
     private final ItemOSMapper itemMapper;
     private final ApplicationEventPublisher applicationEventPublisher;
+    private final com.pitstop.financeiro.service.PagamentoService pagamentoService;
 
     // ===== CREATE =====
 
@@ -331,10 +332,12 @@ public class OrdemServicoService {
 
     /**
      * Entrega veículo ao cliente (FINALIZADO → ENTREGUE).
+     * Valida se OS está quitada antes de entregar.
      *
      * @param id ID da OS
      * @throws OrdemServicoNotFoundException se não encontrada
      * @throws TransicaoStatusInvalidaException se transição inválida
+     * @throws OrdemServicoNaoPagaException se OS não estiver quitada
      */
     @Transactional
     @CacheEvict(value = {"ordemServico", "osCountByStatus"}, allEntries = true)
@@ -345,10 +348,11 @@ public class OrdemServicoService {
             .orElseThrow(() -> new OrdemServicoNotFoundException(id));
 
         try {
-            // TODO: Validar se OS está paga (integração com módulo Financeiro)
-            // if (!financeiroService.isOSPaga(id)) {
-            //     throw new OrdemServicoNaoPagaException(id);
-            // }
+            // Valida se OS está paga (integração com módulo Financeiro)
+            boolean quitada = pagamentoService.isOrdemServicoQuitada(id);
+            if (!quitada) {
+                throw new OrdemServicoNaoPagaException(os.getNumero());
+            }
 
             os.entregar();
             repository.save(os);
