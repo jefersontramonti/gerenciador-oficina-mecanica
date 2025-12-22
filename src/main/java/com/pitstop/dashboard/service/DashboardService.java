@@ -7,6 +7,7 @@ import com.pitstop.dashboard.dto.OSStatusCountDTO;
 import com.pitstop.dashboard.dto.RecentOSDTO;
 import com.pitstop.ordemservico.domain.StatusOS;
 import com.pitstop.ordemservico.repository.OrdemServicoRepository;
+import com.pitstop.shared.security.tenant.TenantContext;
 import com.pitstop.veiculo.repository.VeiculoRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -46,17 +47,19 @@ public class DashboardService {
     public DashboardStatsDTO getDashboardStats() {
         log.debug("Calculando estatísticas do dashboard");
 
-        // Conta clientes ativos (devido ao @Where na entidade, count() retorna apenas ativos)
-        Long totalClientes = clienteRepository.count();
+        UUID oficinaId = TenantContext.getTenantId();
 
-        // Conta todos os veículos
-        Long totalVeiculos = veiculoRepository.count();
+        // Conta clientes ativos da oficina (devido ao @Where na entidade, count() retorna apenas ativos)
+        Long totalClientes = clienteRepository.countByOficinaId(oficinaId);
+
+        // Conta todos os veículos da oficina
+        Long totalVeiculos = veiculoRepository.countByOficinaId(oficinaId);
 
         // Conta OS ativas (não canceladas nem entregues)
-        Long osAtivas = ordemServicoRepository.countOSAtivas();
+        Long osAtivas = ordemServicoRepository.countOSAtivas(oficinaId);
 
         // Calcula faturamento do mês atual
-        BigDecimal faturamentoMes = ordemServicoRepository.calcularFaturamentoMesAtual();
+        BigDecimal faturamentoMes = ordemServicoRepository.calcularFaturamentoMesAtual(oficinaId);
 
         log.info("Stats calculadas - Clientes: {}, Veículos: {}, OS Ativas: {}, Faturamento Mês: R$ {}",
                 totalClientes, totalVeiculos, osAtivas, faturamentoMes);
@@ -80,13 +83,15 @@ public class DashboardService {
     public List<RecentOSDTO> getRecentOS(int limit) {
         log.debug("Buscando {} OS mais recentes", limit);
 
+        UUID oficinaId = TenantContext.getTenantId();
+
         // Validação do limit
         if (limit < 1 || limit > 50) {
             log.warn("Limit {} inválido, usando padrão 10", limit);
             limit = 10;
         }
 
-        List<Object[]> resultados = ordemServicoRepository.findRecentOS(limit);
+        List<Object[]> resultados = ordemServicoRepository.findRecentOS(oficinaId, limit);
         List<RecentOSDTO> recentOS = new ArrayList<>();
 
         for (Object[] row : resultados) {
@@ -128,7 +133,9 @@ public class DashboardService {
     public List<OSStatusCountDTO> getOSByStatus() {
         log.debug("Buscando contagem de OS por status");
 
-        List<Object[]> resultados = ordemServicoRepository.countByStatus();
+        UUID oficinaId = TenantContext.getTenantId();
+
+        List<Object[]> resultados = ordemServicoRepository.countByStatus(oficinaId);
         List<OSStatusCountDTO> statusCounts = new ArrayList<>();
 
         // Mapear cores e labels para cada status
@@ -183,13 +190,15 @@ public class DashboardService {
     public List<FaturamentoMensalDTO> getFaturamentoMensal(int meses) {
         log.debug("Buscando faturamento mensal dos últimos {} meses", meses);
 
+        UUID oficinaId = TenantContext.getTenantId();
+
         // Validação do parâmetro
         if (meses < 1 || meses > 24) {
             log.warn("Meses {} inválido, usando padrão 6", meses);
             meses = 6;
         }
 
-        List<Object[]> resultados = ordemServicoRepository.calcularFaturamentoMensal(meses);
+        List<Object[]> resultados = ordemServicoRepository.calcularFaturamentoMensal(oficinaId, meses);
         List<FaturamentoMensalDTO> faturamentoList = new ArrayList<>();
 
         // Criar locale PT-BR para nomes dos meses

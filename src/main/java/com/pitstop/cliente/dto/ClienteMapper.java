@@ -20,11 +20,13 @@ public interface ClienteMapper {
      * Converte CreateClienteRequest para entidade Cliente.
      *
      * <p>O endereço é construído a partir dos campos individuais do request.</p>
+     * <p>O campo oficina é auto-populado via @PrePersist JPA hook.</p>
      *
      * @param request DTO de criação
      * @return entidade Cliente
      */
     @Mapping(target = "id", ignore = true)
+    @Mapping(target = "oficina", ignore = true)
     @Mapping(target = "ativo", constant = "true")
     @Mapping(target = "createdAt", ignore = true)
     @Mapping(target = "updatedAt", ignore = true)
@@ -34,12 +36,13 @@ public interface ClienteMapper {
     /**
      * Atualiza entidade Cliente existente com dados do UpdateClienteRequest.
      *
-     * <p>Campos não modificáveis (id, tipo, cpfCnpj, ativo) são ignorados.</p>
+     * <p>Campos não modificáveis (id, oficina, tipo, cpfCnpj, ativo) são ignorados.</p>
      *
      * @param request DTO de atualização
      * @param cliente entidade existente a ser atualizada
      */
     @Mapping(target = "id", ignore = true)
+    @Mapping(target = "oficina", ignore = true)
     @Mapping(target = "tipo", ignore = true)
     @Mapping(target = "cpfCnpj", ignore = true)
     @Mapping(target = "ativo", ignore = true)

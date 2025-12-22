@@ -63,17 +63,17 @@ export function Modal({
         className={`
           relative z-10 m-4 w-full ${sizeClasses[size]}
           max-h-[90vh] overflow-hidden
-          rounded-lg bg-white shadow-xl
+          rounded-lg bg-white dark:bg-gray-800 shadow-xl
           transition-all
         `}
       >
         {/* Header */}
-        <div className="flex items-center justify-between border-b border-gray-200 px-6 py-4">
-          <h2 className="text-lg font-semibold text-gray-900">{title}</h2>
+        <div className="flex items-center justify-between border-b border-gray-200 dark:border-gray-700 px-6 py-4">
+          <h2 className="text-lg font-semibold text-gray-900 dark:text-white">{title}</h2>
           {showCloseButton && (
             <button
               onClick={onClose}
-              className="rounded-lg p-1 text-gray-400 hover:bg-gray-100 hover:text-gray-600"
+              className="rounded-lg p-1 text-gray-400 dark:text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-gray-600 dark:hover:text-gray-300"
               type="button"
             >
               <X size={20} />

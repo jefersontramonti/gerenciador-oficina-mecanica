@@ -10,10 +10,10 @@ interface UnidadeMedidaBadgeProps {
 }
 
 const unidadeColors: Record<UnidadeMedida, { bg: string; text: string }> = {
-  [UnidadeMedida.UNIDADE]: { bg: 'bg-blue-100', text: 'text-blue-800' },
-  [UnidadeMedida.LITRO]: { bg: 'bg-green-100', text: 'text-green-800' },
-  [UnidadeMedida.METRO]: { bg: 'bg-purple-100', text: 'text-purple-800' },
-  [UnidadeMedida.QUILO]: { bg: 'bg-orange-100', text: 'text-orange-800' },
+  [UnidadeMedida.UNIDADE]: { bg: 'bg-blue-100 dark:bg-blue-950/40', text: 'text-blue-800 dark:text-blue-300' },
+  [UnidadeMedida.LITRO]: { bg: 'bg-green-100 dark:bg-green-950/40', text: 'text-green-800 dark:text-green-300' },
+  [UnidadeMedida.METRO]: { bg: 'bg-purple-100 dark:bg-purple-950/40', text: 'text-purple-800 dark:text-purple-300' },
+  [UnidadeMedida.QUILO]: { bg: 'bg-orange-100 dark:bg-orange-950/40', text: 'text-orange-800 dark:text-orange-300' },
 };
 
 export const UnidadeMedidaBadge = ({ unidade }: UnidadeMedidaBadgeProps) => {

@@ -1,5 +1,7 @@
 package com.pitstop.estoque.domain;
 
+import com.pitstop.oficina.domain.Oficina;
+import com.pitstop.shared.security.tenant.TenantContext;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.Where;
@@ -50,6 +52,14 @@ public class Peca {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
+
+    /**
+     * Oficina à qual esta peça pertence (multi-tenant).
+     * Preenchida automaticamente via TenantContext no @PrePersist.
+     */
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "oficina_id")
+    private Oficina oficina;
 
     /**
      * Código único da peça (SKU).
@@ -211,10 +221,20 @@ public class Peca {
 
     /**
      * Validações executadas antes de persistir ou atualizar a entidade.
+     * Define oficina via TenantContext e executa validações de negócio.
      */
     @PrePersist
     @PreUpdate
-    protected void validate() {
+    protected void prePersist() {
+        // Multi-tenancy: set oficina from TenantContext
+        if (this.oficina == null && TenantContext.isSet()) {
+            UUID tenantId = TenantContext.getTenantId();
+            Oficina oficina = new Oficina();
+            oficina.setId(tenantId);
+            this.oficina = oficina;
+        }
+
+        // Validações
         if (quantidadeAtual < 0) {
             throw new IllegalStateException("Quantidade atual não pode ser negativa");
         }

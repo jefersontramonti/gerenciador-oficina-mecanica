@@ -40,7 +40,7 @@ export const VeiculoDetailPage = () => {
   if (isLoading) {
     return (
       <div className="flex h-64 items-center justify-center">
-        <div className="text-gray-500">Carregando...</div>
+        <div className="text-gray-500 dark:text-gray-400">Carregando...</div>
       </div>
     );
   }
@@ -48,7 +48,7 @@ export const VeiculoDetailPage = () => {
   if (error || !veiculo) {
     return (
       <div className="p-6">
-        <div className="rounded-lg border border-red-800 bg-red-900/20 p-4 text-red-400">
+        <div className="rounded-lg border border-red-800 dark:border-red-700 bg-red-900/20 dark:bg-red-900/30 p-4 text-red-400 dark:text-red-300">
           Veículo não encontrado
         </div>
       </div>
@@ -62,13 +62,13 @@ export const VeiculoDetailPage = () => {
         <div className="flex items-center gap-4">
           <button
             onClick={() => navigate('/veiculos')}
-            className="rounded-lg p-2 hover:bg-gray-100"
+            className="rounded-lg p-2 hover:bg-gray-100 dark:hover:bg-gray-700"
           >
-            <ArrowLeft className="h-5 w-5" />
+            <ArrowLeft className="h-5 w-5 text-gray-900 dark:text-gray-100" />
           </button>
           <div>
-            <h1 className="text-2xl font-bold text-gray-900">{veiculo.placa}</h1>
-            <p className="mt-1 text-sm text-gray-600">
+            <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">{veiculo.placa}</h1>
+            <p className="mt-1 text-sm text-gray-600 dark:text-gray-400">
               {veiculo.marca} {veiculo.modelo} • {veiculo.ano}
             </p>
           </div>
@@ -77,7 +77,7 @@ export const VeiculoDetailPage = () => {
         <div className="flex gap-2">
           <Link
             to={`/veiculos/${id}/editar`}
-            className="flex items-center gap-2 rounded-lg border border-gray-300 px-4 py-2 text-gray-700 hover:bg-gray-50"
+            className="flex items-center gap-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 px-4 py-2 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-600"
           >
             <Edit className="h-5 w-5" />
             Editar
@@ -85,7 +85,7 @@ export const VeiculoDetailPage = () => {
           <button
             onClick={handleDelete}
             disabled={deleteMutation.isPending}
-            className="flex items-center gap-2 rounded-lg border border-red-600 px-4 py-2 text-red-600 hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-50"
+            className="flex items-center gap-2 rounded-lg border border-red-600 dark:border-red-700 bg-white dark:bg-gray-700 px-4 py-2 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/30 disabled:cursor-not-allowed disabled:opacity-50"
           >
             <Trash2 className="h-5 w-5" />
             Remover
@@ -98,52 +98,52 @@ export const VeiculoDetailPage = () => {
         {/* Main Info */}
         <div className="lg:col-span-2 space-y-6">
           {/* Dados do Veículo */}
-          <div className="rounded-lg bg-white p-6 shadow">
-            <h2 className="mb-4 flex items-center gap-2 text-lg font-semibold text-gray-900">
+          <div className="rounded-lg bg-white dark:bg-gray-800 p-6 shadow">
+            <h2 className="mb-4 flex items-center gap-2 text-lg font-semibold text-gray-900 dark:text-gray-100">
               <Car className="h-5 w-5" />
               Dados do Veículo
             </h2>
 
             <div className="grid gap-4 md:grid-cols-2">
               <div>
-                <label className="text-sm font-medium text-gray-500">Placa</label>
-                <p className="mt-1 text-lg font-semibold text-gray-900">{veiculo.placa}</p>
+                <label className="text-sm font-medium text-gray-500 dark:text-gray-400">Placa</label>
+                <p className="mt-1 text-lg font-semibold text-gray-900 dark:text-gray-100">{veiculo.placa}</p>
               </div>
 
               <div>
-                <label className="text-sm font-medium text-gray-500">Chassi</label>
-                <p className="mt-1 font-mono text-sm text-gray-900">
+                <label className="text-sm font-medium text-gray-500 dark:text-gray-400">Chassi</label>
+                <p className="mt-1 font-mono text-sm text-gray-900 dark:text-gray-100">
                   {veiculo.chassi || '-'}
                 </p>
               </div>
 
               <div>
-                <label className="text-sm font-medium text-gray-500">Marca</label>
-                <p className="mt-1 text-gray-900">{veiculo.marca}</p>
+                <label className="text-sm font-medium text-gray-500 dark:text-gray-400">Marca</label>
+                <p className="mt-1 text-gray-900 dark:text-gray-100">{veiculo.marca}</p>
               </div>
 
               <div>
-                <label className="text-sm font-medium text-gray-500">Modelo</label>
-                <p className="mt-1 text-gray-900">{veiculo.modelo}</p>
+                <label className="text-sm font-medium text-gray-500 dark:text-gray-400">Modelo</label>
+                <p className="mt-1 text-gray-900 dark:text-gray-100">{veiculo.modelo}</p>
               </div>
 
               <div>
-                <label className="text-sm font-medium text-gray-500">Ano</label>
-                <p className="mt-1 flex items-center gap-2 text-gray-900">
-                  <Calendar className="h-4 w-4 text-gray-400" />
+                <label className="text-sm font-medium text-gray-500 dark:text-gray-400">Ano</label>
+                <p className="mt-1 flex items-center gap-2 text-gray-900 dark:text-gray-100">
+                  <Calendar className="h-4 w-4 text-gray-400 dark:text-gray-500" />
                   {veiculo.ano}
                 </p>
               </div>
 
               <div>
-                <label className="text-sm font-medium text-gray-500">Cor</label>
-                <p className="mt-1 text-gray-900">{veiculo.cor || '-'}</p>
+                <label className="text-sm font-medium text-gray-500 dark:text-gray-400">Cor</label>
+                <p className="mt-1 text-gray-900 dark:text-gray-100">{veiculo.cor || '-'}</p>
               </div>
 
               <div className="md:col-span-2">
-                <label className="text-sm font-medium text-gray-500">Quilometragem</label>
-                <p className="mt-1 flex items-center gap-2 text-gray-900">
-                  <Gauge className="h-4 w-4 text-gray-400" />
+                <label className="text-sm font-medium text-gray-500 dark:text-gray-400">Quilometragem</label>
+                <p className="mt-1 flex items-center gap-2 text-gray-900 dark:text-gray-100">
+                  <Gauge className="h-4 w-4 text-gray-400 dark:text-gray-500" />
                   {veiculo.quilometragem
                     ? `${veiculo.quilometragem.toLocaleString('pt-BR')} km`
                     : 'Não informada'}
@@ -154,30 +154,30 @@ export const VeiculoDetailPage = () => {
 
           {/* Proprietário */}
           {veiculo.cliente && (
-            <div className="rounded-lg bg-white p-6 shadow">
-              <h2 className="mb-4 flex items-center gap-2 text-lg font-semibold text-gray-900">
+            <div className="rounded-lg bg-white dark:bg-gray-800 p-6 shadow">
+              <h2 className="mb-4 flex items-center gap-2 text-lg font-semibold text-gray-900 dark:text-gray-100">
                 <User className="h-5 w-5" />
                 Proprietário
               </h2>
 
               <div className="space-y-3">
                 <div>
-                  <label className="text-sm font-medium text-gray-500">Nome</label>
-                  <p className="mt-1 text-gray-900">{veiculo.cliente.nome}</p>
+                  <label className="text-sm font-medium text-gray-500 dark:text-gray-400">Nome</label>
+                  <p className="mt-1 text-gray-900 dark:text-gray-100">{veiculo.cliente.nome}</p>
                 </div>
 
                 <div>
-                  <label className="text-sm font-medium text-gray-500">CPF/CNPJ</label>
-                  <p className="mt-1 text-gray-900">{veiculo.cliente.cpfCnpj}</p>
+                  <label className="text-sm font-medium text-gray-500 dark:text-gray-400">CPF/CNPJ</label>
+                  <p className="mt-1 text-gray-900 dark:text-gray-100">{veiculo.cliente.cpfCnpj}</p>
                 </div>
 
                 {veiculo.cliente.telefone && (
                   <div>
-                    <label className="text-sm font-medium text-gray-500">Telefone</label>
-                    <p className="mt-1 text-gray-900">
+                    <label className="text-sm font-medium text-gray-500 dark:text-gray-400">Telefone</label>
+                    <p className="mt-1 text-gray-900 dark:text-gray-100">
                       <a
                         href={`tel:${veiculo.cliente.telefone}`}
-                        className="text-blue-600 hover:underline"
+                        className="text-blue-600 dark:text-blue-400 hover:underline"
                       >
                         {veiculo.cliente.telefone}
                       </a>
@@ -185,10 +185,10 @@ export const VeiculoDetailPage = () => {
                   </div>
                 )}
 
-                <div className="mt-4 pt-4 border-t border-gray-200">
+                <div className="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
                   <Link
                     to={`/clientes/${veiculo.clienteId}`}
-                    className="text-sm text-blue-600 hover:underline"
+                    className="text-sm text-blue-600 dark:text-blue-400 hover:underline"
                   >
                     Ver perfil completo do cliente →
                   </Link>
@@ -201,42 +201,42 @@ export const VeiculoDetailPage = () => {
         {/* Sidebar */}
         <div className="space-y-6">
           {/* Metadata */}
-          <div className="rounded-lg bg-white p-6 shadow">
-            <h3 className="mb-4 text-sm font-semibold text-gray-700">Informações</h3>
+          <div className="rounded-lg bg-white dark:bg-gray-800 p-6 shadow">
+            <h3 className="mb-4 text-sm font-semibold text-gray-700 dark:text-gray-300">Informações</h3>
 
             <div className="space-y-3">
               <div>
-                <label className="text-xs font-medium text-gray-500">Cadastrado em</label>
-                <p className="mt-1 text-sm text-gray-900">{formatDate(veiculo.createdAt)}</p>
+                <label className="text-xs font-medium text-gray-500 dark:text-gray-400">Cadastrado em</label>
+                <p className="mt-1 text-sm text-gray-900 dark:text-gray-100">{formatDate(veiculo.createdAt)}</p>
               </div>
 
               <div>
-                <label className="text-xs font-medium text-gray-500">Última atualização</label>
-                <p className="mt-1 text-sm text-gray-900">{formatDate(veiculo.updatedAt)}</p>
+                <label className="text-xs font-medium text-gray-500 dark:text-gray-400">Última atualização</label>
+                <p className="mt-1 text-sm text-gray-900 dark:text-gray-100">{formatDate(veiculo.updatedAt)}</p>
               </div>
 
               <div>
-                <label className="text-xs font-medium text-gray-500">ID</label>
-                <p className="mt-1 text-xs font-mono text-gray-600">{veiculo.id}</p>
+                <label className="text-xs font-medium text-gray-500 dark:text-gray-400">ID</label>
+                <p className="mt-1 text-xs font-mono text-gray-600 dark:text-gray-400">{veiculo.id}</p>
               </div>
             </div>
           </div>
 
           {/* Ações Rápidas */}
-          <div className="rounded-lg bg-white p-6 shadow">
-            <h3 className="mb-4 text-sm font-semibold text-gray-700">Ações Rápidas</h3>
+          <div className="rounded-lg bg-white dark:bg-gray-800 p-6 shadow">
+            <h3 className="mb-4 text-sm font-semibold text-gray-700 dark:text-gray-300">Ações Rápidas</h3>
 
             <div className="space-y-2">
               <button
                 onClick={() => navigate(`/ordens-servico/novo?veiculo=${id}`)}
-                className="w-full rounded-lg border border-green-600 px-4 py-2 text-sm font-medium text-green-600 hover:bg-green-50"
+                className="w-full rounded-lg border border-green-600 dark:border-green-700 bg-white dark:bg-gray-700 px-4 py-2 text-sm font-medium text-green-600 dark:text-green-400 hover:bg-green-50 dark:hover:bg-green-900/30"
               >
                 Nova Ordem de Serviço
               </button>
 
               <Link
                 to={`/ordens-servico?veiculo=${id}`}
-                className="block w-full rounded-lg border border-gray-300 px-4 py-2 text-center text-sm font-medium text-gray-700 hover:bg-gray-50"
+                className="block w-full rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 px-4 py-2 text-center text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-600"
               >
                 Ver Histórico de OS
               </Link>

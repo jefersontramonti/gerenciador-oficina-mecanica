@@ -21,7 +21,7 @@ export const STATUS_TRANSITIONS: Record<StatusOS, StatusOS[]> = {
 };
 
 /**
- * Cores para badges de status (Tailwind CSS)
+ * Cores para badges de status (Tailwind CSS com dark mode)
  */
 export const STATUS_COLORS: Record<
   StatusOS,
@@ -32,39 +32,39 @@ export const STATUS_COLORS: Record<
   }
 > = {
   [StatusOS.ORCAMENTO]: {
-    bg: 'bg-blue-100',
-    text: 'text-blue-800',
-    border: 'border-blue-300',
+    bg: 'bg-blue-100 dark:bg-blue-900/30',
+    text: 'text-blue-800 dark:text-blue-300',
+    border: 'border-blue-300 dark:border-blue-700',
   },
   [StatusOS.APROVADO]: {
-    bg: 'bg-green-100',
-    text: 'text-green-800',
-    border: 'border-green-300',
+    bg: 'bg-green-100 dark:bg-green-900/30',
+    text: 'text-green-800 dark:text-green-300',
+    border: 'border-green-300 dark:border-green-700',
   },
   [StatusOS.EM_ANDAMENTO]: {
-    bg: 'bg-yellow-100',
-    text: 'text-yellow-800',
-    border: 'border-yellow-300',
+    bg: 'bg-yellow-100 dark:bg-yellow-900/30',
+    text: 'text-yellow-800 dark:text-yellow-300',
+    border: 'border-yellow-300 dark:border-yellow-700',
   },
   [StatusOS.AGUARDANDO_PECA]: {
-    bg: 'bg-orange-100',
-    text: 'text-orange-800',
-    border: 'border-orange-300',
+    bg: 'bg-orange-100 dark:bg-orange-900/30',
+    text: 'text-orange-800 dark:text-orange-300',
+    border: 'border-orange-300 dark:border-orange-700',
   },
   [StatusOS.FINALIZADO]: {
-    bg: 'bg-purple-100',
-    text: 'text-purple-800',
-    border: 'border-purple-300',
+    bg: 'bg-purple-100 dark:bg-purple-900/30',
+    text: 'text-purple-800 dark:text-purple-300',
+    border: 'border-purple-300 dark:border-purple-700',
   },
   [StatusOS.ENTREGUE]: {
-    bg: 'bg-gray-100',
-    text: 'text-gray-800',
-    border: 'border-gray-300',
+    bg: 'bg-gray-100 dark:bg-gray-700',
+    text: 'text-gray-800 dark:text-gray-300',
+    border: 'border-gray-300 dark:border-gray-600',
   },
   [StatusOS.CANCELADO]: {
-    bg: 'bg-red-100',
-    text: 'text-red-800',
-    border: 'border-red-300',
+    bg: 'bg-red-100 dark:bg-red-900/30',
+    text: 'text-red-800 dark:text-red-300',
+    border: 'border-red-300 dark:border-red-700',
   },
 };
 

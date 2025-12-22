@@ -1,5 +1,7 @@
 package com.pitstop.estoque.domain;
 
+import com.pitstop.oficina.domain.Oficina;
+import com.pitstop.shared.security.tenant.TenantContext;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
@@ -36,6 +38,14 @@ public class LocalArmazenamento {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
+
+    /**
+     * Oficina à qual este local pertence (multi-tenant).
+     * Preenchida automaticamente via TenantContext no @PrePersist.
+     */
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "oficina_id")
+    private Oficina oficina;
 
     /**
      * Código único do local (normalizado para UPPERCASE).
@@ -182,11 +192,20 @@ public class LocalArmazenamento {
     // ========== Lifecycle Callbacks ==========
 
     /**
-     * Normaliza o código para UPPERCASE antes de persistir.
+     * Define oficina via TenantContext e normaliza o código para UPPERCASE antes de persistir.
      */
     @PrePersist
     @PreUpdate
-    private void normalizarCodigo() {
+    private void prePersist() {
+        // Multi-tenancy: set oficina from TenantContext
+        if (this.oficina == null && TenantContext.isSet()) {
+            UUID tenantId = TenantContext.getTenantId();
+            Oficina oficina = new Oficina();
+            oficina.setId(tenantId);
+            this.oficina = oficina;
+        }
+
+        // Normaliza código para UPPERCASE
         if (codigo != null) {
             codigo = codigo.trim().toUpperCase();
         }

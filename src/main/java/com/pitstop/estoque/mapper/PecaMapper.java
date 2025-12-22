@@ -19,10 +19,13 @@ public interface PecaMapper {
     /**
      * Converte CreatePecaDTO para entidade Peca.
      *
+     * <p>O campo oficina é auto-populado via @PrePersist JPA hook.</p>
+     *
      * @param dto DTO de criação
      * @return entidade Peca
      */
     @Mapping(target = "id", ignore = true)
+    @Mapping(target = "oficina", ignore = true)
     @Mapping(target = "localArmazenamento", ignore = true) // Gerenciado separadamente
     @Mapping(target = "quantidadeAtual", constant = "0") // Estoque inicial é 0
     @Mapping(target = "ativo", constant = "true")
@@ -35,10 +38,13 @@ public interface PecaMapper {
      * Converte UpdatePecaDTO para entidade Peca.
      * Usado para criar objeto com dados de atualização.
      *
+     * <p>O campo oficina nunca é modificado após criação.</p>
+     *
      * @param dto DTO de atualização
      * @return entidade Peca
      */
     @Mapping(target = "id", ignore = true)
+    @Mapping(target = "oficina", ignore = true)
     @Mapping(target = "localArmazenamento", ignore = true) // Gerenciado separadamente
     @Mapping(target = "quantidadeAtual", ignore = true) // NÃO atualiza estoque por este DTO
     @Mapping(target = "ativo", ignore = true)

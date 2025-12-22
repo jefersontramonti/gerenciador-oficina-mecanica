@@ -10,6 +10,11 @@ package com.pitstop.oficina.domain;
 public enum StatusOficina {
 
     /**
+     * Trial period - Free 30-day trial for new workshops.
+     */
+    TRIAL("Trial", "Período de teste gratuito (30 dias)"),
+
+    /**
      * Active workshop - In normal operation with valid subscription.
      */
     ATIVA("Ativa", "Em operação normal"),
@@ -48,10 +53,19 @@ public enum StatusOficina {
     /**
      * Checks if workshop is operational (can use the system).
      *
-     * @return true if status is ATIVA
+     * @return true if status is TRIAL or ATIVA
      */
     public boolean isOperacional() {
-        return this == ATIVA;
+        return this == TRIAL || this == ATIVA;
+    }
+
+    /**
+     * Checks if workshop is in trial period.
+     *
+     * @return true if status is TRIAL
+     */
+    public boolean isTrial() {
+        return this == TRIAL;
     }
 
     /**

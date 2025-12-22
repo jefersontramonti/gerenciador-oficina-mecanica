@@ -82,7 +82,7 @@ export const SelectTrigger = React.forwardRef<HTMLButtonElement, SelectTriggerPr
         ref={ref}
         type="button"
         onClick={() => setIsOpen(!isOpen)}
-        className={`flex h-10 w-full items-center justify-between rounded-md border border-gray-300 bg-white px-3 py-2 text-sm ring-offset-white placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 ${className}`}
+        className={`flex h-10 w-full items-center justify-between rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 text-gray-900 dark:text-white px-3 py-2 text-sm ring-offset-white dark:ring-offset-gray-900 placeholder:text-gray-500 dark:placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 ${className}`}
       >
         {children}
         <ChevronDown className="h-4 w-4 opacity-50" />
@@ -124,7 +124,7 @@ export const SelectContent: React.FC<SelectContentProps> = ({ children, classNam
   return (
     <div
       ref={ref}
-      className={`absolute z-50 mt-1 max-h-60 w-full overflow-auto rounded-md border border-gray-200 bg-white py-1 shadow-lg ${className}`}
+      className={`absolute z-50 mt-1 max-h-60 w-full overflow-auto rounded-md border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 py-1 shadow-lg ${className}`}
     >
       {children}
     </div>
@@ -138,8 +138,8 @@ export const SelectItem: React.FC<SelectItemProps> = ({ value, children, classNa
   return (
     <div
       onClick={() => onValueChange?.(value)}
-      className={`relative flex w-full cursor-pointer select-none items-center rounded-sm py-1.5 pl-8 pr-2 text-sm outline-none hover:bg-gray-100 ${
-        isSelected ? 'bg-gray-100 font-medium' : ''
+      className={`relative flex w-full cursor-pointer select-none items-center rounded-sm py-1.5 pl-8 pr-2 text-sm text-gray-900 dark:text-white outline-none hover:bg-gray-100 dark:hover:bg-gray-700 ${
+        isSelected ? 'bg-gray-100 dark:bg-gray-700 font-medium' : ''
       } ${className}`}
     >
       {isSelected && (

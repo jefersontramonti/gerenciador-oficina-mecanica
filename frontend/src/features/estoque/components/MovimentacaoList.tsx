@@ -29,11 +29,11 @@ interface MovimentacaoListProps {
 
 const TipoMovimentacaoBadge = ({ tipo }: { tipo: TipoMovimentacao }) => {
   const colorMap: Record<string, string> = {
-    green: 'bg-green-100 text-green-800',
-    red: 'bg-red-100 text-red-800',
-    yellow: 'bg-yellow-100 text-yellow-800',
-    blue: 'bg-blue-100 text-blue-800',
-    gray: 'bg-gray-100 text-gray-800',
+    green: 'bg-green-100 dark:bg-green-950/40 text-green-800 dark:text-green-300',
+    red: 'bg-red-100 dark:bg-red-950/40 text-red-800 dark:text-red-300',
+    yellow: 'bg-yellow-100 dark:bg-yellow-950/40 text-yellow-800 dark:text-yellow-300',
+    blue: 'bg-blue-100 dark:bg-blue-950/40 text-blue-800 dark:text-blue-300',
+    gray: 'bg-gray-100 dark:bg-gray-800 text-gray-800 dark:text-gray-300',
   };
 
   const color = TipoMovimentacaoColor[tipo];
@@ -129,10 +129,10 @@ export const MovimentacaoList = ({
                   <span
                     className={
                       sinal === '+'
-                        ? 'text-green-600'
+                        ? 'text-green-600 dark:text-green-400'
                         : sinal === '-'
-                        ? 'text-red-600'
-                        : 'text-yellow-600'
+                        ? 'text-red-600 dark:text-red-400'
+                        : 'text-yellow-600 dark:text-yellow-400'
                     }
                   >
                     {quantidadeFormatada}

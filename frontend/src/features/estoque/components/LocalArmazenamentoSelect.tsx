@@ -80,8 +80,8 @@ export const LocalArmazenamentoSelect = forwardRef<
             focus:outline-none focus:ring-2
             ${
               error
-                ? 'border-red-300 bg-red-50 text-red-900 focus:border-red-500 focus:ring-red-500/20'
-                : 'border-gray-300 bg-white text-gray-900 focus:border-blue-500 focus:ring-blue-500/20'
+                ? 'border-red-300 dark:border-red-700 bg-red-50 dark:bg-red-950/30 text-red-900 dark:text-red-200 focus:border-red-500 focus:ring-red-500/20'
+                : 'border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:border-blue-500 focus:ring-blue-500/20'
             }
             ${disabled || isLoading ? 'cursor-not-allowed opacity-50' : ''}
           `}

@@ -10,6 +10,7 @@ import com.pitstop.cliente.exception.ClienteNotFoundException;
 import com.pitstop.cliente.exception.ClienteValidationException;
 import com.pitstop.cliente.exception.CpfCnpjAlreadyExistsException;
 import com.pitstop.cliente.repository.ClienteRepository;
+import com.pitstop.shared.security.tenant.TenantContext;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.cache.annotation.CacheEvict;
@@ -63,8 +64,10 @@ public class ClienteService {
     public ClienteResponse create(CreateClienteRequest request) {
         log.info("Criando novo cliente: tipo={}, cpfCnpj={}", request.getTipo(), request.getCpfCnpj());
 
+        UUID oficinaId = TenantContext.getTenantId();
+
         // Valida unicidade do CPF/CNPJ
-        if (clienteRepository.existsByCpfCnpj(request.getCpfCnpj())) {
+        if (clienteRepository.existsByOficinaIdAndCpfCnpj(oficinaId, request.getCpfCnpj())) {
             log.warn("Tentativa de criar cliente com CPF/CNPJ duplicado: {}", request.getCpfCnpj());
             throw new CpfCnpjAlreadyExistsException(request.getCpfCnpj());
         }
@@ -79,20 +82,25 @@ public class ClienteService {
     }
 
     /**
-     * Busca cliente por ID.
+     * Busca cliente por ID (incluindo inativos).
+     *
+     * <p>IMPORTANTE: Usa findByIdIncludingInactive para permitir acesso a clientes desativados.
+     * Isso é necessário para permitir visualização e reativação de clientes inativos.</p>
      *
      * <p>Resultado cacheado por 24 horas (TTL definido em CacheConfig).</p>
      *
      * @param id identificador único do cliente
-     * @return dados do cliente
+     * @return dados do cliente (ativo ou inativo)
      * @throws ClienteNotFoundException se cliente não encontrado
      */
     @Transactional(readOnly = true)
     @Cacheable(value = "clientes", key = "#id")
     public ClienteResponse findById(UUID id) {
-        log.debug("Buscando cliente por ID: {}", id);
+        log.debug("Buscando cliente por ID (incluindo inativos): {}", id);
 
-        Cliente cliente = clienteRepository.findById(id)
+        UUID oficinaId = TenantContext.getTenantId();
+        // Usa query customizada que ignora @Where clause para permitir buscar clientes inativos
+        Cliente cliente = clienteRepository.findByOficinaIdAndIdIncludingInactive(oficinaId, id)
             .orElseThrow(() -> new ClienteNotFoundException(id));
 
         return clienteMapper.toResponse(cliente);
@@ -110,7 +118,8 @@ public class ClienteService {
     public ClienteResponse findByCpfCnpj(String cpfCnpj) {
         log.debug("Buscando cliente por CPF/CNPJ: {}", cpfCnpj);
 
-        Cliente cliente = clienteRepository.findByCpfCnpj(cpfCnpj)
+        UUID oficinaId = TenantContext.getTenantId();
+        Cliente cliente = clienteRepository.findByOficinaIdAndCpfCnpj(oficinaId, cpfCnpj)
             .orElseThrow(() -> new ClienteNotFoundException(cpfCnpj));
 
         return clienteMapper.toResponse(cliente);
@@ -126,7 +135,8 @@ public class ClienteService {
     public Page<ClienteResponse> findAll(Pageable pageable) {
         log.debug("Listando clientes: page={}, size={}", pageable.getPageNumber(), pageable.getPageSize());
 
-        return clienteRepository.findAll(pageable)
+        UUID oficinaId = TenantContext.getTenantId();
+        return clienteRepository.findByOficinaId(oficinaId, pageable)
             .map(clienteMapper::toResponse);
     }
 
@@ -141,7 +151,8 @@ public class ClienteService {
     public Page<ClienteResponse> findByTipo(TipoCliente tipo, Pageable pageable) {
         log.debug("Buscando clientes por tipo: {}", tipo);
 
-        return clienteRepository.findByTipo(tipo, pageable)
+        UUID oficinaId = TenantContext.getTenantId();
+        return clienteRepository.findByOficinaIdAndTipo(oficinaId, tipo, pageable)
             .map(clienteMapper::toResponse);
     }
 
@@ -156,7 +167,8 @@ public class ClienteService {
     public Page<ClienteResponse> findByNome(String nome, Pageable pageable) {
         log.debug("Buscando clientes por nome: {}", nome);
 
-        return clienteRepository.findByNomeContainingIgnoreCase(nome, pageable)
+        UUID oficinaId = TenantContext.getTenantId();
+        return clienteRepository.findByOficinaIdAndNomeContainingIgnoreCase(oficinaId, nome, pageable)
             .map(clienteMapper::toResponse);
     }
 
@@ -171,13 +183,14 @@ public class ClienteService {
      * @return página de clientes filtrados
      */
     @Transactional(readOnly = true)
-    public Page<ClienteResponse> findByFiltros(String nome, TipoCliente tipo, String cidade, String estado, Pageable pageable) {
-        log.debug("Busca com filtros: nome={}, tipo={}, cidade={}, estado={}", nome, tipo, cidade, estado);
+    public Page<ClienteResponse> findByFiltros(String nome, TipoCliente tipo, Boolean ativo, String cidade, String estado, Pageable pageable) {
+        log.debug("Busca com filtros: nome={}, tipo={}, ativo={}, cidade={}, estado={}", nome, tipo, ativo, cidade, estado);
 
+        UUID oficinaId = TenantContext.getTenantId();
         // Converte enum para string para evitar erro BYTEA do PostgreSQL
         String tipoStr = (tipo != null) ? tipo.name() : null;
 
-        return clienteRepository.findByFiltros(nome, tipoStr, cidade, estado, pageable)
+        return clienteRepository.findByFiltros(oficinaId, nome, tipoStr, ativo, cidade, estado, pageable)
             .map(clienteMapper::toResponse);
     }
 
@@ -196,7 +209,8 @@ public class ClienteService {
     public ClienteResponse update(UUID id, UpdateClienteRequest request) {
         log.info("Atualizando cliente: id={}", id);
 
-        Cliente cliente = clienteRepository.findById(id)
+        UUID oficinaId = TenantContext.getTenantId();
+        Cliente cliente = clienteRepository.findByOficinaIdAndId(oficinaId, id)
             .orElseThrow(() -> new ClienteNotFoundException(id));
 
         clienteMapper.updateEntityFromDto(request, cliente);
@@ -219,7 +233,8 @@ public class ClienteService {
     public void delete(UUID id) {
         log.info("Desativando cliente (soft delete): id={}", id);
 
-        Cliente cliente = clienteRepository.findById(id)
+        UUID oficinaId = TenantContext.getTenantId();
+        Cliente cliente = clienteRepository.findByOficinaIdAndId(oficinaId, id)
             .orElseThrow(() -> new ClienteNotFoundException(id));
 
         cliente.desativar();
@@ -239,8 +254,9 @@ public class ClienteService {
     public ClienteResponse reativar(UUID id) {
         log.info("Reativando cliente: id={}", id);
 
+        UUID oficinaId = TenantContext.getTenantId();
         // Busca ignorando o filtro @Where para encontrar clientes inativos
-        Cliente cliente = clienteRepository.findByIdIncludingInactive(id)
+        Cliente cliente = clienteRepository.findByOficinaIdAndIdIncludingInactive(oficinaId, id)
             .orElseThrow(() -> new ClienteNotFoundException(id));
 
         cliente.reativar();
@@ -260,7 +276,8 @@ public class ClienteService {
     @Cacheable(value = "clientes", key = "'estados'")
     public List<String> findEstados() {
         log.debug("Buscando lista de estados");
-        return clienteRepository.findDistinctEstados();
+        UUID oficinaId = TenantContext.getTenantId();
+        return clienteRepository.findDistinctEstados(oficinaId);
     }
 
     /**
@@ -273,7 +290,8 @@ public class ClienteService {
     @Cacheable(value = "clientes", key = "'cidades'")
     public List<String> findCidades() {
         log.debug("Buscando lista de cidades");
-        return clienteRepository.findDistinctCidades();
+        UUID oficinaId = TenantContext.getTenantId();
+        return clienteRepository.findDistinctCidades(oficinaId);
     }
 
     /**
@@ -285,6 +303,7 @@ public class ClienteService {
     @Transactional(readOnly = true)
     public long countByTipo(TipoCliente tipo) {
         log.debug("Contando clientes por tipo: {}", tipo);
-        return clienteRepository.countByTipo(tipo);
+        UUID oficinaId = TenantContext.getTenantId();
+        return clienteRepository.countByOficinaIdAndTipo(oficinaId, tipo);
     }
 }

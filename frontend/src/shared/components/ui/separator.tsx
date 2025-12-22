@@ -11,7 +11,7 @@ export const Separator: React.FC<SeparatorProps> = ({
 }) => {
   return (
     <div
-      className={`bg-gray-200 ${
+      className={`bg-gray-200 dark:bg-gray-700 ${
         orientation === 'horizontal' ? 'h-px w-full' : 'h-full w-px'
       } ${className}`}
     />

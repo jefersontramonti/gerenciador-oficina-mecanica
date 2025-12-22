@@ -190,16 +190,16 @@ export const ActionButtons: React.FC<ActionButtonsProps> = ({ ordemServico, resu
       {/* Modal de Cancelamento */}
       {showCancelModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
-          <div className="w-full max-w-md rounded-lg bg-white p-6 shadow-xl">
-            <h3 className="text-lg font-semibold text-gray-900">Cancelar Ordem de Serviço</h3>
-            <p className="mt-2 text-sm text-gray-600">
+          <div className="w-full max-w-md rounded-lg bg-white p-6 shadow-xl dark:bg-gray-800">
+            <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Cancelar Ordem de Serviço</h3>
+            <p className="mt-2 text-sm text-gray-600 dark:text-gray-400">
               Informe o motivo do cancelamento da OS #{ordemServico.numero}:
             </p>
 
             <textarea
               value={cancelMotivo}
               onChange={(e) => setCancelMotivo(e.target.value)}
-              className="mt-4 w-full rounded-lg border border-gray-300 px-3 py-2 focus:border-red-500 focus:outline-none focus:ring-2 focus:ring-red-500/20"
+              className="mt-4 w-full rounded-lg border border-gray-300 px-3 py-2 focus:border-red-500 focus:outline-none focus:ring-2 focus:ring-red-500/20 dark:border-gray-600 dark:bg-gray-900 dark:text-white dark:focus:border-red-400"
               rows={4}
               placeholder="Exemplo: Cliente desistiu do serviço"
             />
@@ -212,7 +212,7 @@ export const ActionButtons: React.FC<ActionButtonsProps> = ({ ordemServico, resu
                   setCancelMotivo('');
                 }}
                 disabled={cancelarMutation.isPending}
-                className="rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50"
+                className="rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-700"
               >
                 Cancelar
               </button>
@@ -220,7 +220,7 @@ export const ActionButtons: React.FC<ActionButtonsProps> = ({ ordemServico, resu
                 type="button"
                 onClick={handleCancelConfirm}
                 disabled={cancelarMutation.isPending}
-                className="rounded-lg bg-red-600 px-4 py-2 text-sm font-medium text-white hover:bg-red-700 disabled:opacity-50"
+                className="rounded-lg bg-red-600 px-4 py-2 text-sm font-medium text-white hover:bg-red-700 disabled:opacity-50 dark:bg-red-700 dark:hover:bg-red-800"
               >
                 {cancelarMutation.isPending ? 'Cancelando...' : 'Confirmar Cancelamento'}
               </button>

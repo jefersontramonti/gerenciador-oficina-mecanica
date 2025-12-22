@@ -19,6 +19,7 @@ import com.pitstop.veiculo.exception.VeiculoNotFoundException;
 import com.pitstop.veiculo.repository.VeiculoRepository;
 import com.pitstop.ordemservico.event.OrdemServicoFinalizadaEvent;
 import com.pitstop.ordemservico.event.OrdemServicoCanceladaEvent;
+import com.pitstop.shared.security.tenant.TenantContext;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.cache.annotation.CacheEvict;
@@ -82,18 +83,20 @@ public class OrdemServicoService {
     public OrdemServicoResponseDTO criar(CreateOrdemServicoDTO dto) {
         log.info("Criando nova OS para veículo ID: {}, mecânico ID: {}", dto.veiculoId(), dto.usuarioId());
 
+        UUID oficinaId = TenantContext.getTenantId();
+
         // Valida veículo existe
-        Veiculo veiculo = veiculoRepository.findById(dto.veiculoId())
+        Veiculo veiculo = veiculoRepository.findByOficinaIdAndId(oficinaId, dto.veiculoId())
             .orElseThrow(() -> new VeiculoNotFoundException(dto.veiculoId()));
 
         // Valida mecânico existe
-        Usuario mecanico = usuarioRepository.findById(dto.usuarioId())
+        Usuario mecanico = usuarioRepository.findByOficinaIdAndId(oficinaId, dto.usuarioId())
             .orElseThrow(() -> new UsuarioNotFoundException(dto.usuarioId()));
 
         // Mapeia DTO para entidade
         OrdemServico os = mapper.toEntity(dto);
 
-        // Gera número sequencial
+        // Gera número sequencial (sequence global do PostgreSQL)
         Long numero = repository.getNextNumero();
         os.setNumero(numero);
 
@@ -129,7 +132,8 @@ public class OrdemServicoService {
     public OrdemServicoResponseDTO buscarPorId(UUID id) {
         log.debug("Buscando OS por ID: {}", id);
 
-        OrdemServico os = repository.findById(id)
+        UUID oficinaId = TenantContext.getTenantId();
+        OrdemServico os = repository.findByOficinaIdAndId(oficinaId, id)
             .orElseThrow(() -> new OrdemServicoNotFoundException(id));
 
         return montarResponse(os);
@@ -145,7 +149,8 @@ public class OrdemServicoService {
     public OrdemServicoResponseDTO buscarPorNumero(Long numero) {
         log.debug("Buscando OS por número: {}", numero);
 
-        OrdemServico os = repository.findByNumero(numero)
+        UUID oficinaId = TenantContext.getTenantId();
+        OrdemServico os = repository.findByOficinaIdAndNumero(oficinaId, numero)
             .orElseThrow(() -> new OrdemServicoNotFoundException(numero));
 
         return montarResponse(os);
@@ -172,9 +177,10 @@ public class OrdemServicoService {
     ) {
         log.debug("Listando OS com filtros - Status: {}, Veículo: {}, Usuário: {}", status, veiculoId, usuarioId);
 
+        UUID oficinaId = TenantContext.getTenantId();
         String statusStr = status != null ? status.name() : null;
 
-        Page<OrdemServico> page = repository.findByFiltros(statusStr, veiculoId, usuarioId, dataInicio, dataFim, pageable);
+        Page<OrdemServico> page = repository.findByFiltros(oficinaId, statusStr, veiculoId, usuarioId, dataInicio, dataFim, pageable);
 
         return page.map(this::montarResponse);
     }
@@ -189,7 +195,8 @@ public class OrdemServicoService {
     public Page<OrdemServicoResponseDTO> buscarHistoricoVeiculo(UUID veiculoId, Pageable pageable) {
         log.debug("Buscando histórico de OS do veículo ID: {}", veiculoId);
 
-        return repository.findHistoricoVeiculo(veiculoId, pageable)
+        UUID oficinaId = TenantContext.getTenantId();
+        return repository.findHistoricoVeiculo(oficinaId, veiculoId, pageable)
             .map(this::montarResponse);
     }
 
@@ -210,7 +217,8 @@ public class OrdemServicoService {
     public OrdemServicoResponseDTO atualizar(UUID id, UpdateOrdemServicoDTO dto) {
         log.info("Atualizando OS ID: {}", id);
 
-        OrdemServico os = repository.findById(id)
+        UUID oficinaId = TenantContext.getTenantId();
+        OrdemServico os = repository.findByOficinaIdAndId(oficinaId, id)
             .orElseThrow(() -> new OrdemServicoNotFoundException(id));
 
         // Valida se pode editar
@@ -255,7 +263,8 @@ public class OrdemServicoService {
     public void aprovar(UUID id, Boolean aprovadoPeloCliente) {
         log.info("Aprovando OS ID: {}, aprovado pelo cliente: {}", id, aprovadoPeloCliente);
 
-        OrdemServico os = repository.findById(id)
+        UUID oficinaId = TenantContext.getTenantId();
+        OrdemServico os = repository.findByOficinaIdAndId(oficinaId, id)
             .orElseThrow(() -> new OrdemServicoNotFoundException(id));
 
         try {
@@ -279,7 +288,8 @@ public class OrdemServicoService {
     public void iniciar(UUID id) {
         log.info("Iniciando execução da OS ID: {}", id);
 
-        OrdemServico os = repository.findById(id)
+        UUID oficinaId = TenantContext.getTenantId();
+        OrdemServico os = repository.findByOficinaIdAndId(oficinaId, id)
             .orElseThrow(() -> new OrdemServicoNotFoundException(id));
 
         try {
@@ -305,7 +315,8 @@ public class OrdemServicoService {
     public void finalizar(UUID id) {
         log.info("Finalizando OS ID: {}", id);
 
-        OrdemServico os = repository.findById(id)
+        UUID oficinaId = TenantContext.getTenantId();
+        OrdemServico os = repository.findByOficinaIdAndId(oficinaId, id)
             .orElseThrow(() -> new OrdemServicoNotFoundException(id));
 
         try {
@@ -344,7 +355,8 @@ public class OrdemServicoService {
     public void entregar(UUID id) {
         log.info("Entregando veículo da OS ID: {}", id);
 
-        OrdemServico os = repository.findById(id)
+        UUID oficinaId = TenantContext.getTenantId();
+        OrdemServico os = repository.findByOficinaIdAndId(oficinaId, id)
             .orElseThrow(() -> new OrdemServicoNotFoundException(id));
 
         try {
@@ -376,7 +388,8 @@ public class OrdemServicoService {
     public void cancelar(UUID id, CancelarOrdemServicoDTO dto) {
         log.info("Cancelando OS ID: {}, motivo: {}", id, dto.motivo());
 
-        OrdemServico os = repository.findById(id)
+        UUID oficinaId = TenantContext.getTenantId();
+        OrdemServico os = repository.findByOficinaIdAndId(oficinaId, id)
             .orElseThrow(() -> new OrdemServicoNotFoundException(id));
 
         try {
@@ -416,7 +429,8 @@ public class OrdemServicoService {
     public Map<StatusOS, Long> contarPorStatus() {
         log.debug("Contando OS por status");
 
-        List<Object[]> results = repository.countByStatus();
+        UUID oficinaId = TenantContext.getTenantId();
+        List<Object[]> results = repository.countByStatus(oficinaId);
 
         return results.stream()
             .collect(Collectors.toMap(
@@ -434,7 +448,8 @@ public class OrdemServicoService {
      */
     public BigDecimal calcularFaturamento(LocalDateTime dataInicio, LocalDateTime dataFim) {
         log.debug("Calculando faturamento entre {} e {}", dataInicio, dataFim);
-        return repository.calcularFaturamento(dataInicio, dataFim);
+        UUID oficinaId = TenantContext.getTenantId();
+        return repository.calcularFaturamento(oficinaId, dataInicio, dataFim);
     }
 
     /**
@@ -446,7 +461,8 @@ public class OrdemServicoService {
      */
     public BigDecimal calcularTicketMedio(LocalDateTime dataInicio, LocalDateTime dataFim) {
         log.debug("Calculando ticket médio entre {} e {}", dataInicio, dataFim);
-        return repository.calcularTicketMedio(dataInicio, dataFim);
+        UUID oficinaId = TenantContext.getTenantId();
+        return repository.calcularTicketMedio(oficinaId, dataInicio, dataFim);
     }
 
     // ===== MÉTODOS AUXILIARES =====
@@ -458,12 +474,14 @@ public class OrdemServicoService {
      * @return DTO completo
      */
     private OrdemServicoResponseDTO montarResponse(OrdemServico os) {
+        UUID oficinaId = TenantContext.getTenantId();
+
         // Busca veículo
-        Veiculo veiculo = veiculoRepository.findById(os.getVeiculoId())
+        Veiculo veiculo = veiculoRepository.findByOficinaIdAndId(oficinaId, os.getVeiculoId())
             .orElseThrow(() -> new VeiculoNotFoundException(os.getVeiculoId()));
 
         // Busca mecânico
-        Usuario mecanico = usuarioRepository.findById(os.getUsuarioId())
+        Usuario mecanico = usuarioRepository.findByOficinaIdAndId(oficinaId, os.getUsuarioId())
             .orElseThrow(() -> new UsuarioNotFoundException(os.getUsuarioId()));
 
         return montarResponse(os, veiculo, mecanico);
@@ -478,8 +496,10 @@ public class OrdemServicoService {
      * @return DTO completo
      */
     private OrdemServicoResponseDTO montarResponse(OrdemServico os, Veiculo veiculo, Usuario mecanico) {
-        // Busca cliente do veículo
-        Cliente cliente = clienteRepository.findById(veiculo.getClienteId())
+        UUID oficinaId = TenantContext.getTenantId();
+
+        // Busca cliente do veículo (incluindo inativos para permitir visualizar OS antigas)
+        Cliente cliente = clienteRepository.findByOficinaIdAndIdIncludingInactive(oficinaId, veiculo.getClienteId())
             .orElseThrow(() -> new ClienteNotFoundException(veiculo.getClienteId()));
 
         // Mapeia básico

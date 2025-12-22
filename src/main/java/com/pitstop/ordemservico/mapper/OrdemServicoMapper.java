@@ -22,6 +22,8 @@ public interface OrdemServicoMapper {
     /**
      * Converte CreateOrdemServicoDTO para entidade OrdemServico.
      *
+     * <p>O campo oficina é auto-populado via @PrePersist JPA hook.</p>
+     *
      * @param dto DTO de criação
      * @return entidade OrdemServico
      */
@@ -40,6 +42,7 @@ public interface OrdemServicoMapper {
     @Mapping(target = "version", ignore = true) // Optimistic locking gerenciado pelo JPA
     @Mapping(target = "createdAt", ignore = true)
     @Mapping(target = "updatedAt", ignore = true)
+    @Mapping(target = "oficina", ignore = true) // Auto-populado via @PrePersist JPA hook
     @Mapping(target = "itens", ignore = true) // Adicionados manualmente no service usando adicionarItem()
     OrdemServico toEntity(CreateOrdemServicoDTO dto);
 
@@ -47,6 +50,7 @@ public interface OrdemServicoMapper {
      * Atualiza entidade OrdemServico existente com dados do UpdateOrdemServicoDTO.
      *
      * <p>Apenas campos fornecidos no DTO (não nulos) serão atualizados.</p>
+     * <p>O campo oficina é auto-populado via @PrePersist JPA hook.</p>
      *
      * @param dto DTO de atualização
      * @param ordemServico entidade existente a ser atualizada
@@ -66,6 +70,7 @@ public interface OrdemServicoMapper {
     @Mapping(target = "version", ignore = true)
     @Mapping(target = "createdAt", ignore = true)
     @Mapping(target = "updatedAt", ignore = true)
+    @Mapping(target = "oficina", ignore = true) // Auto-populado via @PrePersist JPA hook
     @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
     void updateEntityFromDto(UpdateOrdemServicoDTO dto, @MappingTarget OrdemServico ordemServico);
 

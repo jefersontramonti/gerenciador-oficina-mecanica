@@ -1,5 +1,7 @@
 package com.pitstop.financeiro.domain;
 
+import com.pitstop.oficina.domain.Oficina;
+import com.pitstop.shared.security.tenant.TenantContext;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.*;
 import lombok.*;
@@ -64,6 +66,14 @@ public class Pagamento implements Serializable {
     @GeneratedValue(strategy = GenerationType.UUID)
     @Column(name = "id", updatable = false, nullable = false)
     private UUID id;
+
+    /**
+     * Oficina à qual este pagamento pertence (multi-tenant).
+     * Preenchida automaticamente via TenantContext no @PrePersist.
+     */
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "oficina_id")
+    private Oficina oficina;
 
     /**
      * ID da Ordem de Serviço relacionada.
@@ -168,11 +178,19 @@ public class Pagamento implements Serializable {
     private LocalDateTime updatedAt;
 
     /**
-     * Valida regras de negócio antes de persistir.
+     * Valida regras de negócio antes de persistir e define oficina via TenantContext.
      */
     @PrePersist
     @PreUpdate
-    private void validarRegrasDeNegocio() {
+    private void prePersist() {
+        // Multi-tenancy: set oficina from TenantContext
+        if (this.oficina == null && TenantContext.isSet()) {
+            UUID tenantId = TenantContext.getTenantId();
+            Oficina oficina = new Oficina();
+            oficina.setId(tenantId);
+            this.oficina = oficina;
+        }
+
         // Parcela atual não pode ser maior que total de parcelas
         if (parcelaAtual != null && parcelas != null && parcelaAtual > parcelas) {
             throw new IllegalStateException(
@@ -268,4 +286,5 @@ public class Pagamento implements Serializable {
             this.status = StatusPagamento.VENCIDO;
         }
     }
+
 }

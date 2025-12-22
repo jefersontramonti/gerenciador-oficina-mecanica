@@ -1,6 +1,5 @@
 import { useNavigate, useParams, Link } from 'react-router-dom';
-import { MapPin, Edit, ArrowLeft, Info, Package, ExternalLink } from 'lucide-react';
-import { Button } from '@/shared/components/ui/button';
+import { ArrowLeft, Edit, ExternalLink } from 'lucide-react';
 import { useLocalArmazenamento, useLocaisFilhos } from '../hooks/useLocaisArmazenamento';
 import { usePecas } from '../hooks/usePecas';
 import { TipoLocalLabel, TipoLocalIcon, UnidadeMedidaSigla, getStockStatus } from '../types';
@@ -9,196 +8,269 @@ import { formatCurrency } from '@/shared/utils/formatters';
 export const LocalArmazenamentoDetailPage = () => {
   const navigate = useNavigate();
   const { id } = useParams<{ id: string }>();
-  
+
   const { data: local, isLoading } = useLocalArmazenamento(id);
   const { data: filhos = [] } = useLocaisFilhos(id);
-
-  // Buscar peças armazenadas neste local
-  // Note: usePecas doesn't have a direct filter for localArmazenamentoId,
-  // so we fetch all and filter client-side (not ideal for large datasets)
   const { data: todasPecas, isLoading: pecasLoading } = usePecas({});
 
   const pecasNoLocal = todasPecas?.content.filter(
     (peca) => peca.localArmazenamento?.id === id
   ) || [];
 
-  if (isLoading) return <div>Carregando...</div>;
-  if (!local) return <div>Local não encontrado</div>;
+  if (isLoading) {
+    return (
+      <div className="flex h-64 items-center justify-center">
+        <div className="text-gray-500 dark:text-gray-400">Carregando...</div>
+      </div>
+    );
+  }
 
-  return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <h1 className="text-3xl font-bold flex items-center gap-2">
-          <MapPin className="h-8 w-8" />
-          Detalhes do Local
-        </h1>
-        <div className="flex gap-2">
-          <Button variant="outline" onClick={() => navigate('/estoque/locais')}>
-            <ArrowLeft className="h-4 w-4 mr-2" />
-            Voltar
-          </Button>
-          <Button onClick={() => navigate(`/estoque/locais/${id}/editar`)}>
-            <Edit className="h-4 w-4 mr-2" />
-            Editar
-          </Button>
+  if (!local) {
+    return (
+      <div className="p-6">
+        <div className="rounded-lg border border-red-800 dark:border-red-700 bg-red-900/20 dark:bg-red-900/30 p-4 text-red-400 dark:text-red-300">
+          Local não encontrado
         </div>
       </div>
+    );
+  }
 
-      <div className="grid gap-6 md:grid-cols-2">
-        <div className="space-y-4 rounded-lg border p-6">
-          <h2 className="text-xl font-semibold flex items-center gap-2">
-            <Info className="h-5 w-5" />
-            Informações Básicas
-          </h2>
-          <div className="space-y-3">
-            <div>
-              <span className="text-sm text-muted-foreground">Código</span>
-              <p className="font-mono font-medium">{local.codigo}</p>
-            </div>
-            <div>
-              <span className="text-sm text-muted-foreground">Descrição</span>
-              <p className="font-medium">{local.descricao}</p>
-            </div>
-            <div>
-              <span className="text-sm text-muted-foreground">Tipo</span>
-              <p className="font-medium">
-                {TipoLocalIcon[local.tipo]} {TipoLocalLabel[local.tipo]}
-              </p>
-            </div>
-            {local.capacidadeMaxima && (
-              <div>
-                <span className="text-sm text-muted-foreground">Capacidade</span>
-                <p className="font-medium">{local.capacidadeMaxima}</p>
-              </div>
-            )}
-            <div>
-              <span className="text-sm text-muted-foreground">Status</span>
-              <p className={local.ativo ? 'text-green-600 font-medium' : 'text-gray-500'}>
-                {local.ativo ? 'Ativo' : 'Inativo'}
-              </p>
-            </div>
+  return (
+    <div className="p-6">
+      {/* Header */}
+      <div className="mb-6 flex items-center justify-between">
+        <div className="flex items-center gap-4">
+          <button
+            onClick={() => navigate('/estoque/locais')}
+            className="rounded-lg p-2 hover:bg-gray-100 dark:hover:bg-gray-700"
+          >
+            <ArrowLeft className="h-5 w-5 text-gray-900 dark:text-gray-100" />
+          </button>
+          <div>
+            <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">{local.codigo}</h1>
+            <p className="mt-1 text-sm text-gray-600 dark:text-gray-400">
+              {local.descricao}
+            </p>
           </div>
         </div>
 
-        <div className="space-y-4 rounded-lg border p-6">
-          <h2 className="text-xl font-semibold">Hierarquia</h2>
-          <div className="space-y-3">
-            <div>
-              <span className="text-sm text-muted-foreground">Local Pai</span>
-              <p className="font-medium">
-                {local.localizacaoPai ? `${local.localizacaoPai.codigo} - ${local.localizacaoPai.descricao}` : 'Nenhum (Raiz)'}
-              </p>
-            </div>
-            <div>
-              <span className="text-sm text-muted-foreground">Locais Filhos ({filhos.length})</span>
-              {filhos.length > 0 ? (
-                <ul className="mt-2 space-y-1">
-                  {filhos.map((filho) => (
-                    <li key={filho.id} className="text-sm">
-                      {filho.codigo} - {filho.descricao}
-                    </li>
-                  ))}
-                </ul>
-              ) : (
-                <p className="text-sm text-muted-foreground italic">Nenhum filho</p>
+        <div className="flex gap-2">
+          <button
+            onClick={() => navigate(`/estoque/locais/${id}/editar`)}
+            className="flex items-center gap-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 px-4 py-2 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-600"
+          >
+            <Edit className="h-5 w-5" />
+            Editar
+          </button>
+        </div>
+      </div>
+
+      {/* Content */}
+      <div className="grid gap-6 lg:grid-cols-3">
+        {/* Main Info */}
+        <div className="lg:col-span-2 space-y-6">
+          {/* Informações Básicas */}
+          <div className="rounded-lg bg-white dark:bg-gray-800 p-6 shadow">
+            <h2 className="mb-4 text-lg font-semibold text-gray-900 dark:text-gray-100">Informações Básicas</h2>
+
+            <div className="space-y-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="text-sm font-medium text-gray-500 dark:text-gray-400">Código</label>
+                  <p className="mt-1 font-mono text-gray-900 dark:text-gray-100">{local.codigo}</p>
+                </div>
+
+                <div>
+                  <label className="text-sm font-medium text-gray-500 dark:text-gray-400">Tipo</label>
+                  <p className="mt-1 text-gray-900 dark:text-gray-100">
+                    {TipoLocalIcon[local.tipo]} {TipoLocalLabel[local.tipo]}
+                  </p>
+                </div>
+              </div>
+
+              <div>
+                <label className="text-sm font-medium text-gray-500 dark:text-gray-400">Descrição</label>
+                <p className="mt-1 text-gray-900 dark:text-gray-100">{local.descricao}</p>
+              </div>
+
+              {local.capacidadeMaxima && (
+                <div>
+                  <label className="text-sm font-medium text-gray-500 dark:text-gray-400">Capacidade Máxima</label>
+                  <p className="mt-1 text-gray-900 dark:text-gray-100">{local.capacidadeMaxima}</p>
+                </div>
               )}
             </div>
           </div>
-        </div>
-      </div>
 
-      {local.observacoes && (
-        <div className="rounded-lg border p-6">
-          <h2 className="text-xl font-semibold mb-3">Observações</h2>
-          <p className="text-muted-foreground whitespace-pre-wrap">{local.observacoes}</p>
-        </div>
-      )}
+          {/* Hierarquia */}
+          <div className="rounded-lg bg-white dark:bg-gray-800 p-6 shadow">
+            <h2 className="mb-4 text-lg font-semibold text-gray-900 dark:text-gray-100">Hierarquia</h2>
 
-      {/* Peças armazenadas neste local */}
-      <div className="rounded-lg border">
-        <div className="border-b bg-muted/50 p-6">
-          <h2 className="text-xl font-semibold flex items-center gap-2">
-            <Package className="h-5 w-5" />
-            Peças Armazenadas ({pecasNoLocal.length})
-          </h2>
-        </div>
-        <div className="p-6">
-          {pecasLoading ? (
-            <div className="flex justify-center py-8">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+            <div className="space-y-4">
+              <div>
+                <label className="text-sm font-medium text-gray-500 dark:text-gray-400">Local Pai</label>
+                <p className="mt-1 text-gray-900 dark:text-gray-100">
+                  {local.localizacaoPai ? `${local.localizacaoPai.codigo} - ${local.localizacaoPai.descricao}` : 'Nenhum (Raiz)'}
+                </p>
+              </div>
+
+              <div>
+                <label className="text-sm font-medium text-gray-500 dark:text-gray-400">
+                  Locais Filhos ({filhos.length})
+                </label>
+                {filhos.length > 0 ? (
+                  <ul className="mt-2 space-y-1">
+                    {filhos.map((filho) => (
+                      <li key={filho.id} className="text-sm text-gray-900 dark:text-gray-100">
+                        {filho.codigo} - {filho.descricao}
+                      </li>
+                    ))}
+                  </ul>
+                ) : (
+                  <p className="mt-1 text-sm italic text-gray-500 dark:text-gray-400">Nenhum filho</p>
+                )}
+              </div>
+
+              <div>
+                <label className="text-sm font-medium text-gray-500 dark:text-gray-400">Caminho Completo</label>
+                <p className="mt-1 text-sm text-gray-600 dark:text-gray-400">{local.caminhoCompleto}</p>
+              </div>
             </div>
-          ) : pecasNoLocal.length > 0 ? (
-            <div className="overflow-x-auto">
-              <table className="w-full">
-                <thead>
-                  <tr className="border-b text-left text-sm font-medium text-muted-foreground">
-                    <th className="pb-3">Código</th>
-                    <th className="pb-3">Descrição</th>
-                    <th className="pb-3">Marca</th>
-                    <th className="pb-3 text-right">Qtd. Atual</th>
-                    <th className="pb-3 text-right">Qtd. Mínima</th>
-                    <th className="pb-3">Status</th>
-                    <th className="pb-3 text-right">Valor</th>
-                    <th className="pb-3"></th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {pecasNoLocal.map((peca) => {
-                    const status = getStockStatus(peca.quantidadeAtual, peca.quantidadeMinima);
-                    return (
-                      <tr key={peca.id} className="border-b hover:bg-muted/50 transition-colors">
-                        <td className="py-3 font-mono text-sm">{peca.codigo}</td>
-                        <td className="py-3">
-                          <div>
-                            <p className="font-medium">{peca.descricao}</p>
-                            {peca.aplicacao && (
-                              <p className="text-xs text-muted-foreground truncate max-w-xs">
-                                {peca.aplicacao}
-                              </p>
-                            )}
-                          </div>
-                        </td>
-                        <td className="py-3 text-sm">{peca.marca || '-'}</td>
-                        <td className="py-3 text-right font-medium">
-                          {peca.quantidadeAtual} {UnidadeMedidaSigla[peca.unidadeMedida]}
-                        </td>
-                        <td className="py-3 text-right text-sm text-muted-foreground">
-                          {peca.quantidadeMinima} {UnidadeMedidaSigla[peca.unidadeMedida]}
-                        </td>
-                        <td className="py-3">
-                          <span
-                            className={`px-2 py-1 rounded-full text-xs font-medium ${status.bgColor} ${status.textColor}`}
-                          >
-                            {status.label}
-                          </span>
-                        </td>
-                        <td className="py-3 text-right font-medium">
-                          {formatCurrency(peca.valorVenda)}
-                        </td>
-                        <td className="py-3 text-right">
-                          <Link
-                            to={`/estoque/${peca.id}`}
-                            className="inline-flex items-center gap-1 text-sm text-primary hover:underline"
-                          >
-                            Ver
-                            <ExternalLink className="h-3 w-3" />
-                          </Link>
-                        </td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
-            </div>
-          ) : (
-            <div className="text-center py-12">
-              <Package className="h-12 w-12 mx-auto text-muted-foreground mb-3" />
-              <p className="text-muted-foreground">Nenhuma peça armazenada neste local</p>
-              <p className="text-sm text-muted-foreground mt-1">
-                As peças aparecerão aqui quando forem vinculadas a este local
-              </p>
+          </div>
+
+          {local.observacoes && (
+            <div className="rounded-lg bg-white dark:bg-gray-800 p-6 shadow">
+              <h2 className="mb-4 text-lg font-semibold text-gray-900 dark:text-gray-100">Observações</h2>
+              <p className="whitespace-pre-wrap text-gray-900 dark:text-gray-100">{local.observacoes}</p>
             </div>
           )}
+
+          {/* Peças armazenadas */}
+          <div className="rounded-lg bg-white dark:bg-gray-800 p-6 shadow">
+            <h2 className="mb-4 text-lg font-semibold text-gray-900 dark:text-gray-100">
+              Peças Armazenadas ({pecasNoLocal.length})
+            </h2>
+
+            {pecasLoading ? (
+              <div className="flex h-32 items-center justify-center">
+                <div className="text-gray-500 dark:text-gray-400">Carregando peças...</div>
+              </div>
+            ) : pecasNoLocal.length > 0 ? (
+              <div className="overflow-x-auto">
+                <table className="w-full">
+                  <thead>
+                    <tr className="border-b border-gray-200 dark:border-gray-700 text-left text-sm font-medium text-gray-500 dark:text-gray-400">
+                      <th className="pb-3">Código</th>
+                      <th className="pb-3">Descrição</th>
+                      <th className="pb-3">Marca</th>
+                      <th className="pb-3 text-right">Qtd. Atual</th>
+                      <th className="pb-3 text-right">Qtd. Mínima</th>
+                      <th className="pb-3">Status</th>
+                      <th className="pb-3 text-right">Valor</th>
+                      <th className="pb-3"></th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {pecasNoLocal.map((peca) => {
+                      const status = getStockStatus(peca.quantidadeAtual, peca.quantidadeMinima);
+                      return (
+                        <tr key={peca.id} className="border-b border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors">
+                          <td className="py-3 font-mono text-sm text-gray-900 dark:text-gray-100">{peca.codigo}</td>
+                          <td className="py-3">
+                            <div>
+                              <p className="font-medium text-gray-900 dark:text-gray-100">{peca.descricao}</p>
+                              {peca.aplicacao && (
+                                <p className="text-xs text-gray-500 dark:text-gray-400 truncate max-w-xs">
+                                  {peca.aplicacao}
+                                </p>
+                              )}
+                            </div>
+                          </td>
+                          <td className="py-3 text-sm text-gray-900 dark:text-gray-100">{peca.marca || '-'}</td>
+                          <td className="py-3 text-right font-medium text-gray-900 dark:text-gray-100">
+                            {peca.quantidadeAtual} {UnidadeMedidaSigla[peca.unidadeMedida]}
+                          </td>
+                          <td className="py-3 text-right text-sm text-gray-500 dark:text-gray-400">
+                            {peca.quantidadeMinima} {UnidadeMedidaSigla[peca.unidadeMedida]}
+                          </td>
+                          <td className="py-3">
+                            <span
+                              className={`px-2 py-1 rounded-full text-xs font-medium ${status.bgColor} ${status.textColor}`}
+                            >
+                              {status.label}
+                            </span>
+                          </td>
+                          <td className="py-3 text-right font-medium text-gray-900 dark:text-gray-100">
+                            {formatCurrency(peca.valorVenda)}
+                          </td>
+                          <td className="py-3 text-right">
+                            <Link
+                              to={`/estoque/${peca.id}`}
+                              className="inline-flex items-center gap-1 text-sm text-blue-600 dark:text-blue-400 hover:underline"
+                            >
+                              Ver
+                              <ExternalLink className="h-3 w-3" />
+                            </Link>
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            ) : (
+              <div className="text-center py-12">
+                <p className="text-gray-500 dark:text-gray-400">Nenhuma peça armazenada neste local</p>
+                <p className="text-sm text-gray-400 dark:text-gray-500 mt-1">
+                  As peças aparecerão aqui quando forem vinculadas a este local
+                </p>
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Sidebar */}
+        <div className="space-y-6">
+          {/* Status */}
+          <div className="rounded-lg bg-white dark:bg-gray-800 p-6 shadow">
+            <h3 className="mb-4 text-sm font-semibold text-gray-700 dark:text-gray-300">Status</h3>
+            {local.ativo ? (
+              <span className="inline-flex rounded-full bg-green-100 dark:bg-green-900/30 px-3 py-1 text-sm font-semibold text-green-800 dark:text-green-400">
+                Ativo
+              </span>
+            ) : (
+              <span className="inline-flex rounded-full bg-gray-100 dark:bg-gray-700 px-3 py-1 text-sm font-semibold text-gray-800 dark:text-gray-300">
+                Inativo
+              </span>
+            )}
+          </div>
+
+          {/* Metadata */}
+          <div className="rounded-lg bg-white dark:bg-gray-800 p-6 shadow">
+            <h3 className="mb-4 text-sm font-semibold text-gray-700 dark:text-gray-300">Informações</h3>
+
+            <div className="space-y-3">
+              <div>
+                <label className="text-xs font-medium text-gray-500 dark:text-gray-400">Nível na Hierarquia</label>
+                <p className="mt-1 text-sm text-gray-900 dark:text-gray-100">{local.nivel}</p>
+              </div>
+
+              <div>
+                <label className="text-xs font-medium text-gray-500 dark:text-gray-400">É Raiz?</label>
+                <p className="mt-1 text-sm text-gray-900 dark:text-gray-100">{local.isRaiz ? 'Sim' : 'Não'}</p>
+              </div>
+
+              <div>
+                <label className="text-xs font-medium text-gray-500 dark:text-gray-400">Tem Filhos?</label>
+                <p className="mt-1 text-sm text-gray-900 dark:text-gray-100">{local.temFilhos ? 'Sim' : 'Não'}</p>
+              </div>
+
+              <div>
+                <label className="text-xs font-medium text-gray-500 dark:text-gray-400">ID</label>
+                <p className="mt-1 text-xs font-mono text-gray-600 dark:text-gray-400">{local.id}</p>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </div>

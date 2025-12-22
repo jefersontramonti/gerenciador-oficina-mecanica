@@ -83,6 +83,7 @@ public class ClienteController {
      *
      * @param nome filtro de nome (opcional)
      * @param tipo filtro de tipo (opcional)
+     * @param ativo filtro de status ativo/inativo (opcional: null=todos, true=ativos, false=inativos)
      * @param cidade filtro de cidade (opcional)
      * @param estado filtro de UF (opcional)
      * @param pageable configuração de paginação
@@ -90,7 +91,7 @@ public class ClienteController {
      */
     @GetMapping
     @PreAuthorize("hasAnyAuthority('ADMIN', 'GERENTE', 'ATENDENTE', 'MECANICO')")
-    @Operation(summary = "Listar clientes", description = "Lista clientes ativos com suporte a filtros e paginação")
+    @Operation(summary = "Listar clientes", description = "Lista clientes com suporte a filtros e paginação")
     @ApiResponses({
         @ApiResponse(responseCode = "200", description = "Lista retornada com sucesso"),
         @ApiResponse(responseCode = "403", description = "Acesso negado")
@@ -98,19 +99,16 @@ public class ClienteController {
     public ResponseEntity<Page<ClienteResponse>> findAll(
         @Parameter(description = "Filtro por nome (busca parcial)") @RequestParam(required = false) String nome,
         @Parameter(description = "Filtro por tipo de cliente") @RequestParam(required = false) TipoCliente tipo,
+        @Parameter(description = "Filtro por status (null=todos, true=ativos, false=inativos)") @RequestParam(required = false) Boolean ativo,
         @Parameter(description = "Filtro por cidade") @RequestParam(required = false) String cidade,
         @Parameter(description = "Filtro por estado (UF)") @RequestParam(required = false) String estado,
         @PageableDefault(size = 20, sort = "nome") Pageable pageable
     ) {
-        Page<ClienteResponse> clientes;
-
-        // Se há filtros, usa busca com filtros; senão, lista todos
-        if (nome != null || tipo != null || cidade != null || estado != null) {
-            clientes = clienteService.findByFiltros(nome, tipo, cidade, estado, pageable);
-        } else {
-            clientes = clienteService.findAll(pageable);
-        }
-
+        // IMPORTANTE: Sempre usa findByFiltros (native query) porque ignora o @Where clause da entidade
+        // Quando ativo=null, a query retorna TODOS (ativos + inativos)
+        // Quando ativo=true, retorna apenas ativos
+        // Quando ativo=false, retorna apenas inativos
+        Page<ClienteResponse> clientes = clienteService.findByFiltros(nome, tipo, ativo, cidade, estado, pageable);
         return ResponseEntity.ok(clientes);
     }
 

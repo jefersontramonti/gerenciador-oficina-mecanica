@@ -9,6 +9,7 @@ import com.pitstop.estoque.exception.LocalComPecasVinculadasException;
 import com.pitstop.estoque.mapper.LocalArmazenamentoMapper;
 import com.pitstop.estoque.repository.LocalArmazenamentoRepository;
 import com.pitstop.shared.exception.ResourceNotFoundException;
+import com.pitstop.shared.security.tenant.TenantContext;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -82,7 +83,8 @@ public class LocalArmazenamentoService {
      */
     @Transactional(readOnly = true)
     public LocalArmazenamento buscarPorId(UUID id) {
-        return localRepository.findById(id)
+        UUID oficinaId = TenantContext.getTenantId();
+        return localRepository.findByOficinaIdAndId(oficinaId, id)
                 .orElseThrow(() -> new ResourceNotFoundException("Local de armazenamento não encontrado: " + id));
     }
 
@@ -95,8 +97,9 @@ public class LocalArmazenamentoService {
      */
     @Transactional(readOnly = true)
     public LocalArmazenamento buscarPorCodigo(String codigo) {
+        UUID oficinaId = TenantContext.getTenantId();
         String codigoNormalizado = codigo.trim().toUpperCase();
-        return localRepository.findByCodigo(codigoNormalizado)
+        return localRepository.findByOficinaIdAndCodigo(oficinaId, codigoNormalizado)
                 .orElseThrow(() -> new ResourceNotFoundException("Local não encontrado: " + codigoNormalizado));
     }
 
@@ -107,7 +110,8 @@ public class LocalArmazenamentoService {
      */
     @Transactional(readOnly = true)
     public List<LocalArmazenamento> listarTodos() {
-        return localRepository.findByAtivoTrue();
+        UUID oficinaId = TenantContext.getTenantId();
+        return localRepository.findByOficinaIdAndAtivoTrue(oficinaId);
     }
 
     /**
@@ -117,7 +121,8 @@ public class LocalArmazenamentoService {
      */
     @Transactional(readOnly = true)
     public List<LocalArmazenamento> listarLocaisRaiz() {
-        return localRepository.findLocaisRaiz();
+        UUID oficinaId = TenantContext.getTenantId();
+        return localRepository.findLocaisRaiz(oficinaId);
     }
 
     /**
@@ -128,7 +133,8 @@ public class LocalArmazenamentoService {
      */
     @Transactional(readOnly = true)
     public List<LocalArmazenamento> listarFilhos(UUID paiId) {
-        return localRepository.findByLocalizacaoPaiId(paiId);
+        UUID oficinaId = TenantContext.getTenantId();
+        return localRepository.findByOficinaIdAndLocalizacaoPaiId(oficinaId, paiId);
     }
 
     /**
@@ -139,7 +145,8 @@ public class LocalArmazenamentoService {
      */
     @Transactional(readOnly = true)
     public List<LocalArmazenamento> listarPorTipo(TipoLocal tipo) {
-        return localRepository.findByTipoAndAtivoTrue(tipo);
+        UUID oficinaId = TenantContext.getTenantId();
+        return localRepository.findByOficinaIdAndTipoAndAtivoTrue(oficinaId, tipo);
     }
 
     /**
@@ -150,7 +157,8 @@ public class LocalArmazenamentoService {
      */
     @Transactional(readOnly = true)
     public List<LocalArmazenamento> buscarPorDescricao(String descricao) {
-        return localRepository.findByDescricaoContainingIgnoreCaseAndAtivoTrue(descricao);
+        UUID oficinaId = TenantContext.getTenantId();
+        return localRepository.findByOficinaIdAndDescricaoContainingIgnoreCaseAndAtivoTrue(oficinaId, descricao);
     }
 
     /**
@@ -250,11 +258,12 @@ public class LocalArmazenamentoService {
     public void excluir(UUID id) {
         log.info("Excluindo local permanentemente: id={}", id);
 
+        UUID oficinaId = TenantContext.getTenantId();
         // 1. Buscar local
         LocalArmazenamento local = buscarPorId(id);
 
         // 2. Validar se não tem peças vinculadas
-        long quantidadePecas = localRepository.countPecasVinculadas(id);
+        long quantidadePecas = localRepository.countPecasVinculadas(oficinaId, id);
         if (quantidadePecas > 0) {
             throw new LocalComPecasVinculadasException(quantidadePecas);
         }
@@ -270,11 +279,12 @@ public class LocalArmazenamentoService {
      * Valida se código é único.
      */
     private void validarCodigoUnico(String codigo, UUID idExcluir) {
+        UUID oficinaId = TenantContext.getTenantId();
         String codigoNormalizado = codigo.trim().toUpperCase();
 
         boolean existe = idExcluir == null
-                ? localRepository.existsByCodigo(codigoNormalizado)
-                : localRepository.existsByCodigoAndIdNot(codigoNormalizado, idExcluir);
+                ? localRepository.existsByOficinaIdAndCodigo(oficinaId, codigoNormalizado)
+                : localRepository.existsByOficinaIdAndCodigoAndIdNot(oficinaId, codigoNormalizado, idExcluir);
 
         if (existe) {
             throw new IllegalArgumentException("Já existe local com o código: " + codigoNormalizado);
@@ -318,11 +328,12 @@ public class LocalArmazenamentoService {
      * Valida que mudança de pai não criaria ciclo.
      */
     private void validarNaoCriaCiclo(UUID localId, UUID novoPaiId) {
+        UUID oficinaId = TenantContext.getTenantId();
         if (localId.equals(novoPaiId)) {
             throw new CicloHierarquicoException("Local não pode ser pai de si mesmo");
         }
 
-        boolean criaCiclo = localRepository.verificaCicloHierarquia(localId, novoPaiId);
+        boolean criaCiclo = localRepository.verificaCicloHierarquia(oficinaId, localId, novoPaiId);
         if (criaCiclo) {
             throw new CicloHierarquicoException(
                     "Mudança de localização pai criaria ciclo na hierarquia"

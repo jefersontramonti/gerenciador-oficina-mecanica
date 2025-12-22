@@ -20,7 +20,7 @@ import java.util.function.Function;
  *
  * <p>Supports two types of tokens:
  * <ul>
- *   <li><b>Access Token</b>: Short-lived (15 minutes), contains user claims (userId, email, perfil)</li>
+ *   <li><b>Access Token</b>: Short-lived (15 minutes), contains user claims (userId, email, perfil, oficinaId)</li>
  *   <li><b>Refresh Token</b>: Long-lived (7 days), used to generate new access tokens</li>
  * </ul>
  *
@@ -32,9 +32,9 @@ import java.util.function.Function;
  *   <li>Refresh tokens are stored in Redis for revocation capability</li>
  * </ul>
  *
- * <p><b>Single-tenant note:</b>
- * Currently, tokens do NOT contain tenant information. When migrating to SaaS multi-tenant,
- * add a "tenantId" claim to isolate data between organizations.
+ * <p><b>Multi-tenancy support:</b>
+ * Access tokens include an "oficinaId" claim for row-level data isolation.
+ * The TenantFilter extracts this claim and sets it in TenantContext for all repository queries.
  */
 @Service
 @Slf4j
@@ -56,19 +56,45 @@ public class JwtService {
      * <ul>
      *   <li><b>subject</b>: userId (UUID as string)</li>
      *   <li><b>email</b>: user email</li>
-     *   <li><b>perfil</b>: user role (ADMIN, GERENTE, ATENDENTE, MECANICO)</li>
+     *   <li><b>perfil</b>: user role (SUPER_ADMIN, ADMIN, GERENTE, ATENDENTE, MECANICO)</li>
+     *   <li><b>oficinaId</b>: oficina/tenant ID for multi-tenancy isolation (ONLY for non-SUPER_ADMIN users)</li>
+     * </ul>
+     *
+     * <p><b>Multi-Tenancy vs SaaS:</b></p>
+     * <ul>
+     *   <li>SUPER_ADMIN: NO oficinaId claim (gerencia todas as oficinas via /api/saas/*)</li>
+     *   <li>Outros perfis: oficinaId claim OBRIGATÓRIO (acesso isolado aos dados da oficina)</li>
      * </ul>
      *
      * @param usuario the authenticated user
      * @return JWT access token (15 minutes validity)
      */
     public String generateAccessToken(Usuario usuario) {
-        log.debug("Generating access token for user: {}", usuario.getEmail());
+        // SUPER_ADMIN não tem oficinaId (gerencia o SaaS inteiro)
+        if (usuario.getPerfil() == PerfilUsuario.SUPER_ADMIN) {
+            log.debug("Generating SUPER_ADMIN access token for user: {}", usuario.getEmail());
+
+            return Jwts.builder()
+                    .subject(usuario.getId().toString())
+                    .claim("email", usuario.getEmail())
+                    .claim("perfil", usuario.getPerfil().name())
+                    // NÃO adiciona oficinaId para SUPER_ADMIN
+                    .issuedAt(new Date())
+                    .expiration(new Date(System.currentTimeMillis() + accessTokenExpiration))
+                    .signWith(getSigningKey(), Jwts.SIG.HS512)
+                    .compact();
+        }
+
+        // Usuários normais de oficina (com multi-tenancy)
+        log.debug("Generating access token for user: {} (oficina: {})",
+                  usuario.getEmail(),
+                  usuario.getOficina().getId());
 
         return Jwts.builder()
                 .subject(usuario.getId().toString())
                 .claim("email", usuario.getEmail())
                 .claim("perfil", usuario.getPerfil().name())
+                .claim("oficinaId", usuario.getOficina().getId().toString())
                 .issuedAt(new Date())
                 .expiration(new Date(System.currentTimeMillis() + accessTokenExpiration))
                 .signWith(getSigningKey(), Jwts.SIG.HS512)
@@ -144,6 +170,50 @@ public class JwtService {
     public PerfilUsuario extractPerfil(String token) {
         String perfilName = extractClaim(token, claims -> claims.get("perfil", String.class));
         return PerfilUsuario.valueOf(perfilName);
+    }
+
+    /**
+     * Extracts the oficinaId claim from the token.
+     *
+     * <p>This claim is used for multi-tenancy data isolation.
+     *
+     * <p><b>Behavior:</b></p>
+     * <ul>
+     *   <li>SUPER_ADMIN tokens: NO oficinaId claim → returns null</li>
+     *   <li>Other users: oficinaId claim present → returns UUID</li>
+     * </ul>
+     *
+     * @param token the JWT token
+     * @return oficina ID as UUID, or null if user is SUPER_ADMIN
+     * @throws IllegalArgumentException if oficinaId claim exists but is not a valid UUID
+     */
+    public UUID extractOficinaId(String token) {
+        String oficinaIdStr = extractClaim(token, claims -> claims.get("oficinaId", String.class));
+
+        // SUPER_ADMIN não tem oficinaId no token
+        if (oficinaIdStr == null || oficinaIdStr.isBlank()) {
+            return null;
+        }
+
+        return UUID.fromString(oficinaIdStr);
+    }
+
+    /**
+     * Checks if the user is a SUPER_ADMIN based on the perfil claim.
+     *
+     * <p>Used by filters to determine if tenant isolation should be bypassed.</p>
+     *
+     * @param token the JWT token
+     * @return true if user has SUPER_ADMIN perfil, false otherwise
+     */
+    public boolean isSuperAdmin(String token) {
+        try {
+            PerfilUsuario perfil = extractPerfil(token);
+            return perfil == PerfilUsuario.SUPER_ADMIN;
+        } catch (Exception e) {
+            log.warn("Failed to extract perfil from token: {}", e.getMessage());
+            return false;
+        }
     }
 
     /**

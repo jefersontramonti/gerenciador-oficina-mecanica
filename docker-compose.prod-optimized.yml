@@ -1,0 +1,310 @@
+version: '3.8'
+
+# =========================================
+# CONFIGURAÇÃO OTIMIZADA PARA CONTABO
+# 8 vCores | 24 GB RAM | 200 GB NVMe
+# =========================================
+
+services:
+  # PostgreSQL Database - Otimizado para 24GB RAM
+  postgres:
+    image: postgres:16-alpine
+    container_name: pitstop-postgres
+    environment:
+      POSTGRES_DB: pitstop
+      POSTGRES_USER: ${DB_USER:-pitstop}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_INITDB_ARGS: "--encoding=UTF8 --locale=pt_BR.UTF-8"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./scripts/init-evolution-db.sql:/docker-entrypoint-initdb.d/init-evolution-db.sql
+      - ./postgres/postgresql.conf:/etc/postgresql/postgresql.conf  # Config customizada
+    command: postgres -c 'config_file=/etc/postgresql/postgresql.conf'
+    ports:
+      - "127.0.0.1:5432:5432"
+    networks:
+      - pitstop-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-pitstop}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    deploy:
+      resources:
+        limits:
+          memory: 6G  # 25% da RAM total
+        reservations:
+          memory: 2G
+
+  # Redis Cache - Otimizado com mais memória
+  redis:
+    image: redis:7-alpine
+    container_name: pitstop-redis
+    command: >
+      redis-server
+      --maxmemory 2gb
+      --maxmemory-policy allkeys-lru
+      --appendonly yes
+      --save 900 1
+      --save 300 10
+      --save 60 10000
+    volumes:
+      - redis_data:/data
+    ports:
+      - "127.0.0.1:6379:6379"
+    networks:
+      - pitstop-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+    deploy:
+      resources:
+        limits:
+          memory: 2G
+        reservations:
+          memory: 512M
+
+  # PitStop Backend - Mais recursos
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: pitstop-backend
+    environment:
+      # Database
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/pitstop
+      SPRING_DATASOURCE_USERNAME: ${DB_USER:-pitstop}
+      SPRING_DATASOURCE_PASSWORD: ${DB_PASSWORD}
+
+      # Connection Pool Otimizado
+      SPRING_DATASOURCE_HIKARI_MAXIMUM_POOL_SIZE: 30
+      SPRING_DATASOURCE_HIKARI_MINIMUM_IDLE: 10
+      SPRING_DATASOURCE_HIKARI_CONNECTION_TIMEOUT: 30000
+
+      # Redis
+      SPRING_REDIS_HOST: redis
+      SPRING_REDIS_PORT: 6379
+
+      # JWT
+      JWT_SECRET: ${JWT_SECRET}
+      JWT_ACCESS_EXPIRATION: ${JWT_ACCESS_EXPIRATION:-900000}
+      JWT_REFRESH_EXPIRATION: ${JWT_REFRESH_EXPIRATION:-604800000}
+
+      # Server
+      SERVER_PORT: 8080
+      SPRING_PROFILES_ACTIVE: prod
+
+      # Threads (8 vCores)
+      SERVER_TOMCAT_THREADS_MAX: 400
+      SERVER_TOMCAT_THREADS_MIN_SPARE: 50
+
+      # Email
+      SPRING_MAIL_HOST: ${MAIL_HOST}
+      SPRING_MAIL_PORT: ${MAIL_PORT:-587}
+      SPRING_MAIL_USERNAME: ${MAIL_USERNAME}
+      SPRING_MAIL_PASSWORD: ${MAIL_PASSWORD}
+      SPRING_MAIL_PROPERTIES_MAIL_SMTP_AUTH: true
+      SPRING_MAIL_PROPERTIES_MAIL_SMTP_STARTTLS_ENABLE: true
+
+      # Evolution API
+      EVOLUTION_API_URL: http://evolution-api:8080
+      EVOLUTION_API_KEY: ${EVOLUTION_API_KEY}
+
+      # JVM Otimizado para 24GB RAM
+      JAVA_OPTS: >-
+        -Xms2g
+        -Xmx4g
+        -XX:+UseG1GC
+        -XX:MaxGCPauseMillis=200
+        -XX:ParallelGCThreads=4
+        -XX:ConcGCThreads=2
+        -XX:InitiatingHeapOccupancyPercent=45
+        -XX:+UseStringDeduplication
+        -XX:+OptimizeStringConcat
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - pitstop-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8080/actuator/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+    deploy:
+      resources:
+        limits:
+          memory: 5G  # ~20% da RAM
+        reservations:
+          memory: 2G
+
+  # PitStop Frontend
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: pitstop-frontend
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./ssl:/etc/nginx/ssl:ro
+    depends_on:
+      - backend
+    networks:
+      - pitstop-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost/health"]
+      interval: 30s
+      timeout: 3s
+      retries: 3
+    deploy:
+      resources:
+        limits:
+          memory: 256M
+        reservations:
+          memory: 128M
+
+  # Evolution API - Mais recursos
+  evolution-api:
+    image: atendai/evolution-api:latest
+    container_name: evolution-api
+    environment:
+      # Database
+      DATABASE_PROVIDER: postgresql
+      DATABASE_CONNECTION_URI: postgresql://${DB_USER:-pitstop}:${DB_PASSWORD}@postgres:5432/evolution
+      DATABASE_CONNECTION_CLIENT_NAME: evolution_api
+
+      # Server
+      SERVER_TYPE: http
+      SERVER_PORT: 8080
+      SERVER_URL: ${EVOLUTION_SERVER_URL:-http://localhost:8081}
+
+      # CORS
+      CORS_ORIGIN: "*"
+      CORS_METHODS: "GET,POST,PUT,DELETE"
+      CORS_CREDENTIALS: "true"
+
+      # Authentication
+      AUTHENTICATION_TYPE: apikey
+      AUTHENTICATION_API_KEY: ${EVOLUTION_API_KEY}
+      AUTHENTICATION_EXPOSE_IN_FETCH_INSTANCES: "true"
+
+      # QRCode
+      QRCODE_LIMIT: 30
+      QRCODE_COLOR: "#198754"
+
+      # Logs
+      LOG_LEVEL: ERROR,WARN,DEBUG,INFO,LOG,VERBOSE,DARK,WEBHOOKS
+      LOG_COLOR: "true"
+
+      # Storage
+      STORE_MESSAGES: "true"
+      STORE_MESSAGE_UP: "true"
+      STORE_CONTACTS: "true"
+      STORE_CHATS: "true"
+
+      # Cleanup
+      CLEAN_STORE_CLEANING_INTERVAL: 7200
+      CLEAN_STORE_MESSAGES: "true"
+      CLEAN_STORE_MESSAGE_UP: "true"
+      CLEAN_STORE_CONTACTS: "true"
+      CLEAN_STORE_CHATS: "true"
+    volumes:
+      - evolution_instances:/evolution/instances
+      - evolution_store:/evolution/store
+    ports:
+      - "8081:8080"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - pitstop-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:8080/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+    deploy:
+      resources:
+        limits:
+          memory: 1G
+        reservations:
+          memory: 512M
+
+  # Prometheus - Monitoramento (OPCIONAL)
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: pitstop-prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--storage.tsdb.retention.time=30d'
+    volumes:
+      - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml
+      - prometheus_data:/prometheus
+    ports:
+      - "127.0.0.1:9090:9090"
+    networks:
+      - pitstop-network
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          memory: 1G
+    profiles:
+      - monitoring
+
+  # Grafana - Dashboards (OPCIONAL)
+  grafana:
+    image: grafana/grafana:latest
+    container_name: pitstop-grafana
+    environment:
+      GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_ADMIN_PASSWORD:-admin}
+      GF_INSTALL_PLUGINS: grafana-clock-panel
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ./monitoring/grafana/dashboards:/etc/grafana/provisioning/dashboards
+      - ./monitoring/grafana/datasources:/etc/grafana/provisioning/datasources
+    ports:
+      - "3000:3000"
+    networks:
+      - pitstop-network
+    depends_on:
+      - prometheus
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+    profiles:
+      - monitoring
+
+networks:
+  pitstop-network:
+    driver: bridge
+
+volumes:
+  postgres_data:
+    driver: local
+  redis_data:
+    driver: local
+  evolution_instances:
+    driver: local
+  evolution_store:
+    driver: local
+  prometheus_data:
+    driver: local
+  grafana_data:
+    driver: local

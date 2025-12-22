@@ -67,6 +67,7 @@ export interface UpdateClienteRequest {
 export interface ClienteFilters {
   nome?: string;
   tipo?: TipoCliente;
+  ativo?: boolean; // Filtro para status ativo/inativo
   cidade?: string;
   estado?: string;
   page?: number;

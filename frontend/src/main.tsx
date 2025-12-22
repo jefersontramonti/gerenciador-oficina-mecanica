@@ -3,42 +3,50 @@ import { createRoot } from 'react-dom/client';
 import { Provider } from 'react-redux';
 import { QueryClientProvider } from '@tanstack/react-query';
 import { Toaster } from 'react-hot-toast';
+import { ThemeProvider } from './shared/contexts';
 import { store } from './shared/store';
 import { queryClient } from './config/queryClient';
+import { initializeErrorHandlers } from './shared/services/errorLogger';
 import './index.css';
 import App from './App.tsx';
 
+// Initialize global error handlers for unhandled errors and promise rejections
+initializeErrorHandlers();
+
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
-    <Provider store={store}>
-      <QueryClientProvider client={queryClient}>
-        <App />
-        <Toaster
-          position="top-right"
-          toastOptions={{
-            duration: 4000,
-            style: {
-              background: '#1f2937',
-              color: '#f9fafb',
-              border: '1px solid #374151',
-              padding: '12px 16px',
-              fontSize: '14px',
-            },
-            success: {
-              iconTheme: {
-                primary: '#10b981',
-                secondary: '#f9fafb',
+    <ThemeProvider>
+      <Provider store={store}>
+        <QueryClientProvider client={queryClient}>
+          <App />
+          <Toaster
+            position="top-right"
+            toastOptions={{
+              duration: 4000,
+              className: 'dark:bg-gray-800 dark:text-gray-100 dark:border-gray-700',
+              style: {
+                background: '#1f2937',
+                color: '#f9fafb',
+                border: '1px solid #374151',
+                padding: '12px 16px',
+                fontSize: '14px',
               },
-            },
-            error: {
-              iconTheme: {
-                primary: '#ef4444',
-                secondary: '#f9fafb',
+              success: {
+                iconTheme: {
+                  primary: '#10b981',
+                  secondary: '#f9fafb',
+                },
               },
-            },
-          }}
-        />
-      </QueryClientProvider>
-    </Provider>
+              error: {
+                iconTheme: {
+                  primary: '#ef4444',
+                  secondary: '#f9fafb',
+                },
+              },
+            }}
+          />
+        </QueryClientProvider>
+      </Provider>
+    </ThemeProvider>
   </StrictMode>
 );

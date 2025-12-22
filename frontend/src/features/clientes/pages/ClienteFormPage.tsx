@@ -80,7 +80,7 @@ export const ClienteFormPage = () => {
   if (loadingCliente) {
     return (
       <div className="flex h-64 items-center justify-center">
-        <div className="text-gray-500">Carregando...</div>
+        <div className="text-gray-500 dark:text-gray-400">Carregando...</div>
       </div>
     );
   }
@@ -91,15 +91,15 @@ export const ClienteFormPage = () => {
       <div className="mb-6 flex items-center gap-4">
         <button
           onClick={() => navigate('/clientes')}
-          className="rounded-lg p-2 hover:bg-gray-100"
+          className="rounded-lg p-2 hover:bg-gray-100 dark:hover:bg-gray-700"
         >
-          <ArrowLeft className="h-5 w-5" />
+          <ArrowLeft className="h-5 w-5 text-gray-900 dark:text-gray-100" />
         </button>
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">
             {isEditMode ? 'Editar Cliente' : 'Novo Cliente'}
           </h1>
-          <p className="mt-1 text-sm text-gray-600">
+          <p className="mt-1 text-sm text-gray-600 dark:text-gray-400">
             {isEditMode
               ? 'Atualize os dados do cliente'
               : 'Preencha os dados para cadastrar um novo cliente'}
@@ -111,25 +111,25 @@ export const ClienteFormPage = () => {
       <form onSubmit={handleSubmit(onSubmit)} className="mx-auto max-w-4xl">
         <div className="space-y-6">
           {/* Tipo e Dados Básicos */}
-          <div className="rounded-lg bg-white p-6 shadow">
-            <h2 className="mb-4 text-lg font-semibold text-gray-900">Dados Básicos</h2>
+          <div className="rounded-lg bg-white dark:bg-gray-800 p-6 shadow">
+            <h2 className="mb-4 text-lg font-semibold text-gray-900 dark:text-gray-100">Dados Básicos</h2>
 
             <div className="grid gap-4 md:grid-cols-2">
               {/* Tipo - Only on create */}
               {!isEditMode && (
                 <div>
-                  <label className="mb-1 block text-sm font-medium text-gray-700">
-                    Tipo <span className="text-red-500">*</span>
+                  <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                    Tipo <span className="text-red-500 dark:text-red-400">*</span>
                   </label>
                   <select
                     {...register('tipo')}
-                    className="w-full rounded-lg border border-gray-300 px-3 py-2 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+                    className="w-full rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 px-3 py-2 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
                   >
                     <option value={TipoCliente.PESSOA_FISICA}>Pessoa Física</option>
                     <option value={TipoCliente.PESSOA_JURIDICA}>Pessoa Jurídica</option>
                   </select>
                   {'tipo' in errors && errors.tipo && (
-                    <p className="mt-1 text-sm text-red-500">{errors.tipo.message}</p>
+                    <p className="mt-1 text-sm text-red-500 dark:text-red-400">{errors.tipo.message}</p>
                   )}
                 </div>
               )}
@@ -158,32 +158,32 @@ export const ClienteFormPage = () => {
 
               {/* Nome */}
               <div className={isEditMode ? 'md:col-span-2' : ''}>
-                <label className="mb-1 block text-sm font-medium text-gray-700">
+                <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
                   {tipoCliente === TipoCliente.PESSOA_FISICA ? 'Nome Completo' : 'Razão Social'}{' '}
-                  <span className="text-red-500">*</span>
+                  <span className="text-red-500 dark:text-red-400">*</span>
                 </label>
                 <input
                   {...register('nome')}
                   type="text"
-                  className="w-full rounded-lg border border-gray-300 px-3 py-2 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+                  className="w-full rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 px-3 py-2 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
                   placeholder="Digite o nome"
                 />
                 {errors.nome && (
-                  <p className="mt-1 text-sm text-red-500">{errors.nome.message}</p>
+                  <p className="mt-1 text-sm text-red-500 dark:text-red-400">{errors.nome.message}</p>
                 )}
               </div>
 
               {/* Email */}
               <div>
-                <label className="mb-1 block text-sm font-medium text-gray-700">Email</label>
+                <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">Email</label>
                 <input
                   {...register('email')}
                   type="email"
-                  className="w-full rounded-lg border border-gray-300 px-3 py-2 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+                  className="w-full rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 px-3 py-2 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
                   placeholder="email@exemplo.com"
                 />
                 {errors.email && (
-                  <p className="mt-1 text-sm text-red-500">{errors.email.message}</p>
+                  <p className="mt-1 text-sm text-red-500 dark:text-red-400">{errors.email.message}</p>
                 )}
               </div>
 
@@ -220,8 +220,8 @@ export const ClienteFormPage = () => {
           </div>
 
           {/* Endereço */}
-          <div className="rounded-lg bg-white p-6 shadow">
-            <h2 className="mb-4 text-lg font-semibold text-gray-900">Endereço</h2>
+          <div className="rounded-lg bg-white dark:bg-gray-800 p-6 shadow">
+            <h2 className="mb-4 text-lg font-semibold text-gray-900 dark:text-gray-100">Endereço</h2>
 
             <div className="grid gap-4 md:grid-cols-4">
               {/* CEP */}
@@ -243,84 +243,84 @@ export const ClienteFormPage = () => {
 
               {/* Logradouro */}
               <div className="md:col-span-3">
-                <label className="mb-1 block text-sm font-medium text-gray-700">
+                <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
                   Logradouro
                 </label>
                 <input
                   {...register('logradouro')}
                   type="text"
-                  className="w-full rounded-lg border border-gray-300 px-3 py-2 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+                  className="w-full rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 px-3 py-2 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
                   placeholder="Rua, Avenida, etc."
                 />
                 {errors.logradouro && (
-                  <p className="mt-1 text-sm text-red-500">{errors.logradouro.message}</p>
+                  <p className="mt-1 text-sm text-red-500 dark:text-red-400">{errors.logradouro.message}</p>
                 )}
               </div>
 
               {/* Número */}
               <div>
-                <label className="mb-1 block text-sm font-medium text-gray-700">Número</label>
+                <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">Número</label>
                 <input
                   {...register('numero')}
                   type="text"
-                  className="w-full rounded-lg border border-gray-300 px-3 py-2 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+                  className="w-full rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 px-3 py-2 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
                   placeholder="123"
                 />
                 {errors.numero && (
-                  <p className="mt-1 text-sm text-red-500">{errors.numero.message}</p>
+                  <p className="mt-1 text-sm text-red-500 dark:text-red-400">{errors.numero.message}</p>
                 )}
               </div>
 
               {/* Complemento */}
               <div className="md:col-span-2">
-                <label className="mb-1 block text-sm font-medium text-gray-700">
+                <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
                   Complemento
                 </label>
                 <input
                   {...register('complemento')}
                   type="text"
-                  className="w-full rounded-lg border border-gray-300 px-3 py-2 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+                  className="w-full rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 px-3 py-2 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
                   placeholder="Apt, Sala, etc."
                 />
                 {errors.complemento && (
-                  <p className="mt-1 text-sm text-red-500">{errors.complemento.message}</p>
+                  <p className="mt-1 text-sm text-red-500 dark:text-red-400">{errors.complemento.message}</p>
                 )}
               </div>
 
               {/* Bairro */}
               <div className="md:col-span-2">
-                <label className="mb-1 block text-sm font-medium text-gray-700">Bairro</label>
+                <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">Bairro</label>
                 <input
                   {...register('bairro')}
                   type="text"
-                  className="w-full rounded-lg border border-gray-300 px-3 py-2 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+                  className="w-full rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 px-3 py-2 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
                   placeholder="Centro, Jardim, etc."
                 />
                 {errors.bairro && (
-                  <p className="mt-1 text-sm text-red-500">{errors.bairro.message}</p>
+                  <p className="mt-1 text-sm text-red-500 dark:text-red-400">{errors.bairro.message}</p>
                 )}
               </div>
 
               {/* Cidade */}
               <div className="md:col-span-2">
-                <label className="mb-1 block text-sm font-medium text-gray-700">Cidade</label>
+                <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">Cidade</label>
                 <input
                   {...register('cidade')}
                   type="text"
-                  className="w-full rounded-lg border border-gray-300 px-3 py-2 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+                  className="w-full rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 px-3 py-2 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
                   placeholder="São Paulo"
                 />
                 {errors.cidade && (
-                  <p className="mt-1 text-sm text-red-500">{errors.cidade.message}</p>
+                  <p className="mt-1 text-sm text-red-500 dark:text-red-400">{errors.cidade.message}</p>
                 )}
               </div>
 
               {/* Estado */}
               <div>
-                <label className="mb-1 block text-sm font-medium text-gray-700">Estado</label>
+                <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">Estado</label>
                 <select
                   {...register('estado')}
-                  className="w-full rounded-lg border border-gray-300 px-3 py-2 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+                  className="w-full rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 px-3 py-2 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
                 >
                   <option value="">Selecione</option>
                   {UFS.map((uf) => (
@@ -330,7 +330,7 @@ export const ClienteFormPage = () => {
                   ))}
                 </select>
                 {errors.estado && (
-                  <p className="mt-1 text-sm text-red-500">{errors.estado.message}</p>
+                  <p className="mt-1 text-sm text-red-500 dark:text-red-400">{errors.estado.message}</p>
                 )}
               </div>
             </div>
@@ -341,14 +341,14 @@ export const ClienteFormPage = () => {
             <button
               type="button"
               onClick={() => navigate('/clientes')}
-              className="rounded-lg border border-gray-300 px-6 py-2 font-medium text-gray-700 hover:bg-gray-50"
+              className="rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 px-6 py-2 font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-600"
             >
               Cancelar
             </button>
             <button
               type="submit"
               disabled={createMutation.isPending || updateMutation.isPending}
-              className="flex items-center gap-2 rounded-lg bg-blue-600 px-6 py-2 font-medium text-white hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-50"
+              className="flex items-center gap-2 rounded-lg bg-blue-600 dark:bg-blue-700 px-6 py-2 font-medium text-white hover:bg-blue-700 dark:hover:bg-blue-600 disabled:cursor-not-allowed disabled:opacity-50"
             >
               <Save className="h-5 w-5" />
               {isEditMode ? 'Atualizar' : 'Cadastrar'}

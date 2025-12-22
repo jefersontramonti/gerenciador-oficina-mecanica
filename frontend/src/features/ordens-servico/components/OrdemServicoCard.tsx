@@ -51,13 +51,13 @@ export const OrdemServicoCard: React.FC<OrdemServicoCardProps> = ({ ordemServico
   return (
     <Link
       to={`/ordens-servico/${ordemServico.id}`}
-      className="block rounded-lg border border-gray-200 bg-white p-4 shadow-sm transition-shadow hover:shadow-md"
+      className="block rounded-lg border border-gray-200 bg-white p-4 shadow-sm transition-shadow hover:shadow-md dark:border-gray-700 dark:bg-gray-800 dark:hover:shadow-lg"
     >
       {/* Header */}
       <div className="mb-3 flex items-start justify-between">
         <div>
-          <h3 className="text-lg font-semibold text-gray-900">OS #{ordemServico.numero}</h3>
-          <p className="mt-1 text-sm text-gray-600">
+          <h3 className="text-lg font-semibold text-gray-900 dark:text-white">OS #{ordemServico.numero}</h3>
+          <p className="mt-1 text-sm text-gray-600 dark:text-gray-400">
             {ordemServico.veiculo?.placa || 'Veículo não informado'}
           </p>
         </div>
@@ -68,7 +68,7 @@ export const OrdemServicoCard: React.FC<OrdemServicoCardProps> = ({ ordemServico
       <div className="space-y-2">
         {/* Cliente */}
         {ordemServico.cliente && (
-          <div className="flex items-center gap-2 text-sm text-gray-600">
+          <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
             <User className="h-4 w-4" />
             <span>{ordemServico.cliente.nome}</span>
           </div>
@@ -76,7 +76,7 @@ export const OrdemServicoCard: React.FC<OrdemServicoCardProps> = ({ ordemServico
 
         {/* Veículo */}
         {ordemServico.veiculo && (
-          <div className="flex items-center gap-2 text-sm text-gray-600">
+          <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
             <Car className="h-4 w-4" />
             <span>
               {ordemServico.veiculo.marca} {ordemServico.veiculo.modelo} (
@@ -86,16 +86,16 @@ export const OrdemServicoCard: React.FC<OrdemServicoCardProps> = ({ ordemServico
         )}
 
         {/* Data de abertura */}
-        <div className="flex items-center gap-2 text-sm text-gray-600">
+        <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
           <Calendar className="h-4 w-4" />
           <span>Aberta em {formatDate(ordemServico.dataAbertura)}</span>
         </div>
       </div>
 
       {/* Footer com valor */}
-      <div className="mt-4 flex items-center justify-between border-t border-gray-200 pt-3">
-        <span className="text-sm font-medium text-gray-700">Valor Total:</span>
-        <span className="text-lg font-bold text-gray-900">
+      <div className="mt-4 flex items-center justify-between border-t border-gray-200 pt-3 dark:border-gray-700">
+        <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Valor Total:</span>
+        <span className="text-lg font-bold text-gray-900 dark:text-white">
           {formatCurrency(ordemServico.valorFinal)}
         </span>
       </div>

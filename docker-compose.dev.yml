@@ -1,0 +1,144 @@
+version: '3.8'
+
+# =========================================
+# Docker Compose - Desenvolvimento Local
+# =========================================
+# Simula ambiente de produção localmente
+# Uso: docker compose -f docker-compose.dev.yml up
+
+services:
+  # PostgreSQL Database
+  postgres:
+    image: postgres:16-alpine
+    container_name: pitstop-postgres-dev
+    environment:
+      POSTGRES_DB: pitstop
+      POSTGRES_USER: pitstop
+      POSTGRES_PASSWORD: dev123
+      POSTGRES_INITDB_ARGS: "--encoding=UTF8"
+    volumes:
+      - postgres_dev_data:/var/lib/postgresql/data
+      - ./scripts/init-evolution-db.sql:/docker-entrypoint-initdb.d/init-evolution-db.sql
+    ports:
+      - "5432:5432"  # Exposto para acesso local
+    networks:
+      - pitstop-dev-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U pitstop"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Redis Cache
+  redis:
+    image: redis:7-alpine
+    container_name: pitstop-redis-dev
+    command: redis-server --appendonly yes
+    volumes:
+      - redis_dev_data:/data
+    ports:
+      - "6379:6379"  # Exposto para acesso local
+    networks:
+      - pitstop-dev-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+
+  # PitStop Backend (opcional - descomente se quiser testar build)
+  # backend:
+  #   build:
+  #     context: .
+  #     dockerfile: Dockerfile
+  #   container_name: pitstop-backend-dev
+  #   environment:
+  #     SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/pitstop
+  #     SPRING_DATASOURCE_USERNAME: pitstop
+  #     SPRING_DATASOURCE_PASSWORD: dev123
+  #     SPRING_REDIS_HOST: redis
+  #     SPRING_REDIS_PORT: 6379
+  #     JWT_SECRET: dev-secret-key-change-in-production-use-openssl-rand-base64-64
+  #     SPRING_PROFILES_ACTIVE: dev
+  #   ports:
+  #     - "8080:8080"
+  #   depends_on:
+  #     postgres:
+  #       condition: service_healthy
+  #     redis:
+  #       condition: service_healthy
+  #   networks:
+  #     - pitstop-dev-network
+  #   restart: unless-stopped
+
+  # Evolution API para testes de WhatsApp
+  evolution-api:
+    image: atendai/evolution-api:latest
+    container_name: evolution-api-dev
+    environment:
+      DATABASE_PROVIDER: postgresql
+      DATABASE_CONNECTION_URI: postgresql://pitstop:dev123@postgres:5432/evolution
+      DATABASE_CONNECTION_CLIENT_NAME: evolution_dev
+      SERVER_TYPE: http
+      SERVER_PORT: 8080
+      SERVER_URL: http://localhost:8081
+      CORS_ORIGIN: "*"
+      CORS_METHODS: "GET,POST,PUT,DELETE"
+      AUTHENTICATION_TYPE: apikey
+      AUTHENTICATION_API_KEY: dev-evolution-key
+      QRCODE_LIMIT: 30
+      LOG_LEVEL: DEBUG,INFO,WARN,ERROR
+      STORE_MESSAGES: "true"
+      STORE_CONTACTS: "true"
+      CLEAN_STORE_MESSAGES: "false"  # Não limpar em dev
+    volumes:
+      - evolution_dev_instances:/evolution/instances
+      - evolution_dev_store:/evolution/store
+    ports:
+      - "8081:8080"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - pitstop-dev-network
+    restart: unless-stopped
+
+  # Adminer - Interface web para PostgreSQL
+  adminer:
+    image: adminer:latest
+    container_name: pitstop-adminer
+    environment:
+      ADMINER_DEFAULT_SERVER: postgres
+    ports:
+      - "8082:8080"
+    networks:
+      - pitstop-dev-network
+    restart: unless-stopped
+
+  # Redis Commander - Interface web para Redis
+  redis-commander:
+    image: rediscommander/redis-commander:latest
+    container_name: pitstop-redis-commander
+    environment:
+      REDIS_HOSTS: local:redis:6379
+    ports:
+      - "8083:8081"
+    networks:
+      - pitstop-dev-network
+    restart: unless-stopped
+
+networks:
+  pitstop-dev-network:
+    driver: bridge
+
+volumes:
+  postgres_dev_data:
+    driver: local
+  redis_dev_data:
+    driver: local
+  evolution_dev_instances:
+    driver: local
+  evolution_dev_store:
+    driver: local

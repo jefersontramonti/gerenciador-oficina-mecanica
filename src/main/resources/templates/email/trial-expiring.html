@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Seu período trial está terminando</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background-color: #ffffff;
+            border-radius: 8px;
+            padding: 40px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .logo {
+            font-size: 32px;
+            font-weight: bold;
+            color: #2563eb;
+        }
+        h1 {
+            color: #1f2937;
+            font-size: 24px;
+        }
+        .alert-warning {
+            background-color: #fef3c7;
+            padding: 20px;
+            border-left: 4px solid #f59e0b;
+            margin: 20px 0;
+            border-radius: 4px;
+        }
+        .highlight {
+            background-color: #dbeafe;
+            padding: 20px;
+            border-radius: 4px;
+            margin: 20px 0;
+        }
+        .button {
+            display: inline-block;
+            padding: 14px 28px;
+            background-color: #2563eb;
+            color: #ffffff !important;
+            text-decoration: none;
+            border-radius: 6px;
+            margin: 20px 0;
+            font-weight: 600;
+        }
+        .footer {
+            margin-top: 40px;
+            padding-top: 20px;
+            border-top: 1px solid #e5e7eb;
+            text-align: center;
+            font-size: 14px;
+            color: #6b7280;
+        }
+        .plan-card {
+            border: 2px solid #e5e7eb;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 15px 0;
+        }
+        .plan-card.recommended {
+            border-color: #2563eb;
+            background-color: #eff6ff;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="logo">🚗 PitStop</div>
+        </div>
+
+        <h1>⏰ Seu período trial está terminando</h1>
+
+        <p>Olá <strong th:text="${nomeOficina}">Oficina</strong>,</p>
+
+        <div class="alert-warning">
+            <p><strong>⚠️ Atenção!</strong></p>
+            <p>Seu período de teste gratuito expira em <strong th:text="${diasRestantes}">3</strong> dia(s).</p>
+            <p>Data de expiração: <strong th:text="${dataVencimento}">15/01/2025</strong></p>
+        </div>
+
+        <p>Para continuar aproveitando todos os benefícios do PitStop e garantir que sua gestão não seja interrompida, escolha um de nossos planos:</p>
+
+        <div class="plan-card">
+            <h3>📦 Plano Básico</h3>
+            <p><strong>R$ 199,90/mês</strong></p>
+            <ul>
+                <li>Até 50 ordens de serviço/mês</li>
+                <li>Controle de estoque básico</li>
+                <li>2 usuários</li>
+            </ul>
+        </div>
+
+        <div class="plan-card recommended">
+            <h3>⭐ Plano Profissional (Recomendado)</h3>
+            <p><strong>R$ 399,90/mês</strong></p>
+            <ul>
+                <li>Ordens de serviço ilimitadas</li>
+                <li>Controle de estoque completo</li>
+                <li>5 usuários</li>
+                <li>Relatórios avançados</li>
+                <li>Suporte prioritário</li>
+            </ul>
+        </div>
+
+        <div class="plan-card">
+            <h3>🚀 Plano Turbinado</h3>
+            <p><strong>R$ 599,90/mês</strong></p>
+            <ul>
+                <li>Tudo do Profissional</li>
+                <li>Usuários ilimitados</li>
+                <li>Integração com WhatsApp</li>
+                <li>API personalizada</li>
+                <li>Suporte 24/7</li>
+            </ul>
+        </div>
+
+        <div style="text-align: center;">
+            <a th:href="${pagamentoUrl}" class="button">Escolher Meu Plano</a>
+        </div>
+
+        <div class="highlight">
+            <p><strong>💡 Por que continuar com o PitStop?</strong></p>
+            <ul>
+                <li>✅ Aumente sua produtividade em até 40%</li>
+                <li>✅ Reduza erros e retrabalho</li>
+                <li>✅ Tenha controle total do seu negócio</li>
+                <li>✅ Melhore a experiência dos seus clientes</li>
+            </ul>
+        </div>
+
+        <p>Dúvidas? Nossa equipe está pronta para ajudar!</p>
+
+        <p>
+            Atenciosamente,<br>
+            <strong>Equipe PitStop</strong>
+        </p>
+
+        <div class="footer">
+            <p>Este é um email automático. Por favor, não responda.</p>
+            <p>
+                <strong>PitStop - Sistema de Gestão para Oficinas Mecânicas</strong><br>
+                <a href="https://pitstop.com.br" style="color: #2563eb;">www.pitstop.com.br</a>
+            </p>
+        </div>
+    </div>
+</body>
+</html>

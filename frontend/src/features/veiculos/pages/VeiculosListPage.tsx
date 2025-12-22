@@ -46,7 +46,7 @@ export const VeiculosListPage = () => {
   if (error) {
     return (
       <div className="p-6">
-        <div className="rounded-lg border border-red-800 bg-red-900/20 p-4 text-red-400">
+        <div className="rounded-lg border border-red-800 dark:border-red-700 bg-red-900/20 dark:bg-red-900/30 p-4 text-red-400 dark:text-red-300">
           Erro ao carregar veículos. Tente novamente.
         </div>
       </div>
@@ -58,8 +58,8 @@ export const VeiculosListPage = () => {
       {/* Header */}
       <div className="mb-6 flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Veículos</h1>
-          <p className="mt-1 text-sm text-gray-600">
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Veículos</h1>
+          <p className="mt-1 text-sm text-gray-600 dark:text-gray-400">
             Gerenciamento de veículos cadastrados
           </p>
         </div>
@@ -73,11 +73,11 @@ export const VeiculosListPage = () => {
       </div>
 
       {/* Filters */}
-      <div className="mb-6 rounded-lg bg-white p-4 shadow">
+      <div className="mb-6 rounded-lg bg-white dark:bg-gray-800 p-4 shadow">
         <div className="grid gap-4 md:grid-cols-4">
           {/* Search by placa */}
           <div className="md:col-span-2">
-            <label className="mb-1 block text-sm font-medium text-gray-700">
+            <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
               Buscar por placa
             </label>
             <div className="relative">
@@ -85,7 +85,7 @@ export const VeiculosListPage = () => {
               <input
                 type="text"
                 placeholder="Digite a placa..."
-                className="w-full rounded-lg border border-gray-300 py-2 pl-10 pr-4 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+                className="w-full rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 text-gray-900 dark:text-white py-2 pl-10 pr-4 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
                 onChange={(e) => handleSearch(e.target.value)}
                 defaultValue={filters.placa}
               />
@@ -94,13 +94,13 @@ export const VeiculosListPage = () => {
 
           {/* Filter by marca */}
           <div>
-            <label className="mb-1 block text-sm font-medium text-gray-700">Marca</label>
+            <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">Marca</label>
             <input
               type="text"
               placeholder="Filtrar por marca"
               defaultValue={filters.marca}
               onChange={(e) => handleFilterChange('marca', e.target.value)}
-              className="w-full rounded-lg border border-gray-300 px-3 py-2 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+              className="w-full rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 text-gray-900 dark:text-white px-3 py-2 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
             />
           </div>
 
@@ -110,7 +110,7 @@ export const VeiculosListPage = () => {
               onClick={() =>
                 setFilters({ page: 0, size: ITEMS_PER_PAGE, sort: 'placa,asc' })
               }
-              className="flex w-full items-center justify-center gap-2 rounded-lg border border-orange-300 bg-orange-50 px-4 py-2 text-orange-700 hover:bg-orange-100"
+              className="flex w-full items-center justify-center gap-2 rounded-lg border border-orange-300 dark:border-orange-700 bg-orange-50 dark:bg-orange-900/20 px-4 py-2 text-orange-700 dark:text-orange-400 hover:bg-orange-100 dark:hover:bg-orange-900/30"
             >
               <FilterX className="h-4 w-4" />
               Limpar Filtros
@@ -119,19 +119,19 @@ export const VeiculosListPage = () => {
 
           {/* Filter by modelo */}
           <div>
-            <label className="mb-1 block text-sm font-medium text-gray-700">Modelo</label>
+            <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">Modelo</label>
             <input
               type="text"
               placeholder="Filtrar por modelo"
               defaultValue={filters.modelo}
               onChange={(e) => handleFilterChange('modelo', e.target.value)}
-              className="w-full rounded-lg border border-gray-300 px-3 py-2 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+              className="w-full rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 text-gray-900 dark:text-white px-3 py-2 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
             />
           </div>
 
           {/* Filter by ano */}
           <div>
-            <label className="mb-1 block text-sm font-medium text-gray-700">Ano</label>
+            <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">Ano</label>
             <input
               type="number"
               placeholder="Ex: 2020"
@@ -139,104 +139,104 @@ export const VeiculosListPage = () => {
               onChange={(e) =>
                 handleFilterChange('ano', e.target.value ? parseInt(e.target.value) : undefined)
               }
-              className="w-full rounded-lg border border-gray-300 px-3 py-2 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+              className="w-full rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 text-gray-900 dark:text-white px-3 py-2 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
             />
           </div>
         </div>
       </div>
 
       {/* Table */}
-      <div className="overflow-hidden rounded-lg bg-white shadow">
+      <div className="overflow-hidden rounded-lg bg-white dark:bg-gray-800 shadow">
         <div className="overflow-x-auto">
           <table className="w-full">
-            <thead className="bg-gray-50">
+            <thead className="bg-gray-50 dark:bg-gray-900">
               <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-700">
+                <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-700 dark:text-gray-300">
                   Placa
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-700">
+                <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-700 dark:text-gray-300">
                   Marca/Modelo
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-700">
+                <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-700 dark:text-gray-300">
                   Ano
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-700">
+                <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-700 dark:text-gray-300">
                   Cor
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-700">
+                <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-700 dark:text-gray-300">
                   Proprietário
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-700">
+                <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-700 dark:text-gray-300">
                   KM
                 </th>
-                <th className="px-6 py-3 text-right text-xs font-medium uppercase tracking-wider text-gray-700">
+                <th className="px-6 py-3 text-right text-xs font-medium uppercase tracking-wider text-gray-700 dark:text-gray-300">
                   Ações
                 </th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-200 bg-white">
+            <tbody className="divide-y divide-gray-200 dark:divide-gray-700 bg-white dark:bg-gray-800">
               {isLoading ? (
                 <tr>
-                  <td colSpan={7} className="px-6 py-12 text-center text-gray-500">
+                  <td colSpan={7} className="px-6 py-12 text-center text-gray-500 dark:text-gray-400">
                     Carregando...
                   </td>
                 </tr>
               ) : data?.content.length === 0 ? (
                 <tr>
-                  <td colSpan={7} className="px-6 py-12 text-center text-gray-500">
+                  <td colSpan={7} className="px-6 py-12 text-center text-gray-500 dark:text-gray-400">
                     Nenhum veículo encontrado
                   </td>
                 </tr>
               ) : (
                 data?.content.map((veiculo) => (
-                  <tr key={veiculo.id} className="hover:bg-gray-50">
+                  <tr key={veiculo.id} className="hover:bg-gray-50 dark:hover:bg-gray-700">
                     <td className="whitespace-nowrap px-6 py-4">
-                      <div className="font-medium text-gray-900">{veiculo.placa}</div>
+                      <div className="font-medium text-gray-900 dark:text-white">{veiculo.placa}</div>
                     </td>
                     <td className="whitespace-nowrap px-6 py-4">
-                      <div className="text-sm text-gray-900">{veiculo.marca}</div>
-                      <div className="text-sm text-gray-500">{veiculo.modelo}</div>
+                      <div className="text-sm text-gray-900 dark:text-white">{veiculo.marca}</div>
+                      <div className="text-sm text-gray-500 dark:text-gray-400">{veiculo.modelo}</div>
                     </td>
-                    <td className="whitespace-nowrap px-6 py-4 text-sm text-gray-900">
+                    <td className="whitespace-nowrap px-6 py-4 text-sm text-gray-900 dark:text-white">
                       {veiculo.ano}
                     </td>
-                    <td className="whitespace-nowrap px-6 py-4 text-sm text-gray-500">
+                    <td className="whitespace-nowrap px-6 py-4 text-sm text-gray-500 dark:text-gray-400">
                       {veiculo.cor || '-'}
                     </td>
                     <td className="px-6 py-4">
                       {veiculo.cliente ? (
                         <div>
-                          <div className="text-sm font-medium text-gray-900">
+                          <div className="text-sm font-medium text-gray-900 dark:text-white">
                             {veiculo.cliente.nome}
                           </div>
-                          <div className="text-sm text-gray-500">{veiculo.cliente.telefone}</div>
+                          <div className="text-sm text-gray-500 dark:text-gray-400">{veiculo.cliente.telefone}</div>
                         </div>
                       ) : (
-                        <span className="text-sm text-gray-500">-</span>
+                        <span className="text-sm text-gray-500 dark:text-gray-400">-</span>
                       )}
                     </td>
-                    <td className="whitespace-nowrap px-6 py-4 text-sm text-gray-500">
+                    <td className="whitespace-nowrap px-6 py-4 text-sm text-gray-500 dark:text-gray-400">
                       {veiculo.quilometragem?.toLocaleString('pt-BR') || '-'} km
                     </td>
                     <td className="whitespace-nowrap px-6 py-4 text-right text-sm font-medium">
                       <div className="flex justify-end gap-2">
                         <Link
                           to={`/veiculos/${veiculo.id}`}
-                          className="rounded p-1 text-blue-600 hover:bg-blue-50"
+                          className="rounded p-1 text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20"
                           title="Visualizar"
                         >
                           <Eye className="h-5 w-5" />
                         </Link>
                         <Link
                           to={`/veiculos/${veiculo.id}/editar`}
-                          className="rounded p-1 text-yellow-600 hover:bg-yellow-50"
+                          className="rounded p-1 text-yellow-600 dark:text-yellow-400 hover:bg-yellow-50 dark:hover:bg-yellow-900/20"
                           title="Editar"
                         >
                           <Edit className="h-5 w-5" />
                         </Link>
                         <Link
                           to={`/ordens-servico/novo?veiculoId=${veiculo.id}`}
-                          className="rounded p-1 text-green-600 hover:bg-green-50"
+                          className="rounded p-1 text-green-600 dark:text-green-400 hover:bg-green-50 dark:hover:bg-green-900/20"
                           title="Criar OS"
                         >
                           <FileText className="h-5 w-5" />
@@ -244,7 +244,7 @@ export const VeiculosListPage = () => {
                         <button
                           onClick={() => handleDelete(veiculo.id, veiculo.placa)}
                           disabled={deleteMutation.isPending}
-                          className="rounded p-1 text-red-600 hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-50"
+                          className="rounded p-1 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 disabled:cursor-not-allowed disabled:opacity-50"
                           title="Remover"
                         >
                           <Trash2 className="h-5 w-5" />
@@ -260,22 +260,22 @@ export const VeiculosListPage = () => {
 
         {/* Pagination */}
         {data && data.totalPages > 1 && (
-          <div className="flex items-center justify-between border-t border-gray-200 bg-white px-6 py-3">
-            <div className="text-sm text-gray-700">
+          <div className="flex items-center justify-between border-t border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 px-6 py-3">
+            <div className="text-sm text-gray-700 dark:text-gray-300">
               Página {data.number + 1} de {data.totalPages} ({data.totalElements} total)
             </div>
             <div className="flex gap-2">
               <button
                 onClick={() => handlePageChange(filters.page! - 1)}
                 disabled={data.first}
-                className="rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50"
+                className="rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 disabled:cursor-not-allowed disabled:opacity-50"
               >
                 Anterior
               </button>
               <button
                 onClick={() => handlePageChange(filters.page! + 1)}
                 disabled={data.last}
-                className="rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50"
+                className="rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 disabled:cursor-not-allowed disabled:opacity-50"
               >
                 Próxima
               </button>

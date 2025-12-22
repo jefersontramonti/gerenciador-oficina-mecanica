@@ -106,7 +106,7 @@ export const UsuarioFormPage = () => {
   if (isEditMode && isLoadingUsuario) {
     return (
       <div className="flex h-64 items-center justify-center">
-        <p className="text-gray-600">Carregando usuário...</p>
+        <p className="text-gray-600 dark:text-gray-400">Carregando usuário...</p>
       </div>
     );
   }
@@ -115,7 +115,7 @@ export const UsuarioFormPage = () => {
   if (isEditMode && !isLoadingUsuario && !usuario) {
     return (
       <div className="p-6">
-        <div className="rounded-lg border border-red-800 bg-red-900/20 p-4 text-red-400">
+        <div className="rounded-lg border border-red-800 dark:border-red-700 bg-red-900/20 dark:bg-red-900/30 p-4 text-red-400 dark:text-red-300">
           Usuário não encontrado.
         </div>
       </div>
@@ -129,15 +129,15 @@ export const UsuarioFormPage = () => {
         <div className="mb-4 flex items-center gap-4">
           <Link
             to="/usuarios"
-            className="rounded-lg border border-gray-300 p-2 text-gray-700 hover:bg-gray-50"
+            className="rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 p-2 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-600"
           >
             <ArrowLeft className="h-5 w-5" />
           </Link>
           <div>
-            <h1 className="text-2xl font-bold text-gray-900">
+            <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">
               {isEditMode ? 'Editar Usuário' : 'Novo Usuário'}
             </h1>
-            <p className="mt-1 text-sm text-gray-600">
+            <p className="mt-1 text-sm text-gray-600 dark:text-gray-400">
               {isEditMode
                 ? 'Atualize as informações do usuário'
                 : 'Preencha os dados para criar um novo usuário no sistema'}
@@ -149,64 +149,64 @@ export const UsuarioFormPage = () => {
       {/* Form */}
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
         {/* Card: Informações Básicas */}
-        <div className="rounded-lg bg-white p-6 shadow">
-          <h2 className="mb-4 text-lg font-semibold text-gray-900">Informações Básicas</h2>
+        <div className="rounded-lg bg-white dark:bg-gray-800 p-6 shadow">
+          <h2 className="mb-4 text-lg font-semibold text-gray-900 dark:text-gray-100">Informações Básicas</h2>
 
           <div className="grid gap-4 md:grid-cols-2">
             {/* Nome */}
             <div>
-              <label htmlFor="nome" className="mb-1 block text-sm font-medium text-gray-700">
-                Nome Completo <span className="text-red-600">*</span>
+              <label htmlFor="nome" className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                Nome Completo <span className="text-red-600 dark:text-red-400">*</span>
               </label>
               <input
                 type="text"
                 id="nome"
                 {...register('nome')}
-                className={`w-full rounded-lg border px-3 py-2 focus:outline-none focus:ring-2 ${
+                className={`w-full rounded-lg border px-3 py-2 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 ${
                   errors.nome
                     ? 'border-red-500 focus:border-red-500 focus:ring-red-500/20'
-                    : 'border-gray-300 focus:border-blue-500 focus:ring-blue-500/20'
+                    : 'border-gray-300 dark:border-gray-600 focus:border-blue-500 focus:ring-blue-500/20'
                 }`}
                 placeholder="Ex: João da Silva"
               />
               {errors.nome && (
-                <p className="mt-1 text-sm text-red-600">{errors.nome.message}</p>
+                <p className="mt-1 text-sm text-red-600 dark:text-red-400">{errors.nome.message}</p>
               )}
             </div>
 
             {/* Email */}
             <div>
-              <label htmlFor="email" className="mb-1 block text-sm font-medium text-gray-700">
-                Email <span className="text-red-600">*</span>
+              <label htmlFor="email" className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                Email <span className="text-red-600 dark:text-red-400">*</span>
               </label>
               <input
                 type="email"
                 id="email"
                 {...register('email')}
-                className={`w-full rounded-lg border px-3 py-2 focus:outline-none focus:ring-2 ${
+                className={`w-full rounded-lg border px-3 py-2 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 ${
                   errors.email
                     ? 'border-red-500 focus:border-red-500 focus:ring-red-500/20'
-                    : 'border-gray-300 focus:border-blue-500 focus:ring-blue-500/20'
+                    : 'border-gray-300 dark:border-gray-600 focus:border-blue-500 focus:ring-blue-500/20'
                 }`}
                 placeholder="usuario@exemplo.com"
               />
               {errors.email && (
-                <p className="mt-1 text-sm text-red-600">{errors.email.message}</p>
+                <p className="mt-1 text-sm text-red-600 dark:text-red-400">{errors.email.message}</p>
               )}
             </div>
 
             {/* Perfil */}
             <div>
-              <label htmlFor="perfil" className="mb-1 block text-sm font-medium text-gray-700">
-                Perfil de Acesso <span className="text-red-600">*</span>
+              <label htmlFor="perfil" className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                Perfil de Acesso <span className="text-red-600 dark:text-red-400">*</span>
               </label>
               <select
                 id="perfil"
                 {...register('perfil')}
-                className={`w-full rounded-lg border px-3 py-2 focus:outline-none focus:ring-2 ${
+                className={`w-full rounded-lg border px-3 py-2 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 ${
                   errors.perfil
                     ? 'border-red-500 focus:border-red-500 focus:ring-red-500/20'
-                    : 'border-gray-300 focus:border-blue-500 focus:ring-blue-500/20'
+                    : 'border-gray-300 dark:border-gray-600 focus:border-blue-500 focus:ring-blue-500/20'
                 }`}
               >
                 <option value="">Selecione o perfil</option>
@@ -216,39 +216,39 @@ export const UsuarioFormPage = () => {
                 <option value="MECANICO">Mecânico</option>
               </select>
               {errors.perfil && (
-                <p className="mt-1 text-sm text-red-600">{errors.perfil.message}</p>
+                <p className="mt-1 text-sm text-red-600 dark:text-red-400">{errors.perfil.message}</p>
               )}
             </div>
 
             {/* Senha */}
             <div>
-              <label htmlFor="senha" className="mb-1 block text-sm font-medium text-gray-700">
-                Senha {isEditMode ? '(deixe em branco para manter)' : <span className="text-red-600">*</span>}
+              <label htmlFor="senha" className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                Senha {isEditMode ? '(deixe em branco para manter)' : <span className="text-red-600 dark:text-red-400">*</span>}
               </label>
               <input
                 type="password"
                 id="senha"
                 {...register('senha')}
-                className={`w-full rounded-lg border px-3 py-2 focus:outline-none focus:ring-2 ${
+                className={`w-full rounded-lg border px-3 py-2 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 ${
                   errors.senha
                     ? 'border-red-500 focus:border-red-500 focus:ring-red-500/20'
-                    : 'border-gray-300 focus:border-blue-500 focus:ring-blue-500/20'
+                    : 'border-gray-300 dark:border-gray-600 focus:border-blue-500 focus:ring-blue-500/20'
                 }`}
                 placeholder={isEditMode ? '******' : 'Mínimo 6 caracteres'}
               />
               {errors.senha && (
-                <p className="mt-1 text-sm text-red-600">{errors.senha.message}</p>
+                <p className="mt-1 text-sm text-red-600 dark:text-red-400">{errors.senha.message}</p>
               )}
             </div>
           </div>
         </div>
 
         {/* Card: Informações sobre Perfis */}
-        <div className="rounded-lg bg-blue-50 p-6">
-          <h3 className="mb-3 text-sm font-semibold text-blue-900">
+        <div className="rounded-lg bg-blue-50 dark:bg-blue-900/30 p-6">
+          <h3 className="mb-3 text-sm font-semibold text-blue-900 dark:text-blue-300">
             Informações sobre Perfis de Acesso
           </h3>
-          <div className="space-y-2 text-sm text-blue-800">
+          <div className="space-y-2 text-sm text-blue-800 dark:text-blue-200">
             <div>
               <strong>Administrador:</strong> Acesso completo ao sistema, incluindo gestão de usuários.
             </div>
@@ -268,14 +268,14 @@ export const UsuarioFormPage = () => {
         <div className="flex items-center justify-end gap-3">
           <Link
             to="/usuarios"
-            className="rounded-lg border border-gray-300 px-6 py-2 text-gray-700 hover:bg-gray-50"
+            className="rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 px-6 py-2 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-600"
           >
             Cancelar
           </Link>
           <button
             type="submit"
             disabled={isSubmitting || createMutation.isPending || updateMutation.isPending}
-            className="flex items-center gap-2 rounded-lg bg-blue-600 px-6 py-2 text-white hover:bg-blue-700 disabled:opacity-50"
+            className="flex items-center gap-2 rounded-lg bg-blue-600 dark:bg-blue-700 px-6 py-2 text-white hover:bg-blue-700 dark:hover:bg-blue-600 disabled:opacity-50"
           >
             <Save className="h-5 w-5" />
             {isSubmitting || createMutation.isPending || updateMutation.isPending

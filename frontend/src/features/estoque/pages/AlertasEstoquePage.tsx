@@ -57,7 +57,7 @@ export const AlertasEstoquePage = () => {
           Voltar para Estoque
         </Button>
         <h1 className="text-3xl font-bold tracking-tight mt-2 flex items-center gap-2">
-          <AlertTriangle className="h-8 w-8 text-orange-600" />
+          <AlertTriangle className="h-8 w-8 text-orange-600 dark:text-orange-400" />
           Alertas de Estoque
         </h1>
         <p className="text-muted-foreground">
@@ -86,8 +86,8 @@ export const AlertasEstoquePage = () => {
 
         {/* Tab: Estoque Baixo */}
         <TabsContent value="baixo" className="space-y-4">
-          <div className="bg-orange-50 border border-orange-200 rounded-lg p-4">
-            <p className="text-sm text-orange-800">
+          <div className="bg-orange-50 dark:bg-orange-950/30 border border-orange-200 dark:border-orange-800 rounded-lg p-4">
+            <p className="text-sm text-orange-800 dark:text-orange-300">
               <strong>Atenção:</strong> As peças abaixo estão com quantidade atual{' '}
               <strong>igual ou inferior</strong> à quantidade mínima configurada.
             </p>
@@ -126,7 +126,7 @@ export const AlertasEstoquePage = () => {
                       <TableCell className="text-center">
                         <UnidadeMedidaBadge unidade={peca.unidadeMedida} />
                       </TableCell>
-                      <TableCell className="text-right font-medium text-orange-600">
+                      <TableCell className="text-right font-medium text-orange-600 dark:text-orange-400">
                         {peca.quantidadeAtual}
                       </TableCell>
                       <TableCell className="text-right">
@@ -145,7 +145,7 @@ export const AlertasEstoquePage = () => {
                         <Button
                           size="sm"
                           variant="outline"
-                          className="text-green-600 hover:text-green-700"
+                          className="text-green-600 dark:text-green-400 hover:text-green-700 dark:hover:text-green-300"
                           onClick={() => handleRegistrarEntrada(peca)}
                         >
                           <ArrowDownCircle className="h-4 w-4 mr-1" />
@@ -190,8 +190,8 @@ export const AlertasEstoquePage = () => {
 
         {/* Tab: Estoque Zerado */}
         <TabsContent value="zerado" className="space-y-4">
-          <div className="bg-red-50 border border-red-200 rounded-lg p-4">
-            <p className="text-sm text-red-800">
+          <div className="bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-800 rounded-lg p-4">
+            <p className="text-sm text-red-800 dark:text-red-300">
               <strong>Urgente:</strong> As peças abaixo estão com{' '}
               <strong>quantidade zerada</strong>. Registre entradas imediatamente para
               evitar problemas operacionais.
@@ -222,7 +222,7 @@ export const AlertasEstoquePage = () => {
                 </TableHeader>
                 <TableBody>
                   {dataZerado.content.map((peca) => (
-                    <TableRow key={peca.id} className="bg-red-50/50">
+                    <TableRow key={peca.id} className="bg-red-50/50 dark:bg-red-950/20">
                       <TableCell className="font-medium">{peca.codigo}</TableCell>
                       <TableCell className="max-w-xs truncate">
                         {peca.descricao}
@@ -245,7 +245,7 @@ export const AlertasEstoquePage = () => {
                       <TableCell className="text-right">
                         <Button
                           size="sm"
-                          className="bg-green-600 hover:bg-green-700"
+                          className="bg-green-600 hover:bg-green-700 dark:bg-green-700 dark:hover:bg-green-600"
                           onClick={() => handleRegistrarEntrada(peca)}
                         >
                           <ArrowDownCircle className="h-4 w-4 mr-1" />

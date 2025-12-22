@@ -6,16 +6,20 @@
 import ReactECharts from 'echarts-for-react';
 import type { EChartsOption } from 'echarts';
 import { useFaturamentoMensal } from '../hooks/useFaturamentoMensal';
+import { useTheme } from '@/shared/contexts';
 
 export const FaturamentoBarChart = () => {
   const { data, isLoading, error } = useFaturamentoMensal();
+  const { theme } = useTheme();
+
+  const isDark = theme === 'dark';
 
   if (isLoading) {
     return (
-      <div className="rounded-lg border border-gray-200 bg-white p-6 shadow-sm">
+      <div className="rounded-lg border border-gray-200 bg-white p-6 shadow-sm dark:border-gray-700 dark:bg-gray-800">
         <div className="animate-pulse">
-          <div className="h-6 w-40 rounded bg-gray-200" />
-          <div className="mt-4 h-64 rounded bg-gray-200" />
+          <div className="h-6 w-40 rounded bg-gray-200 dark:bg-gray-700" />
+          <div className="mt-4 h-64 rounded bg-gray-200 dark:bg-gray-700" />
         </div>
       </div>
     );
@@ -23,7 +27,7 @@ export const FaturamentoBarChart = () => {
 
   if (error) {
     return (
-      <div className="rounded-lg border border-red-200 bg-red-50 p-6 text-center text-red-600">
+      <div className="rounded-lg border border-red-200 bg-red-50 p-6 text-center text-red-600 dark:border-red-800 dark:bg-red-900/20 dark:text-red-400">
         <p className="font-medium">Erro ao carregar gráfico</p>
         <p className="mt-1 text-sm">Tente novamente mais tarde</p>
       </div>
@@ -32,7 +36,7 @@ export const FaturamentoBarChart = () => {
 
   if (!data || data.length === 0) {
     return (
-      <div className="rounded-lg border border-gray-200 bg-white p-6 text-center text-gray-500">
+      <div className="rounded-lg border border-gray-200 bg-white p-6 text-center text-gray-500 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-400">
         <p>Nenhum dado disponível</p>
       </div>
     );
@@ -49,7 +53,7 @@ export const FaturamentoBarChart = () => {
       textStyle: {
         fontSize: 16,
         fontWeight: 600,
-        color: '#1f2937',
+        color: isDark ? '#f9fafb' : '#1f2937',
       },
     },
     tooltip: {
@@ -64,11 +68,11 @@ export const FaturamentoBarChart = () => {
           maximumFractionDigits: 2,
         })}`;
       },
-      backgroundColor: 'rgba(255, 255, 255, 0.95)',
-      borderColor: '#e5e7eb',
+      backgroundColor: isDark ? 'rgba(31, 41, 55, 0.95)' : 'rgba(255, 255, 255, 0.95)',
+      borderColor: isDark ? '#374151' : '#e5e7eb',
       borderWidth: 1,
       textStyle: {
-        color: '#1f2937',
+        color: isDark ? '#f9fafb' : '#1f2937',
       },
     },
     grid: {
@@ -82,20 +86,20 @@ export const FaturamentoBarChart = () => {
       type: 'category',
       data: meses,
       axisLabel: {
-        color: '#6b7280',
+        color: isDark ? '#9ca3af' : '#6b7280',
         fontSize: 12,
         rotate: 45,
       },
       axisLine: {
         lineStyle: {
-          color: '#e5e7eb',
+          color: isDark ? '#374151' : '#e5e7eb',
         },
       },
     },
     yAxis: {
       type: 'value',
       axisLabel: {
-        color: '#6b7280',
+        color: isDark ? '#9ca3af' : '#6b7280',
         fontSize: 12,
         formatter: (value: number) => {
           return `R$ ${(value / 1000).toFixed(0)}k`;
@@ -103,7 +107,7 @@ export const FaturamentoBarChart = () => {
       },
       splitLine: {
         lineStyle: {
-          color: '#f3f4f6',
+          color: isDark ? '#374151' : '#f3f4f6',
         },
       },
     },
@@ -159,7 +163,7 @@ export const FaturamentoBarChart = () => {
   };
 
   return (
-    <div className="rounded-lg border border-gray-200 bg-white p-6 shadow-sm">
+    <div className="rounded-lg border border-gray-200 bg-white p-6 shadow-sm dark:border-gray-700 dark:bg-gray-800">
       <ReactECharts
         option={option}
         style={{ height: '350px', width: '100%' }}

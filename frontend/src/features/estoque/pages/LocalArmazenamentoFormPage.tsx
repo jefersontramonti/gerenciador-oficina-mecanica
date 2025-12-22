@@ -3,12 +3,9 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { MapPin, Save, X, Package, Hash, AlignLeft, Building2, Tag } from 'lucide-react';
+import { ArrowLeft, Save } from 'lucide-react';
 import { Button } from '@/shared/components/ui/button';
-import { Input } from '@/shared/components/ui/input';
-import { Label } from '@/shared/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/shared/components/ui/select';
-import { Textarea } from '@/shared/components/ui/textarea';
 import { useLocalArmazenamento, useCreateLocal, useUpdateLocal, useLocaisRaiz } from '../hooks/useLocaisArmazenamento';
 import { TipoLocal, TipoLocalLabel, TipoLocalIcon } from '../types';
 
@@ -99,30 +96,25 @@ export const LocalArmazenamentoFormPage = () => {
 
   if (loadingLocal) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <p className="text-gray-600">Carregando local...</p>
-        </div>
+      <div className="flex h-64 items-center justify-center">
+        <div className="text-gray-500 dark:text-gray-400">Carregando...</div>
       </div>
     );
   }
 
   if (errorLocal) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="text-center">
-          <div className="rounded-lg border border-red-200 bg-red-50 p-6 max-w-md">
-            <h2 className="text-lg font-semibold text-red-900 mb-2">Erro ao carregar local</h2>
-            <p className="text-red-700">Não foi possível carregar os dados do local.</p>
-            <Button
-              variant="outline"
-              onClick={() => navigate('/estoque/locais')}
-              className="mt-4"
-            >
-              Voltar para lista
-            </Button>
-          </div>
+      <div className="p-6">
+        <div className="rounded-lg border border-red-200 dark:border-red-800 bg-red-50 dark:bg-red-950/30 p-6 max-w-md mx-auto">
+          <h2 className="text-lg font-semibold text-red-900 dark:text-red-200 mb-2">Erro ao carregar local</h2>
+          <p className="text-red-700 dark:text-red-300">Não foi possível carregar os dados do local.</p>
+          <Button
+            variant="outline"
+            onClick={() => navigate('/estoque/locais')}
+            className="mt-4"
+          >
+            Voltar para lista
+          </Button>
         </div>
       </div>
     );
@@ -130,133 +122,76 @@ export const LocalArmazenamentoFormPage = () => {
 
   if (isEditing && !local) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="text-center">
-          <div className="rounded-lg border border-yellow-200 bg-yellow-50 p-6 max-w-md">
-            <h2 className="text-lg font-semibold text-yellow-900 mb-2">Local não encontrado</h2>
-            <p className="text-yellow-700">O local que você está tentando editar não existe.</p>
-            <Button
-              variant="outline"
-              onClick={() => navigate('/estoque/locais')}
-              className="mt-4"
-            >
-              Voltar para lista
-            </Button>
-          </div>
+      <div className="p-6">
+        <div className="rounded-lg border border-yellow-200 dark:border-yellow-800 bg-yellow-50 dark:bg-yellow-950/30 p-6 max-w-md mx-auto">
+          <h2 className="text-lg font-semibold text-yellow-900 dark:text-yellow-200 mb-2">Local não encontrado</h2>
+          <p className="text-yellow-700 dark:text-yellow-300">O local que você está tentando editar não existe.</p>
+          <Button
+            variant="outline"
+            onClick={() => navigate('/estoque/locais')}
+            className="mt-4"
+          >
+            Voltar para lista
+          </Button>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="space-y-6 pb-8">
-      {/* Header com gradiente */}
-      <div className="relative overflow-hidden rounded-lg bg-gradient-to-r from-blue-600 to-blue-800 p-6 text-white shadow-lg">
-        <div className="relative z-10">
-          <div className="flex items-center justify-between">
-            <div>
-              <div className="flex items-center gap-3 mb-2">
-                <div className="rounded-full bg-white/20 p-2 backdrop-blur-sm">
-                  <MapPin className="h-6 w-6" />
-                </div>
-                <h1 className="text-3xl font-bold">
-                  {isEditing ? 'Editar Local de Armazenamento' : 'Novo Local de Armazenamento'}
-                </h1>
-              </div>
-              <p className="text-blue-100 ml-12">
-                {isEditing
-                  ? 'Atualize as informações do local de armazenamento'
-                  : 'Configure um novo espaço para organizar seu estoque'}
-              </p>
-            </div>
-            <Button
-              variant="outline"
-              onClick={() => navigate('/estoque/locais')}
-              className="bg-white/10 text-white border-white/20 hover:bg-white/20 backdrop-blur-sm"
-            >
-              <X className="h-4 w-4 mr-2" />
-              Cancelar
-            </Button>
-          </div>
-        </div>
-        {/* Decoração de fundo */}
-        <div className="absolute top-0 right-0 opacity-10">
-          <MapPin className="h-48 w-48" />
+    <div className="p-6">
+      {/* Header */}
+      <div className="mb-6 flex items-center gap-4">
+        <button
+          onClick={() => navigate('/estoque/locais')}
+          className="rounded-lg p-2 hover:bg-gray-100 dark:hover:bg-gray-700"
+        >
+          <ArrowLeft className="h-5 w-5 text-gray-900 dark:text-gray-100" />
+        </button>
+        <div>
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">
+            {isEditing ? 'Editar Local de Armazenamento' : 'Novo Local de Armazenamento'}
+          </h1>
+          <p className="mt-1 text-sm text-gray-600 dark:text-gray-400">
+            {isEditing
+              ? 'Atualize as informações do local de armazenamento'
+              : 'Configure um novo espaço para organizar seu estoque'}
+          </p>
         </div>
       </div>
 
-      <form onSubmit={handleSubmit(onSubmit)} className="space-y-6 max-w-4xl">
-        {/* Aviso sobre hierarquia */}
-        <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border-l-4 border-blue-500 rounded-lg p-5 shadow-sm">
-          <div className="flex gap-3">
-            <div className="flex-shrink-0">
-              <div className="rounded-full bg-blue-500 p-2">
-                <Package className="h-5 w-5 text-white" />
-              </div>
-            </div>
-            <div className="flex-1">
-              <h3 className="text-sm font-semibold text-blue-900 mb-2">
-                💡 Como funciona a hierarquia de locais
-              </h3>
-              <div className="grid md:grid-cols-2 gap-3 text-sm text-blue-800">
-                <div className="bg-white/60 rounded p-2">
-                  <p className="font-medium mb-1">✅ Podem ser raiz:</p>
-                  <ul className="space-y-0.5 ml-4 list-disc">
-                    <li>Depósito</li>
-                    <li>Área</li>
-                  </ul>
-                </div>
-                <div className="bg-white/60 rounded p-2">
-                  <p className="font-medium mb-1">🔗 Precisam de pai:</p>
-                  <ul className="space-y-0.5 ml-4 list-disc">
-                    <li>Prateleira</li>
-                    <li>Gaveta</li>
-                    <li>Vitrine</li>
-                  </ul>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
+      {/* Form */}
+      <form onSubmit={handleSubmit(onSubmit)} className="mx-auto max-w-4xl">
+        <div className="space-y-6">
+          {/* Identificação */}
+          <div className="rounded-lg bg-white dark:bg-gray-800 p-6 shadow">
+            <h2 className="mb-4 text-lg font-semibold text-gray-900 dark:text-gray-100">Identificação</h2>
 
-        {/* Seção: Identificação */}
-        <div className="bg-white rounded-lg border border-gray-200 shadow-sm overflow-hidden">
-          <div className="bg-gradient-to-r from-gray-50 to-gray-100 px-6 py-4 border-b border-gray-200">
-            <h2 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
-              <Hash className="h-5 w-5 text-gray-600" />
-              Identificação
-            </h2>
-          </div>
-          <div className="p-6 space-y-5">
-            <div className="grid gap-6 md:grid-cols-2">
-              <div className="space-y-2">
-                <Label htmlFor="codigo" className="text-sm font-medium flex items-center gap-2">
-                  <Tag className="h-4 w-4 text-gray-500" />
-                  Código <span className="text-red-500">*</span>
-                </Label>
-                <Input
-                  id="codigo"
-                  placeholder="Ex: DEP-01, PRAT-A1"
-                  className="h-11"
+            <div className="grid gap-4 md:grid-cols-2">
+              <div>
+                <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                  Código <span className="text-red-500 dark:text-red-400">*</span>
+                </label>
+                <input
                   {...register('codigo')}
+                  type="text"
+                  placeholder="Ex: DEP-01, PRAT-A1"
+                  className="w-full rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 px-3 py-2 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
                 />
                 {errors.codigo && (
-                  <p className="text-sm text-red-600 flex items-center gap-1">
-                    <span className="text-red-500">●</span> {errors.codigo.message}
-                  </p>
+                  <p className="mt-1 text-sm text-red-500 dark:text-red-400">{errors.codigo.message}</p>
                 )}
               </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="tipo" className="text-sm font-medium flex items-center gap-2">
-                  <Building2 className="h-4 w-4 text-gray-500" />
-                  Tipo <span className="text-red-500">*</span>
-                </Label>
+              <div>
+                <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                  Tipo <span className="text-red-500 dark:text-red-400">*</span>
+                </label>
                 <Select
                   value={tipoAtual}
                   onValueChange={(value) => setValue('tipo', value as TipoLocal)}
                 >
-                  <SelectTrigger className="h-11">
+                  <SelectTrigger className="h-10">
                     <SelectValue placeholder="Selecione o tipo" />
                   </SelectTrigger>
                   <SelectContent>
@@ -271,53 +206,41 @@ export const LocalArmazenamentoFormPage = () => {
                   </SelectContent>
                 </Select>
                 {errors.tipo && (
-                  <p className="text-sm text-red-600 flex items-center gap-1">
-                    <span className="text-red-500">●</span> {errors.tipo.message}
-                  </p>
+                  <p className="mt-1 text-sm text-red-500 dark:text-red-400">{errors.tipo.message}</p>
                 )}
               </div>
             </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="descricao" className="text-sm font-medium flex items-center gap-2">
-                <AlignLeft className="h-4 w-4 text-gray-500" />
-                Descrição <span className="text-red-500">*</span>
-              </Label>
-              <Input
-                id="descricao"
-                placeholder="Ex: Depósito Principal de Peças"
-                className="h-11"
+            <div className="mt-4">
+              <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                Descrição <span className="text-red-500 dark:text-red-400">*</span>
+              </label>
+              <input
                 {...register('descricao')}
+                type="text"
+                placeholder="Ex: Depósito Principal de Peças"
+                className="w-full rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 px-3 py-2 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
               />
               {errors.descricao && (
-                <p className="text-sm text-red-600 flex items-center gap-1">
-                  <span className="text-red-500">●</span> {errors.descricao.message}
-                </p>
+                <p className="mt-1 text-sm text-red-500 dark:text-red-400">{errors.descricao.message}</p>
               )}
             </div>
           </div>
-        </div>
 
-        {/* Seção: Configurações */}
-        <div className="bg-white rounded-lg border border-gray-200 shadow-sm overflow-hidden">
-          <div className="bg-gradient-to-r from-gray-50 to-gray-100 px-6 py-4 border-b border-gray-200">
-            <h2 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
-              <Package className="h-5 w-5 text-gray-600" />
-              Configurações
-            </h2>
-          </div>
-          <div className="p-6 space-y-5">
-            <div className="grid gap-6 md:grid-cols-2">
-              <div className="space-y-2">
-                <Label htmlFor="localizacaoPaiId" className="text-sm font-medium flex items-center gap-2">
-                  <MapPin className="h-4 w-4 text-gray-500" />
-                  Local Pai {TIPOS_FILHOS_OBRIGATORIOS.includes(tipoAtual) && <span className="text-red-500">*</span>}
-                </Label>
+          {/* Configurações */}
+          <div className="rounded-lg bg-white dark:bg-gray-800 p-6 shadow">
+            <h2 className="mb-4 text-lg font-semibold text-gray-900 dark:text-gray-100">Configurações</h2>
+
+            <div className="grid gap-4 md:grid-cols-2">
+              <div>
+                <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                  Local Pai {TIPOS_FILHOS_OBRIGATORIOS.includes(tipoAtual) && <span className="text-red-500 dark:text-red-400">*</span>}
+                </label>
                 <Select
                   value={localPaiAtual || ''}
                   onValueChange={(value) => setValue('localizacaoPaiId', value || undefined)}
                 >
-                  <SelectTrigger className={`h-11 ${errors.localizacaoPaiId ? 'border-red-500' : ''}`}>
+                  <SelectTrigger className="h-10">
                     <SelectValue placeholder={TIPOS_FILHOS_OBRIGATORIOS.includes(tipoAtual) ? "Selecione um local pai" : "Nenhum (raiz)"} />
                   </SelectTrigger>
                   <SelectContent>
@@ -335,74 +258,69 @@ export const LocalArmazenamentoFormPage = () => {
                   </SelectContent>
                 </Select>
                 {TIPOS_FILHOS_OBRIGATORIOS.includes(tipoAtual) && (
-                  <div className="flex items-start gap-2 text-xs text-orange-700 bg-orange-50 border border-orange-200 rounded p-2 mt-2">
-                    <span className="text-orange-500 flex-shrink-0">⚠️</span>
-                    <span>{TipoLocalLabel[tipoAtual]} deve ter um local pai (não pode ser raiz)</span>
-                  </div>
+                  <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                    {TipoLocalLabel[tipoAtual]} deve ter um local pai (não pode ser raiz)
+                  </p>
                 )}
                 {errors.localizacaoPaiId && (
-                  <p className="text-sm text-red-600 flex items-center gap-1">
-                    <span className="text-red-500">●</span> {errors.localizacaoPaiId.message}
-                  </p>
+                  <p className="mt-1 text-sm text-red-500 dark:text-red-400">{errors.localizacaoPaiId.message}</p>
                 )}
               </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="capacidadeMaxima" className="text-sm font-medium flex items-center gap-2">
-                  <Package className="h-4 w-4 text-gray-500" />
+              <div>
+                <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
                   Capacidade Máxima (opcional)
-                </Label>
-                <Input
-                  id="capacidadeMaxima"
-                  type="number"
-                  min="1"
-                  placeholder="Ex: 100"
-                  className="h-11"
+                </label>
+                <input
                   {...register('capacidadeMaxima', {
                     setValueAs: (value) => value === '' || value === null ? undefined : Number(value)
                   })}
+                  type="number"
+                  min="1"
+                  placeholder="Ex: 100"
+                  className="w-full rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 px-3 py-2 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
                 />
-                <p className="text-xs text-gray-500">Capacidade máxima de itens neste local</p>
+                <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                  Capacidade máxima de itens neste local
+                </p>
               </div>
             </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="observacoes" className="text-sm font-medium flex items-center gap-2">
-                <AlignLeft className="h-4 w-4 text-gray-500" />
+            <div className="mt-4">
+              <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
                 Observações (opcional)
-              </Label>
-              <Textarea
-                id="observacoes"
-                placeholder="Adicione notas ou instruções sobre este local..."
-                className="min-h-[100px] resize-none"
+              </label>
+              <textarea
                 {...register('observacoes')}
+                rows={3}
+                placeholder="Adicione notas ou instruções sobre este local..."
+                className="w-full rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 px-3 py-2 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 resize-none"
               />
-              <p className="text-xs text-gray-500">Informações adicionais sobre o local</p>
+              <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                Informações adicionais sobre o local
+              </p>
             </div>
           </div>
-        </div>
 
-        {/* Botões de Ação */}
-        <div className="flex items-center justify-between pt-4 border-t border-gray-200">
-          <Button
-            type="button"
-            variant="outline"
-            onClick={() => navigate('/estoque/locais')}
-            className="h-11 px-6"
-          >
-            <X className="h-4 w-4 mr-2" />
-            Cancelar
-          </Button>
-          <Button
-            type="submit"
-            disabled={createLocal.isPending || updateLocal.isPending}
-            className="h-11 px-8 bg-blue-600 hover:bg-blue-700"
-          >
-            <Save className="h-4 w-4 mr-2" />
-            {createLocal.isPending || updateLocal.isPending
-              ? 'Salvando...'
-              : isEditing ? 'Atualizar Local' : 'Criar Local'}
-          </Button>
+          {/* Botões de Ação */}
+          <div className="flex items-center justify-end gap-3">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => navigate('/estoque/locais')}
+            >
+              Cancelar
+            </Button>
+            <Button
+              type="submit"
+              disabled={createLocal.isPending || updateLocal.isPending}
+            >
+              <Save className="h-4 w-4 mr-2" />
+              {createLocal.isPending || updateLocal.isPending
+                ? 'Salvando...'
+                : isEditing ? 'Atualizar Local' : 'Criar Local'}
+            </Button>
+          </div>
         </div>
       </form>
     </div>

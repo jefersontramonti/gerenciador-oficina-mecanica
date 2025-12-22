@@ -89,8 +89,8 @@ export const OrdemServicoListPage = () => {
       {/* Header */}
       <div className="mb-6 flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Ordens de Serviço</h1>
-          <p className="mt-1 text-sm text-gray-600">
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Ordens de Serviço</h1>
+          <p className="mt-1 text-sm text-gray-600 dark:text-gray-400">
             Gerenciamento de ordens de serviço da oficina
           </p>
         </div>
@@ -104,13 +104,13 @@ export const OrdemServicoListPage = () => {
       </div>
 
       {/* Filters */}
-      <div className="mb-6 rounded-lg bg-white p-4 shadow">
+      <div className="mb-6 rounded-lg bg-white p-4 shadow dark:bg-gray-800">
         <div className="grid gap-4 md:grid-cols-4">
           {/* Filter by Status */}
           <div>
-            <label className="mb-1 block text-sm font-medium text-gray-700">Status</label>
+            <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">Status</label>
             <select
-              className="w-full rounded-lg border border-gray-300 px-3 py-2 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+              className="w-full rounded-lg border border-gray-300 px-3 py-2 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 dark:border-gray-600 dark:bg-gray-900 dark:text-white dark:focus:border-blue-400"
               onChange={(e) => handleFilterChange('status', e.target.value as StatusOS)}
               defaultValue={filters.status || ''}
             >
@@ -127,12 +127,12 @@ export const OrdemServicoListPage = () => {
 
           {/* Filter by Data Início */}
           <div>
-            <label className="mb-1 block text-sm font-medium text-gray-700">
+            <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
               Data Inicial
             </label>
             <input
               type="date"
-              className="w-full rounded-lg border border-gray-300 px-3 py-2 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+              className="w-full rounded-lg border border-gray-300 px-3 py-2 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 dark:border-gray-600 dark:bg-gray-900 dark:text-white dark:focus:border-blue-400"
               onChange={(e) => handleFilterChange('dataInicio', e.target.value)}
               defaultValue={filters.dataInicio}
             />
@@ -140,10 +140,10 @@ export const OrdemServicoListPage = () => {
 
           {/* Filter by Data Fim */}
           <div>
-            <label className="mb-1 block text-sm font-medium text-gray-700">Data Final</label>
+            <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">Data Final</label>
             <input
               type="date"
-              className="w-full rounded-lg border border-gray-300 px-3 py-2 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+              className="w-full rounded-lg border border-gray-300 px-3 py-2 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 dark:border-gray-600 dark:bg-gray-900 dark:text-white dark:focus:border-blue-400"
               onChange={(e) => handleFilterChange('dataFim', e.target.value)}
               defaultValue={filters.dataFim}
             />
@@ -154,7 +154,7 @@ export const OrdemServicoListPage = () => {
             <button
               type="button"
               onClick={handleClearFilters}
-              className="flex w-full items-center justify-center gap-2 rounded-lg border border-gray-300 px-4 py-2 text-gray-700 hover:bg-gray-50"
+              className="flex w-full items-center justify-center gap-2 rounded-lg border border-gray-300 px-4 py-2 text-gray-700 hover:bg-gray-50 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-700"
             >
               <FilterX className="h-5 w-5" />
               Limpar Filtros
@@ -164,74 +164,74 @@ export const OrdemServicoListPage = () => {
       </div>
 
       {/* Table */}
-      <div className="overflow-hidden rounded-lg bg-white shadow">
+      <div className="overflow-hidden rounded-lg bg-white shadow dark:bg-gray-800">
         <div className="overflow-x-auto">
-          <table className="w-full divide-y divide-gray-200">
-            <thead className="bg-gray-50">
+          <table className="w-full divide-y divide-gray-200 dark:divide-gray-700">
+            <thead className="bg-gray-50 dark:bg-gray-900">
               <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-700">
+                <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-700 dark:text-gray-300">
                   Número
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-700">
+                <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-700 dark:text-gray-300">
                   Veículo / Cliente
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-700">
+                <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-700 dark:text-gray-300">
                   Mecânico
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-700">
+                <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-700 dark:text-gray-300">
                   Data Abertura
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-700">
+                <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-700 dark:text-gray-300">
                   Status
                 </th>
-                <th className="px-6 py-3 text-right text-xs font-medium uppercase tracking-wider text-gray-700">
+                <th className="px-6 py-3 text-right text-xs font-medium uppercase tracking-wider text-gray-700 dark:text-gray-300">
                   Valor Final
                 </th>
-                <th className="px-6 py-3 text-center text-xs font-medium uppercase tracking-wider text-gray-700">
+                <th className="px-6 py-3 text-center text-xs font-medium uppercase tracking-wider text-gray-700 dark:text-gray-300">
                   Ações
                 </th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-200 bg-white">
+            <tbody className="divide-y divide-gray-200 bg-white dark:divide-gray-700 dark:bg-gray-800">
               {isLoading ? (
                 <tr>
-                  <td colSpan={7} className="px-6 py-8 text-center text-sm text-gray-500">
+                  <td colSpan={7} className="px-6 py-8 text-center text-sm text-gray-500 dark:text-gray-400">
                     Carregando...
                   </td>
                 </tr>
               ) : !data?.content || data.content.length === 0 ? (
                 <tr>
-                  <td colSpan={7} className="px-6 py-8 text-center text-sm text-gray-500">
+                  <td colSpan={7} className="px-6 py-8 text-center text-sm text-gray-500 dark:text-gray-400">
                     Nenhuma ordem de serviço encontrada
                   </td>
                 </tr>
               ) : (
                 data.content.map((os) => (
-                  <tr key={os.id} className="hover:bg-gray-50">
+                  <tr key={os.id} className="hover:bg-gray-50 dark:hover:bg-gray-700">
                     {/* Número */}
                     <td className="whitespace-nowrap px-6 py-4">
-                      <div className="text-sm font-medium text-gray-900">#{os.numero}</div>
+                      <div className="text-sm font-medium text-gray-900 dark:text-white">#{os.numero}</div>
                     </td>
 
                     {/* Veículo / Cliente */}
                     <td className="px-6 py-4">
-                      <div className="text-sm text-gray-900">
+                      <div className="text-sm text-gray-900 dark:text-white">
                         {os.veiculo?.placa || 'N/A'}
                       </div>
-                      <div className="text-sm text-gray-500">
+                      <div className="text-sm text-gray-500 dark:text-gray-400">
                         {os.cliente?.nome || 'Cliente não informado'}
                       </div>
                     </td>
 
                     {/* Mecânico */}
                     <td className="px-6 py-4">
-                      <div className="text-sm text-gray-900">
+                      <div className="text-sm text-gray-900 dark:text-white">
                         {os.mecanico?.nome || 'Não atribuído'}
                       </div>
                     </td>
 
                     {/* Data Abertura */}
-                    <td className="whitespace-nowrap px-6 py-4 text-sm text-gray-900">
+                    <td className="whitespace-nowrap px-6 py-4 text-sm text-gray-900 dark:text-white">
                       {formatDate(os.dataAbertura)}
                     </td>
 
@@ -241,7 +241,7 @@ export const OrdemServicoListPage = () => {
                     </td>
 
                     {/* Valor Final */}
-                    <td className="whitespace-nowrap px-6 py-4 text-right text-sm font-medium text-gray-900">
+                    <td className="whitespace-nowrap px-6 py-4 text-right text-sm font-medium text-gray-900 dark:text-white">
                       {formatCurrency(os.valorFinal)}
                     </td>
 
@@ -250,7 +250,7 @@ export const OrdemServicoListPage = () => {
                       <div className="flex items-center justify-center gap-2">
                         <Link
                           to={`/ordens-servico/${os.id}`}
-                          className="rounded p-1 text-blue-600 hover:bg-blue-50"
+                          className="rounded p-1 text-blue-600 hover:bg-blue-50 dark:text-blue-400 dark:hover:bg-blue-900/30"
                           title="Visualizar"
                         >
                           <Eye className="h-5 w-5" />
@@ -258,7 +258,7 @@ export const OrdemServicoListPage = () => {
                         {canEdit(os.status) && (
                           <Link
                             to={`/ordens-servico/${os.id}/editar`}
-                            className="rounded p-1 text-green-600 hover:bg-green-50"
+                            className="rounded p-1 text-green-600 hover:bg-green-50 dark:text-green-400 dark:hover:bg-green-900/30"
                             title="Editar"
                           >
                             <Edit className="h-5 w-5" />
@@ -275,8 +275,8 @@ export const OrdemServicoListPage = () => {
 
         {/* Pagination */}
         {data && data.totalPages > 1 && (
-          <div className="flex items-center justify-between border-t border-gray-200 bg-white px-6 py-4">
-            <div className="text-sm text-gray-700">
+          <div className="flex items-center justify-between border-t border-gray-200 bg-white px-6 py-4 dark:border-gray-700 dark:bg-gray-800">
+            <div className="text-sm text-gray-700 dark:text-gray-300">
               Mostrando <span className="font-medium">{data.content.length}</span> de{' '}
               <span className="font-medium">{data.totalElements}</span> resultado(s)
             </div>
@@ -284,14 +284,14 @@ export const OrdemServicoListPage = () => {
               <button
                 onClick={() => handlePageChange(filters.page! - 1)}
                 disabled={data.first}
-                className="rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50"
+                className="rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-700"
               >
                 Anterior
               </button>
               <button
                 onClick={() => handlePageChange(filters.page! + 1)}
                 disabled={data.last}
-                className="rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50"
+                className="rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-700"
               >
                 Próxima
               </button>

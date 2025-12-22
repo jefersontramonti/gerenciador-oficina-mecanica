@@ -26,7 +26,7 @@ export const DialogContent: React.FC<{ children: React.ReactNode; className?: st
 }) => {
   return (
     <div
-      className={`bg-white rounded-lg shadow-xl max-w-lg w-full p-6 ${className}`}
+      className={`bg-white dark:bg-gray-800 rounded-lg shadow-xl max-w-lg w-full p-6 ${className}`}
     >
       {children}
     </div>
@@ -44,14 +44,14 @@ export const DialogTitle: React.FC<{ children: React.ReactNode; className?: stri
   children,
   className = '',
 }) => {
-  return <h2 className={`text-lg font-semibold ${className}`}>{children}</h2>;
+  return <h2 className={`text-lg font-semibold text-gray-900 dark:text-white ${className}`}>{children}</h2>;
 };
 
 export const DialogDescription: React.FC<{ children: React.ReactNode; className?: string }> = ({
   children,
   className = '',
 }) => {
-  return <p className={`text-sm text-gray-600 ${className}`}>{children}</p>;
+  return <p className={`text-sm text-gray-600 dark:text-gray-400 ${className}`}>{children}</p>;
 };
 
 export const DialogFooter: React.FC<{ children: React.ReactNode; className?: string }> = ({

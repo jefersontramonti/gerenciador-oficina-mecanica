@@ -1,6 +1,8 @@
 package com.pitstop.ordemservico.domain;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.pitstop.oficina.domain.Oficina;
+import com.pitstop.shared.security.tenant.TenantContext;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.*;
 import lombok.*;
@@ -64,6 +66,14 @@ public class ItemOS implements Serializable {
     @GeneratedValue(strategy = GenerationType.UUID)
     @Column(name = "id", updatable = false, nullable = false)
     private UUID id;
+
+    /**
+     * Oficina à qual este item pertence (multi-tenant).
+     * Preenchida automaticamente via TenantContext no @PrePersist.
+     */
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "oficina_id")
+    private Oficina oficina;
 
     /**
      * Ordem de serviço à qual este item pertence (relacionamento Many-to-One).
@@ -202,11 +212,19 @@ public class ItemOS implements Serializable {
 
     /**
      * Lifecycle callback executado antes de salvar no banco.
-     * Valida regras de negócio e normaliza dados.
+     * Define oficina via TenantContext, valida regras de negócio e normaliza dados.
      */
     @PrePersist
     @PreUpdate
     protected void prePersistOrUpdate() {
+        // Multi-tenancy: set oficina from TenantContext
+        if (this.oficina == null && TenantContext.isSet()) {
+            UUID tenantId = TenantContext.getTenantId();
+            Oficina oficina = new Oficina();
+            oficina.setId(tenantId);
+            this.oficina = oficina;
+        }
+
         // Trim da descrição
         if (this.descricao != null) {
             this.descricao = this.descricao.trim();

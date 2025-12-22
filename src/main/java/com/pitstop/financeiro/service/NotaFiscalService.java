@@ -8,6 +8,7 @@ import com.pitstop.financeiro.dto.NotaFiscalResumoDTO;
 import com.pitstop.financeiro.mapper.NotaFiscalMapper;
 import com.pitstop.financeiro.repository.NotaFiscalRepository;
 import com.pitstop.shared.exception.ResourceNotFoundException;
+import com.pitstop.shared.security.tenant.TenantContext;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -49,13 +50,14 @@ public class NotaFiscalService {
     public NotaFiscalResponseDTO criar(NotaFiscalRequestDTO dto) {
         log.info("Criando nota fiscal para OS: {}", dto.ordemServicoId());
 
+        UUID oficinaId = TenantContext.getTenantId();
         NotaFiscal notaFiscal = notaFiscalMapper.toEntity(dto);
 
         // Define status inicial como DIGITACAO
         notaFiscal.setStatus(StatusNotaFiscal.DIGITACAO);
 
         // Busca próximo número disponível para a série
-        Long proximoNumero = notaFiscalRepository.findProximoNumero(dto.serie());
+        Long proximoNumero = notaFiscalRepository.findProximoNumero(oficinaId, dto.serie());
         notaFiscal.setNumero(proximoNumero);
 
         NotaFiscal salva = notaFiscalRepository.save(notaFiscal);
@@ -74,7 +76,8 @@ public class NotaFiscalService {
      */
     @Transactional(readOnly = true)
     public NotaFiscalResponseDTO buscarPorId(UUID id) {
-        NotaFiscal notaFiscal = notaFiscalRepository.findById(id)
+        UUID oficinaId = TenantContext.getTenantId();
+        NotaFiscal notaFiscal = notaFiscalRepository.findByOficinaIdAndId(oficinaId, id)
             .orElseThrow(() -> new ResourceNotFoundException("Nota fiscal não encontrada com ID: " + id));
 
         return notaFiscalMapper.toResponseDTO(notaFiscal);
@@ -88,7 +91,8 @@ public class NotaFiscalService {
      */
     @Transactional(readOnly = true)
     public Page<NotaFiscalResumoDTO> listar(Pageable pageable) {
-        return notaFiscalRepository.findAll(pageable)
+        UUID oficinaId = TenantContext.getTenantId();
+        return notaFiscalRepository.findByOficinaId(oficinaId, pageable)
             .map(notaFiscalMapper::toResumoDTO);
     }
 
@@ -100,7 +104,8 @@ public class NotaFiscalService {
      */
     @Transactional(readOnly = true)
     public List<NotaFiscalResponseDTO> buscarPorOrdemServico(UUID ordemServicoId) {
-        return notaFiscalRepository.findByOrdemServicoId(ordemServicoId)
+        UUID oficinaId = TenantContext.getTenantId();
+        return notaFiscalRepository.findByOficinaIdAndOrdemServicoId(oficinaId, ordemServicoId)
             .stream()
             .map(notaFiscalMapper::toResponseDTO)
             .toList();
@@ -115,7 +120,8 @@ public class NotaFiscalService {
      */
     @Transactional(readOnly = true)
     public Page<NotaFiscalResumoDTO> buscarPorStatus(StatusNotaFiscal status, Pageable pageable) {
-        return notaFiscalRepository.findByStatus(status, pageable)
+        UUID oficinaId = TenantContext.getTenantId();
+        return notaFiscalRepository.findByOficinaIdAndStatus(oficinaId, status, pageable)
             .map(notaFiscalMapper::toResumoDTO);
     }
 
@@ -128,7 +134,8 @@ public class NotaFiscalService {
      */
     @Transactional(readOnly = true)
     public NotaFiscalResponseDTO buscarPorNumeroESerie(Long numero, Integer serie) {
-        NotaFiscal notaFiscal = notaFiscalRepository.findByNumeroAndSerie(numero, serie)
+        UUID oficinaId = TenantContext.getTenantId();
+        NotaFiscal notaFiscal = notaFiscalRepository.findByOficinaIdAndNumeroAndSerie(oficinaId, numero, serie)
             .orElseThrow(() -> new ResourceNotFoundException(
                 String.format("Nota fiscal não encontrada com número %d e série %d", numero, serie)
             ));
@@ -144,7 +151,8 @@ public class NotaFiscalService {
      */
     @Transactional(readOnly = true)
     public NotaFiscalResponseDTO buscarPorChaveAcesso(String chaveAcesso) {
-        NotaFiscal notaFiscal = notaFiscalRepository.findByChaveAcesso(chaveAcesso)
+        UUID oficinaId = TenantContext.getTenantId();
+        NotaFiscal notaFiscal = notaFiscalRepository.findByOficinaIdAndChaveAcesso(oficinaId, chaveAcesso)
             .orElseThrow(() -> new ResourceNotFoundException(
                 "Nota fiscal não encontrada com chave de acesso: " + chaveAcesso
             ));
@@ -164,7 +172,8 @@ public class NotaFiscalService {
     public NotaFiscalResponseDTO atualizar(UUID id, NotaFiscalRequestDTO dto) {
         log.info("Atualizando nota fiscal ID: {}", id);
 
-        NotaFiscal notaFiscal = notaFiscalRepository.findById(id)
+        UUID oficinaId = TenantContext.getTenantId();
+        NotaFiscal notaFiscal = notaFiscalRepository.findByOficinaIdAndId(oficinaId, id)
             .orElseThrow(() -> new ResourceNotFoundException("Nota fiscal não encontrada com ID: " + id));
 
         // Valida se pode ser alterada
@@ -195,7 +204,8 @@ public class NotaFiscalService {
     public void deletar(UUID id) {
         log.info("Deletando nota fiscal ID: {}", id);
 
-        NotaFiscal notaFiscal = notaFiscalRepository.findById(id)
+        UUID oficinaId = TenantContext.getTenantId();
+        NotaFiscal notaFiscal = notaFiscalRepository.findByOficinaIdAndId(oficinaId, id)
             .orElseThrow(() -> new ResourceNotFoundException("Nota fiscal não encontrada com ID: " + id));
 
         // Valida se pode ser deletada
@@ -216,7 +226,8 @@ public class NotaFiscalService {
      */
     @Transactional(readOnly = true)
     public boolean existeNotaFiscalParaOS(UUID ordemServicoId) {
-        return notaFiscalRepository.existsByOrdemServicoId(ordemServicoId);
+        UUID oficinaId = TenantContext.getTenantId();
+        return notaFiscalRepository.existsByOficinaIdAndOrdemServicoId(oficinaId, ordemServicoId);
     }
 
     /**
@@ -227,6 +238,7 @@ public class NotaFiscalService {
      */
     @Transactional(readOnly = true)
     public Long buscarProximoNumero(Integer serie) {
-        return notaFiscalRepository.findProximoNumero(serie);
+        UUID oficinaId = TenantContext.getTenantId();
+        return notaFiscalRepository.findProximoNumero(oficinaId, serie);
     }
 }

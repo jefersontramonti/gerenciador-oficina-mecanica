@@ -57,10 +57,10 @@ export const MecanicoSelect: React.FC<MecanicoSelectProps> = ({
 
   return (
     <div>
-      <label className="mb-1 block text-sm font-medium text-gray-700">
+      <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
         <span className="flex items-center gap-2">
           <Wrench className="h-4 w-4" />
-          Mecânico Responsável {required && <span className="text-red-600">*</span>}
+          Mecânico Responsável {required && <span className="text-red-600 dark:text-red-400">*</span>}
         </span>
       </label>
 
@@ -68,10 +68,10 @@ export const MecanicoSelect: React.FC<MecanicoSelectProps> = ({
         value={value}
         onChange={(e) => onChange(e.target.value)}
         disabled={isLoading}
-        className={`w-full rounded-lg border px-3 py-2 focus:outline-none focus:ring-2 disabled:bg-gray-100 disabled:text-gray-500 ${
+        className={`w-full rounded-lg border px-3 py-2 focus:outline-none focus:ring-2 disabled:bg-gray-100 disabled:text-gray-500 dark:bg-gray-800 dark:text-white dark:disabled:bg-gray-900 dark:disabled:text-gray-500 ${
           error
-            ? 'border-red-500 focus:border-red-500 focus:ring-red-500/20'
-            : 'border-gray-300 focus:border-blue-500 focus:ring-blue-500/20'
+            ? 'border-red-500 focus:border-red-500 focus:ring-red-500/20 dark:border-red-400 dark:focus:border-red-400'
+            : 'border-gray-300 focus:border-blue-500 focus:ring-blue-500/20 dark:border-gray-600 dark:focus:border-blue-400'
         }`}
       >
         <option value="">
@@ -84,10 +84,10 @@ export const MecanicoSelect: React.FC<MecanicoSelectProps> = ({
         ))}
       </select>
 
-      {error && <p className="mt-1 text-sm text-red-600">{error}</p>}
+      {error && <p className="mt-1 text-sm text-red-600 dark:text-red-400">{error}</p>}
 
       {!isLoading && mecanicos.length === 0 && (
-        <p className="mt-1 text-sm text-yellow-600">
+        <p className="mt-1 text-sm text-yellow-600 dark:text-yellow-400">
           Nenhum mecânico cadastrado. Cadastre usuários com perfil MECANICO primeiro.
         </p>
       )}

@@ -21,12 +21,15 @@ public interface ItemOSMapper {
     /**
      * Converte CreateItemOSDTO para entidade ItemOS.
      *
+     * <p>O campo oficina é auto-populado via @PrePersist JPA hook.</p>
+     *
      * @param dto DTO de criação
      * @return entidade ItemOS
      */
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "ordemServico", ignore = true) // Será associado no service
     @Mapping(target = "valorTotal", ignore = true) // Calculado automaticamente na entity
+    @Mapping(target = "oficina", ignore = true) // Auto-populado via @PrePersist JPA hook
     @Mapping(target = "createdAt", ignore = true)
     ItemOS toEntity(CreateItemOSDTO dto);
 

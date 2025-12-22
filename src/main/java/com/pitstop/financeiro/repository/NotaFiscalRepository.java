@@ -16,6 +16,9 @@ import java.util.UUID;
 /**
  * Repository para acesso aos dados de NotaFiscal.
  *
+ * <p><strong>Multi-tenancy:</strong> Todos os métodos agora exigem {@code oficinaId} como
+ * primeiro parâmetro para garantir isolamento de dados entre oficinas.</p>
+ *
  * @author PitStop Team
  * @version 1.0
  * @since 2025-11-23
@@ -24,61 +27,106 @@ import java.util.UUID;
 public interface NotaFiscalRepository extends JpaRepository<NotaFiscal, UUID> {
 
     /**
-     * Busca notas fiscais por ordem de serviço.
+     * Busca notas fiscais por ordem de serviço em uma oficina.
      *
+     * @param oficinaId ID da oficina (tenant)
      * @param ordemServicoId ID da OS
      * @return lista de notas fiscais
      */
-    List<NotaFiscal> findByOrdemServicoId(UUID ordemServicoId);
+    @Query("SELECT nf FROM NotaFiscal nf WHERE nf.oficina.id = :oficinaId AND nf.ordemServicoId = :ordemServicoId")
+    List<NotaFiscal> findByOficinaIdAndOrdemServicoId(@Param("oficinaId") UUID oficinaId, @Param("ordemServicoId") UUID ordemServicoId);
 
     /**
-     * Busca nota fiscal por número e série.
+     * Busca nota fiscal por número e série em uma oficina.
      *
+     * @param oficinaId ID da oficina (tenant)
      * @param numero número da nota
      * @param serie série da nota
      * @return nota fiscal se encontrada
      */
-    Optional<NotaFiscal> findByNumeroAndSerie(Long numero, Integer serie);
+    @Query("SELECT nf FROM NotaFiscal nf WHERE nf.oficina.id = :oficinaId AND nf.numero = :numero AND nf.serie = :serie")
+    Optional<NotaFiscal> findByOficinaIdAndNumeroAndSerie(@Param("oficinaId") UUID oficinaId, @Param("numero") Long numero, @Param("serie") Integer serie);
 
     /**
-     * Busca nota fiscal por chave de acesso.
+     * Busca nota fiscal por chave de acesso em uma oficina.
      *
+     * @param oficinaId ID da oficina (tenant)
      * @param chaveAcesso chave de acesso da NFe
      * @return nota fiscal se encontrada
      */
-    Optional<NotaFiscal> findByChaveAcesso(String chaveAcesso);
+    @Query("SELECT nf FROM NotaFiscal nf WHERE nf.oficina.id = :oficinaId AND nf.chaveAcesso = :chaveAcesso")
+    Optional<NotaFiscal> findByOficinaIdAndChaveAcesso(@Param("oficinaId") UUID oficinaId, @Param("chaveAcesso") String chaveAcesso);
 
     /**
-     * Busca notas fiscais por status.
+     * Busca notas fiscais por status em uma oficina.
      *
+     * @param oficinaId ID da oficina (tenant)
      * @param status status da nota
      * @param pageable paginação
      * @return página de notas fiscais
      */
-    Page<NotaFiscal> findByStatus(StatusNotaFiscal status, Pageable pageable);
+    @Query("SELECT nf FROM NotaFiscal nf WHERE nf.oficina.id = :oficinaId AND nf.status = :status")
+    Page<NotaFiscal> findByOficinaIdAndStatus(@Param("oficinaId") UUID oficinaId, @Param("status") StatusNotaFiscal status, Pageable pageable);
 
     /**
-     * Busca todas as notas fiscais com paginação.
+     * Busca todas as notas fiscais com paginação em uma oficina.
      *
+     * @param oficinaId ID da oficina (tenant)
      * @param pageable paginação
      * @return página de notas fiscais
      */
-    Page<NotaFiscal> findAll(Pageable pageable);
+    @Query("SELECT nf FROM NotaFiscal nf WHERE nf.oficina.id = :oficinaId")
+    Page<NotaFiscal> findAllByOficinaId(@Param("oficinaId") UUID oficinaId, Pageable pageable);
 
     /**
-     * Verifica se existe nota fiscal para uma OS.
+     * Verifica se existe nota fiscal para uma OS em uma oficina.
      *
+     * @param oficinaId ID da oficina (tenant)
      * @param ordemServicoId ID da OS
      * @return true se existe
      */
-    boolean existsByOrdemServicoId(UUID ordemServicoId);
+    @Query("SELECT CASE WHEN COUNT(nf) > 0 THEN true ELSE false END FROM NotaFiscal nf WHERE nf.oficina.id = :oficinaId AND nf.ordemServicoId = :ordemServicoId")
+    boolean existsByOficinaIdAndOrdemServicoId(@Param("oficinaId") UUID oficinaId, @Param("ordemServicoId") UUID ordemServicoId);
 
     /**
-     * Busca o próximo número disponível para uma série.
+     * Busca o próximo número disponível para uma série em uma oficina.
      *
+     * @param oficinaId ID da oficina (tenant)
      * @param serie série da nota
      * @return próximo número disponível
      */
-    @Query("SELECT COALESCE(MAX(nf.numero), 0) + 1 FROM NotaFiscal nf WHERE nf.serie = :serie")
-    Long findProximoNumero(@Param("serie") Integer serie);
+    @Query("SELECT COALESCE(MAX(nf.numero), 0) + 1 FROM NotaFiscal nf WHERE nf.oficina.id = :oficinaId AND nf.serie = :serie")
+    Long findProximoNumeroByOficinaId(@Param("oficinaId") UUID oficinaId, @Param("serie") Integer serie);
+
+    /**
+     * Busca nota fiscal por ID em uma oficina.
+     *
+     * @param oficinaId ID da oficina (tenant)
+     * @param id ID da nota fiscal
+     * @return Optional contendo a nota fiscal se encontrada
+     */
+    @Query("SELECT nf FROM NotaFiscal nf WHERE nf.oficina.id = :oficinaId AND nf.id = :id")
+    Optional<NotaFiscal> findByOficinaIdAndId(@Param("oficinaId") UUID oficinaId, @Param("id") UUID id);
+
+    /**
+     * Alias para findAllByOficinaId (compatibilidade).
+     *
+     * @param oficinaId ID da oficina (tenant)
+     * @param pageable paginação
+     * @return página de notas fiscais
+     */
+    default Page<NotaFiscal> findByOficinaId(UUID oficinaId, Pageable pageable) {
+        return findAllByOficinaId(oficinaId, pageable);
+    }
+
+    /**
+     * Alias para findProximoNumeroByOficinaId (compatibilidade).
+     *
+     * @param oficinaId ID da oficina (tenant)
+     * @param serie série da nota
+     * @return próximo número disponível
+     */
+    default Long findProximoNumero(UUID oficinaId, Integer serie) {
+        return findProximoNumeroByOficinaId(oficinaId, serie);
+    }
 }

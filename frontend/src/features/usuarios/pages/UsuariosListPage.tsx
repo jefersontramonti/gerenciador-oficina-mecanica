@@ -20,10 +20,10 @@ import type { UsuarioFilters, PerfilUsuario } from '../types';
  */
 const PerfilBadge = ({ perfil }: { perfil: PerfilUsuario }) => {
   const colors: Record<PerfilUsuario, string> = {
-    ADMIN: 'bg-purple-100 text-purple-800 border-purple-200',
-    GERENTE: 'bg-blue-100 text-blue-800 border-blue-200',
-    ATENDENTE: 'bg-green-100 text-green-800 border-green-200',
-    MECANICO: 'bg-orange-100 text-orange-800 border-orange-200',
+    ADMIN: 'bg-purple-100 text-purple-800 border-purple-200 dark:bg-purple-900/30 dark:text-purple-400 dark:border-purple-800',
+    GERENTE: 'bg-blue-100 text-blue-800 border-blue-200 dark:bg-blue-900/30 dark:text-blue-400 dark:border-blue-800',
+    ATENDENTE: 'bg-green-100 text-green-800 border-green-200 dark:bg-green-900/30 dark:text-green-400 dark:border-green-800',
+    MECANICO: 'bg-orange-100 text-orange-800 border-orange-200 dark:bg-orange-900/30 dark:text-orange-400 dark:border-orange-800',
   };
 
   const labels: Record<PerfilUsuario, string> = {
@@ -90,7 +90,7 @@ export const UsuariosListPage = () => {
   if (isLoading) {
     return (
       <div className="flex h-64 items-center justify-center">
-        <p className="text-gray-600">Carregando usuários...</p>
+        <p className="text-gray-600 dark:text-gray-400">Carregando usuários...</p>
       </div>
     );
   }
@@ -98,7 +98,7 @@ export const UsuariosListPage = () => {
   if (error) {
     return (
       <div className="p-6">
-        <div className="rounded-lg border border-red-800 bg-red-900/20 p-4 text-red-400">
+        <div className="rounded-lg border border-red-800 dark:border-red-700 bg-red-900/20 dark:bg-red-900/30 p-4 text-red-400 dark:text-red-300">
           Erro ao carregar usuários. Tente novamente.
         </div>
       </div>
@@ -110,8 +110,8 @@ export const UsuariosListPage = () => {
       {/* Header */}
       <div className="mb-6 flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Usuários</h1>
-          <p className="mt-1 text-sm text-gray-600">
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">Usuários</h1>
+          <p className="mt-1 text-sm text-gray-600 dark:text-gray-400">
             Gerencie os usuários do sistema (mecânicos, atendentes, gerentes, administradores)
           </p>
         </div>
@@ -125,11 +125,11 @@ export const UsuariosListPage = () => {
       </div>
 
       {/* Filters */}
-      <div className="mb-6 rounded-lg bg-white p-4 shadow">
+      <div className="mb-6 rounded-lg bg-white dark:bg-gray-800 p-4 shadow">
         <div className="grid gap-4 md:grid-cols-3">
           {/* Filtro: Perfil */}
           <div>
-            <label htmlFor="perfil" className="mb-1 block text-sm font-medium text-gray-700">
+            <label htmlFor="perfil" className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
               Perfil
             </label>
             <select
@@ -138,7 +138,7 @@ export const UsuariosListPage = () => {
               onChange={(e) =>
                 handleFilterChange('perfil', e.target.value || undefined)
               }
-              className="w-full rounded-lg border border-gray-300 px-3 py-2 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+              className="w-full rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 px-3 py-2 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
             >
               <option value="">Todos os perfis</option>
               <option value="ADMIN">Administrador</option>
@@ -150,7 +150,7 @@ export const UsuariosListPage = () => {
 
           {/* Filtro: Status Ativo */}
           <div>
-            <label htmlFor="ativo" className="mb-1 block text-sm font-medium text-gray-700">
+            <label htmlFor="ativo" className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
               Status
             </label>
             <select
@@ -165,7 +165,7 @@ export const UsuariosListPage = () => {
                   value === '' ? undefined : value === 'true'
                 );
               }}
-              className="w-full rounded-lg border border-gray-300 px-3 py-2 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+              className="w-full rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 px-3 py-2 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
             >
               <option value="">Todos</option>
               <option value="true">Ativos</option>
@@ -175,14 +175,14 @@ export const UsuariosListPage = () => {
 
           {/* Filtro: Ordenação */}
           <div>
-            <label htmlFor="sort" className="mb-1 block text-sm font-medium text-gray-700">
+            <label htmlFor="sort" className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
               Ordenar por
             </label>
             <select
               id="sort"
               value={filters.sort || 'nome,asc'}
               onChange={(e) => handleFilterChange('sort', e.target.value)}
-              className="w-full rounded-lg border border-gray-300 px-3 py-2 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+              className="w-full rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 px-3 py-2 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
             >
               <option value="nome,asc">Nome (A-Z)</option>
               <option value="nome,desc">Nome (Z-A)</option>
@@ -196,42 +196,42 @@ export const UsuariosListPage = () => {
       </div>
 
       {/* Table */}
-      <div className="overflow-hidden rounded-lg bg-white shadow">
+      <div className="overflow-hidden rounded-lg bg-white dark:bg-gray-800 shadow">
         <div className="overflow-x-auto">
-          <table className="min-w-full divide-y divide-gray-200">
-            <thead className="bg-gray-50">
+          <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+            <thead className="bg-gray-50 dark:bg-gray-700">
               <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
+                <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-300">
                   Nome
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
+                <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-300">
                   Email
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
+                <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-300">
                   Perfil
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
+                <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-300">
                   Status
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
+                <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-300">
                   Último Acesso
                 </th>
-                <th className="px-6 py-3 text-right text-xs font-medium uppercase tracking-wider text-gray-500">
+                <th className="px-6 py-3 text-right text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-300">
                   Ações
                 </th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-200 bg-white">
+            <tbody className="divide-y divide-gray-200 dark:divide-gray-700 bg-white dark:bg-gray-800">
               {data && data.content.length > 0 ? (
                 data.content.map((usuario) => (
-                  <tr key={usuario.id} className="hover:bg-gray-50">
+                  <tr key={usuario.id} className="hover:bg-gray-50 dark:hover:bg-gray-700">
                     <td className="whitespace-nowrap px-6 py-4">
-                      <div className="text-sm font-medium text-gray-900">
+                      <div className="text-sm font-medium text-gray-900 dark:text-gray-100">
                         {usuario.nome}
                       </div>
                     </td>
                     <td className="whitespace-nowrap px-6 py-4">
-                      <div className="text-sm text-gray-600">{usuario.email}</div>
+                      <div className="text-sm text-gray-600 dark:text-gray-400">{usuario.email}</div>
                     </td>
                     <td className="whitespace-nowrap px-6 py-4">
                       <PerfilBadge perfil={usuario.perfil} />
@@ -240,28 +240,28 @@ export const UsuariosListPage = () => {
                       <span
                         className={`inline-flex rounded-full px-2 text-xs font-semibold leading-5 ${
                           usuario.ativo
-                            ? 'bg-green-100 text-green-800'
-                            : 'bg-red-100 text-red-800'
+                            ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400'
+                            : 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400'
                         }`}
                       >
                         {usuario.ativo ? 'Ativo' : 'Inativo'}
                       </span>
                     </td>
-                    <td className="whitespace-nowrap px-6 py-4 text-sm text-gray-600">
+                    <td className="whitespace-nowrap px-6 py-4 text-sm text-gray-600 dark:text-gray-400">
                       {formatDateTime(usuario.ultimoAcesso)}
                     </td>
                     <td className="whitespace-nowrap px-6 py-4 text-right text-sm font-medium">
                       <div className="flex items-center justify-end gap-2">
                         <Link
                           to={`/usuarios/${usuario.id}`}
-                          className="rounded p-1 text-blue-600 hover:bg-blue-50"
+                          className="rounded p-1 text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/30"
                           title="Visualizar"
                         >
                           <Eye className="h-5 w-5" />
                         </Link>
                         <Link
                           to={`/usuarios/${usuario.id}/editar`}
-                          className="rounded p-1 text-gray-600 hover:bg-gray-50"
+                          className="rounded p-1 text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700"
                           title="Editar"
                         >
                           <Edit className="h-5 w-5" />
@@ -269,7 +269,7 @@ export const UsuariosListPage = () => {
                         {usuario.ativo ? (
                           <button
                             onClick={() => handleDesativar(usuario.id, usuario.nome)}
-                            className="rounded p-1 text-red-600 hover:bg-red-50"
+                            className="rounded p-1 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/30"
                             title="Desativar"
                             disabled={deleteMutation.isPending}
                           >
@@ -278,7 +278,7 @@ export const UsuariosListPage = () => {
                         ) : (
                           <button
                             onClick={() => handleReativar(usuario.id, usuario.nome)}
-                            className="rounded p-1 text-green-600 hover:bg-green-50"
+                            className="rounded p-1 text-green-600 dark:text-green-400 hover:bg-green-50 dark:hover:bg-green-900/30"
                             title="Reativar"
                             disabled={reactivateMutation.isPending}
                           >
@@ -292,10 +292,10 @@ export const UsuariosListPage = () => {
               ) : (
                 <tr>
                   <td colSpan={6} className="px-6 py-12 text-center">
-                    <p className="text-gray-500">Nenhum usuário encontrado</p>
+                    <p className="text-gray-500 dark:text-gray-400">Nenhum usuário encontrado</p>
                     <Link
                       to="/usuarios/novo"
-                      className="mt-2 inline-block text-blue-600 hover:text-blue-700"
+                      className="mt-2 inline-block text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300"
                     >
                       Criar primeiro usuário
                     </Link>
@@ -308,26 +308,26 @@ export const UsuariosListPage = () => {
 
         {/* Pagination */}
         {data && data.content.length > 0 && (
-          <div className="flex items-center justify-between border-t border-gray-200 bg-white px-4 py-3 sm:px-6">
+          <div className="flex items-center justify-between border-t border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 px-4 py-3 sm:px-6">
             <div className="flex flex-1 justify-between sm:hidden">
               <button
                 onClick={() => handlePageChange(filters.page! - 1)}
                 disabled={filters.page === 0}
-                className="relative inline-flex items-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50"
+                className="relative inline-flex items-center rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-600 disabled:opacity-50"
               >
                 Anterior
               </button>
               <button
                 onClick={() => handlePageChange(filters.page! + 1)}
                 disabled={data.last}
-                className="relative ml-3 inline-flex items-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50"
+                className="relative ml-3 inline-flex items-center rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-600 disabled:opacity-50"
               >
                 Próxima
               </button>
             </div>
             <div className="hidden sm:flex sm:flex-1 sm:items-center sm:justify-between">
               <div>
-                <p className="text-sm text-gray-700">
+                <p className="text-sm text-gray-700 dark:text-gray-300">
                   Mostrando{' '}
                   <span className="font-medium">{data.number * data.size + 1}</span>{' '}
                   a{' '}
@@ -346,7 +346,7 @@ export const UsuariosListPage = () => {
                   <button
                     onClick={() => handlePageChange(filters.page! - 1)}
                     disabled={data.first}
-                    className="relative inline-flex items-center rounded-l-md px-2 py-2 text-gray-400 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-20 disabled:opacity-50"
+                    className="relative inline-flex items-center rounded-l-md px-2 py-2 text-gray-400 dark:text-gray-500 ring-1 ring-inset ring-gray-300 dark:ring-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700 focus:z-20 disabled:opacity-50"
                   >
                     <span className="sr-only">Anterior</span>
                     <svg
@@ -362,13 +362,13 @@ export const UsuariosListPage = () => {
                       />
                     </svg>
                   </button>
-                  <span className="relative inline-flex items-center px-4 py-2 text-sm font-semibold text-gray-900 ring-1 ring-inset ring-gray-300">
+                  <span className="relative inline-flex items-center px-4 py-2 text-sm font-semibold text-gray-900 dark:text-gray-100 ring-1 ring-inset ring-gray-300 dark:ring-gray-600">
                     Página {data.number + 1} de {data.totalPages}
                   </span>
                   <button
                     onClick={() => handlePageChange(filters.page! + 1)}
                     disabled={data.last}
-                    className="relative inline-flex items-center rounded-r-md px-2 py-2 text-gray-400 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-20 disabled:opacity-50"
+                    className="relative inline-flex items-center rounded-r-md px-2 py-2 text-gray-400 dark:text-gray-500 ring-1 ring-inset ring-gray-300 dark:ring-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700 focus:z-20 disabled:opacity-50"
                   >
                     <span className="sr-only">Próxima</span>
                     <svg

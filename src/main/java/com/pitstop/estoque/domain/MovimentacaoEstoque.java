@@ -1,5 +1,7 @@
 package com.pitstop.estoque.domain;
 
+import com.pitstop.oficina.domain.Oficina;
+import com.pitstop.shared.security.tenant.TenantContext;
 import jakarta.persistence.*;
 import lombok.*;
 import org.springframework.data.annotation.CreatedDate;
@@ -47,6 +49,14 @@ public class MovimentacaoEstoque {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
+
+    /**
+     * Oficina à qual esta movimentação pertence (multi-tenant).
+     * Preenchida automaticamente via TenantContext no @PrePersist.
+     */
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "oficina_id")
+    private Oficina oficina;
 
     /**
      * ID da peça movimentada.
@@ -148,10 +158,18 @@ public class MovimentacaoEstoque {
 
     /**
      * Callback executado antes de persistir a entidade.
-     * Calcula valor total e executa validações.
+     * Define oficina via TenantContext, calcula valor total e executa validações.
      */
     @PrePersist
     protected void onPrePersist() {
+        // Multi-tenancy: set oficina from TenantContext
+        if (this.oficina == null && TenantContext.isSet()) {
+            UUID tenantId = TenantContext.getTenantId();
+            Oficina oficina = new Oficina();
+            oficina.setId(tenantId);
+            this.oficina = oficina;
+        }
+
         // 1. Calcula valor total
         if (this.quantidade != null && this.valorUnitario != null) {
             this.valorTotal = this.valorUnitario

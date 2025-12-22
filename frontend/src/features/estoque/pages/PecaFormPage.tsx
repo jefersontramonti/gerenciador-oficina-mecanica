@@ -8,9 +8,6 @@ import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { ArrowLeft, Save } from 'lucide-react';
 import { Button } from '@/shared/components/ui/button';
-import { Input } from '@/shared/components/ui/input';
-import { Label } from '@/shared/components/ui/label';
-import { Textarea } from '@/shared/components/ui/textarea';
 import {
   Select,
   SelectContent,
@@ -107,245 +104,261 @@ export const PecaFormPage = () => {
 
   if (isLoading && isEditMode) {
     return (
-      <div className="flex justify-center items-center py-12">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+      <div className="flex h-64 items-center justify-center">
+        <div className="text-gray-500 dark:text-gray-400">Carregando...</div>
       </div>
     );
   }
 
   return (
-    <div className="space-y-6">
+    <div className="p-6">
       {/* Header */}
-      <div>
-        <Button variant="ghost" size="sm" onClick={() => navigate('/estoque')}>
-          <ArrowLeft className="h-4 w-4 mr-2" />
-          Voltar
-        </Button>
-        <h1 className="text-3xl font-bold tracking-tight mt-2">
-          {isEditMode ? 'Editar Peça' : 'Nova Peça'}
-        </h1>
-        <p className="text-muted-foreground">
-          {isEditMode
-            ? 'Atualize as informações da peça'
-            : 'Preencha os dados para cadastrar uma nova peça'}
-        </p>
-      </div>
-
-      {/* Nota sobre quantidade inicial */}
-      {!isEditMode && (
-        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-          <p className="text-sm text-blue-800">
-            <strong>Atenção:</strong> A quantidade inicial em estoque será{' '}
-            <strong>0 (zero)</strong>. Após criar a peça, use a função{' '}
-            <strong>"Registrar Entrada"</strong> para adicionar o estoque inicial.
+      <div className="mb-6 flex items-center gap-4">
+        <button
+          onClick={() => navigate('/estoque')}
+          className="rounded-lg p-2 hover:bg-gray-100 dark:hover:bg-gray-700"
+        >
+          <ArrowLeft className="h-5 w-5 text-gray-900 dark:text-gray-100" />
+        </button>
+        <div>
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">
+            {isEditMode ? 'Editar Peça' : 'Nova Peça'}
+          </h1>
+          <p className="mt-1 text-sm text-gray-600 dark:text-gray-400">
+            {isEditMode
+              ? 'Atualize as informações da peça'
+              : 'Preencha os dados para cadastrar uma nova peça'}
           </p>
         </div>
-      )}
+      </div>
 
-      <form onSubmit={handleSubmit(onSubmit)} className="space-y-8">
-        {/* Informações Básicas */}
-        <div className="bg-card p-6 rounded-lg border space-y-4">
-          <h2 className="text-lg font-semibold">Informações Básicas</h2>
+      {/* Form */}
+      <form onSubmit={handleSubmit(onSubmit)} className="mx-auto max-w-4xl">
+        <div className="space-y-6">
+          {/* Informações Básicas */}
+          <div className="rounded-lg bg-white dark:bg-gray-800 p-6 shadow">
+            <h2 className="mb-4 text-lg font-semibold text-gray-900 dark:text-gray-100">Informações Básicas</h2>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="codigo">Código (SKU) *</Label>
-              <Input
-                id="codigo"
-                placeholder="Ex: FLT-001"
-                {...register('codigo')}
-              />
-              {errors.codigo && (
-                <p className="text-sm text-destructive">{errors.codigo.message}</p>
-              )}
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="unidadeMedida">Unidade de Medida *</Label>
-              <Select
-                defaultValue={UnidadeMedida.UNIDADE}
-                onValueChange={(value) =>
-                  setValue('unidadeMedida', value as UnidadeMedida)
-                }
-              >
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {Object.values(UnidadeMedida).map((unidade) => (
-                    <SelectItem key={unidade} value={unidade}>
-                      {UnidadeMedidaLabel[unidade]}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              {errors.unidadeMedida && (
-                <p className="text-sm text-destructive">{errors.unidadeMedida.message}</p>
-              )}
-            </div>
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="descricao">Descrição *</Label>
-            <Textarea
-              id="descricao"
-              rows={3}
-              placeholder="Descreva a peça..."
-              {...register('descricao')}
-            />
-            {errors.descricao && (
-              <p className="text-sm text-destructive">{errors.descricao.message}</p>
-            )}
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="marca">Marca</Label>
-              <Input
-                id="marca"
-                placeholder="Ex: Bosch, NGK..."
-                {...register('marca')}
-              />
-              {errors.marca && (
-                <p className="text-sm text-destructive">{errors.marca.message}</p>
-              )}
-            </div>
-
-            <div className="space-y-2">
-              <Controller
-                name="localArmazenamentoId"
-                control={control}
-                render={({ field }) => (
-                  <LocalArmazenamentoSelect
-                    {...field}
-                    label="Local de Armazenamento"
-                    placeholder="Selecione o local de armazenamento"
-                    error={errors.localArmazenamentoId?.message}
-                    allowEmpty
-                  />
+            <div className="grid gap-4 md:grid-cols-2">
+              {/* Código */}
+              <div>
+                <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                  Código (SKU) <span className="text-red-500 dark:text-red-400">*</span>
+                </label>
+                <input
+                  {...register('codigo')}
+                  type="text"
+                  placeholder="Ex: FLT-001"
+                  className="w-full rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 px-3 py-2 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+                />
+                {errors.codigo && (
+                  <p className="mt-1 text-sm text-red-500 dark:text-red-400">{errors.codigo.message}</p>
                 )}
-              />
-            </div>
-          </div>
+              </div>
 
-          {/* Campo legado mantido temporariamente para compatibilidade */}
-          <div className="space-y-2">
-            <Label htmlFor="localizacao">Localização (Texto Livre - Opcional)</Label>
-            <Input
-              id="localizacao"
-              placeholder="Ex: Observações adicionais sobre localização"
-              {...register('localizacao')}
-            />
-            <p className="text-sm text-muted-foreground">
-              Use o campo acima para selecionar o local. Este campo é opcional e serve apenas para observações.
-            </p>
-            {errors.localizacao && (
-              <p className="text-sm text-destructive">{errors.localizacao.message}</p>
-            )}
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="aplicacao">Aplicação</Label>
-            <Textarea
-              id="aplicacao"
-              rows={2}
-              placeholder="Ex: Veículos compatíveis, observações..."
-              {...register('aplicacao')}
-            />
-            {errors.aplicacao && (
-              <p className="text-sm text-destructive">{errors.aplicacao.message}</p>
-            )}
-          </div>
-        </div>
-
-        {/* Estoque */}
-        <div className="bg-card p-6 rounded-lg border space-y-4">
-          <h2 className="text-lg font-semibold">Controle de Estoque</h2>
-
-          <div className="space-y-2">
-            <Label htmlFor="quantidadeMinima">Quantidade Mínima *</Label>
-            <Input
-              id="quantidadeMinima"
-              type="number"
-              min="0"
-              step="1"
-              {...register('quantidadeMinima', { valueAsNumber: true })}
-            />
-            <p className="text-sm text-muted-foreground">
-              Quantidade mínima para alerta de estoque baixo
-            </p>
-            {errors.quantidadeMinima && (
-              <p className="text-sm text-destructive">{errors.quantidadeMinima.message}</p>
-            )}
-          </div>
-        </div>
-
-        {/* Precificação */}
-        <div className="bg-card p-6 rounded-lg border space-y-4">
-          <h2 className="text-lg font-semibold">Precificação</h2>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="valorCusto">Valor de Custo (R$) *</Label>
-              <Input
-                id="valorCusto"
-                type="number"
-                min="0"
-                step="0.01"
-                placeholder="0.00"
-                {...register('valorCusto', { valueAsNumber: true })}
-              />
-              {errors.valorCusto && (
-                <p className="text-sm text-destructive">{errors.valorCusto.message}</p>
-              )}
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="valorVenda">Valor de Venda (R$) *</Label>
-              <Input
-                id="valorVenda"
-                type="number"
-                min="0"
-                step="0.01"
-                placeholder="0.00"
-                {...register('valorVenda', { valueAsNumber: true })}
-              />
-              {errors.valorVenda && (
-                <p className="text-sm text-destructive">{errors.valorVenda.message}</p>
-              )}
-            </div>
-          </div>
-
-          {/* Margem de Lucro Calculada */}
-          {valorCusto > 0 && valorVenda > 0 && (
-            <div className="bg-muted p-4 rounded-md">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium">Margem de Lucro</p>
-                  <p className="text-2xl font-bold">{margemLucro.toFixed(2)}%</p>
-                  <p className="text-sm text-muted-foreground">
-                    Lucro: {formatCurrency(valorVenda - valorCusto)}
-                  </p>
-                </div>
-                <span
-                  className={`px-3 py-1 rounded-full text-sm font-medium ${margemStatus.bgColor} ${margemStatus.textColor}`}
+              {/* Unidade de Medida */}
+              <div>
+                <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                  Unidade de Medida <span className="text-red-500 dark:text-red-400">*</span>
+                </label>
+                <Select
+                  defaultValue={UnidadeMedida.UNIDADE}
+                  onValueChange={(value) => setValue('unidadeMedida', value as UnidadeMedida)}
                 >
-                  {margemStatus.label}
-                </span>
+                  <SelectTrigger className="h-10">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {Object.values(UnidadeMedida).map((unidade) => (
+                      <SelectItem key={unidade} value={unidade}>
+                        {UnidadeMedidaLabel[unidade]}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                {errors.unidadeMedida && (
+                  <p className="mt-1 text-sm text-red-500 dark:text-red-400">{errors.unidadeMedida.message}</p>
+                )}
               </div>
             </div>
-          )}
-        </div>
 
-        {/* Botões de Ação */}
-        <div className="flex gap-3 justify-end">
-          <Button type="button" variant="outline" onClick={() => navigate('/estoque')}>
-            Cancelar
-          </Button>
-          <Button type="submit" disabled={isSubmitting}>
-            <Save className="h-4 w-4 mr-2" />
-            {isSubmitting ? 'Salvando...' : 'Salvar'}
-          </Button>
+            {/* Descrição */}
+            <div className="mt-4">
+              <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                Descrição <span className="text-red-500 dark:text-red-400">*</span>
+              </label>
+              <textarea
+                {...register('descricao')}
+                rows={3}
+                placeholder="Descreva a peça..."
+                className="w-full rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 px-3 py-2 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 resize-none"
+              />
+              {errors.descricao && (
+                <p className="mt-1 text-sm text-red-500 dark:text-red-400">{errors.descricao.message}</p>
+              )}
+            </div>
+
+            <div className="mt-4 grid gap-4 md:grid-cols-2">
+              {/* Marca */}
+              <div>
+                <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">Marca</label>
+                <input
+                  {...register('marca')}
+                  type="text"
+                  placeholder="Ex: Bosch, NGK..."
+                  className="w-full rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 px-3 py-2 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+                />
+                {errors.marca && (
+                  <p className="mt-1 text-sm text-red-500 dark:text-red-400">{errors.marca.message}</p>
+                )}
+              </div>
+
+              {/* Local de Armazenamento */}
+              <div>
+                <Controller
+                  name="localArmazenamentoId"
+                  control={control}
+                  render={({ field }) => (
+                    <LocalArmazenamentoSelect
+                      {...field}
+                      label="Local de Armazenamento"
+                      placeholder="Selecione o local"
+                      error={errors.localArmazenamentoId?.message}
+                      allowEmpty
+                    />
+                  )}
+                />
+              </div>
+            </div>
+
+            {/* Localização (legado) */}
+            <div className="mt-4">
+              <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                Localização (Texto Livre)
+              </label>
+              <input
+                {...register('localizacao')}
+                type="text"
+                placeholder="Ex: Observações adicionais"
+                className="w-full rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 px-3 py-2 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+              />
+              <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                Campo opcional para observações adicionais sobre localização
+              </p>
+            </div>
+
+            {/* Aplicação */}
+            <div className="mt-4">
+              <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">Aplicação</label>
+              <textarea
+                {...register('aplicacao')}
+                rows={2}
+                placeholder="Ex: Veículos compatíveis, observações..."
+                className="w-full rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 px-3 py-2 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 resize-none"
+              />
+              {errors.aplicacao && (
+                <p className="mt-1 text-sm text-red-500 dark:text-red-400">{errors.aplicacao.message}</p>
+              )}
+            </div>
+          </div>
+
+          {/* Controle de Estoque */}
+          <div className="rounded-lg bg-white dark:bg-gray-800 p-6 shadow">
+            <h2 className="mb-4 text-lg font-semibold text-gray-900 dark:text-gray-100">Controle de Estoque</h2>
+
+            <div>
+              <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                Quantidade Mínima <span className="text-red-500 dark:text-red-400">*</span>
+              </label>
+              <input
+                {...register('quantidadeMinima', { valueAsNumber: true })}
+                type="number"
+                min="0"
+                step="1"
+                className="w-full rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 px-3 py-2 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+              />
+              <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                Quantidade mínima para alerta de estoque baixo
+              </p>
+              {errors.quantidadeMinima && (
+                <p className="mt-1 text-sm text-red-500 dark:text-red-400">{errors.quantidadeMinima.message}</p>
+              )}
+            </div>
+          </div>
+
+          {/* Precificação */}
+          <div className="rounded-lg bg-white dark:bg-gray-800 p-6 shadow">
+            <h2 className="mb-4 text-lg font-semibold text-gray-900 dark:text-gray-100">Precificação</h2>
+
+            <div className="grid gap-4 md:grid-cols-2">
+              {/* Valor de Custo */}
+              <div>
+                <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                  Valor de Custo (R$) <span className="text-red-500 dark:text-red-400">*</span>
+                </label>
+                <input
+                  {...register('valorCusto', { valueAsNumber: true })}
+                  type="number"
+                  min="0"
+                  step="0.01"
+                  placeholder="0.00"
+                  className="w-full rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 px-3 py-2 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+                />
+                {errors.valorCusto && (
+                  <p className="mt-1 text-sm text-red-500 dark:text-red-400">{errors.valorCusto.message}</p>
+                )}
+              </div>
+
+              {/* Valor de Venda */}
+              <div>
+                <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                  Valor de Venda (R$) <span className="text-red-500 dark:text-red-400">*</span>
+                </label>
+                <input
+                  {...register('valorVenda', { valueAsNumber: true })}
+                  type="number"
+                  min="0"
+                  step="0.01"
+                  placeholder="0.00"
+                  className="w-full rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 px-3 py-2 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+                />
+                {errors.valorVenda && (
+                  <p className="mt-1 text-sm text-red-500 dark:text-red-400">{errors.valorVenda.message}</p>
+                )}
+              </div>
+            </div>
+
+            {/* Margem de Lucro */}
+            {valorCusto > 0 && valorVenda > 0 && (
+              <div className="mt-4 rounded-lg border border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 p-4">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm font-medium text-gray-900 dark:text-gray-100">Margem de Lucro</p>
+                    <p className="text-2xl font-bold text-gray-900 dark:text-gray-100">{margemLucro.toFixed(2)}%</p>
+                    <p className="text-sm text-gray-500 dark:text-gray-400">
+                      Lucro: {formatCurrency(valorVenda - valorCusto)}
+                    </p>
+                  </div>
+                  <span
+                    className={`px-3 py-1 rounded-full text-sm font-medium ${margemStatus.bgColor} ${margemStatus.textColor}`}
+                  >
+                    {margemStatus.label}
+                  </span>
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Botões */}
+          <div className="flex items-center justify-end gap-3">
+            <Button type="button" variant="outline" onClick={() => navigate('/estoque')}>
+              Cancelar
+            </Button>
+            <Button type="submit" disabled={isSubmitting}>
+              <Save className="h-4 w-4 mr-2" />
+              {isSubmitting ? 'Salvando...' : 'Salvar'}
+            </Button>
+          </div>
         </div>
       </form>
     </div>

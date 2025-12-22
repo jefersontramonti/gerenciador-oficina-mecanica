@@ -14,6 +14,7 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 /**
@@ -27,6 +28,9 @@ import java.util.UUID;
  *   <li>Estatísticas por tipo de pagamento</li>
  * </ul>
  *
+ * <p><strong>Multi-tenancy:</strong> Todos os métodos agora exigem {@code oficinaId} como
+ * primeiro parâmetro para garantir isolamento de dados entre oficinas.</p>
+ *
  * @author PitStop Team
  * @version 1.0
  * @since 2025-11-11
@@ -35,91 +39,106 @@ import java.util.UUID;
 public interface PagamentoRepository extends JpaRepository<Pagamento, UUID> {
 
     /**
-     * Busca todos os pagamentos de uma ordem de serviço.
+     * Busca todos os pagamentos de uma ordem de serviço em uma oficina.
      *
+     * @param oficinaId ID da oficina (tenant)
      * @param ordemServicoId ID da OS
      * @return lista de pagamentos
      */
-    List<Pagamento> findByOrdemServicoId(UUID ordemServicoId);
+    @Query("SELECT p FROM Pagamento p WHERE p.oficina.id = :oficinaId AND p.ordemServicoId = :ordemServicoId")
+    List<Pagamento> findByOficinaIdAndOrdemServicoId(@Param("oficinaId") UUID oficinaId, @Param("ordemServicoId") UUID ordemServicoId);
 
     /**
-     * Busca pagamentos por status.
+     * Busca pagamentos por status em uma oficina.
      *
+     * @param oficinaId ID da oficina (tenant)
      * @param status status do pagamento
      * @param pageable paginação
      * @return página de pagamentos
      */
-    Page<Pagamento> findByStatus(StatusPagamento status, Pageable pageable);
+    @Query("SELECT p FROM Pagamento p WHERE p.oficina.id = :oficinaId AND p.status = :status")
+    Page<Pagamento> findByOficinaIdAndStatus(@Param("oficinaId") UUID oficinaId, @Param("status") StatusPagamento status, Pageable pageable);
 
     /**
-     * Busca pagamentos por tipo.
+     * Busca pagamentos por tipo em uma oficina.
      *
+     * @param oficinaId ID da oficina (tenant)
      * @param tipo tipo de pagamento
      * @param pageable paginação
      * @return página de pagamentos
      */
-    Page<Pagamento> findByTipo(TipoPagamento tipo, Pageable pageable);
+    @Query("SELECT p FROM Pagamento p WHERE p.oficina.id = :oficinaId AND p.tipo = :tipo")
+    Page<Pagamento> findByOficinaIdAndTipo(@Param("oficinaId") UUID oficinaId, @Param("tipo") TipoPagamento tipo, Pageable pageable);
 
     /**
-     * Busca pagamentos vencidos (data vencimento passou e status = PENDENTE).
+     * Busca pagamentos vencidos (data vencimento passou e status = PENDENTE) em uma oficina.
      *
+     * @param oficinaId ID da oficina (tenant)
      * @param dataReferencia data de referência (geralmente hoje)
      * @param pageable paginação
      * @return página de pagamentos vencidos
      */
     @Query("""
         SELECT p FROM Pagamento p
-        WHERE p.status = 'PENDENTE'
+        WHERE p.oficina.id = :oficinaId
+        AND p.status = 'PENDENTE'
         AND p.dataVencimento < :dataReferencia
         ORDER BY p.dataVencimento ASC
         """)
-    Page<Pagamento> findVencidos(@Param("dataReferencia") LocalDate dataReferencia, Pageable pageable);
+    Page<Pagamento> findVencidosByOficinaId(@Param("oficinaId") UUID oficinaId, @Param("dataReferencia") LocalDate dataReferencia, Pageable pageable);
 
     /**
-     * Calcula o total pago de uma ordem de serviço.
+     * Calcula o total pago de uma ordem de serviço em uma oficina.
      *
+     * @param oficinaId ID da oficina (tenant)
      * @param ordemServicoId ID da OS
      * @return valor total pago
      */
     @Query("""
         SELECT COALESCE(SUM(p.valor), 0)
         FROM Pagamento p
-        WHERE p.ordemServicoId = :ordemServicoId
+        WHERE p.oficina.id = :oficinaId
+        AND p.ordemServicoId = :ordemServicoId
         AND p.status = 'PAGO'
         """)
-    BigDecimal calcularTotalPago(@Param("ordemServicoId") UUID ordemServicoId);
+    BigDecimal calcularTotalPagoByOficinaId(@Param("oficinaId") UUID oficinaId, @Param("ordemServicoId") UUID ordemServicoId);
 
     /**
-     * Calcula o total pendente de uma ordem de serviço.
+     * Calcula o total pendente de uma ordem de serviço em uma oficina.
      *
+     * @param oficinaId ID da oficina (tenant)
      * @param ordemServicoId ID da OS
      * @return valor total pendente
      */
     @Query("""
         SELECT COALESCE(SUM(p.valor), 0)
         FROM Pagamento p
-        WHERE p.ordemServicoId = :ordemServicoId
+        WHERE p.oficina.id = :oficinaId
+        AND p.ordemServicoId = :ordemServicoId
         AND p.status IN ('PENDENTE', 'VENCIDO')
         """)
-    BigDecimal calcularTotalPendente(@Param("ordemServicoId") UUID ordemServicoId);
+    BigDecimal calcularTotalPendenteByOficinaId(@Param("oficinaId") UUID oficinaId, @Param("ordemServicoId") UUID ordemServicoId);
 
     /**
-     * Verifica se uma OS está totalmente paga.
+     * Verifica se uma OS está totalmente paga em uma oficina.
      *
+     * @param oficinaId ID da oficina (tenant)
      * @param ordemServicoId ID da OS
      * @return true se não há pagamentos pendentes
      */
     @Query("""
         SELECT CASE WHEN COUNT(p) = 0 THEN true ELSE false END
         FROM Pagamento p
-        WHERE p.ordemServicoId = :ordemServicoId
+        WHERE p.oficina.id = :oficinaId
+        AND p.ordemServicoId = :ordemServicoId
         AND p.status IN ('PENDENTE', 'VENCIDO')
         """)
-    boolean isOrdemServicoQuitada(@Param("ordemServicoId") UUID ordemServicoId);
+    boolean isOrdemServicoQuitadaByOficinaId(@Param("oficinaId") UUID oficinaId, @Param("ordemServicoId") UUID ordemServicoId);
 
     /**
-     * Busca pagamentos em um período.
+     * Busca pagamentos em um período em uma oficina.
      *
+     * @param oficinaId ID da oficina (tenant)
      * @param dataInicio data inicial
      * @param dataFim data final
      * @param pageable paginação
@@ -127,19 +146,22 @@ public interface PagamentoRepository extends JpaRepository<Pagamento, UUID> {
      */
     @Query("""
         SELECT p FROM Pagamento p
-        WHERE p.dataPagamento BETWEEN :dataInicio AND :dataFim
+        WHERE p.oficina.id = :oficinaId
+        AND p.dataPagamento BETWEEN :dataInicio AND :dataFim
         AND p.status = 'PAGO'
         ORDER BY p.dataPagamento DESC
         """)
-    Page<Pagamento> findByPeriodo(
+    Page<Pagamento> findByOficinaIdAndPeriodo(
+        @Param("oficinaId") UUID oficinaId,
         @Param("dataInicio") LocalDate dataInicio,
         @Param("dataFim") LocalDate dataFim,
         Pageable pageable
     );
 
     /**
-     * Calcula total de pagamentos no período.
+     * Calcula total de pagamentos no período em uma oficina.
      *
+     * @param oficinaId ID da oficina (tenant)
      * @param dataInicio data inicial
      * @param dataFim data final
      * @return valor total
@@ -147,38 +169,43 @@ public interface PagamentoRepository extends JpaRepository<Pagamento, UUID> {
     @Query("""
         SELECT COALESCE(SUM(p.valor), 0)
         FROM Pagamento p
-        WHERE p.dataPagamento BETWEEN :dataInicio AND :dataFim
+        WHERE p.oficina.id = :oficinaId
+        AND p.dataPagamento BETWEEN :dataInicio AND :dataFim
         AND p.status = 'PAGO'
         """)
-    BigDecimal calcularTotalPeriodo(
+    BigDecimal calcularTotalPeriodoByOficinaId(
+        @Param("oficinaId") UUID oficinaId,
         @Param("dataInicio") LocalDate dataInicio,
         @Param("dataFim") LocalDate dataFim
     );
 
     /**
-     * Estatísticas de pagamentos por tipo.
+     * Estatísticas de pagamentos por tipo em uma oficina.
      * Retorna [TipoPagamento, quantidade, valorTotal].
      *
+     * @param oficinaId ID da oficina (tenant)
      * @return lista de arrays com estatísticas
      */
     @Query("""
         SELECT p.tipo, COUNT(p), SUM(p.valor)
         FROM Pagamento p
-        WHERE p.status = 'PAGO'
+        WHERE p.oficina.id = :oficinaId AND p.status = 'PAGO'
         GROUP BY p.tipo
         ORDER BY SUM(p.valor) DESC
         """)
-    List<Object[]> estatisticasPorTipo();
+    List<Object[]> estatisticasPorTipoByOficinaId(@Param("oficinaId") UUID oficinaId);
 
     /**
-     * Estatísticas de pagamentos por status.
+     * Estatísticas de pagamentos por status em uma oficina.
      * Retorna [StatusPagamento, quantidade, valorTotal].
      *
+     * @param oficinaId ID da oficina (tenant)
      * @return lista de arrays com estatísticas
      */
     @Query("""
         SELECT p.status, COUNT(p), SUM(p.valor)
         FROM Pagamento p
+        WHERE p.oficina.id = :oficinaId
         GROUP BY p.status
         ORDER BY CASE p.status
             WHEN 'PENDENTE' THEN 1
@@ -188,11 +215,12 @@ public interface PagamentoRepository extends JpaRepository<Pagamento, UUID> {
             WHEN 'ESTORNADO' THEN 5
         END
         """)
-    List<Object[]> estatisticasPorStatus();
+    List<Object[]> estatisticasPorStatusByOficinaId(@Param("oficinaId") UUID oficinaId);
 
     /**
-     * Busca pagamentos com filtros avançados.
+     * Busca pagamentos com filtros avançados em uma oficina.
      *
+     * @param oficinaId ID da oficina (tenant)
      * @param tipo tipo de pagamento (null para ignorar)
      * @param status status (null para ignorar)
      * @param dataInicio data inicial (null para ignorar)
@@ -202,17 +230,84 @@ public interface PagamentoRepository extends JpaRepository<Pagamento, UUID> {
      */
     @Query("""
         SELECT p FROM Pagamento p
-        WHERE (:tipo IS NULL OR p.tipo = :tipo)
+        WHERE p.oficina.id = :oficinaId
+        AND (:tipo IS NULL OR p.tipo = :tipo)
         AND (:status IS NULL OR CAST(p.status AS string) = :status)
         AND p.createdAt >= COALESCE(:dataInicio, CAST('1900-01-01 00:00:00' AS timestamp))
         AND p.createdAt <= COALESCE(:dataFim, CAST('9999-12-31 23:59:59' AS timestamp))
         ORDER BY p.createdAt DESC
         """)
     Page<Pagamento> findByFiltros(
+        @Param("oficinaId") UUID oficinaId,
         @Param("tipo") TipoPagamento tipo,
         @Param("status") String status,
         @Param("dataInicio") LocalDateTime dataInicio,
         @Param("dataFim") LocalDateTime dataFim,
         Pageable pageable
     );
+
+    /**
+     * Busca pagamento por ID em uma oficina.
+     *
+     * @param oficinaId ID da oficina (tenant)
+     * @param id ID do pagamento
+     * @return Optional contendo o pagamento se encontrado
+     */
+    @Query("SELECT p FROM Pagamento p WHERE p.oficina.id = :oficinaId AND p.id = :id")
+    Optional<Pagamento> findByOficinaIdAndId(@Param("oficinaId") UUID oficinaId, @Param("id") UUID id);
+
+    /**
+     * Busca todos os pagamentos de uma oficina com paginação.
+     *
+     * @param oficinaId ID da oficina (tenant)
+     * @param pageable paginação
+     * @return página de pagamentos
+     */
+    @Query("SELECT p FROM Pagamento p WHERE p.oficina.id = :oficinaId ORDER BY p.createdAt DESC")
+    Page<Pagamento> findByOficinaId(@Param("oficinaId") UUID oficinaId, Pageable pageable);
+
+    /**
+     * Alias para calcularTotalPagoByOficinaId (compatibilidade).
+     *
+     * @param oficinaId ID da oficina (tenant)
+     * @param ordemServicoId ID da OS
+     * @return valor total pago
+     */
+    default BigDecimal calcularTotalPago(UUID oficinaId, UUID ordemServicoId) {
+        return calcularTotalPagoByOficinaId(oficinaId, ordemServicoId);
+    }
+
+    /**
+     * Alias para calcularTotalPendenteByOficinaId (compatibilidade).
+     *
+     * @param oficinaId ID da oficina (tenant)
+     * @param ordemServicoId ID da OS
+     * @return valor total pendente
+     */
+    default BigDecimal calcularTotalPendente(UUID oficinaId, UUID ordemServicoId) {
+        return calcularTotalPendenteByOficinaId(oficinaId, ordemServicoId);
+    }
+
+    /**
+     * Alias para isOrdemServicoQuitadaByOficinaId (compatibilidade).
+     *
+     * @param oficinaId ID da oficina (tenant)
+     * @param ordemServicoId ID da OS
+     * @return true se está quitada
+     */
+    default boolean isOrdemServicoQuitada(UUID oficinaId, UUID ordemServicoId) {
+        return isOrdemServicoQuitadaByOficinaId(oficinaId, ordemServicoId);
+    }
+
+    /**
+     * Alias para findVencidosByOficinaId (compatibilidade).
+     *
+     * @param oficinaId ID da oficina (tenant)
+     * @param dataReferencia data de referência
+     * @param pageable paginação
+     * @return página de pagamentos vencidos
+     */
+    default Page<Pagamento> findVencidos(UUID oficinaId, LocalDate dataReferencia, Pageable pageable) {
+        return findVencidosByOficinaId(oficinaId, dataReferencia, pageable);
+    }
 }

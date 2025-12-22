@@ -79,7 +79,7 @@ export const VeiculoFormPage = () => {
   if (loadingVeiculo) {
     return (
       <div className="flex h-64 items-center justify-center">
-        <div className="text-gray-500">Carregando...</div>
+        <div className="text-gray-500 dark:text-gray-400">Carregando...</div>
       </div>
     );
   }
@@ -92,15 +92,15 @@ export const VeiculoFormPage = () => {
       <div className="mb-6 flex items-center gap-4">
         <button
           onClick={() => navigate('/veiculos')}
-          className="rounded-lg p-2 hover:bg-gray-100"
+          className="rounded-lg p-2 hover:bg-gray-100 dark:hover:bg-gray-700"
         >
-          <ArrowLeft className="h-5 w-5" />
+          <ArrowLeft className="h-5 w-5 text-gray-900 dark:text-gray-100" />
         </button>
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">
             {isEditMode ? 'Editar Veículo' : 'Novo Veículo'}
           </h1>
-          <p className="mt-1 text-sm text-gray-600">
+          <p className="mt-1 text-sm text-gray-600 dark:text-gray-400">
             {isEditMode
               ? 'Atualize os dados do veículo'
               : 'Preencha os dados para cadastrar um novo veículo'}
@@ -112,18 +112,18 @@ export const VeiculoFormPage = () => {
       <form onSubmit={handleSubmit(onSubmit)} className="mx-auto max-w-4xl">
         <div className="space-y-6">
           {/* Cliente e Placa */}
-          <div className="rounded-lg bg-white p-6 shadow">
-            <h2 className="mb-4 text-lg font-semibold text-gray-900">Identificação</h2>
+          <div className="rounded-lg bg-white dark:bg-gray-800 p-6 shadow">
+            <h2 className="mb-4 text-lg font-semibold text-gray-900 dark:text-gray-100">Identificação</h2>
 
             <div className="grid gap-4 md:grid-cols-2">
               {/* Cliente - Only on create */}
               {!isEditMode && (
                 <div className="relative md:col-span-2">
-                  <label className="mb-1 block text-sm font-medium text-gray-700">
-                    Cliente <span className="text-red-500">*</span>
+                  <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                    Cliente <span className="text-red-500 dark:text-red-400">*</span>
                   </label>
                   <div className="relative">
-                    <Search className="absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 text-gray-400" />
+                    <Search className="absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 text-gray-400 dark:text-gray-500" />
                     <input
                       type="text"
                       value={clienteSearch}
@@ -133,38 +133,38 @@ export const VeiculoFormPage = () => {
                       }}
                       onFocus={() => setShowClienteDropdown(true)}
                       placeholder="Buscar cliente por nome..."
-                      className="w-full rounded-lg border border-gray-300 py-2 pl-10 pr-3 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+                      className="w-full rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 py-2 pl-10 pr-3 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
                     />
                   </div>
                   {showClienteDropdown && clientes.length > 0 && (
-                    <div className="absolute z-10 mt-1 max-h-60 w-full overflow-auto rounded-lg border border-gray-200 bg-white shadow-lg">
+                    <div className="absolute z-10 mt-1 max-h-60 w-full overflow-auto rounded-lg border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-800 shadow-lg">
                       {clientes.map((cliente) => (
                         <button
                           key={cliente.id}
                           type="button"
                           onClick={() => handleClienteSelect(cliente.id, cliente.nome)}
-                          className="w-full px-4 py-2 text-left hover:bg-gray-50"
+                          className="w-full px-4 py-2 text-left hover:bg-gray-50 dark:hover:bg-gray-700"
                         >
-                          <div className="font-medium text-gray-900">{cliente.nome}</div>
-                          <div className="text-sm text-gray-500">{cliente.cpfCnpj}</div>
+                          <div className="font-medium text-gray-900 dark:text-gray-100">{cliente.nome}</div>
+                          <div className="text-sm text-gray-500 dark:text-gray-400">{cliente.cpfCnpj}</div>
                         </button>
                       ))}
                     </div>
                   )}
                   {'clienteId' in errors && errors.clienteId && (
-                    <p className="mt-1 text-sm text-red-500">{errors.clienteId.message}</p>
+                    <p className="mt-1 text-sm text-red-500 dark:text-red-400">{errors.clienteId.message}</p>
                   )}
                 </div>
               )}
 
               {isEditMode && veiculo?.cliente && (
                 <div className="md:col-span-2">
-                  <label className="mb-1 block text-sm font-medium text-gray-700">
+                  <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
                     Proprietário
                   </label>
-                  <div className="rounded-lg border border-gray-200 bg-gray-50 p-3">
-                    <div className="font-medium text-gray-900">{veiculo.cliente.nome}</div>
-                    <div className="text-sm text-gray-500">{veiculo.cliente.cpfCnpj}</div>
+                  <div className="rounded-lg border border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 p-3">
+                    <div className="font-medium text-gray-900 dark:text-gray-100">{veiculo.cliente.nome}</div>
+                    <div className="text-sm text-gray-500 dark:text-gray-400">{veiculo.cliente.cpfCnpj}</div>
                   </div>
                 </div>
               )}
@@ -189,8 +189,8 @@ export const VeiculoFormPage = () => {
 
               {isEditMode && veiculo && (
                 <div>
-                  <label className="mb-1 block text-sm font-medium text-gray-700">Placa</label>
-                  <div className="rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 font-medium text-gray-900">
+                  <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">Placa</label>
+                  <div className="rounded-lg border border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 px-3 py-2 font-medium text-gray-900 dark:text-gray-100">
                     {veiculo.placa}
                   </div>
                 </div>
@@ -199,50 +199,50 @@ export const VeiculoFormPage = () => {
           </div>
 
           {/* Dados do Veículo */}
-          <div className="rounded-lg bg-white p-6 shadow">
-            <h2 className="mb-4 text-lg font-semibold text-gray-900">Dados do Veículo</h2>
+          <div className="rounded-lg bg-white dark:bg-gray-800 p-6 shadow">
+            <h2 className="mb-4 text-lg font-semibold text-gray-900 dark:text-gray-100">Dados do Veículo</h2>
 
             <div className="grid gap-4 md:grid-cols-2">
               {/* Marca */}
               <div>
-                <label className="mb-1 block text-sm font-medium text-gray-700">
-                  Marca <span className="text-red-500">*</span>
+                <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                  Marca <span className="text-red-500 dark:text-red-400">*</span>
                 </label>
                 <input
                   {...register('marca')}
                   type="text"
-                  className="w-full rounded-lg border border-gray-300 px-3 py-2 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+                  className="w-full rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 px-3 py-2 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
                   placeholder="Volkswagen, Fiat, Ford..."
                 />
                 {errors.marca && (
-                  <p className="mt-1 text-sm text-red-500">{errors.marca.message}</p>
+                  <p className="mt-1 text-sm text-red-500 dark:text-red-400">{errors.marca.message}</p>
                 )}
               </div>
 
               {/* Modelo */}
               <div>
-                <label className="mb-1 block text-sm font-medium text-gray-700">
-                  Modelo <span className="text-red-500">*</span>
+                <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                  Modelo <span className="text-red-500 dark:text-red-400">*</span>
                 </label>
                 <input
                   {...register('modelo')}
                   type="text"
-                  className="w-full rounded-lg border border-gray-300 px-3 py-2 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+                  className="w-full rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 px-3 py-2 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
                   placeholder="Gol, Uno, Ka..."
                 />
                 {errors.modelo && (
-                  <p className="mt-1 text-sm text-red-500">{errors.modelo.message}</p>
+                  <p className="mt-1 text-sm text-red-500 dark:text-red-400">{errors.modelo.message}</p>
                 )}
               </div>
 
               {/* Ano */}
               <div>
-                <label className="mb-1 block text-sm font-medium text-gray-700">
-                  Ano <span className="text-red-500">*</span>
+                <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                  Ano <span className="text-red-500 dark:text-red-400">*</span>
                 </label>
                 <select
                   {...register('ano', { valueAsNumber: true })}
-                  className="w-full rounded-lg border border-gray-300 px-3 py-2 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+                  className="w-full rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 px-3 py-2 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
                 >
                   <option value="">Selecione o ano</option>
                   {anos.map((ano) => (
@@ -251,19 +251,19 @@ export const VeiculoFormPage = () => {
                     </option>
                   ))}
                 </select>
-                {errors.ano && <p className="mt-1 text-sm text-red-500">{errors.ano.message}</p>}
+                {errors.ano && <p className="mt-1 text-sm text-red-500 dark:text-red-400">{errors.ano.message}</p>}
               </div>
 
               {/* Cor */}
               <div>
-                <label className="mb-1 block text-sm font-medium text-gray-700">Cor</label>
+                <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">Cor</label>
                 <input
                   {...register('cor')}
                   type="text"
-                  className="w-full rounded-lg border border-gray-300 px-3 py-2 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+                  className="w-full rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 px-3 py-2 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
                   placeholder="Branco, Preto, Prata..."
                 />
-                {errors.cor && <p className="mt-1 text-sm text-red-500">{errors.cor.message}</p>}
+                {errors.cor && <p className="mt-1 text-sm text-red-500 dark:text-red-400">{errors.cor.message}</p>}
               </div>
 
               {/* Chassi */}
@@ -285,7 +285,7 @@ export const VeiculoFormPage = () => {
 
               {/* Quilometragem */}
               <div>
-                <label className="mb-1 block text-sm font-medium text-gray-700">
+                <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
                   Quilometragem (km)
                 </label>
                 <input
@@ -293,11 +293,11 @@ export const VeiculoFormPage = () => {
                   type="number"
                   min="0"
                   step="1"
-                  className="w-full rounded-lg border border-gray-300 px-3 py-2 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+                  className="w-full rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 px-3 py-2 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
                   placeholder="0"
                 />
                 {errors.quilometragem && (
-                  <p className="mt-1 text-sm text-red-500">{errors.quilometragem.message}</p>
+                  <p className="mt-1 text-sm text-red-500 dark:text-red-400">{errors.quilometragem.message}</p>
                 )}
               </div>
             </div>
@@ -308,14 +308,14 @@ export const VeiculoFormPage = () => {
             <button
               type="button"
               onClick={() => navigate('/veiculos')}
-              className="rounded-lg border border-gray-300 px-6 py-2 font-medium text-gray-700 hover:bg-gray-50"
+              className="rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 px-6 py-2 font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-600"
             >
               Cancelar
             </button>
             <button
               type="submit"
               disabled={createMutation.isPending || updateMutation.isPending}
-              className="flex items-center gap-2 rounded-lg bg-blue-600 px-6 py-2 font-medium text-white hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-50"
+              className="flex items-center gap-2 rounded-lg bg-blue-600 dark:bg-blue-700 px-6 py-2 font-medium text-white hover:bg-blue-700 dark:hover:bg-blue-600 disabled:cursor-not-allowed disabled:opacity-50"
             >
               <Save className="h-5 w-5" />
               {isEditMode ? 'Atualizar' : 'Cadastrar'}

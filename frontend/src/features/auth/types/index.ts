@@ -17,6 +17,7 @@ export interface Usuario {
   email: string;
   perfil: PerfilUsuario;
   perfilNome?: string | null;
+  oficinaId: string;
   ativo: boolean;
   ultimoAcesso: string | number[] | null;
   createdAt: string | number[];

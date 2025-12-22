@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bem-vindo ao PitStop!</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background-color: #ffffff;
+            border-radius: 8px;
+            padding: 40px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .logo {
+            font-size: 32px;
+            font-weight: bold;
+            color: #2563eb;
+        }
+        h1 {
+            color: #1f2937;
+            font-size: 24px;
+        }
+        .highlight {
+            background-color: #dbeafe;
+            padding: 20px;
+            border-left: 4px solid #2563eb;
+            margin: 20px 0;
+            border-radius: 4px;
+        }
+        .button {
+            display: inline-block;
+            padding: 14px 28px;
+            background-color: #2563eb;
+            color: #ffffff !important;
+            text-decoration: none;
+            border-radius: 6px;
+            margin: 20px 0;
+            font-weight: 600;
+        }
+        .footer {
+            margin-top: 40px;
+            padding-top: 20px;
+            border-top: 1px solid #e5e7eb;
+            text-align: center;
+            font-size: 14px;
+            color: #6b7280;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="logo">🚗 PitStop</div>
+        </div>
+
+        <h1>Bem-vindo ao PitStop, <span th:text="${nomeOficina}">Oficina</span>!</h1>
+
+        <p>Olá <strong th:text="${nomeResponsavel}">Responsável</strong>,</p>
+
+        <p>É com grande satisfação que lhe damos as boas-vindas ao <strong>PitStop</strong>, o sistema de gestão completo para sua oficina mecânica!</p>
+
+        <div class="highlight">
+            <p><strong>✨ Seu período trial começou!</strong></p>
+            <p>Você tem <strong>7 dias gratuitos</strong> para explorar todas as funcionalidades do sistema.</p>
+            <p>Data de vencimento do trial: <strong th:text="${dataVencimento}">15/01/2025</strong></p>
+        </div>
+
+        <p><strong>O que você pode fazer com o PitStop:</strong></p>
+        <ul>
+            <li>🔧 Gestão completa de ordens de serviço</li>
+            <li>👥 Cadastro de clientes e veículos</li>
+            <li>📦 Controle de estoque de peças</li>
+            <li>💰 Gestão financeira e pagamentos</li>
+            <li>📊 Relatórios e dashboards em tempo real</li>
+            <li>👤 Gestão de usuários e permissões</li>
+        </ul>
+
+        <div style="text-align: center;">
+            <a th:href="${loginUrl}" class="button">Acessar o Sistema</a>
+        </div>
+
+        <p><strong>Dados de acesso:</strong></p>
+        <div class="highlight">
+            <p>URL de acesso: <a th:href="${loginUrl}" th:text="${loginUrl}">https://pitstop.com.br/login</a></p>
+            <p>Email: <strong th:text="${email}">email@oficina.com</strong></p>
+            <p><em>Use a senha que você cadastrou durante o registro.</em></p>
+        </div>
+
+        <p>Se tiver qualquer dúvida, nossa equipe de suporte está à disposição para ajudar!</p>
+
+        <p>
+            Atenciosamente,<br>
+            <strong>Equipe PitStop</strong>
+        </p>
+
+        <div class="footer">
+            <p>Este é um email automático. Por favor, não responda.</p>
+            <p>
+                <strong>PitStop - Sistema de Gestão para Oficinas Mecânicas</strong><br>
+                <a href="https://pitstop.com.br" style="color: #2563eb;">www.pitstop.com.br</a>
+            </p>
+        </div>
+    </div>
+</body>
+</html>

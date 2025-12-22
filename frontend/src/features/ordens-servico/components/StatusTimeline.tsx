@@ -74,11 +74,11 @@ export const StatusTimeline: React.FC<StatusTimelineProps> = ({ ordemServico }) 
 
   return (
     <div className="space-y-4">
-      <h3 className="text-sm font-medium text-gray-700">Linha do Tempo</h3>
+      <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300">Linha do Tempo</h3>
 
       <div className="relative">
         {/* Linha vertical conectando os eventos */}
-        <div className="absolute left-4 top-0 h-full w-0.5 bg-gray-200" />
+        <div className="absolute left-4 top-0 h-full w-0.5 bg-gray-200 dark:bg-gray-700" />
 
         <div className="space-y-6">
           {events.map((event, index) => (
@@ -87,8 +87,8 @@ export const StatusTimeline: React.FC<StatusTimelineProps> = ({ ordemServico }) 
               <div
                 className={`relative z-10 flex h-8 w-8 items-center justify-center rounded-full border-2 ${
                   event.completed
-                    ? 'border-blue-500 bg-blue-50 text-blue-600'
-                    : 'border-gray-300 bg-white text-gray-400'
+                    ? 'border-blue-500 bg-blue-50 text-blue-600 dark:border-blue-400 dark:bg-blue-900/30 dark:text-blue-400'
+                    : 'border-gray-300 bg-white text-gray-400 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-500'
                 }`}
               >
                 {event.icon}
@@ -98,14 +98,14 @@ export const StatusTimeline: React.FC<StatusTimelineProps> = ({ ordemServico }) 
               <div className="flex-1 pt-1">
                 <p
                   className={`text-sm font-medium ${
-                    event.completed ? 'text-gray-900' : 'text-gray-500'
+                    event.completed ? 'text-gray-900 dark:text-white' : 'text-gray-500 dark:text-gray-400'
                   }`}
                 >
                   {event.label}
                 </p>
                 <p
                   className={`mt-1 text-xs ${
-                    event.completed ? 'text-gray-600' : 'text-gray-400'
+                    event.completed ? 'text-gray-600 dark:text-gray-400' : 'text-gray-400 dark:text-gray-500'
                   }`}
                 >
                   {formatDate(event.date)}

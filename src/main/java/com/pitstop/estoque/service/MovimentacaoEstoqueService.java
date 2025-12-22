@@ -10,6 +10,7 @@ import com.pitstop.estoque.repository.MovimentacaoEstoqueRepository;
 import com.pitstop.estoque.repository.PecaRepository;
 import com.pitstop.ordemservico.domain.ItemOS;
 import com.pitstop.ordemservico.domain.TipoItem;
+import com.pitstop.shared.security.tenant.TenantContext;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.cache.annotation.CacheEvict;
@@ -72,8 +73,9 @@ public class MovimentacaoEstoqueService {
     ) {
         log.info("Registrando ENTRADA de estoque - Peça ID: {}, Quantidade: {}", pecaId, quantidade);
 
+        UUID oficinaId = TenantContext.getTenantId();
         // Busca peça com lock pessimista
-        Peca peca = pecaRepository.findByIdForUpdate(pecaId)
+        Peca peca = pecaRepository.findByOficinaIdAndIdForUpdate(oficinaId, pecaId)
                 .orElseThrow(() -> new PecaNotFoundException(pecaId));
 
         Integer quantidadeAnterior = peca.getQuantidadeAtual();
@@ -130,8 +132,9 @@ public class MovimentacaoEstoqueService {
     ) {
         log.info("Registrando SAÍDA de estoque - Peça ID: {}, Quantidade: {}", pecaId, quantidade);
 
+        UUID oficinaId = TenantContext.getTenantId();
         // Busca peça com lock pessimista
-        Peca peca = pecaRepository.findByIdForUpdate(pecaId)
+        Peca peca = pecaRepository.findByOficinaIdAndIdForUpdate(oficinaId, pecaId)
                 .orElseThrow(() -> new PecaNotFoundException(pecaId));
 
         Integer quantidadeAnterior = peca.getQuantidadeAtual();
@@ -197,8 +200,9 @@ public class MovimentacaoEstoqueService {
     ) {
         log.info("Registrando AJUSTE de estoque - Peça ID: {}, Nova quantidade: {}", pecaId, quantidadeNova);
 
+        UUID oficinaId = TenantContext.getTenantId();
         // Busca peça com lock pessimista
-        Peca peca = pecaRepository.findByIdForUpdate(pecaId)
+        Peca peca = pecaRepository.findByOficinaIdAndIdForUpdate(oficinaId, pecaId)
                 .orElseThrow(() -> new PecaNotFoundException(pecaId));
 
         Integer quantidadeAnterior = peca.getQuantidadeAtual();
@@ -264,6 +268,8 @@ public class MovimentacaoEstoqueService {
     ) {
         log.info("Iniciando baixa automática de estoque para OS ID: {}", ordemServicoId);
 
+        UUID oficinaId = TenantContext.getTenantId();
+
         // Filtra apenas itens do tipo PECA com pecaId preenchido
         List<ItemOS> itensPeca = itens.stream()
                 .filter(item -> item.getTipo() == TipoItem.PECA && item.getPecaId() != null)
@@ -278,7 +284,7 @@ public class MovimentacaoEstoqueService {
 
         // FASE 1: Valida estoque de TODAS as peças ANTES de baixar
         for (ItemOS item : itensPeca) {
-            Peca peca = pecaRepository.findById(item.getPecaId())
+            Peca peca = pecaRepository.findByOficinaIdAndId(oficinaId, item.getPecaId())
                     .orElseThrow(() -> new PecaNotFoundException(item.getPecaId()));
 
             if (!peca.temEstoqueDisponivel(item.getQuantidade())) {
@@ -298,7 +304,7 @@ public class MovimentacaoEstoqueService {
         List<MovimentacaoEstoque> movimentacoes = new ArrayList<>();
 
         for (ItemOS item : itensPeca) {
-            Peca peca = pecaRepository.findByIdForUpdate(item.getPecaId())
+            Peca peca = pecaRepository.findByOficinaIdAndIdForUpdate(oficinaId, item.getPecaId())
                     .orElseThrow(() -> new PecaNotFoundException(item.getPecaId()));
 
             Integer quantidadeAnterior = peca.getQuantidadeAtual();
@@ -349,9 +355,10 @@ public class MovimentacaoEstoqueService {
     public List<MovimentacaoEstoque> estornarEstoquePorOS(UUID ordemServicoId, UUID usuarioId) {
         log.info("Iniciando estorno de estoque para OS cancelada ID: {}", ordemServicoId);
 
+        UUID oficinaId = TenantContext.getTenantId();
         // Busca movimentações de baixa vinculadas à OS
         List<MovimentacaoEstoque> movimentacoesBaixa = movimentacaoRepository
-                .findByOrdemServicoIdOrderByCreatedAtDesc(ordemServicoId).stream()
+                .findByOficinaIdAndOrdemServicoIdOrderByCreatedAtDesc(oficinaId, ordemServicoId).stream()
                 .filter(m -> m.getTipo() == TipoMovimentacao.BAIXA_OS)
                 .toList();
 
@@ -365,7 +372,7 @@ public class MovimentacaoEstoqueService {
         List<MovimentacaoEstoque> estornos = new ArrayList<>();
 
         for (MovimentacaoEstoque baixa : movimentacoesBaixa) {
-            Peca peca = pecaRepository.findByIdForUpdate(baixa.getPecaId())
+            Peca peca = pecaRepository.findByOficinaIdAndIdForUpdate(oficinaId, baixa.getPecaId())
                     .orElseThrow(() -> new PecaNotFoundException(baixa.getPecaId()));
 
             Integer quantidadeAnterior = peca.getQuantidadeAtual();
@@ -413,7 +420,8 @@ public class MovimentacaoEstoqueService {
      */
     @Transactional(readOnly = true)
     public Page<MovimentacaoEstoque> buscarHistoricoPeca(UUID pecaId, Pageable pageable) {
-        return movimentacaoRepository.findByPecaIdOrderByDataMovimentacaoDesc(pecaId, pageable);
+        UUID oficinaId = TenantContext.getTenantId();
+        return movimentacaoRepository.findByOficinaIdAndPecaIdOrderByDataMovimentacaoDesc(oficinaId, pecaId, pageable);
     }
 
     /**
@@ -436,7 +444,8 @@ public class MovimentacaoEstoqueService {
             UUID usuarioId,
             Pageable pageable
     ) {
-        return movimentacaoRepository.findByFilters(pecaId, tipo, dataInicio, dataFim, usuarioId, pageable);
+        UUID oficinaId = TenantContext.getTenantId();
+        return movimentacaoRepository.findByFilters(oficinaId, pecaId, tipo, dataInicio, dataFim, usuarioId, pageable);
     }
 
     /**
@@ -447,6 +456,7 @@ public class MovimentacaoEstoqueService {
      */
     @Transactional(readOnly = true)
     public List<MovimentacaoEstoque> buscarPorOS(UUID ordemServicoId) {
-        return movimentacaoRepository.findByOrdemServicoIdOrderByCreatedAtDesc(ordemServicoId);
+        UUID oficinaId = TenantContext.getTenantId();
+        return movimentacaoRepository.findByOficinaIdAndOrdemServicoIdOrderByCreatedAtDesc(oficinaId, ordemServicoId);
     }
 }

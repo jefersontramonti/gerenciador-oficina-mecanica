@@ -1,0 +1,223 @@
+version: '3.8'
+
+services:
+  # PostgreSQL Database
+  postgres:
+    image: postgres:16-alpine
+    container_name: pitstop-postgres
+    environment:
+      POSTGRES_DB: pitstop
+      POSTGRES_USER: ${DB_USER:-pitstop}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_INITDB_ARGS: "--encoding=UTF8 --locale=pt_BR.UTF-8"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./scripts/init-evolution-db.sql:/docker-entrypoint-initdb.d/init-evolution-db.sql
+    ports:
+      - "127.0.0.1:5432:5432"  # Apenas localhost
+    networks:
+      - pitstop-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-pitstop}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+        reservations:
+          memory: 256M
+
+  # Redis Cache
+  redis:
+    image: redis:7-alpine
+    container_name: pitstop-redis
+    command: redis-server --maxmemory 256mb --maxmemory-policy allkeys-lru --appendonly yes
+    volumes:
+      - redis_data:/data
+    ports:
+      - "127.0.0.1:6379:6379"  # Apenas localhost
+    networks:
+      - pitstop-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+    deploy:
+      resources:
+        limits:
+          memory: 256M
+
+  # PitStop Backend
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: pitstop-backend
+    environment:
+      # Database
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/pitstop
+      SPRING_DATASOURCE_USERNAME: ${DB_USER:-pitstop}
+      SPRING_DATASOURCE_PASSWORD: ${DB_PASSWORD}
+
+      # Redis
+      SPRING_REDIS_HOST: redis
+      SPRING_REDIS_PORT: 6379
+
+      # JWT
+      JWT_SECRET: ${JWT_SECRET}
+      JWT_ACCESS_EXPIRATION: ${JWT_ACCESS_EXPIRATION:-900000}
+      JWT_REFRESH_EXPIRATION: ${JWT_REFRESH_EXPIRATION:-604800000}
+
+      # Server
+      SERVER_PORT: 8080
+      SPRING_PROFILES_ACTIVE: prod
+
+      # Email (ajustar conforme provedor)
+      SPRING_MAIL_HOST: ${MAIL_HOST}
+      SPRING_MAIL_PORT: ${MAIL_PORT:-587}
+      SPRING_MAIL_USERNAME: ${MAIL_USERNAME}
+      SPRING_MAIL_PASSWORD: ${MAIL_PASSWORD}
+      SPRING_MAIL_PROPERTIES_MAIL_SMTP_AUTH: true
+      SPRING_MAIL_PROPERTIES_MAIL_SMTP_STARTTLS_ENABLE: true
+
+      # Evolution API
+      EVOLUTION_API_URL: http://evolution-api:8080
+      EVOLUTION_API_KEY: ${EVOLUTION_API_KEY}
+
+      # JVM
+      JAVA_OPTS: "-Xms512m -Xmx1g -XX:+UseG1GC -XX:MaxGCPauseMillis=200"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - pitstop-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8080/actuator/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+    deploy:
+      resources:
+        limits:
+          memory: 1.5G
+        reservations:
+          memory: 768M
+
+  # PitStop Frontend
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: pitstop-frontend
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      # SSL certificates (quando configurar Certbot)
+      - ./ssl:/etc/nginx/ssl:ro
+    depends_on:
+      - backend
+    networks:
+      - pitstop-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost/health"]
+      interval: 30s
+      timeout: 3s
+      retries: 3
+    deploy:
+      resources:
+        limits:
+          memory: 128M
+
+  # Evolution API para WhatsApp
+  evolution-api:
+    image: atendai/evolution-api:latest
+    container_name: evolution-api
+    environment:
+      # Database
+      DATABASE_PROVIDER: postgresql
+      DATABASE_CONNECTION_URI: postgresql://${DB_USER:-pitstop}:${DB_PASSWORD}@postgres:5432/evolution
+      DATABASE_CONNECTION_CLIENT_NAME: evolution_api
+
+      # Server
+      SERVER_TYPE: http
+      SERVER_PORT: 8080
+      SERVER_URL: ${EVOLUTION_SERVER_URL:-http://localhost:8081}
+
+      # CORS
+      CORS_ORIGIN: "*"
+      CORS_METHODS: "GET,POST,PUT,DELETE"
+      CORS_CREDENTIALS: "true"
+
+      # Authentication
+      AUTHENTICATION_TYPE: apikey
+      AUTHENTICATION_API_KEY: ${EVOLUTION_API_KEY}
+      AUTHENTICATION_EXPOSE_IN_FETCH_INSTANCES: "true"
+
+      # QRCode
+      QRCODE_LIMIT: 30
+      QRCODE_COLOR: "#198754"
+
+      # Logs
+      LOG_LEVEL: ERROR,WARN,DEBUG,INFO,LOG,VERBOSE,DARK,WEBHOOKS
+      LOG_COLOR: "true"
+
+      # Storage
+      STORE_MESSAGES: "true"
+      STORE_MESSAGE_UP: "true"
+      STORE_CONTACTS: "true"
+      STORE_CHATS: "true"
+
+      # Cleanup
+      CLEAN_STORE_CLEANING_INTERVAL: 7200
+      CLEAN_STORE_MESSAGES: "true"
+      CLEAN_STORE_MESSAGE_UP: "true"
+      CLEAN_STORE_CONTACTS: "true"
+      CLEAN_STORE_CHATS: "true"
+    volumes:
+      - evolution_instances:/evolution/instances
+      - evolution_store:/evolution/store
+    ports:
+      - "8081:8080"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - pitstop-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:8080/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+        reservations:
+          memory: 256M
+
+networks:
+  pitstop-network:
+    driver: bridge
+
+volumes:
+  postgres_data:
+    driver: local
+  redis_data:
+    driver: local
+  evolution_instances:
+    driver: local
+  evolution_store:
+    driver: local

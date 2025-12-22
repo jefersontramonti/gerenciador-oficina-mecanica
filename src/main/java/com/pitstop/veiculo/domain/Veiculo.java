@@ -1,5 +1,7 @@
 package com.pitstop.veiculo.domain;
 
+import com.pitstop.oficina.domain.Oficina;
+import com.pitstop.shared.security.tenant.TenantContext;
 import com.pitstop.veiculo.validation.PlacaVeiculo;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.*;
@@ -60,6 +62,14 @@ public class Veiculo implements Serializable {
     @GeneratedValue(strategy = GenerationType.UUID)
     @Column(name = "id", updatable = false, nullable = false)
     private UUID id;
+
+    /**
+     * Oficina à qual este veículo pertence (multi-tenant).
+     * Preenchida automaticamente via TenantContext no @PrePersist.
+     */
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "oficina_id")
+    private Oficina oficina;
 
     /**
      * Identificador do cliente proprietário do veículo (relacionamento Many-to-One).
@@ -148,11 +158,19 @@ public class Veiculo implements Serializable {
     private LocalDateTime updatedAt;
 
     /**
-     * Normaliza placa e valida regras de negócio antes de persistir.
+     * Normaliza placa, valida regras de negócio e configura multi-tenancy antes de persistir.
      */
     @PrePersist
     @PreUpdate
     private void validarENormalizarDados() {
+        // Set oficina from TenantContext if not explicitly set (multi-tenancy)
+        if (this.oficina == null && TenantContext.isSet()) {
+            UUID tenantId = TenantContext.getTenantId();
+            Oficina oficina = new Oficina();
+            oficina.setId(tenantId);
+            this.oficina = oficina;
+        }
+
         // Normalizar placa: uppercase e remover hífen
         if (placa != null) {
             this.placa = placa.trim().toUpperCase().replace("-", "");

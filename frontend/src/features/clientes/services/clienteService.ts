@@ -21,6 +21,7 @@ export const clienteService = {
 
     if (filters.nome) params.append('nome', filters.nome);
     if (filters.tipo) params.append('tipo', filters.tipo);
+    if (filters.ativo !== undefined) params.append('ativo', String(filters.ativo));
     if (filters.cidade) params.append('cidade', filters.cidade);
     if (filters.estado) params.append('estado', filters.estado);
     if (filters.page !== undefined) params.append('page', String(filters.page));

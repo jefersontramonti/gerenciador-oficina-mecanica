@@ -8,6 +8,7 @@ import com.pitstop.ordemservico.domain.ItemOS;
 import com.pitstop.ordemservico.domain.OrdemServico;
 import com.pitstop.ordemservico.exception.OrdemServicoNotFoundException;
 import com.pitstop.ordemservico.repository.OrdemServicoRepository;
+import com.pitstop.shared.security.tenant.TenantContext;
 import com.pitstop.usuario.domain.Usuario;
 import com.pitstop.usuario.repository.UsuarioRepository;
 import com.pitstop.veiculo.domain.Veiculo;
@@ -58,13 +59,16 @@ public class OrdemServicoPDFService {
     public byte[] gerarPDF(UUID osId) {
         log.info("Gerando PDF para OS ID: {}", osId);
 
+        UUID oficinaId = TenantContext.getTenantId();
+
         OrdemServico os = ordemServicoRepository.findById(osId)
                 .orElseThrow(() -> new OrdemServicoNotFoundException(osId));
 
         Veiculo veiculo = veiculoRepository.findById(os.getVeiculoId())
                 .orElseThrow(() -> new RuntimeException("Veículo não encontrado"));
 
-        Cliente cliente = clienteRepository.findById(veiculo.getClienteId())
+        // Busca cliente incluindo inativos para permitir gerar PDF de OS antigas
+        Cliente cliente = clienteRepository.findByOficinaIdAndIdIncludingInactive(oficinaId, veiculo.getClienteId())
                 .orElseThrow(() -> new RuntimeException("Cliente não encontrado"));
 
         Usuario mecanico = os.getUsuarioId() != null

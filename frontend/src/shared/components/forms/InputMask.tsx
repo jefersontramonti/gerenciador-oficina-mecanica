@@ -22,24 +22,24 @@ export const InputMask = forwardRef<HTMLInputElement, InputMaskProps>(
     return (
       <div className="w-full">
         {label && (
-          <label className="mb-1 block text-sm font-medium text-gray-700">
+          <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
             {label}
-            {props.required && <span className="ml-1 text-red-500">*</span>}
+            {props.required && <span className="ml-1 text-red-500 dark:text-red-400">*</span>}
           </label>
         )}
         <input
           ref={ref}
           onChange={handleChange}
           className={cn(
-            'w-full rounded-lg border px-3 py-2 focus:outline-none focus:ring-2',
+            'w-full rounded-lg border px-3 py-2 focus:outline-none focus:ring-2 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100',
             error
               ? 'border-red-500 focus:border-red-500 focus:ring-red-500/20'
-              : 'border-gray-300 focus:border-blue-500 focus:ring-blue-500/20',
+              : 'border-gray-300 dark:border-gray-600 focus:border-blue-500 focus:ring-blue-500/20',
             className
           )}
           {...props}
         />
-        {error && <p className="mt-1 text-sm text-red-500">{error}</p>}
+        {error && <p className="mt-1 text-sm text-red-500 dark:text-red-400">{error}</p>}
       </div>
     );
   }

@@ -1,5 +1,7 @@
 package com.pitstop.financeiro.domain;
 
+import com.pitstop.oficina.domain.Oficina;
+import com.pitstop.shared.security.tenant.TenantContext;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.*;
 import lombok.*;
@@ -77,6 +79,14 @@ public class NotaFiscal implements Serializable {
     @GeneratedValue(strategy = GenerationType.UUID)
     @Column(name = "id", updatable = false, nullable = false)
     private UUID id;
+
+    /**
+     * Oficina à qual esta nota fiscal pertence (multi-tenant).
+     * Preenchida automaticamente via TenantContext no @PrePersist.
+     */
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "oficina_id")
+    private Oficina oficina;
 
     /**
      * ID da Ordem de Serviço relacionada.
@@ -255,5 +265,19 @@ public class NotaFiscal implements Serializable {
      */
     public boolean podeCancelar() {
         return status == StatusNotaFiscal.AUTORIZADA;
+    }
+
+    /**
+     * Define oficina automaticamente via TenantContext antes de persistir.
+     * Executado automaticamente pelo JPA lifecycle.
+     */
+    @PrePersist
+    protected void setOficinaFromContext() {
+        if (this.oficina == null && TenantContext.isSet()) {
+            UUID tenantId = TenantContext.getTenantId();
+            Oficina oficina = new Oficina();
+            oficina.setId(tenantId);
+            this.oficina = oficina;
+        }
     }
 }

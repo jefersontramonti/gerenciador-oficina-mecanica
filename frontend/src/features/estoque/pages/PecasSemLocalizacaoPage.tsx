@@ -47,8 +47,8 @@ export const PecasSemLocalizacaoPage = () => {
       {/* Header */}
       <div>
         <div className="flex items-center gap-3 mb-2">
-          <div className="rounded-full bg-orange-100 p-2">
-            <MapPinOff className="h-6 w-6 text-orange-600" />
+          <div className="rounded-full bg-orange-100 dark:bg-orange-950/40 p-2">
+            <MapPinOff className="h-6 w-6 text-orange-600 dark:text-orange-400" />
           </div>
           <h1 className="text-3xl font-bold">Peças Sem Localização</h1>
         </div>
@@ -59,14 +59,14 @@ export const PecasSemLocalizacaoPage = () => {
 
       {/* Alert Banner */}
       {pecas.length > 0 && (
-        <div className="rounded-lg border border-orange-200 bg-orange-50 p-4">
+        <div className="rounded-lg border border-orange-200 dark:border-orange-800 bg-orange-50 dark:bg-orange-950/30 p-4">
           <div className="flex items-start gap-3">
-            <MapPinOff className="h-5 w-5 text-orange-600 mt-0.5" />
+            <MapPinOff className="h-5 w-5 text-orange-600 dark:text-orange-400 mt-0.5" />
             <div className="flex-1">
-              <h3 className="font-semibold text-orange-900">
+              <h3 className="font-semibold text-orange-900 dark:text-orange-200">
                 {pecas.length} {pecas.length === 1 ? 'peça sem localização' : 'peças sem localização'}
               </h3>
-              <p className="text-sm text-orange-800 mt-1">
+              <p className="text-sm text-orange-800 dark:text-orange-300 mt-1">
                 Defina locais de armazenamento para facilitar a organização e localização das peças
               </p>
             </div>
@@ -82,8 +82,8 @@ export const PecasSemLocalizacaoPage = () => {
           </div>
         ) : pecas.length === 0 ? (
           <div className="text-center py-12 px-4">
-            <div className="rounded-full bg-green-100 w-16 h-16 flex items-center justify-center mx-auto mb-4">
-              <Package className="h-8 w-8 text-green-600" />
+            <div className="rounded-full bg-green-100 dark:bg-green-950/40 w-16 h-16 flex items-center justify-center mx-auto mb-4">
+              <Package className="h-8 w-8 text-green-600 dark:text-green-400" />
             </div>
             <h3 className="text-lg font-semibold mb-2">Todas as peças têm localização</h3>
             <p className="text-muted-foreground">
@@ -148,7 +148,7 @@ export const PecasSemLocalizacaoPage = () => {
                             />
                           </div>
                         ) : (
-                          <span className="text-sm text-orange-600 font-medium">Não definido</span>
+                          <span className="text-sm text-orange-600 dark:text-orange-400 font-medium">Não definido</span>
                         )}
                       </td>
                       <td className="p-4">
@@ -211,9 +211,9 @@ export const PecasSemLocalizacaoPage = () => {
       </div>
 
       {/* Help Text */}
-      <div className="rounded-lg border border-blue-200 bg-blue-50 p-4">
-        <h3 className="font-semibold text-blue-900 mb-2">Dica</h3>
-        <p className="text-sm text-blue-800">
+      <div className="rounded-lg border border-blue-200 dark:border-blue-800 bg-blue-50 dark:bg-blue-950/30 p-4">
+        <h3 className="font-semibold text-blue-900 dark:text-blue-200 mb-2">Dica</h3>
+        <p className="text-sm text-blue-800 dark:text-blue-300">
           Você também pode definir o local de armazenamento ao editar uma peça individualmente
           ou ao criar uma nova peça.
         </p>

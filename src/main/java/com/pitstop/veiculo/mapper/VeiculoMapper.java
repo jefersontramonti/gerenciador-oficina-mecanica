@@ -23,10 +23,13 @@ public interface VeiculoMapper {
     /**
      * Converte VeiculoRequestDTO para entidade Veiculo.
      *
+     * <p>O campo oficina é auto-populado via @PrePersist JPA hook.</p>
+     *
      * @param request DTO de criação
      * @return entidade Veiculo
      */
     @Mapping(target = "id", ignore = true)
+    @Mapping(target = "oficina", ignore = true)
     @Mapping(target = "createdAt", ignore = true)
     @Mapping(target = "updatedAt", ignore = true)
     Veiculo toEntity(VeiculoRequestDTO request);
@@ -34,12 +37,13 @@ public interface VeiculoMapper {
     /**
      * Atualiza entidade Veiculo existente com dados do VeiculoUpdateDTO.
      *
-     * <p>Campos não modificáveis (id, clienteId, placa) são ignorados.</p>
+     * <p>Campos não modificáveis (id, oficina, clienteId, placa) são ignorados.</p>
      *
      * @param request DTO de atualização
      * @param veiculo entidade existente a ser atualizada
      */
     @Mapping(target = "id", ignore = true)
+    @Mapping(target = "oficina", ignore = true)
     @Mapping(target = "clienteId", ignore = true)
     @Mapping(target = "placa", ignore = true)
     @Mapping(target = "createdAt", ignore = true)

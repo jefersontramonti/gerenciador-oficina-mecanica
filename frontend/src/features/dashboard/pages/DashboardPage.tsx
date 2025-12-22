@@ -36,8 +36,8 @@ export const DashboardPage = () => {
     <div className="p-6">
       {/* Header */}
       <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900">Dashboard</h1>
-        <p className="mt-2 text-gray-600">
+        <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Dashboard</h1>
+        <p className="mt-2 text-gray-600 dark:text-gray-300">
           Bem-vindo(a), <span className="font-medium">{user?.nome}</span>!
         </p>
       </div>

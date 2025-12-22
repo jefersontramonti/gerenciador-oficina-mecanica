@@ -65,7 +65,7 @@ export const MovimentacaoModal = ({
           schema: createEntradaSchema,
           mutation: registrarEntrada,
           title: 'Registrar Entrada de Estoque',
-          icon: <ArrowDownCircle className="h-5 w-5 text-green-600" />,
+          icon: <ArrowDownCircle className="h-5 w-5 text-green-600 dark:text-green-400" />,
           description: 'Adicione itens ao estoque',
         };
       case 'SAIDA':
@@ -73,7 +73,7 @@ export const MovimentacaoModal = ({
           schema: createSaidaSchema(peca.quantidadeAtual),
           mutation: registrarSaida,
           title: 'Registrar Saída de Estoque',
-          icon: <ArrowUpCircle className="h-5 w-5 text-red-600" />,
+          icon: <ArrowUpCircle className="h-5 w-5 text-red-600 dark:text-red-400" />,
           description: 'Remova itens do estoque',
         };
       case 'AJUSTE':
@@ -81,7 +81,7 @@ export const MovimentacaoModal = ({
           schema: createAjusteSchema,
           mutation: registrarAjuste,
           title: 'Ajustar Inventário',
-          icon: <Settings className="h-5 w-5 text-yellow-600" />,
+          icon: <Settings className="h-5 w-5 text-yellow-600 dark:text-yellow-400" />,
           description: 'Corrija a quantidade em estoque',
         };
     }
@@ -195,8 +195,8 @@ export const MovimentacaoModal = ({
                 <p className="text-sm text-destructive">{errors.quantidade?.message}</p>
               )}
               {tipo === 'SAIDA' && quantidade && quantidade > peca.quantidadeAtual && (
-                <div className="bg-red-50 border border-red-200 rounded-md p-2">
-                  <p className="text-xs text-red-800 font-medium">
+                <div className="bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-800 rounded-md p-2">
+                  <p className="text-xs text-red-800 dark:text-red-300 font-medium">
                     ⚠️ Estoque insuficiente! Disponível: {peca.quantidadeAtual}
                   </p>
                 </div>
@@ -221,9 +221,9 @@ export const MovimentacaoModal = ({
                   <span
                     className={
                       diferencaAjuste > 0
-                        ? 'text-green-600 font-medium'
+                        ? 'text-green-600 dark:text-green-400 font-medium'
                         : diferencaAjuste < 0
-                        ? 'text-red-600 font-medium'
+                        ? 'text-red-600 dark:text-red-400 font-medium'
                         : 'font-medium'
                     }
                   >
@@ -297,8 +297,8 @@ export const MovimentacaoModal = ({
 
           {/* Error Alert */}
           {submitError && (
-            <div className="bg-red-50 border border-red-200 rounded-md p-3">
-              <p className="text-sm text-red-800 font-medium">{submitError}</p>
+            <div className="bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-800 rounded-md p-3">
+              <p className="text-sm text-red-800 dark:text-red-300 font-medium">{submitError}</p>
             </div>
           )}
 
@@ -312,10 +312,10 @@ export const MovimentacaoModal = ({
               disabled={isSubmitting}
               className={
                 tipo === 'ENTRADA'
-                  ? 'bg-green-600 hover:bg-green-700'
+                  ? 'bg-green-600 hover:bg-green-700 dark:bg-green-700 dark:hover:bg-green-600'
                   : tipo === 'SAIDA'
-                  ? 'bg-red-600 hover:bg-red-700'
-                  : 'bg-yellow-600 hover:bg-yellow-700'
+                  ? 'bg-red-600 hover:bg-red-700 dark:bg-red-700 dark:hover:bg-red-600'
+                  : 'bg-yellow-600 hover:bg-yellow-700 dark:bg-yellow-700 dark:hover:bg-yellow-600'
               }
             >
               {isSubmitting ? 'Salvando...' : 'Confirmar'}

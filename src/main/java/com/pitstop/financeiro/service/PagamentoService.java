@@ -9,6 +9,7 @@ import com.pitstop.financeiro.dto.PagamentoResponseDTO;
 import com.pitstop.financeiro.mapper.PagamentoMapper;
 import com.pitstop.financeiro.repository.PagamentoRepository;
 import com.pitstop.shared.exception.ResourceNotFoundException;
+import com.pitstop.shared.security.tenant.TenantContext;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -64,7 +65,8 @@ public class PagamentoService {
      */
     @Transactional(readOnly = true)
     public PagamentoResponseDTO buscarPorId(UUID id) {
-        Pagamento pagamento = pagamentoRepository.findById(id)
+        UUID oficinaId = TenantContext.getTenantId();
+        Pagamento pagamento = pagamentoRepository.findByOficinaIdAndId(oficinaId, id)
             .orElseThrow(() -> new ResourceNotFoundException("Pagamento não encontrado com ID: " + id));
 
         return pagamentoMapper.toResponseDTO(pagamento);
@@ -78,7 +80,8 @@ public class PagamentoService {
      */
     @Transactional(readOnly = true)
     public Page<PagamentoResponseDTO> listar(Pageable pageable) {
-        return pagamentoRepository.findAll(pageable)
+        UUID oficinaId = TenantContext.getTenantId();
+        return pagamentoRepository.findByOficinaId(oficinaId, pageable)
             .map(pagamentoMapper::toResponseDTO);
     }
 
@@ -90,7 +93,8 @@ public class PagamentoService {
      */
     @Transactional(readOnly = true)
     public List<PagamentoResponseDTO> buscarPorOrdemServico(UUID ordemServicoId) {
-        return pagamentoRepository.findByOrdemServicoId(ordemServicoId)
+        UUID oficinaId = TenantContext.getTenantId();
+        return pagamentoRepository.findByOficinaIdAndOrdemServicoId(oficinaId, ordemServicoId)
             .stream()
             .map(pagamentoMapper::toResponseDTO)
             .toList();
@@ -114,9 +118,10 @@ public class PagamentoService {
         LocalDateTime dataFim,
         Pageable pageable
     ) {
+        UUID oficinaId = TenantContext.getTenantId();
         String statusStr = status != null ? status.name() : null;
 
-        return pagamentoRepository.findByFiltros(tipo, statusStr, dataInicio, dataFim, pageable)
+        return pagamentoRepository.findByFiltros(oficinaId, tipo, statusStr, dataInicio, dataFim, pageable)
             .map(pagamentoMapper::toResponseDTO);
     }
 
@@ -131,7 +136,8 @@ public class PagamentoService {
     public PagamentoResponseDTO confirmar(UUID id, ConfirmarPagamentoDTO dto) {
         log.info("Confirmando pagamento ID: {}", id);
 
-        Pagamento pagamento = pagamentoRepository.findById(id)
+        UUID oficinaId = TenantContext.getTenantId();
+        Pagamento pagamento = pagamentoRepository.findByOficinaIdAndId(oficinaId, id)
             .orElseThrow(() -> new ResourceNotFoundException("Pagamento não encontrado com ID: " + id));
 
         pagamento.confirmar(dto.dataPagamento());
@@ -155,7 +161,8 @@ public class PagamentoService {
     public void cancelar(UUID id) {
         log.info("Cancelando pagamento ID: {}", id);
 
-        Pagamento pagamento = pagamentoRepository.findById(id)
+        UUID oficinaId = TenantContext.getTenantId();
+        Pagamento pagamento = pagamentoRepository.findByOficinaIdAndId(oficinaId, id)
             .orElseThrow(() -> new ResourceNotFoundException("Pagamento não encontrado com ID: " + id));
 
         pagamento.cancelar();
@@ -173,7 +180,8 @@ public class PagamentoService {
     public void estornar(UUID id) {
         log.info("Estornando pagamento ID: {}", id);
 
-        Pagamento pagamento = pagamentoRepository.findById(id)
+        UUID oficinaId = TenantContext.getTenantId();
+        Pagamento pagamento = pagamentoRepository.findByOficinaIdAndId(oficinaId, id)
             .orElseThrow(() -> new ResourceNotFoundException("Pagamento não encontrado com ID: " + id));
 
         pagamento.estornar();
@@ -190,7 +198,8 @@ public class PagamentoService {
      */
     @Transactional(readOnly = true)
     public BigDecimal calcularTotalPago(UUID ordemServicoId) {
-        return pagamentoRepository.calcularTotalPago(ordemServicoId);
+        UUID oficinaId = TenantContext.getTenantId();
+        return pagamentoRepository.calcularTotalPago(oficinaId, ordemServicoId);
     }
 
     /**
@@ -201,7 +210,8 @@ public class PagamentoService {
      */
     @Transactional(readOnly = true)
     public BigDecimal calcularTotalPendente(UUID ordemServicoId) {
-        return pagamentoRepository.calcularTotalPendente(ordemServicoId);
+        UUID oficinaId = TenantContext.getTenantId();
+        return pagamentoRepository.calcularTotalPendente(oficinaId, ordemServicoId);
     }
 
     /**
@@ -212,7 +222,8 @@ public class PagamentoService {
      */
     @Transactional(readOnly = true)
     public boolean isOrdemServicoQuitada(UUID ordemServicoId) {
-        return pagamentoRepository.isOrdemServicoQuitada(ordemServicoId);
+        UUID oficinaId = TenantContext.getTenantId();
+        return pagamentoRepository.isOrdemServicoQuitada(oficinaId, ordemServicoId);
     }
 
     /**
@@ -222,7 +233,8 @@ public class PagamentoService {
     public void atualizarVencidos() {
         log.info("Atualizando status de pagamentos vencidos");
 
-        Page<Pagamento> vencidos = pagamentoRepository.findVencidos(LocalDate.now(), Pageable.unpaged());
+        UUID oficinaId = TenantContext.getTenantId();
+        Page<Pagamento> vencidos = pagamentoRepository.findVencidos(oficinaId, LocalDate.now(), Pageable.unpaged());
 
         vencidos.forEach(pagamento -> {
             pagamento.marcarComoVencido();

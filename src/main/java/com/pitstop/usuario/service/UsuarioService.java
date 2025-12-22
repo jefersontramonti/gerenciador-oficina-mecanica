@@ -1,5 +1,6 @@
 package com.pitstop.usuario.service;
 
+import com.pitstop.shared.security.tenant.TenantContext;
 import com.pitstop.usuario.domain.PerfilUsuario;
 import com.pitstop.usuario.domain.Usuario;
 import com.pitstop.usuario.dto.CreateUsuarioRequest;
@@ -60,7 +61,10 @@ public class UsuarioService {
     public UsuarioResponse create(CreateUsuarioRequest request) {
         log.debug("Criando novo usuário com email: {}", request.email());
 
+        UUID oficinaId = TenantContext.getTenantId();
+
         // Validar email único (case-insensitive)
+        // Email é globalmente único (não filtra por oficinaId)
         String emailNormalizado = StringUtils.hasText(request.email())
                 ? request.email().trim().toLowerCase()
                 : request.email();
@@ -96,7 +100,8 @@ public class UsuarioService {
     public UsuarioResponse findById(UUID id) {
         log.debug("Buscando usuário por ID: {}", id);
 
-        Usuario usuario = usuarioRepository.findById(id)
+        UUID oficinaId = TenantContext.getTenantId();
+        Usuario usuario = usuarioRepository.findByOficinaIdAndId(oficinaId, id)
                 .orElseThrow(() -> {
                     log.warn("Usuário não encontrado com ID: {}", id);
                     return new UsuarioNotFoundException(id);
@@ -139,7 +144,8 @@ public class UsuarioService {
         log.debug("Listando usuários com paginação: page={}, size={}",
                 pageable.getPageNumber(), pageable.getPageSize());
 
-        return usuarioRepository.findAll(pageable)
+        UUID oficinaId = TenantContext.getTenantId();
+        return usuarioRepository.findByOficinaId(oficinaId, pageable)
                 .map(usuarioMapper::toResponse);
     }
 
@@ -153,7 +159,8 @@ public class UsuarioService {
     public List<UsuarioResponse> findByPerfil(PerfilUsuario perfil) {
         log.debug("Buscando usuários com perfil: {}", perfil);
 
-        return usuarioRepository.findByPerfil(perfil).stream()
+        UUID oficinaId = TenantContext.getTenantId();
+        return usuarioRepository.findByOficinaIdAndPerfil(oficinaId, perfil).stream()
                 .map(usuarioMapper::toResponse)
                 .toList();
     }
@@ -167,7 +174,8 @@ public class UsuarioService {
     public List<UsuarioResponse> findAllAtivos() {
         log.debug("Buscando todos os usuários ativos");
 
-        return usuarioRepository.findByAtivoTrue().stream()
+        UUID oficinaId = TenantContext.getTenantId();
+        return usuarioRepository.findByOficinaIdAndAtivoTrue(oficinaId).stream()
                 .map(usuarioMapper::toResponse)
                 .toList();
     }
@@ -194,7 +202,8 @@ public class UsuarioService {
     public UsuarioResponse update(UUID id, UpdateUsuarioRequest request) {
         log.debug("Atualizando usuário ID: {}", id);
 
-        Usuario usuario = usuarioRepository.findById(id)
+        UUID oficinaId = TenantContext.getTenantId();
+        Usuario usuario = usuarioRepository.findByOficinaIdAndId(oficinaId, id)
                 .orElseThrow(() -> {
                     log.warn("Usuário não encontrado para atualização. ID: {}", id);
                     return new UsuarioNotFoundException(id);
@@ -204,7 +213,7 @@ public class UsuarioService {
         if (StringUtils.hasText(request.email())) {
             String emailNormalizado = request.email().trim().toLowerCase();
 
-            // Verificar se o email mudou e se já está em uso
+            // Verificar se o email mudou e se já está em uso (email é globalmente único)
             if (!usuario.getEmail().equalsIgnoreCase(emailNormalizado)) {
                 if (usuarioRepository.existsByEmailIgnoreCase(emailNormalizado)) {
                     log.warn("Tentativa de atualizar para email duplicado: {}", emailNormalizado);
@@ -222,7 +231,7 @@ public class UsuarioService {
         // Validar desativação do último admin
         if (request.ativo() != null && !request.ativo()) {
             if (usuario.getPerfil() == PerfilUsuario.ADMIN) {
-                long adminsAtivos = usuarioRepository.countAdminsAtivos();
+                long adminsAtivos = usuarioRepository.countAdminsAtivos(oficinaId);
                 if (adminsAtivos <= 1) {
                     log.warn("Tentativa de desativar o último administrador ativo. ID: {}", id);
                     throw new CannotDeleteLastAdminException();
@@ -257,7 +266,8 @@ public class UsuarioService {
     public void delete(UUID id) {
         log.debug("Desativando usuário ID: {}", id);
 
-        Usuario usuario = usuarioRepository.findById(id)
+        UUID oficinaId = TenantContext.getTenantId();
+        Usuario usuario = usuarioRepository.findByOficinaIdAndId(oficinaId, id)
                 .orElseThrow(() -> {
                     log.warn("Usuário não encontrado para desativação. ID: {}", id);
                     return new UsuarioNotFoundException(id);
@@ -265,7 +275,7 @@ public class UsuarioService {
 
         // Validar se não é o último admin ativo
         if (usuario.getPerfil() == PerfilUsuario.ADMIN && usuario.getAtivo()) {
-            long adminsAtivos = usuarioRepository.countAdminsAtivos();
+            long adminsAtivos = usuarioRepository.countAdminsAtivos(oficinaId);
             if (adminsAtivos <= 1) {
                 log.warn("Tentativa de desativar o último administrador ativo. ID: {}", id);
                 throw new CannotDeleteLastAdminException();
@@ -290,7 +300,8 @@ public class UsuarioService {
     public UsuarioResponse reactivate(UUID id) {
         log.debug("Reativando usuário ID: {}", id);
 
-        Usuario usuario = usuarioRepository.findById(id)
+        UUID oficinaId = TenantContext.getTenantId();
+        Usuario usuario = usuarioRepository.findByOficinaIdAndId(oficinaId, id)
                 .orElseThrow(() -> {
                     log.warn("Usuário não encontrado para reativação. ID: {}", id);
                     return new UsuarioNotFoundException(id);

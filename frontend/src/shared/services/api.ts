@@ -14,37 +14,21 @@ export const api = axios.create({
   timeout: 30000, // 30 seconds
 });
 
-// Token management with localStorage persistence
-const TOKEN_STORAGE_KEY = 'pitstop_access_token';
-
+/**
+ * SECURITY: Token management in memory only
+ *
+ * Access token is stored ONLY in memory (this variable) to prevent XSS attacks.
+ * Refresh token is stored in HttpOnly cookie (managed by backend) to prevent XSS.
+ *
+ * Trade-off: User will be logged out on page refresh/tab close.
+ * Solution: Use refresh token to automatically re-authenticate on app init.
+ *
+ * @see https://owasp.org/www-community/vulnerabilities/Cross_Site_Scripting
+ */
 let accessToken: string | null = null;
-
-// Load token from localStorage on app init
-const loadTokenFromStorage = (): string | null => {
-  try {
-    return localStorage.getItem(TOKEN_STORAGE_KEY);
-  } catch (error) {
-    console.error('Error loading token from localStorage:', error);
-    return null;
-  }
-};
-
-// Initialize token from storage
-accessToken = loadTokenFromStorage();
 
 export const setAccessToken = (token: string | null) => {
   accessToken = token;
-
-  // Persist to localStorage
-  try {
-    if (token) {
-      localStorage.setItem(TOKEN_STORAGE_KEY, token);
-    } else {
-      localStorage.removeItem(TOKEN_STORAGE_KEY);
-    }
-  } catch (error) {
-    console.error('Error saving token to localStorage:', error);
-  }
 };
 
 export const getAccessToken = () => accessToken;
@@ -98,7 +82,12 @@ api.interceptors.response.use(
     };
 
     // Handle 401 Unauthorized - Token expired
-    if (error.response?.status === 401 && !originalRequest._retry) {
+    // Skip refresh if this IS the refresh endpoint to avoid infinite loops
+    if (
+      error.response?.status === 401 &&
+      !originalRequest._retry &&
+      originalRequest.url !== '/auth/refresh'
+    ) {
       if (isRefreshing) {
         // Queue the request while token is being refreshed
         return new Promise((resolve, reject) => {

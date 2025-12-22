@@ -14,6 +14,41 @@ Este arquivo fornece orientações para o Claude Code ao trabalhar no frontend d
 - **Tailwind CSS 4.0** - Estilização
 - **Lucide React** - Ícones
 
+## 🔐 Segurança
+
+**IMPORTANTE:** Leia `SECURITY.md` para detalhes completos sobre segurança.
+
+### Armazenamento de Tokens
+
+✅ **Access Token:** Armazenado APENAS em memória (variável JavaScript)
+✅ **Refresh Token:** Armazenado em HttpOnly cookie (gerenciado pelo backend)
+❌ **NUNCA** armazene tokens em localStorage ou sessionStorage
+
+```typescript
+// ❌ NUNCA FAÇA ISSO
+localStorage.setItem('token', accessToken);
+
+// ✅ Use as funções fornecidas
+import { setAccessToken, getAccessToken } from '@/shared/services/api';
+setAccessToken(token); // Armazena apenas em memória
+```
+
+### Auto-Autenticação
+
+O app tenta restaurar a sessão automaticamente usando o refresh token:
+
+```typescript
+// Executado no AuthInitializer na inicialização do app
+dispatch(initializeAuth());
+// Tenta refresh token → Se sucesso, busca perfil do usuário
+```
+
+### Proteção XSS
+
+- Access token em memória = inacessível a scripts XSS
+- Refresh token em HttpOnly cookie = inacessível a JavaScript
+- User data em localStorage = apenas dados públicos (nome, email, perfil)
+
 ## Estrutura do Projeto
 
 ```

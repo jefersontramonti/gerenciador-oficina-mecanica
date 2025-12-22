@@ -22,6 +22,7 @@ import { cn } from '@/shared/utils/cn';
 import { useWebSocket } from '@/shared/hooks/useWebSocket';
 import { WebSocketNotificationHandler } from '@/shared/components/WebSocketNotificationHandler';
 import { useContadorEstoqueBaixo } from '@/features/estoque/hooks/usePecas';
+import { ThemeToggle } from '@/shared/components/common';
 
 interface NavigationItem {
   name: string;
@@ -138,17 +139,17 @@ export const MainLayout = () => {
   };
 
   return (
-    <div className="flex h-screen bg-gray-100">
+    <div className="flex h-screen bg-gray-100 dark:bg-gray-900">
       {/* WebSocket notification handler - invisible component */}
       <WebSocketNotificationHandler />
 
       {/* Sidebar - Desktop */}
-      <aside className="hidden w-64 flex-col border-r border-gray-200 bg-white lg:flex">
-        <div className="flex h-16 items-center gap-2 border-b border-gray-200 px-6">
-          <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary-600">
+      <aside className="hidden w-64 flex-col border-r border-gray-200 bg-white dark:border-gray-700 dark:bg-gray-800 lg:flex">
+        <div className="flex h-16 items-center gap-2 border-b border-gray-200 px-6 dark:border-gray-700">
+          <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary-600 dark:bg-primary-500">
             <Wrench className="h-6 w-6 text-white" />
           </div>
-          <span className="text-xl font-bold text-gray-900">PitStop</span>
+          <span className="text-xl font-bold text-gray-900 dark:text-white">PitStop</span>
         </div>
 
         <nav className="flex-1 space-y-1 overflow-y-auto p-4">
@@ -163,14 +164,14 @@ export const MainLayout = () => {
                 className={cn(
                   'flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors',
                   isActive
-                    ? 'bg-primary-50 text-primary-700'
-                    : 'text-gray-700 hover:bg-gray-50 hover:text-gray-900'
+                    ? 'bg-primary-50 text-primary-700 dark:bg-primary-900/30 dark:text-primary-400'
+                    : 'text-gray-700 hover:bg-gray-50 hover:text-gray-900 dark:text-gray-300 dark:hover:bg-gray-700 dark:hover:text-white'
                 )}
               >
                 <item.icon className="h-5 w-5" />
                 <span className="flex-1">{item.name}</span>
                 {showBadge && (
-                  <span className="inline-flex items-center justify-center rounded-full bg-orange-100 px-2 py-0.5 text-xs font-medium text-orange-800">
+                  <span className="inline-flex items-center justify-center rounded-full bg-orange-100 px-2 py-0.5 text-xs font-medium text-orange-800 dark:bg-orange-900/30 dark:text-orange-400">
                     {contadorEstoqueBaixo}
                   </span>
                 )}
@@ -179,19 +180,19 @@ export const MainLayout = () => {
           })}
         </nav>
 
-        <div className="border-t border-gray-200 p-4">
+        <div className="border-t border-gray-200 p-4 dark:border-gray-700">
           <div className="mb-3 flex items-center gap-3 px-3">
-            <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary-100 text-sm font-medium text-primary-700">
+            <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary-100 text-sm font-medium text-primary-700 dark:bg-primary-900/30 dark:text-primary-400">
               {user?.nome.charAt(0).toUpperCase()}
             </div>
             <div className="flex-1 min-w-0">
-              <p className="truncate text-sm font-medium text-gray-900">{user?.nome}</p>
-              <p className="truncate text-xs text-gray-500">{user?.perfil}</p>
+              <p className="truncate text-sm font-medium text-gray-900 dark:text-white">{user?.nome}</p>
+              <p className="truncate text-xs text-gray-500 dark:text-gray-400">{user?.perfil}</p>
             </div>
           </div>
           <button
             onClick={handleLogout}
-            className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50 hover:text-gray-900"
+            className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50 hover:text-gray-900 dark:text-gray-300 dark:hover:bg-gray-700 dark:hover:text-white"
           >
             <LogOut className="h-5 w-5" />
             Sair
@@ -203,20 +204,20 @@ export const MainLayout = () => {
       {sidebarOpen && (
         <div className="fixed inset-0 z-50 lg:hidden">
           <div
-            className="fixed inset-0 bg-gray-900/50"
+            className="fixed inset-0 bg-gray-900/50 dark:bg-gray-950/70"
             onClick={() => setSidebarOpen(false)}
           />
-          <aside className="fixed inset-y-0 left-0 w-64 bg-white">
-            <div className="flex h-16 items-center justify-between border-b border-gray-200 px-6">
+          <aside className="fixed inset-y-0 left-0 w-64 bg-white dark:bg-gray-800">
+            <div className="flex h-16 items-center justify-between border-b border-gray-200 px-6 dark:border-gray-700">
               <div className="flex items-center gap-2">
-                <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary-600">
+                <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary-600 dark:bg-primary-500">
                   <Wrench className="h-6 w-6 text-white" />
                 </div>
-                <span className="text-xl font-bold text-gray-900">PitStop</span>
+                <span className="text-xl font-bold text-gray-900 dark:text-white">PitStop</span>
               </div>
               <button
                 onClick={() => setSidebarOpen(false)}
-                className="rounded-lg p-1 hover:bg-gray-100"
+                className="rounded-lg p-1 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700"
               >
                 <X className="h-6 w-6" />
               </button>
@@ -235,14 +236,14 @@ export const MainLayout = () => {
                     className={cn(
                       'flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors',
                       isActive
-                        ? 'bg-primary-50 text-primary-700'
-                        : 'text-gray-700 hover:bg-gray-50 hover:text-gray-900'
+                        ? 'bg-primary-50 text-primary-700 dark:bg-primary-900/30 dark:text-primary-400'
+                        : 'text-gray-700 hover:bg-gray-50 hover:text-gray-900 dark:text-gray-300 dark:hover:bg-gray-700 dark:hover:text-white'
                     )}
                   >
                     <item.icon className="h-5 w-5" />
                     <span className="flex-1">{item.name}</span>
                     {showBadge && (
-                      <span className="inline-flex items-center justify-center rounded-full bg-orange-100 px-2 py-0.5 text-xs font-medium text-orange-800">
+                      <span className="inline-flex items-center justify-center rounded-full bg-orange-100 px-2 py-0.5 text-xs font-medium text-orange-800 dark:bg-orange-900/30 dark:text-orange-400">
                         {contadorEstoqueBaixo}
                       </span>
                     )}
@@ -251,10 +252,10 @@ export const MainLayout = () => {
               })}
             </nav>
 
-            <div className="absolute bottom-0 left-0 right-0 border-t border-gray-200 p-4">
+            <div className="absolute bottom-0 left-0 right-0 border-t border-gray-200 p-4 dark:border-gray-700">
               <button
                 onClick={handleLogout}
-                className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50 hover:text-gray-900"
+                className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50 hover:text-gray-900 dark:text-gray-300 dark:hover:bg-gray-700 dark:hover:text-white"
               >
                 <LogOut className="h-5 w-5" />
                 Sair
@@ -267,35 +268,39 @@ export const MainLayout = () => {
       {/* Main Content */}
       <div className="flex flex-1 flex-col overflow-hidden">
         {/* Header */}
-        <header className="flex h-16 items-center justify-between border-b border-gray-200 bg-white px-6">
+        <header className="flex h-16 items-center justify-between border-b border-gray-200 bg-white px-6 dark:border-gray-700 dark:bg-gray-800">
           <button
             onClick={() => setSidebarOpen(true)}
-            className="rounded-lg p-2 hover:bg-gray-100 lg:hidden"
+            className="rounded-lg p-2 text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700 lg:hidden"
           >
             <Menu className="h-6 w-6" />
           </button>
 
           <div className="hidden lg:block">
-            <h2 className="text-lg font-semibold text-gray-900">
+            <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
               {navigation.find((item) => item.href === location.pathname)?.name || 'Dashboard'}
             </h2>
           </div>
 
-          <div className="flex items-center gap-3 lg:hidden">
-            <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary-100 text-sm font-medium text-primary-700">
+          <div className="flex items-center gap-2 lg:hidden">
+            <ThemeToggle size="small" />
+            <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary-100 text-sm font-medium text-primary-700 dark:bg-primary-900/30 dark:text-primary-400">
               {user?.nome.charAt(0).toUpperCase()}
             </div>
           </div>
 
-          <div className="hidden items-center gap-4 lg:flex">
+          <div className="hidden items-center gap-3 lg:flex">
+            {/* Theme toggle */}
+            <ThemeToggle />
+
             {/* WebSocket connection status indicator */}
             {isConnected ? (
-              <div className="flex items-center gap-2 rounded-lg bg-green-50 px-3 py-1.5 text-xs font-medium text-green-700">
-                <div className="h-2 w-2 animate-pulse rounded-full bg-green-500" />
+              <div className="flex items-center gap-2 rounded-lg bg-green-50 px-3 py-1.5 text-xs font-medium text-green-700 dark:bg-green-900/20 dark:text-green-400">
+                <div className="h-2 w-2 animate-pulse rounded-full bg-green-500 dark:bg-green-400" />
                 <span>Tempo real ativo</span>
               </div>
             ) : (
-              <div className="flex items-center gap-2 rounded-lg bg-gray-50 px-3 py-1.5 text-xs font-medium text-gray-500">
+              <div className="flex items-center gap-2 rounded-lg bg-gray-50 px-3 py-1.5 text-xs font-medium text-gray-500 dark:bg-gray-800 dark:text-gray-400">
                 <div className="h-2 w-2 rounded-full bg-gray-400" />
                 <span>Offline</span>
               </div>

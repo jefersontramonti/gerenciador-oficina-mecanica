@@ -1,6 +1,7 @@
 package com.pitstop.config;
 
 import com.pitstop.shared.security.JwtAuthenticationFilter;
+import com.pitstop.shared.security.tenant.TenantFilter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -27,19 +28,23 @@ import java.util.List;
  * <p>Configures:
  * <ul>
  *   <li><b>JWT authentication</b>: Stateless authentication via JWT tokens</li>
+ *   <li><b>Multi-tenancy</b>: Row-level tenant isolation via TenantFilter</li>
  *   <li><b>CORS</b>: Cross-Origin Resource Sharing for frontend (React/Vite)</li>
  *   <li><b>Authorization</b>: Role-Based Access Control (RBAC) via @PreAuthorize</li>
  *   <li><b>Password encoding</b>: BCrypt with 12 rounds</li>
  * </ul>
  *
- * <p><b>Security flow:</b>
+ * <p><b>Security & Multi-Tenancy Flow:</b>
  * <ol>
  *   <li>Request arrives at server</li>
  *   <li>CORS filter checks if origin is allowed</li>
  *   <li>JwtAuthenticationFilter extracts and validates JWT token</li>
  *   <li>If valid, populates SecurityContext with authenticated user</li>
+ *   <li><b>TenantFilter extracts oficinaId from JWT and sets TenantContext</b></li>
  *   <li>Spring Security checks @PreAuthorize annotations on controllers</li>
  *   <li>If authorized, request reaches controller method</li>
+ *   <li>Services/Repositories use TenantContext.getTenantId() for data isolation</li>
+ *   <li>TenantFilter clears context in finally block (prevents thread pollution)</li>
  * </ol>
  *
  * <p><b>Public endpoints (no authentication required):</b>
@@ -52,21 +57,17 @@ import java.util.List;
  *   <li>/actuator/health - Health check</li>
  * </ul>
  *
- * <p><b>Protected endpoints (authentication required):</b>
+ * <p><b>Protected endpoints (authentication + tenant isolation):</b>
  * <ul>
  *   <li>/api/auth/logout - User logout (requires valid JWT)</li>
  *   <li>/api/usuarios/** - User management (requires ADMIN role)</li>
- *   <li>All other /api/** endpoints</li>
+ *   <li>All other /api/** endpoints - Automatically filtered by oficinaId</li>
  * </ul>
  *
- * <p><b>Single-tenant note:</b>
- * Currently does not implement tenant isolation at security level.
- * When migrating to SaaS multi-tenant, consider:
- * <ul>
- *   <li>Extracting tenantId from JWT claims in JwtAuthenticationFilter</li>
- *   <li>Storing tenantId in SecurityContext or ThreadLocal</li>
- *   <li>Enforcing tenant isolation in service layer queries</li>
- * </ul>
+ * <p><b>Multi-tenancy implementation:</b>
+ * JWT tokens contain an "oficinaId" claim that identifies the tenant (oficina).
+ * Every database query is automatically filtered by this oficinaId to ensure
+ * complete data isolation between different oficinas in the SaaS model.
  */
 @Configuration
 @EnableWebSecurity
@@ -75,6 +76,7 @@ import java.util.List;
 public class SecurityConfig {
 
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
+    private final TenantFilter tenantFilter;
 
     /**
      * Configures the security filter chain.
@@ -105,7 +107,8 @@ public class SecurityConfig {
                                 "/api/auth/refresh",
                                 "/api/auth/forgot-password",
                                 "/api/auth/reset-password",
-                                "/api/admin/seed", // TODO: REMOVE IN PRODUCTION!
+                                "/api/public/**", // Public oficina registration
+                                "/api/admin/seed/**", // TODO: REMOVE IN PRODUCTION!
                                 "/api/health",
                                 "/api/debug/**",
                                 "/swagger-ui/**",
@@ -121,7 +124,10 @@ public class SecurityConfig {
                 )
 
                 // Add JWT filter before Spring Security's UsernamePasswordAuthenticationFilter
-                .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
+                .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
+
+                // Add Tenant filter after JWT filter (requires JWT to extract oficinaId)
+                .addFilterAfter(tenantFilter, JwtAuthenticationFilter.class);
 
         return http.build();
     }
@@ -146,7 +152,8 @@ public class SecurityConfig {
         // Allowed origins (frontend URLs)
         configuration.setAllowedOrigins(List.of(
                 "http://localhost:3000",
-                "http://localhost:5173"
+                "http://localhost:5173",
+                "http://localhost:5174"
                 // TODO: Add production frontend URL
         ));
 

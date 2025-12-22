@@ -81,7 +81,7 @@ export const DropdownMenuContent: React.FC<DropdownMenuContentProps> = ({
   return (
     <div
       ref={ref}
-      className={`absolute z-50 mt-2 w-56 rounded-md border border-gray-200 bg-white shadow-lg ${alignmentClasses[align]} ${className}`}
+      className={`absolute z-50 mt-2 w-56 rounded-md border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 shadow-lg ${alignmentClasses[align]} ${className}`}
     >
       <div className="py-1">{children}</div>
     </div>
@@ -103,7 +103,7 @@ export const DropdownMenuItem: React.FC<DropdownMenuItemProps> = ({
   return (
     <button
       onClick={handleClick}
-      className={`w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 ${className}`}
+      className={`w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 ${className}`}
     >
       {children}
     </button>
@@ -115,12 +115,12 @@ export const DropdownMenuLabel: React.FC<{ children: React.ReactNode; className?
   className = '',
 }) => {
   return (
-    <div className={`px-4 py-2 text-sm font-semibold text-gray-900 ${className}`}>
+    <div className={`px-4 py-2 text-sm font-semibold text-gray-900 dark:text-white ${className}`}>
       {children}
     </div>
   );
 };
 
 export const DropdownMenuSeparator: React.FC = () => {
-  return <div className="my-1 h-px bg-gray-200" />;
+  return <div className="my-1 h-px bg-gray-200 dark:bg-gray-700" />;
 };

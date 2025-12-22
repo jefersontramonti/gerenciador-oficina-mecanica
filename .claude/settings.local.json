@@ -11,7 +11,10 @@
       "Bash(npm run build:*)",
       "Bash(netstat:*)",
       "Bash(findstr:*)",
-      "Bash(./mvnw.cmd spring-boot:run)"
+      "Bash(./mvnw.cmd spring-boot:run)",
+      "Bash(cd:*)",
+      "Bash(./mvnw clean compile:*)",
+      "Bash(find:*)"
     ],
     "deny": [],
     "ask": []

@@ -241,8 +241,8 @@ export const getStockStatus = (
       status: 'ZERADO',
       label: 'ZERADO',
       color: 'red',
-      bgColor: 'bg-red-100',
-      textColor: 'text-red-800',
+      bgColor: 'bg-red-100 dark:bg-red-950/40',
+      textColor: 'text-red-800 dark:text-red-300',
     };
   }
 
@@ -251,8 +251,8 @@ export const getStockStatus = (
       status: 'BAIXO',
       label: 'ESTOQUE BAIXO',
       color: 'orange',
-      bgColor: 'bg-orange-100',
-      textColor: 'text-orange-800',
+      bgColor: 'bg-orange-100 dark:bg-orange-950/40',
+      textColor: 'text-orange-800 dark:text-orange-300',
     };
   }
 
@@ -261,8 +261,8 @@ export const getStockStatus = (
       status: 'ATENCAO',
       label: 'ATENÇÃO',
       color: 'yellow',
-      bgColor: 'bg-yellow-100',
-      textColor: 'text-yellow-800',
+      bgColor: 'bg-yellow-100 dark:bg-yellow-950/40',
+      textColor: 'text-yellow-800 dark:text-yellow-300',
     };
   }
 
@@ -270,8 +270,8 @@ export const getStockStatus = (
     status: 'OK',
     label: 'OK',
     color: 'green',
-    bgColor: 'bg-green-100',
-    textColor: 'text-green-800',
+    bgColor: 'bg-green-100 dark:bg-green-950/40',
+    textColor: 'text-green-800 dark:text-green-300',
   };
 };
 
@@ -280,8 +280,8 @@ export const getMargemLucroStatus = (margemLucro: number) => {
     return {
       label: 'Ótima',
       color: 'green',
-      bgColor: 'bg-green-100',
-      textColor: 'text-green-800',
+      bgColor: 'bg-green-100 dark:bg-green-950/40',
+      textColor: 'text-green-800 dark:text-green-300',
     };
   }
 
@@ -289,16 +289,16 @@ export const getMargemLucroStatus = (margemLucro: number) => {
     return {
       label: 'Boa',
       color: 'yellow',
-      bgColor: 'bg-yellow-100',
-      textColor: 'text-yellow-800',
+      bgColor: 'bg-yellow-100 dark:bg-yellow-950/40',
+      textColor: 'text-yellow-800 dark:text-yellow-300',
     };
   }
 
   return {
     label: 'Baixa',
     color: 'red',
-    bgColor: 'bg-red-100',
-    textColor: 'text-red-800',
+    bgColor: 'bg-red-100 dark:bg-red-950/40',
+    textColor: 'text-red-800 dark:text-red-300',
   };
 };
 

@@ -130,18 +130,18 @@ export const VeiculoAutocomplete: React.FC<VeiculoAutocompleteProps> = ({
 
   return (
     <div ref={wrapperRef} className="relative">
-      <label className="mb-1 block text-sm font-medium text-gray-700">
-        Veículo {required && <span className="text-red-600">*</span>}
+      <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
+        Veículo {required && <span className="text-red-600 dark:text-red-400">*</span>}
       </label>
 
       {/* Veículo selecionado */}
       {selectedVeiculo ? (
-        <div className="flex items-center justify-between rounded-lg border border-gray-300 bg-gray-50 px-3 py-2">
+        <div className="flex items-center justify-between rounded-lg border border-gray-300 bg-gray-50 px-3 py-2 dark:border-gray-600 dark:bg-gray-900">
           <div className="flex items-center gap-3">
-            <Car className="h-5 w-5 text-gray-400" />
+            <Car className="h-5 w-5 text-gray-400 dark:text-gray-500" />
             <div>
-              <p className="font-medium text-gray-900">{formatDisplay(selectedVeiculo)}</p>
-              <p className="text-xs text-gray-500">
+              <p className="font-medium text-gray-900 dark:text-white">{formatDisplay(selectedVeiculo)}</p>
+              <p className="text-xs text-gray-500 dark:text-gray-400">
                 Cliente: {selectedVeiculo.cliente.nome} - {selectedVeiculo.cliente.cpfCnpj}
               </p>
             </div>
@@ -149,7 +149,7 @@ export const VeiculoAutocomplete: React.FC<VeiculoAutocompleteProps> = ({
           <button
             type="button"
             onClick={handleClear}
-            className="rounded p-1 text-gray-400 hover:bg-gray-200 hover:text-gray-600"
+            className="rounded p-1 text-gray-400 hover:bg-gray-200 hover:text-gray-600 dark:hover:bg-gray-800 dark:hover:text-gray-300"
           >
             <X className="h-5 w-5" />
           </button>
@@ -163,22 +163,22 @@ export const VeiculoAutocomplete: React.FC<VeiculoAutocompleteProps> = ({
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               placeholder="Buscar por placa (ex: ABC1234)"
-              className={`w-full rounded-lg border px-3 py-2 pl-10 focus:outline-none focus:ring-2 ${
+              className={`w-full rounded-lg border px-3 py-2 pl-10 focus:outline-none focus:ring-2 dark:bg-gray-800 dark:text-white ${
                 error
-                  ? 'border-red-500 focus:border-red-500 focus:ring-red-500/20'
-                  : 'border-gray-300 focus:border-blue-500 focus:ring-blue-500/20'
+                  ? 'border-red-500 focus:border-red-500 focus:ring-red-500/20 dark:border-red-400 dark:focus:border-red-400'
+                  : 'border-gray-300 focus:border-blue-500 focus:ring-blue-500/20 dark:border-gray-600 dark:focus:border-blue-400'
               }`}
             />
-            <Search className="absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 text-gray-400" />
+            <Search className="absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 text-gray-400 dark:text-gray-500" />
           </div>
 
           {/* Dropdown de resultados */}
           {isOpen && (
-            <div className="absolute z-10 mt-1 max-h-60 w-full overflow-auto rounded-lg border border-gray-300 bg-white shadow-lg">
+            <div className="absolute z-10 mt-1 max-h-60 w-full overflow-auto rounded-lg border border-gray-300 bg-white shadow-lg dark:border-gray-700 dark:bg-gray-800">
               {isLoading ? (
-                <div className="p-3 text-center text-sm text-gray-500">Buscando...</div>
+                <div className="p-3 text-center text-sm text-gray-500 dark:text-gray-400">Buscando...</div>
               ) : veiculos.length === 0 ? (
-                <div className="p-3 text-center text-sm text-gray-500">
+                <div className="p-3 text-center text-sm text-gray-500 dark:text-gray-400">
                   {searchTerm.length < 2
                     ? 'Digite pelo menos 2 caracteres'
                     : 'Nenhum veículo encontrado'}
@@ -190,13 +190,13 @@ export const VeiculoAutocomplete: React.FC<VeiculoAutocompleteProps> = ({
                       <button
                         type="button"
                         onClick={() => handleSelect(veiculo)}
-                        className="w-full px-3 py-2 text-left hover:bg-blue-50"
+                        className="w-full px-3 py-2 text-left hover:bg-blue-50 dark:hover:bg-blue-900/30"
                       >
                         <div className="flex items-center gap-2">
-                          <Car className="h-4 w-4 text-gray-400" />
+                          <Car className="h-4 w-4 text-gray-400 dark:text-gray-500" />
                           <div>
-                            <p className="font-medium text-gray-900">{formatDisplay(veiculo)}</p>
-                            <p className="text-xs text-gray-500">
+                            <p className="font-medium text-gray-900 dark:text-white">{formatDisplay(veiculo)}</p>
+                            <p className="text-xs text-gray-500 dark:text-gray-400">
                               {veiculo.cliente.nome} - {veiculo.cliente.cpfCnpj}
                             </p>
                           </div>
@@ -211,7 +211,7 @@ export const VeiculoAutocomplete: React.FC<VeiculoAutocompleteProps> = ({
         </>
       )}
 
-      {error && <p className="mt-1 text-sm text-red-600">{error}</p>}
+      {error && <p className="mt-1 text-sm text-red-600 dark:text-red-400">{error}</p>}
     </div>
   );
 };

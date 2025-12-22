@@ -1,5 +1,7 @@
 package com.pitstop.usuario.domain;
 
+import com.pitstop.oficina.domain.Oficina;
+import com.pitstop.shared.security.tenant.TenantContext;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
@@ -43,6 +45,21 @@ public class Usuario {
     @Column(name = "id", updatable = false, nullable = false)
     private UUID id;
 
+    /**
+     * Oficina à qual este usuário pertence (multi-tenant).
+     *
+     * <p><b>Multi-Tenancy:</b> Todos os usuários normais (ADMIN, GERENTE, ATENDENTE, MECANICO)
+     * devem estar vinculados a uma oficina.</p>
+     *
+     * <p><b>SUPER_ADMIN:</b> Usuário especial do provedor SaaS que NÃO pertence a nenhuma oficina.
+     * Tem acesso apenas aos endpoints /api/saas/* para gerenciar todas as oficinas.</p>
+     *
+     * @see PerfilUsuario#SUPER_ADMIN
+     */
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "oficina_id", nullable = true)
+    private Oficina oficina;
+
     @NotBlank(message = "Nome é obrigatório")
     @Size(min = 3, max = 100, message = "Nome deve ter entre 3 e 100 caracteres")
     @Column(name = "nome", nullable = false, length = 100)
@@ -78,6 +95,34 @@ public class Usuario {
     @LastModifiedDate
     @Column(name = "updated_at", nullable = false)
     private LocalDateTime updatedAt;
+
+    /**
+     * Lifecycle callback - sets oficina from TenantContext if not explicitly set.
+     *
+     * <p><b>Regras de Negócio:</b></p>
+     * <ul>
+     *   <li>SUPER_ADMIN: oficina deve ser NULL (não pertence a nenhuma oficina)</li>
+     *   <li>Outros perfis: oficina é obrigatória (setada automaticamente do TenantContext)</li>
+     * </ul>
+     *
+     * <p>Called automatically before persist operation.</p>
+     */
+    @PrePersist
+    protected void prePersist() {
+        // SUPER_ADMIN não tem oficina (gerencia o SaaS, não uma oficina específica)
+        if (this.perfil == PerfilUsuario.SUPER_ADMIN) {
+            this.oficina = null;
+            return;
+        }
+
+        // Outros perfis devem ter oficina (multi-tenancy)
+        if (this.oficina == null && TenantContext.isSet()) {
+            UUID tenantId = TenantContext.getTenantId();
+            Oficina oficina = new Oficina();
+            oficina.setId(tenantId);
+            this.oficina = oficina;
+        }
+    }
 
     /**
      * Ativa o usuário no sistema.

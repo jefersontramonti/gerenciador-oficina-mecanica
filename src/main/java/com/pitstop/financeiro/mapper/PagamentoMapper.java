@@ -20,6 +20,8 @@ public interface PagamentoMapper {
     /**
      * Converte PagamentoRequestDTO para Pagamento.
      *
+     * <p>O campo oficina é auto-populado via @PrePersist JPA hook.</p>
+     *
      * @param dto DTO de entrada
      * @return entidade Pagamento
      */
@@ -28,6 +30,7 @@ public interface PagamentoMapper {
     @Mapping(target = "dataPagamento", ignore = true)
     @Mapping(target = "comprovante", ignore = true)
     @Mapping(target = "notaFiscalId", ignore = true)
+    @Mapping(target = "oficina", ignore = true) // Auto-populado via @PrePersist JPA hook
     @Mapping(target = "createdAt", ignore = true)
     @Mapping(target = "updatedAt", ignore = true)
     Pagamento toEntity(PagamentoRequestDTO dto);
@@ -43,6 +46,8 @@ public interface PagamentoMapper {
     /**
      * Atualiza entidade Pagamento com dados do DTO.
      *
+     * <p>O campo oficina é auto-populado via @PrePersist JPA hook.</p>
+     *
      * @param dto DTO de entrada
      * @param pagamento entidade a ser atualizada
      */
@@ -52,6 +57,7 @@ public interface PagamentoMapper {
     @Mapping(target = "dataPagamento", ignore = true)
     @Mapping(target = "comprovante", ignore = true)
     @Mapping(target = "notaFiscalId", ignore = true)
+    @Mapping(target = "oficina", ignore = true) // Auto-populado via @PrePersist JPA hook
     @Mapping(target = "createdAt", ignore = true)
     @Mapping(target = "updatedAt", ignore = true)
     void updateEntity(PagamentoRequestDTO dto, @MappingTarget Pagamento pagamento);

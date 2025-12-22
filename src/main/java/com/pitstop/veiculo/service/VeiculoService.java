@@ -3,6 +3,7 @@ package com.pitstop.veiculo.service;
 import com.pitstop.cliente.domain.Cliente;
 import com.pitstop.cliente.exception.ClienteNotFoundException;
 import com.pitstop.cliente.repository.ClienteRepository;
+import com.pitstop.shared.security.tenant.TenantContext;
 import com.pitstop.veiculo.domain.Veiculo;
 import com.pitstop.veiculo.dto.*;
 import com.pitstop.veiculo.exception.PlacaJaExisteException;
@@ -65,15 +66,17 @@ public class VeiculoService {
     public VeiculoResponseDTO create(VeiculoRequestDTO request) {
         log.info("Criando novo veículo: placa={}, clienteId={}", request.getPlaca(), request.getClienteId());
 
+        UUID oficinaId = TenantContext.getTenantId();
+
         // Valida se cliente existe
-        Cliente cliente = clienteRepository.findById(request.getClienteId())
+        Cliente cliente = clienteRepository.findByOficinaIdAndId(oficinaId, request.getClienteId())
             .orElseThrow(() -> new ClienteNotFoundException(request.getClienteId()));
 
         // Normaliza placa antes de validar unicidade
         String placaNormalizada = request.getPlaca().trim().toUpperCase().replace("-", "");
 
         // Valida unicidade da placa
-        if (veiculoRepository.existsByPlaca(placaNormalizada)) {
+        if (veiculoRepository.existsByOficinaIdAndPlaca(oficinaId, placaNormalizada)) {
             log.warn("Tentativa de criar veículo com placa duplicada: {}", placaNormalizada);
             throw new PlacaJaExisteException(request.getPlaca());
         }
@@ -103,7 +106,8 @@ public class VeiculoService {
     public VeiculoResponseDTO findById(UUID id) {
         log.debug("Buscando veículo por ID: {}", id);
 
-        Veiculo veiculo = veiculoRepository.findById(id)
+        UUID oficinaId = TenantContext.getTenantId();
+        Veiculo veiculo = veiculoRepository.findByOficinaIdAndId(oficinaId, id)
             .orElseThrow(() -> new VeiculoNotFoundException(id));
 
         VeiculoResponseDTO response = veiculoMapper.toResponse(veiculo);
@@ -124,9 +128,10 @@ public class VeiculoService {
     public VeiculoResponseDTO findByPlaca(String placa) {
         log.debug("Buscando veículo por placa: {}", placa);
 
+        UUID oficinaId = TenantContext.getTenantId();
         String placaNormalizada = placa.trim().toUpperCase().replace("-", "");
 
-        Veiculo veiculo = veiculoRepository.findByPlaca(placaNormalizada)
+        Veiculo veiculo = veiculoRepository.findByOficinaIdAndPlaca(oficinaId, placaNormalizada)
             .orElseThrow(() -> new VeiculoNotFoundException(placa));
 
         VeiculoResponseDTO response = veiculoMapper.toResponse(veiculo);
@@ -145,7 +150,8 @@ public class VeiculoService {
     public Page<VeiculoResponseDTO> findAll(Pageable pageable) {
         log.debug("Listando veículos: page={}, size={}", pageable.getPageNumber(), pageable.getPageSize());
 
-        return veiculoRepository.findAll(pageable)
+        UUID oficinaId = TenantContext.getTenantId();
+        return veiculoRepository.findByOficinaId(oficinaId, pageable)
             .map(veiculo -> {
                 VeiculoResponseDTO response = veiculoMapper.toResponse(veiculo);
                 enrichWithClienteData(response, veiculo.getClienteId());
@@ -165,11 +171,12 @@ public class VeiculoService {
     public Page<VeiculoResponseDTO> findByClienteId(UUID clienteId, Pageable pageable) {
         log.debug("Buscando veículos do cliente: {}", clienteId);
 
+        UUID oficinaId = TenantContext.getTenantId();
         // Valida se cliente existe
-        Cliente cliente = clienteRepository.findById(clienteId)
+        Cliente cliente = clienteRepository.findByOficinaIdAndId(oficinaId, clienteId)
             .orElseThrow(() -> new ClienteNotFoundException(clienteId));
 
-        return veiculoRepository.findByClienteId(clienteId, pageable)
+        return veiculoRepository.findByOficinaIdAndClienteId(oficinaId, clienteId, pageable)
             .map(veiculo -> {
                 VeiculoResponseDTO response = veiculoMapper.toResponse(veiculo);
                 enrichWithClienteData(response, cliente);
@@ -192,10 +199,11 @@ public class VeiculoService {
     public Page<VeiculoResponseDTO> findByFiltros(UUID clienteId, String placa, String marca, String modelo, Integer ano, Pageable pageable) {
         log.debug("Busca com filtros: clienteId={}, placa={}, marca={}, modelo={}, ano={}", clienteId, placa, marca, modelo, ano);
 
+        UUID oficinaId = TenantContext.getTenantId();
         // Normaliza placa se fornecida
         String placaNormalizada = (placa != null) ? placa.trim().toUpperCase().replace("-", "") : null;
 
-        return veiculoRepository.findByFiltros(clienteId, placaNormalizada, marca, modelo, ano, pageable)
+        return veiculoRepository.findByFiltros(oficinaId, clienteId, placaNormalizada, marca, modelo, ano, pageable)
             .map(veiculo -> {
                 VeiculoResponseDTO response = veiculoMapper.toResponse(veiculo);
                 enrichWithClienteData(response, veiculo.getClienteId());
@@ -218,7 +226,8 @@ public class VeiculoService {
     public VeiculoResponseDTO update(UUID id, VeiculoUpdateDTO request) {
         log.info("Atualizando veículo: id={}", id);
 
-        Veiculo veiculo = veiculoRepository.findById(id)
+        UUID oficinaId = TenantContext.getTenantId();
+        Veiculo veiculo = veiculoRepository.findByOficinaIdAndId(oficinaId, id)
             .orElseThrow(() -> new VeiculoNotFoundException(id));
 
         veiculoMapper.updateEntityFromDto(request, veiculo);
@@ -245,7 +254,8 @@ public class VeiculoService {
     public VeiculoResponseDTO updateQuilometragem(UUID id, QuilometragemUpdateDTO request) {
         log.info("Atualizando quilometragem do veículo: id={}, novaQuilometragem={}", id, request.getQuilometragem());
 
-        Veiculo veiculo = veiculoRepository.findById(id)
+        UUID oficinaId = TenantContext.getTenantId();
+        Veiculo veiculo = veiculoRepository.findByOficinaIdAndId(oficinaId, id)
             .orElseThrow(() -> new VeiculoNotFoundException(id));
 
         veiculo.atualizarQuilometragem(request.getQuilometragem());
@@ -273,7 +283,8 @@ public class VeiculoService {
     public void delete(UUID id) {
         log.info("Removendo veículo: id={}", id);
 
-        Veiculo veiculo = veiculoRepository.findById(id)
+        UUID oficinaId = TenantContext.getTenantId();
+        Veiculo veiculo = veiculoRepository.findByOficinaIdAndId(oficinaId, id)
             .orElseThrow(() -> new VeiculoNotFoundException(id));
 
         // TODO: Validar se veículo não possui ordens de serviço vinculadas
@@ -295,7 +306,8 @@ public class VeiculoService {
     @Cacheable(value = "veiculos", key = "'marcas'")
     public List<String> findMarcas() {
         log.debug("Buscando lista de marcas");
-        return veiculoRepository.findDistinctMarcas();
+        UUID oficinaId = TenantContext.getTenantId();
+        return veiculoRepository.findDistinctMarcas(oficinaId);
     }
 
     /**
@@ -308,7 +320,8 @@ public class VeiculoService {
     @Cacheable(value = "veiculos", key = "'modelos'")
     public List<String> findModelos() {
         log.debug("Buscando lista de modelos");
-        return veiculoRepository.findDistinctModelos();
+        UUID oficinaId = TenantContext.getTenantId();
+        return veiculoRepository.findDistinctModelos(oficinaId);
     }
 
     /**
@@ -321,7 +334,8 @@ public class VeiculoService {
     @Cacheable(value = "veiculos", key = "'anos'")
     public List<Integer> findAnos() {
         log.debug("Buscando lista de anos");
-        return veiculoRepository.findDistinctAnos();
+        UUID oficinaId = TenantContext.getTenantId();
+        return veiculoRepository.findDistinctAnos(oficinaId);
     }
 
     /**
@@ -333,7 +347,8 @@ public class VeiculoService {
     @Transactional(readOnly = true)
     public long countByClienteId(UUID clienteId) {
         log.debug("Contando veículos do cliente: {}", clienteId);
-        return veiculoRepository.countByClienteId(clienteId);
+        UUID oficinaId = TenantContext.getTenantId();
+        return veiculoRepository.countByOficinaIdAndClienteId(oficinaId, clienteId);
     }
 
     /**
@@ -343,7 +358,8 @@ public class VeiculoService {
      * @param clienteId ID do cliente
      */
     private void enrichWithClienteData(VeiculoResponseDTO response, UUID clienteId) {
-        clienteRepository.findById(clienteId).ifPresent(cliente ->
+        UUID oficinaId = TenantContext.getTenantId();
+        clienteRepository.findByOficinaIdAndId(oficinaId, clienteId).ifPresent(cliente ->
             enrichWithClienteData(response, cliente)
         );
     }

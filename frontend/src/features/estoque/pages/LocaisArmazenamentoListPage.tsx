@@ -198,12 +198,12 @@ export const LocaisArmazenamentoListPage = () => {
                   </TableCell>
                   <TableCell>
                     {local.ativo ? (
-                      <span className="inline-flex items-center gap-1 rounded-full bg-green-100 px-2 py-1 text-xs font-medium text-green-700">
+                      <span className="inline-flex items-center gap-1 rounded-full bg-green-100 dark:bg-green-950/40 px-2 py-1 text-xs font-medium text-green-700 dark:text-green-300">
                         <Power className="h-3 w-3" />
                         Ativo
                       </span>
                     ) : (
-                      <span className="inline-flex items-center gap-1 rounded-full bg-gray-100 px-2 py-1 text-xs font-medium text-gray-600">
+                      <span className="inline-flex items-center gap-1 rounded-full bg-gray-100 dark:bg-gray-800 px-2 py-1 text-xs font-medium text-gray-600 dark:text-gray-300">
                         <PowerOff className="h-3 w-3" />
                         Inativo
                       </span>

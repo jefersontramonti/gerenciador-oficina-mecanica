@@ -2,6 +2,7 @@
  * Modal para criar pagamento com validação Zod e React Hook Form
  */
 
+import { useEffect } from 'react';
 import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Modal } from '@/shared/components/ui/Modal';
@@ -38,6 +39,20 @@ export function PagamentoModal({
       parcelaAtual: 1,
     },
   });
+
+  // Reseta o formulário sempre que o modal abrir ou o valorDefault mudar
+  useEffect(() => {
+    if (isOpen) {
+      reset({
+        tipo: undefined,
+        valor: valorDefault,
+        parcelas: 1,
+        parcelaAtual: 1,
+        dataVencimento: undefined,
+        observacao: undefined,
+      });
+    }
+  }, [isOpen, valorDefault, reset]);
 
   const onSubmit = async (data: PagamentoFormData) => {
     criarPagamento(

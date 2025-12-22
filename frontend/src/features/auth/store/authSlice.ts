@@ -1,13 +1,22 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import type { PayloadAction } from '@reduxjs/toolkit';
 import { authService } from '../services/authService';
-import { getAccessToken } from '@/shared/services/api';
 import type { AuthState, LoginRequest, Usuario } from '../types';
 
-// LocalStorage keys
+/**
+ * SECURITY: User data persistence
+ *
+ * We store user profile data (nome, email, perfil) in localStorage for UX
+ * when "Remember Me" is checked. This is safe because:
+ * - User data is NOT sensitive (no passwords, tokens)
+ * - It's just for UI convenience (show name, avatar)
+ * - Access token is NEVER stored (kept in memory only)
+ * - Refresh token is in HttpOnly cookie (backend managed)
+ *
+ * On app init, we try to refresh the access token using the HttpOnly cookie.
+ */
 const STORAGE_KEY_USER = 'pitstop_user';
 const STORAGE_KEY_REMEMBER = 'pitstop_remember_me';
-const TOKEN_STORAGE_KEY = 'pitstop_access_token';
 
 // Load user from localStorage if remember me is active
 const loadUserFromStorage = (): Usuario | null => {
@@ -23,17 +32,6 @@ const loadUserFromStorage = (): Usuario | null => {
     console.error('Error loading user from localStorage:', error);
   }
   return null;
-};
-
-// Check if there is a valid token in localStorage
-const hasValidToken = (): boolean => {
-  try {
-    const token = localStorage.getItem(TOKEN_STORAGE_KEY);
-    return !!token;
-  } catch (error) {
-    console.error('Error checking token:', error);
-    return false;
-  }
 };
 
 // Save user to localStorage
@@ -63,12 +61,10 @@ const clearUserFromStorage = () => {
 
 const storedUser = loadUserFromStorage();
 
-// If there's no stored user but there's a token, we need to fetch the user
-// This will be handled by the initializeAuth thunk
 const initialState: AuthState = {
   user: storedUser,
-  isAuthenticated: !!storedUser,
-  isLoading: hasValidToken() && !storedUser, // Set loading if token exists but no user
+  isAuthenticated: false, // Will be set to true after successful token refresh
+  isLoading: true, // Always start with loading to attempt token refresh
   error: null,
 };
 
@@ -78,29 +74,29 @@ const initialState: AuthState = {
 
 /**
  * Initialize authentication on app startup
- * If there's a token but no user data, fetch the user
+ *
+ * SECURITY: Auto-authentication using refresh token
+ * - Access token is in memory (lost on page refresh)
+ * - Refresh token is in HttpOnly cookie (persists across refreshes)
+ * - On app init, we attempt to get a new access token using the refresh token
+ * - If successful, fetch user profile and restore session
+ * - If failed, user needs to login again
  */
 export const initializeAuth = createAsyncThunk(
   'auth/initialize',
   async (_, { rejectWithValue }) => {
     try {
-      // Check if there's a token
-      const token = getAccessToken();
-      if (!token) {
-        return null; // No token, no user
-      }
+      // Try to refresh access token using the HttpOnly cookie
+      // This call will use withCredentials to send the refresh token cookie
+      await authService.refreshToken();
 
-      // Check if we already have user data (remember me was active)
-      const storedUser = loadUserFromStorage();
-      if (storedUser) {
-        return storedUser; // User already loaded from storage
-      }
-
-      // We have a token but no user data, fetch from server
+      // Successfully refreshed, now fetch user profile
       const user = await authService.getCurrentUser();
+
       return user;
     } catch (error: any) {
-      // Token is invalid or expired, clear it
+      // Refresh token is invalid, expired, or doesn't exist
+      // User needs to login again
       return rejectWithValue(error.message || 'Sessão expirada');
     }
   }

@@ -1,58 +1,85 @@
+import { lazy, Suspense } from 'react';
 import { BrowserRouter, Routes, Route, Navigate, Link } from 'react-router-dom';
 import { ShieldAlert, Home, ArrowLeft, FileQuestion } from 'lucide-react';
 import { useAuth } from './features/auth/hooks/useAuth';
 import { AuthInitializer } from './features/auth/components/AuthInitializer';
 import { ProtectedRoute } from './shared/components/common/ProtectedRoute';
+import { PageLoader } from './shared/components/common/PageLoader';
 import { MainLayout } from './shared/layouts/MainLayout';
-import { LoginPage, RegisterPage, ForgotPasswordPage, ResetPasswordPage } from './features/auth/pages';
-import { DashboardPage } from './features/dashboard/pages/DashboardPage';
-import { ClientesListPage } from './features/clientes/pages/ClientesListPage';
-import { ClienteFormPage } from './features/clientes/pages/ClienteFormPage';
-import { ClienteDetailPage } from './features/clientes/pages/ClienteDetailPage';
-import { VeiculosListPage } from './features/veiculos/pages/VeiculosListPage';
-import { VeiculoFormPage } from './features/veiculos/pages/VeiculoFormPage';
-import { VeiculoDetailPage } from './features/veiculos/pages/VeiculoDetailPage';
-import { OrdemServicoListPage } from './features/ordens-servico/pages/OrdemServicoListPage';
-import { OrdemServicoFormPage } from './features/ordens-servico/pages/OrdemServicoFormPage';
-import { OrdemServicoDetailPage } from './features/ordens-servico/pages/OrdemServicoDetailPage';
-import { UsuariosListPage, UsuarioFormPage, UsuarioDetailPage } from './features/usuarios/pages';
-import {
-  PecasListPage,
-  PecaFormPage,
-  PecaDetailPage,
-  AlertasEstoquePage,
-  PecasSemLocalizacaoPage,
-  LocaisArmazenamentoListPage,
-  LocalArmazenamentoFormPage,
-  LocalArmazenamentoDetailPage,
-} from './features/estoque/pages';
-import { PagamentosPage } from './features/financeiro/pages/PagamentosPage';
-import { NotasFiscaisListPage } from './features/financeiro/pages/NotasFiscaisListPage';
-import { NotaFiscalFormPage } from './features/financeiro/pages/NotaFiscalFormPage';
-import { NotaFiscalDetailPage } from './features/financeiro/pages/NotaFiscalDetailPage';
 import { PerfilUsuario } from './features/auth/types';
+import { ErrorBoundary } from './shared/components/ErrorBoundary';
+
+// Lazy-loaded pages for code splitting
+// Auth pages
+const LoginPage = lazy(() => import('./features/auth/pages').then(m => ({ default: m.LoginPage })));
+const RegisterPage = lazy(() => import('./features/auth/pages').then(m => ({ default: m.RegisterPage })));
+const ForgotPasswordPage = lazy(() => import('./features/auth/pages').then(m => ({ default: m.ForgotPasswordPage })));
+const ResetPasswordPage = lazy(() => import('./features/auth/pages').then(m => ({ default: m.ResetPasswordPage })));
+
+// Dashboard
+const DashboardPage = lazy(() => import('./features/dashboard/pages/DashboardPage').then(m => ({ default: m.DashboardPage })));
+
+// Clientes
+const ClientesListPage = lazy(() => import('./features/clientes/pages/ClientesListPage').then(m => ({ default: m.ClientesListPage })));
+const ClienteFormPage = lazy(() => import('./features/clientes/pages/ClienteFormPage').then(m => ({ default: m.ClienteFormPage })));
+const ClienteDetailPage = lazy(() => import('./features/clientes/pages/ClienteDetailPage').then(m => ({ default: m.ClienteDetailPage })));
+
+// Veículos
+const VeiculosListPage = lazy(() => import('./features/veiculos/pages/VeiculosListPage').then(m => ({ default: m.VeiculosListPage })));
+const VeiculoFormPage = lazy(() => import('./features/veiculos/pages/VeiculoFormPage').then(m => ({ default: m.VeiculoFormPage })));
+const VeiculoDetailPage = lazy(() => import('./features/veiculos/pages/VeiculoDetailPage').then(m => ({ default: m.VeiculoDetailPage })));
+
+// Ordens de Serviço
+const OrdemServicoListPage = lazy(() => import('./features/ordens-servico/pages/OrdemServicoListPage').then(m => ({ default: m.OrdemServicoListPage })));
+const OrdemServicoFormPage = lazy(() => import('./features/ordens-servico/pages/OrdemServicoFormPage').then(m => ({ default: m.OrdemServicoFormPage })));
+const OrdemServicoDetailPage = lazy(() => import('./features/ordens-servico/pages/OrdemServicoDetailPage').then(m => ({ default: m.OrdemServicoDetailPage })));
+
+// Usuários
+const UsuariosListPage = lazy(() => import('./features/usuarios/pages').then(m => ({ default: m.UsuariosListPage })));
+const UsuarioFormPage = lazy(() => import('./features/usuarios/pages').then(m => ({ default: m.UsuarioFormPage })));
+const UsuarioDetailPage = lazy(() => import('./features/usuarios/pages').then(m => ({ default: m.UsuarioDetailPage })));
+
+// Estoque - Peças
+const PecasListPage = lazy(() => import('./features/estoque/pages').then(m => ({ default: m.PecasListPage })));
+const PecaFormPage = lazy(() => import('./features/estoque/pages').then(m => ({ default: m.PecaFormPage })));
+const PecaDetailPage = lazy(() => import('./features/estoque/pages').then(m => ({ default: m.PecaDetailPage })));
+const AlertasEstoquePage = lazy(() => import('./features/estoque/pages').then(m => ({ default: m.AlertasEstoquePage })));
+const PecasSemLocalizacaoPage = lazy(() => import('./features/estoque/pages').then(m => ({ default: m.PecasSemLocalizacaoPage })));
+
+// Estoque - Locais de Armazenamento
+const LocaisArmazenamentoListPage = lazy(() => import('./features/estoque/pages').then(m => ({ default: m.LocaisArmazenamentoListPage })));
+const LocalArmazenamentoFormPage = lazy(() => import('./features/estoque/pages').then(m => ({ default: m.LocalArmazenamentoFormPage })));
+const LocalArmazenamentoDetailPage = lazy(() => import('./features/estoque/pages').then(m => ({ default: m.LocalArmazenamentoDetailPage })));
+
+// Financeiro
+const PagamentosPage = lazy(() => import('./features/financeiro/pages/PagamentosPage').then(m => ({ default: m.PagamentosPage })));
+const NotasFiscaisListPage = lazy(() => import('./features/financeiro/pages/NotasFiscaisListPage').then(m => ({ default: m.NotasFiscaisListPage })));
+const NotaFiscalFormPage = lazy(() => import('./features/financeiro/pages/NotaFiscalFormPage').then(m => ({ default: m.NotaFiscalFormPage })));
+const NotaFiscalDetailPage = lazy(() => import('./features/financeiro/pages/NotaFiscalDetailPage').then(m => ({ default: m.NotaFiscalDetailPage })));
 
 function App() {
   return (
     <BrowserRouter>
-      <AuthInitializer>
-        <Routes>
-        {/* Public routes */}
-        <Route path="/login" element={<PublicRoute><LoginPage /></PublicRoute>} />
-        <Route path="/register" element={<PublicRoute><RegisterPage /></PublicRoute>} />
-        <Route path="/forgot-password" element={<PublicRoute><ForgotPasswordPage /></PublicRoute>} />
-        <Route path="/reset-password" element={<PublicRoute><ResetPasswordPage /></PublicRoute>} />
+      <ErrorBoundary boundaryName="App Root">
+        <AuthInitializer>
+          <Suspense fallback={<PageLoader />}>
+            <Routes>
+            {/* Public routes */}
+            <Route path="/login" element={<PublicRoute><LoginPage /></PublicRoute>} />
+            <Route path="/register" element={<PublicRoute><RegisterPage /></PublicRoute>} />
+            <Route path="/forgot-password" element={<PublicRoute><ForgotPasswordPage /></PublicRoute>} />
+            <Route path="/reset-password" element={<PublicRoute><ResetPasswordPage /></PublicRoute>} />
 
-        {/* Protected routes */}
-        <Route
-          path="/"
-          element={
-            <ProtectedRoute>
-              <MainLayout />
-            </ProtectedRoute>
-          }
-        >
-          <Route index element={<DashboardPage />} />
+            {/* Protected routes */}
+            <Route
+              path="/"
+              element={
+                <ProtectedRoute>
+                  <MainLayout />
+                </ProtectedRoute>
+              }
+            >
+              <Route index element={<DashboardPage />} />
 
           {/* Clientes - Acessível por ADMIN, GERENTE, ATENDENTE */}
           <Route path="clientes">
@@ -388,10 +415,12 @@ function App() {
         {/* Unauthorized */}
         <Route path="/unauthorized" element={<UnauthorizedPage />} />
 
-        {/* 404 */}
-        <Route path="*" element={<NotFoundPage />} />
-      </Routes>
+            {/* 404 */}
+            <Route path="*" element={<NotFoundPage />} />
+          </Routes>
+        </Suspense>
       </AuthInitializer>
+      </ErrorBoundary>
     </BrowserRouter>
   );
 }
@@ -404,7 +433,7 @@ function PublicRoute({ children }: { children: React.ReactNode }) {
 
   if (isLoading) {
     return (
-      <div className="flex h-screen items-center justify-center">
+      <div className="flex h-screen items-center justify-center bg-white dark:bg-gray-900">
         <div className="h-12 w-12 animate-spin rounded-full border-4 border-primary border-t-transparent" />
       </div>
     );
@@ -424,9 +453,9 @@ function ComingSoonPage({ title }: { title: string }) {
   return (
     <div className="flex min-h-[calc(100vh-4rem)] items-center justify-center p-6">
       <div className="text-center">
-        <h1 className="text-4xl font-bold text-gray-900">{title}</h1>
-        <p className="mt-4 text-lg text-gray-600">Esta funcionalidade está em desenvolvimento.</p>
-        <p className="mt-2 text-sm text-gray-500">Em breve estará disponível!</p>
+        <h1 className="text-4xl font-bold text-gray-900 dark:text-white">{title}</h1>
+        <p className="mt-4 text-lg text-gray-600 dark:text-gray-300">Esta funcionalidade está em desenvolvimento.</p>
+        <p className="mt-2 text-sm text-gray-500 dark:text-gray-400">Em breve estará disponível!</p>
       </div>
     </div>
   );
@@ -437,27 +466,27 @@ function ComingSoonPage({ title }: { title: string }) {
  */
 function UnauthorizedPage() {
   return (
-    <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-orange-50 to-red-50 p-6">
+    <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-orange-50 to-red-50 p-6 dark:from-orange-950 dark:to-red-950">
       <div className="w-full max-w-md">
         {/* Card */}
-        <div className="rounded-2xl bg-white p-8 shadow-xl">
+        <div className="rounded-2xl bg-white p-8 shadow-xl dark:bg-gray-800">
           {/* Ícone */}
           <div className="mb-6 flex justify-center">
-            <div className="rounded-full bg-orange-100 p-4">
-              <ShieldAlert className="h-16 w-16 text-orange-600" strokeWidth={1.5} />
+            <div className="rounded-full bg-orange-100 p-4 dark:bg-orange-900/30">
+              <ShieldAlert className="h-16 w-16 text-orange-600 dark:text-orange-400" strokeWidth={1.5} />
             </div>
           </div>
 
           {/* Título */}
           <div className="text-center">
-            <h1 className="text-6xl font-bold text-gray-900">403</h1>
-            <h2 className="mt-4 text-2xl font-semibold text-gray-800">
+            <h1 className="text-6xl font-bold text-gray-900 dark:text-white">403</h1>
+            <h2 className="mt-4 text-2xl font-semibold text-gray-800 dark:text-gray-100">
               Acesso Negado
             </h2>
-            <p className="mt-3 text-gray-600">
+            <p className="mt-3 text-gray-600 dark:text-gray-300">
               Você não tem permissão para acessar esta página.
             </p>
-            <p className="mt-2 text-sm text-gray-500">
+            <p className="mt-2 text-sm text-gray-500 dark:text-gray-400">
               Apenas usuários com perfil de Administrador ou Gerente podem visualizar este conteúdo.
             </p>
           </div>
@@ -467,7 +496,7 @@ function UnauthorizedPage() {
             {/* Botão principal - Dashboard */}
             <Link
               to="/"
-              className="flex w-full items-center justify-center gap-2 rounded-lg bg-blue-600 px-6 py-3 font-medium text-white shadow-sm transition-colors hover:bg-blue-700"
+              className="flex w-full items-center justify-center gap-2 rounded-lg bg-blue-600 px-6 py-3 font-medium text-white shadow-sm transition-colors hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600"
             >
               <Home className="h-5 w-5" />
               Ir para o Dashboard
@@ -476,7 +505,7 @@ function UnauthorizedPage() {
             {/* Botão secundário - Voltar */}
             <button
               onClick={() => window.history.back()}
-              className="flex w-full items-center justify-center gap-2 rounded-lg border border-gray-300 bg-white px-6 py-3 font-medium text-gray-700 transition-colors hover:bg-gray-50"
+              className="flex w-full items-center justify-center gap-2 rounded-lg border border-gray-300 bg-white px-6 py-3 font-medium text-gray-700 transition-colors hover:bg-gray-50 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600"
             >
               <ArrowLeft className="h-5 w-5" />
               Voltar à página anterior
@@ -484,8 +513,8 @@ function UnauthorizedPage() {
           </div>
 
           {/* Informação adicional */}
-          <div className="mt-6 rounded-lg border border-orange-200 bg-orange-50 p-4">
-            <p className="text-sm text-orange-800">
+          <div className="mt-6 rounded-lg border border-orange-200 bg-orange-50 p-4 dark:border-orange-800 dark:bg-orange-900/20">
+            <p className="text-sm text-orange-800 dark:text-orange-300">
               <strong>Dica:</strong> Se você acredita que deveria ter acesso a esta página,
               entre em contato com o administrador do sistema.
             </p>
@@ -501,27 +530,27 @@ function UnauthorizedPage() {
  */
 function NotFoundPage() {
   return (
-    <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-50 p-6">
+    <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-50 p-6 dark:from-blue-950 dark:to-indigo-950">
       <div className="w-full max-w-md">
         {/* Card */}
-        <div className="rounded-2xl bg-white p-8 shadow-xl">
+        <div className="rounded-2xl bg-white p-8 shadow-xl dark:bg-gray-800">
           {/* Ícone */}
           <div className="mb-6 flex justify-center">
-            <div className="rounded-full bg-blue-100 p-4">
-              <FileQuestion className="h-16 w-16 text-blue-600" strokeWidth={1.5} />
+            <div className="rounded-full bg-blue-100 p-4 dark:bg-blue-900/30">
+              <FileQuestion className="h-16 w-16 text-blue-600 dark:text-blue-400" strokeWidth={1.5} />
             </div>
           </div>
 
           {/* Título */}
           <div className="text-center">
-            <h1 className="text-6xl font-bold text-gray-900">404</h1>
-            <h2 className="mt-4 text-2xl font-semibold text-gray-800">
+            <h1 className="text-6xl font-bold text-gray-900 dark:text-white">404</h1>
+            <h2 className="mt-4 text-2xl font-semibold text-gray-800 dark:text-gray-100">
               Página Não Encontrada
             </h2>
-            <p className="mt-3 text-gray-600">
+            <p className="mt-3 text-gray-600 dark:text-gray-300">
               Ops! A página que você está procurando não existe.
             </p>
-            <p className="mt-2 text-sm text-gray-500">
+            <p className="mt-2 text-sm text-gray-500 dark:text-gray-400">
               O link pode estar quebrado ou a página foi removida.
             </p>
           </div>
@@ -531,7 +560,7 @@ function NotFoundPage() {
             {/* Botão principal - Dashboard */}
             <Link
               to="/"
-              className="flex w-full items-center justify-center gap-2 rounded-lg bg-blue-600 px-6 py-3 font-medium text-white shadow-sm transition-colors hover:bg-blue-700"
+              className="flex w-full items-center justify-center gap-2 rounded-lg bg-blue-600 px-6 py-3 font-medium text-white shadow-sm transition-colors hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600"
             >
               <Home className="h-5 w-5" />
               Ir para o Dashboard
@@ -540,7 +569,7 @@ function NotFoundPage() {
             {/* Botão secundário - Voltar */}
             <button
               onClick={() => window.history.back()}
-              className="flex w-full items-center justify-center gap-2 rounded-lg border border-gray-300 bg-white px-6 py-3 font-medium text-gray-700 transition-colors hover:bg-gray-50"
+              className="flex w-full items-center justify-center gap-2 rounded-lg border border-gray-300 bg-white px-6 py-3 font-medium text-gray-700 transition-colors hover:bg-gray-50 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600"
             >
               <ArrowLeft className="h-5 w-5" />
               Voltar à página anterior
@@ -548,8 +577,8 @@ function NotFoundPage() {
           </div>
 
           {/* Informação adicional */}
-          <div className="mt-6 rounded-lg border border-blue-200 bg-blue-50 p-4">
-            <p className="text-sm text-blue-800">
+          <div className="mt-6 rounded-lg border border-blue-200 bg-blue-50 p-4 dark:border-blue-800 dark:bg-blue-900/20">
+            <p className="text-sm text-blue-800 dark:text-blue-300">
               <strong>Dica:</strong> Verifique se o endereço da URL está correto ou
               use a navegação do menu para encontrar o que procura.
             </p>

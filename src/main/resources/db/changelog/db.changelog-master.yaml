@@ -74,3 +74,33 @@ databaseChangeLog:
   - include:
       file: db/changelog/migrations/V025__create_notas_fiscais_tables.sql
       relativeToChangelogFile: false
+  - include:
+      file: db/changelog/migrations/V026__add_fk_pagamentos_ordem_servico.sql
+      relativeToChangelogFile: false
+  - include:
+      file: db/changelog/migrations/V027__add_fk_notas_fiscais_ordem_servico.sql
+      relativeToChangelogFile: false
+  - include:
+      file: db/changelog/migrations/V028__add_oficina_id_to_all_tables.sql
+      relativeToChangelogFile: false
+  - include:
+      file: db/changelog/migrations/V030__fix_admin_user_oficinaId.sql
+      relativeToChangelogFile: false
+  - include:
+      file: db/changelog/migrations/V031__fix_admin_user_oficina_id_corrected.sql
+      relativeToChangelogFile: false
+  - include:
+      file: db/changelog/migrations/V032__super_admin_infrastructure.sql
+      relativeToChangelogFile: false
+  - include:
+      file: db/changelog/migrations/V033__add_super_admin_to_perfil_check.sql
+      relativeToChangelogFile: false
+  - include:
+      file: db/changelog/migrations/V034__add_trial_status_to_oficinas_check.sql
+      relativeToChangelogFile: false
+  - include:
+      file: db/changelog/migrations/V035__alter_audit_logs_nullable_entidade_id.sql
+      relativeToChangelogFile: false
+  - include:
+      file: db/changelog/migrations/V036__create_templates_customizados_table.sql
+      relativeToChangelogFile: false

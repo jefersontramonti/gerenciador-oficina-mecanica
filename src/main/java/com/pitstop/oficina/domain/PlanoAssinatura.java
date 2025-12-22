@@ -9,8 +9,8 @@ import java.math.BigDecimal;
  * <table border="1">
  *   <tr>
  *     <th>Feature</th>
- *     <th>Econômico (R$ 127)</th>
- *     <th>Profissional (R$ 237)</th>
+ *     <th>Econômico (R$ 160)</th>
+ *     <th>Profissional (R$ 250)</th>
  *     <th>Turbinado (Custom)</th>
  *   </tr>
  *   <tr>
@@ -54,7 +54,7 @@ import java.math.BigDecimal;
 public enum PlanoAssinatura {
 
     /**
-     * Economic plan - R$ 127.00/month
+     * Economic plan - R$ 160.00/month
      * <ul>
      *   <li>1 user</li>
      *   <li>NO invoice emission</li>
@@ -66,7 +66,7 @@ public enum PlanoAssinatura {
      */
     ECONOMICO(
         "Econômico",
-        new BigDecimal("127.00"),
+        new BigDecimal("160.00"),
         1,              // maxUsuarios
         -1,             // maxOrdensServico (unlimited)
         -1,             // maxClientes (unlimited)
@@ -77,7 +77,7 @@ public enum PlanoAssinatura {
     ),
 
     /**
-     * Professional plan - R$ 237.00/month (Most Popular)
+     * Professional plan - R$ 250.00/month (Most Popular)
      * <ul>
      *   <li>3 users</li>
      *   <li>WITH invoice emission (NF-e, NFS-e, NFC-e)</li>
@@ -89,7 +89,7 @@ public enum PlanoAssinatura {
      */
     PROFISSIONAL(
         "Profissional",
-        new BigDecimal("237.00"),
+        new BigDecimal("250.00"),
         3,              // maxUsuarios
         -1,             // maxOrdensServico (unlimited)
         -1,             // maxClientes (unlimited)

@@ -12,11 +12,15 @@ import org.springframework.stereotype.Repository;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 /**
  * Repository para gerenciamento de movimentações de estoque.
  * Fornece queries para auditoria e relatórios de movimentações.
+ *
+ * <p><strong>Multi-tenancy:</strong> Todos os métodos agora exigem {@code oficinaId} como
+ * primeiro parâmetro para garantir isolamento de dados entre oficinas.</p>
  *
  * @author PitStop Team
  * @version 1.0
@@ -26,43 +30,52 @@ import java.util.UUID;
 public interface MovimentacaoEstoqueRepository extends JpaRepository<MovimentacaoEstoque, UUID> {
 
     /**
-     * Busca histórico de movimentações de uma peça específica.
+     * Busca histórico de movimentações de uma peça específica em uma oficina.
      *
+     * @param oficinaId ID da oficina (tenant)
      * @param pecaId ID da peça
      * @param pageable paginação e ordenação
      * @return página de movimentações
      */
-    Page<MovimentacaoEstoque> findByPecaIdOrderByDataMovimentacaoDesc(UUID pecaId, Pageable pageable);
+    @Query("SELECT m FROM MovimentacaoEstoque m WHERE m.oficina.id = :oficinaId AND m.pecaId = :pecaId ORDER BY m.dataMovimentacao DESC")
+    Page<MovimentacaoEstoque> findByOficinaIdAndPecaIdOrderByDataMovimentacaoDesc(@Param("oficinaId") UUID oficinaId, @Param("pecaId") UUID pecaId, Pageable pageable);
 
     /**
-     * Busca movimentações de uma Ordem de Serviço específica.
+     * Busca movimentações de uma Ordem de Serviço específica em uma oficina.
      *
+     * @param oficinaId ID da oficina (tenant)
      * @param ordemServicoId ID da OS
      * @return lista de movimentações vinculadas à OS
      */
-    List<MovimentacaoEstoque> findByOrdemServicoIdOrderByCreatedAtDesc(UUID ordemServicoId);
+    @Query("SELECT m FROM MovimentacaoEstoque m WHERE m.oficina.id = :oficinaId AND m.ordemServicoId = :ordemServicoId ORDER BY m.createdAt DESC")
+    List<MovimentacaoEstoque> findByOficinaIdAndOrdemServicoIdOrderByCreatedAtDesc(@Param("oficinaId") UUID oficinaId, @Param("ordemServicoId") UUID ordemServicoId);
 
     /**
-     * Busca movimentações por usuário.
+     * Busca movimentações por usuário em uma oficina.
      *
+     * @param oficinaId ID da oficina (tenant)
      * @param usuarioId ID do usuário
      * @param pageable paginação
      * @return página de movimentações do usuário
      */
-    Page<MovimentacaoEstoque> findByUsuarioIdOrderByDataMovimentacaoDesc(UUID usuarioId, Pageable pageable);
+    @Query("SELECT m FROM MovimentacaoEstoque m WHERE m.oficina.id = :oficinaId AND m.usuarioId = :usuarioId ORDER BY m.dataMovimentacao DESC")
+    Page<MovimentacaoEstoque> findByOficinaIdAndUsuarioIdOrderByDataMovimentacaoDesc(@Param("oficinaId") UUID oficinaId, @Param("usuarioId") UUID usuarioId, Pageable pageable);
 
     /**
-     * Busca movimentações por tipo.
+     * Busca movimentações por tipo em uma oficina.
      *
+     * @param oficinaId ID da oficina (tenant)
      * @param tipo tipo da movimentação
      * @param pageable paginação
      * @return página de movimentações do tipo especificado
      */
-    Page<MovimentacaoEstoque> findByTipoOrderByDataMovimentacaoDesc(TipoMovimentacao tipo, Pageable pageable);
+    @Query("SELECT m FROM MovimentacaoEstoque m WHERE m.oficina.id = :oficinaId AND m.tipo = :tipo ORDER BY m.dataMovimentacao DESC")
+    Page<MovimentacaoEstoque> findByOficinaIdAndTipoOrderByDataMovimentacaoDesc(@Param("oficinaId") UUID oficinaId, @Param("tipo") TipoMovimentacao tipo, Pageable pageable);
 
     /**
-     * Busca movimentações em um período.
+     * Busca movimentações em um período em uma oficina.
      *
+     * @param oficinaId ID da oficina (tenant)
      * @param dataInicio data inicial
      * @param dataFim data final
      * @param pageable paginação
@@ -70,18 +83,21 @@ public interface MovimentacaoEstoqueRepository extends JpaRepository<Movimentaca
      */
     @Query("""
             SELECT m FROM MovimentacaoEstoque m
-            WHERE m.dataMovimentacao BETWEEN :dataInicio AND :dataFim
+            WHERE m.oficina.id = :oficinaId
+            AND m.dataMovimentacao BETWEEN :dataInicio AND :dataFim
             ORDER BY m.dataMovimentacao DESC
             """)
-    Page<MovimentacaoEstoque> findByPeriodo(
+    Page<MovimentacaoEstoque> findByOficinaIdAndPeriodo(
+            @Param("oficinaId") UUID oficinaId,
             @Param("dataInicio") LocalDateTime dataInicio,
             @Param("dataFim") LocalDateTime dataFim,
             Pageable pageable
     );
 
     /**
-     * Busca movimentações com filtros múltiplos.
+     * Busca movimentações com filtros múltiplos em uma oficina.
      *
+     * @param oficinaId ID da oficina (tenant)
      * @param pecaId ID da peça (opcional)
      * @param tipo tipo da movimentação (opcional)
      * @param dataInicio data inicial (opcional)
@@ -92,7 +108,8 @@ public interface MovimentacaoEstoqueRepository extends JpaRepository<Movimentaca
      */
     @Query("""
             SELECT m FROM MovimentacaoEstoque m
-            WHERE (CAST(:pecaId AS string) IS NULL OR m.pecaId = :pecaId)
+            WHERE m.oficina.id = :oficinaId
+            AND (CAST(:pecaId AS string) IS NULL OR m.pecaId = :pecaId)
             AND (CAST(:tipo AS string) IS NULL OR m.tipo = :tipo)
             AND (CAST(:dataInicio AS string) IS NULL OR m.dataMovimentacao >= :dataInicio)
             AND (CAST(:dataFim AS string) IS NULL OR m.dataMovimentacao <= :dataFim)
@@ -100,6 +117,7 @@ public interface MovimentacaoEstoqueRepository extends JpaRepository<Movimentaca
             ORDER BY m.dataMovimentacao DESC
             """)
     Page<MovimentacaoEstoque> findByFilters(
+            @Param("oficinaId") UUID oficinaId,
             @Param("pecaId") UUID pecaId,
             @Param("tipo") TipoMovimentacao tipo,
             @Param("dataInicio") LocalDateTime dataInicio,
@@ -109,8 +127,9 @@ public interface MovimentacaoEstoqueRepository extends JpaRepository<Movimentaca
     );
 
     /**
-     * Calcula o total movimentado (valor) em um período.
+     * Calcula o total movimentado (valor) em um período em uma oficina.
      *
+     * @param oficinaId ID da oficina (tenant)
      * @param dataInicio data inicial
      * @param dataFim data final
      * @return soma dos valores das movimentações
@@ -118,16 +137,19 @@ public interface MovimentacaoEstoqueRepository extends JpaRepository<Movimentaca
     @Query("""
             SELECT COALESCE(SUM(m.valorTotal), 0)
             FROM MovimentacaoEstoque m
-            WHERE m.dataMovimentacao BETWEEN :dataInicio AND :dataFim
+            WHERE m.oficina.id = :oficinaId
+            AND m.dataMovimentacao BETWEEN :dataInicio AND :dataFim
             """)
-    BigDecimal calcularValorTotalMovimentado(
+    BigDecimal calcularValorTotalMovimentadoByOficinaId(
+            @Param("oficinaId") UUID oficinaId,
             @Param("dataInicio") LocalDateTime dataInicio,
             @Param("dataFim") LocalDateTime dataFim
     );
 
     /**
-     * Calcula o total movimentado (valor) por tipo em um período.
+     * Calcula o total movimentado (valor) por tipo em um período em uma oficina.
      *
+     * @param oficinaId ID da oficina (tenant)
      * @param tipo tipo da movimentação
      * @param dataInicio data inicial
      * @param dataFim data final
@@ -136,18 +158,21 @@ public interface MovimentacaoEstoqueRepository extends JpaRepository<Movimentaca
     @Query("""
             SELECT COALESCE(SUM(m.valorTotal), 0)
             FROM MovimentacaoEstoque m
-            WHERE m.tipo = :tipo
+            WHERE m.oficina.id = :oficinaId
+            AND m.tipo = :tipo
             AND m.dataMovimentacao BETWEEN :dataInicio AND :dataFim
             """)
-    BigDecimal calcularValorMovimentadoPorTipo(
+    BigDecimal calcularValorMovimentadoPorTipoByOficinaId(
+            @Param("oficinaId") UUID oficinaId,
             @Param("tipo") TipoMovimentacao tipo,
             @Param("dataInicio") LocalDateTime dataInicio,
             @Param("dataFim") LocalDateTime dataFim
     );
 
     /**
-     * Conta movimentações por tipo em um período.
+     * Conta movimentações por tipo em um período em uma oficina.
      *
+     * @param oficinaId ID da oficina (tenant)
      * @param tipo tipo da movimentação
      * @param dataInicio data inicial
      * @param dataFim data final
@@ -156,49 +181,77 @@ public interface MovimentacaoEstoqueRepository extends JpaRepository<Movimentaca
     @Query("""
             SELECT COUNT(m)
             FROM MovimentacaoEstoque m
-            WHERE m.tipo = :tipo
+            WHERE m.oficina.id = :oficinaId
+            AND m.tipo = :tipo
             AND m.dataMovimentacao BETWEEN :dataInicio AND :dataFim
             """)
-    long countByTipoAndPeriodo(
+    long countByOficinaIdAndTipoAndPeriodo(
+            @Param("oficinaId") UUID oficinaId,
             @Param("tipo") TipoMovimentacao tipo,
             @Param("dataInicio") LocalDateTime dataInicio,
             @Param("dataFim") LocalDateTime dataFim
     );
 
     /**
-     * Busca última movimentação de uma peça.
+     * Busca última movimentação de uma peça em uma oficina.
      *
+     * @param oficinaId ID da oficina (tenant)
      * @param pecaId ID da peça
      * @return última movimentação ou lista vazia
      */
     @Query("""
             SELECT m FROM MovimentacaoEstoque m
-            WHERE m.pecaId = :pecaId
+            WHERE m.oficina.id = :oficinaId AND m.pecaId = :pecaId
             ORDER BY m.dataMovimentacao DESC
             LIMIT 1
             """)
-    List<MovimentacaoEstoque> findUltimaMovimentacao(@Param("pecaId") UUID pecaId);
+    List<MovimentacaoEstoque> findUltimaMovimentacaoByOficinaId(@Param("oficinaId") UUID oficinaId, @Param("pecaId") UUID pecaId);
 
     /**
-     * Busca peças sem movimentação há mais de X dias.
+     * Busca peças sem movimentação há mais de X dias em uma oficina.
      *
+     * @param oficinaId ID da oficina (tenant)
      * @param dataLimite data limite (peças sem movimentação desde esta data)
      * @return lista de IDs de peças sem movimentação recente
      */
     @Query("""
             SELECT DISTINCT m.pecaId FROM MovimentacaoEstoque m
-            WHERE m.pecaId NOT IN (
+            WHERE m.oficina.id = :oficinaId
+            AND m.pecaId NOT IN (
                 SELECT m2.pecaId FROM MovimentacaoEstoque m2
-                WHERE m2.dataMovimentacao > :dataLimite
+                WHERE m2.oficina.id = :oficinaId
+                AND m2.dataMovimentacao > :dataLimite
             )
             """)
-    List<UUID> findPecasSemMovimentacaoDesde(@Param("dataLimite") LocalDateTime dataLimite);
+    List<UUID> findPecasSemMovimentacaoDesdeByOficinaId(@Param("oficinaId") UUID oficinaId, @Param("dataLimite") LocalDateTime dataLimite);
 
     /**
-     * Verifica se existe movimentação para uma OS específica.
+     * Verifica se existe movimentação para uma OS específica em uma oficina.
      *
+     * @param oficinaId ID da oficina (tenant)
      * @param ordemServicoId ID da OS
      * @return true se existe
      */
-    boolean existsByOrdemServicoId(UUID ordemServicoId);
+    @Query("SELECT CASE WHEN COUNT(m) > 0 THEN true ELSE false END FROM MovimentacaoEstoque m WHERE m.oficina.id = :oficinaId AND m.ordemServicoId = :ordemServicoId")
+    boolean existsByOficinaIdAndOrdemServicoId(@Param("oficinaId") UUID oficinaId, @Param("ordemServicoId") UUID ordemServicoId);
+
+    /**
+     * Busca movimentação por ID em uma oficina.
+     *
+     * @param oficinaId ID da oficina (tenant)
+     * @param id ID da movimentação
+     * @return Optional contendo a movimentação se encontrada
+     */
+    @Query("SELECT m FROM MovimentacaoEstoque m WHERE m.oficina.id = :oficinaId AND m.id = :id")
+    Optional<MovimentacaoEstoque> findByOficinaIdAndId(@Param("oficinaId") UUID oficinaId, @Param("id") UUID id);
+
+    /**
+     * Busca todas as movimentações de uma oficina com paginação.
+     *
+     * @param oficinaId ID da oficina (tenant)
+     * @param pageable paginação
+     * @return página de movimentações
+     */
+    @Query("SELECT m FROM MovimentacaoEstoque m WHERE m.oficina.id = :oficinaId ORDER BY m.dataMovimentacao DESC")
+    Page<MovimentacaoEstoque> findByOficinaId(@Param("oficinaId") UUID oficinaId, Pageable pageable);
 }

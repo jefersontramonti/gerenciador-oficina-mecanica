@@ -116,80 +116,80 @@ export const PecaAutocomplete: React.FC<PecaAutocompleteProps> = ({
 
   return (
     <div ref={wrapperRef} className="relative">
-      <label className="mb-1 block text-sm font-medium text-gray-700">
+      <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
         <span className="flex items-center gap-2">
           <Package className="h-4 w-4" />
-          Peça do Estoque {required && <span className="text-red-600">*</span>}
+          Peça do Estoque {required && <span className="text-red-600 dark:text-red-400">*</span>}
         </span>
       </label>
 
       <div className="relative">
-        <Search className="absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 text-gray-400" />
+        <Search className="absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 text-gray-400 dark:text-gray-500" />
         <input
           type="text"
           value={searchTerm}
           onChange={handleInputChange}
           onFocus={() => setShowDropdown(true)}
           disabled={disabled}
-          className={`w-full rounded-lg border px-3 py-2 pl-10 focus:outline-none focus:ring-2 disabled:bg-gray-100 disabled:text-gray-500 ${
+          className={`w-full rounded-lg border px-3 py-2 pl-10 focus:outline-none focus:ring-2 disabled:bg-gray-100 disabled:text-gray-500 dark:bg-gray-800 dark:text-white dark:disabled:bg-gray-900 dark:disabled:text-gray-500 ${
             error
-              ? 'border-red-500 focus:border-red-500 focus:ring-red-500/20'
-              : 'border-gray-300 focus:border-blue-500 focus:ring-blue-500/20'
+              ? 'border-red-500 focus:border-red-500 focus:ring-red-500/20 dark:border-red-400 dark:focus:border-red-400'
+              : 'border-gray-300 focus:border-blue-500 focus:ring-blue-500/20 dark:border-gray-600 dark:focus:border-blue-400'
           }`}
           placeholder="Digite código ou descrição da peça..."
         />
 
         {isLoading && (
           <div className="absolute right-3 top-1/2 -translate-y-1/2">
-            <div className="h-5 w-5 animate-spin rounded-full border-2 border-gray-300 border-t-blue-600"></div>
+            <div className="h-5 w-5 animate-spin rounded-full border-2 border-gray-300 border-t-blue-600 dark:border-gray-600 dark:border-t-blue-400"></div>
           </div>
         )}
       </div>
 
-      {error && <p className="mt-1 text-sm text-red-600">{error}</p>}
+      {error && <p className="mt-1 text-sm text-red-600 dark:text-red-400">{error}</p>}
 
       {/* Dropdown com resultados */}
       {showDropdown && !disabled && pecas.length > 0 && (
-        <div className="absolute z-50 mt-1 max-h-64 w-full overflow-auto rounded-lg border border-gray-200 bg-white shadow-lg">
+        <div className="absolute z-50 mt-1 max-h-64 w-full overflow-auto rounded-lg border border-gray-200 bg-white shadow-lg dark:border-gray-700 dark:bg-gray-800">
           {pecas.map((peca) => (
             <button
               key={peca.id}
               type="button"
               onClick={() => handleSelect(peca)}
-              className="w-full border-b border-gray-100 px-4 py-3 text-left hover:bg-blue-50 focus:bg-blue-50 focus:outline-none"
+              className="w-full border-b border-gray-100 px-4 py-3 text-left hover:bg-blue-50 focus:bg-blue-50 focus:outline-none dark:border-gray-700 dark:hover:bg-blue-900/30 dark:focus:bg-blue-900/30"
             >
               <div className="flex items-start justify-between gap-2">
                 <div className="flex-1">
                   <div className="flex items-center gap-2">
-                    <span className="font-medium text-gray-900">
+                    <span className="font-medium text-gray-900 dark:text-white">
                       {peca.codigo}
                     </span>
-                    <span className="text-sm text-gray-600">
+                    <span className="text-sm text-gray-600 dark:text-gray-400">
                       {peca.descricao}
                     </span>
                   </div>
-                  <div className="mt-1 flex items-center gap-3 text-xs text-gray-500">
+                  <div className="mt-1 flex items-center gap-3 text-xs text-gray-500 dark:text-gray-400">
                     <span>Marca: {peca.marca || 'N/A'}</span>
                     <span className={`font-medium ${
                       peca.quantidadeAtual === 0
-                        ? 'text-red-600'
+                        ? 'text-red-600 dark:text-red-400'
                         : peca.estoqueBaixo
-                        ? 'text-yellow-600'
-                        : 'text-green-600'
+                        ? 'text-yellow-600 dark:text-yellow-400'
+                        : 'text-green-600 dark:text-green-400'
                     }`}>
                       Estoque: {peca.quantidadeAtual} {peca.unidadeMedida}
                     </span>
                   </div>
                 </div>
                 <div className="flex flex-col items-end">
-                  <span className="text-sm font-semibold text-green-600">
+                  <span className="text-sm font-semibold text-green-600 dark:text-green-400">
                     {new Intl.NumberFormat('pt-BR', {
                       style: 'currency',
                       currency: 'BRL',
                     }).format(peca.valorVenda)}
                   </span>
                   {peca.quantidadeAtual === 0 && (
-                    <span className="mt-1 flex items-center gap-1 text-xs text-red-600">
+                    <span className="mt-1 flex items-center gap-1 text-xs text-red-600 dark:text-red-400">
                       <AlertTriangle className="h-3 w-3" />
                       Sem estoque
                     </span>
@@ -202,32 +202,32 @@ export const PecaAutocomplete: React.FC<PecaAutocompleteProps> = ({
       )}
 
       {showDropdown && !disabled && !isLoading && pecas.length === 0 && (
-        <div className="absolute z-50 mt-1 w-full rounded-lg border border-gray-200 bg-white p-4 text-center text-sm text-gray-500 shadow-lg">
+        <div className="absolute z-50 mt-1 w-full rounded-lg border border-gray-200 bg-white p-4 text-center text-sm text-gray-500 shadow-lg dark:border-gray-700 dark:bg-gray-800 dark:text-gray-400">
           {searchTerm ? 'Nenhuma peça encontrada' : 'Digite para buscar peças'}
         </div>
       )}
 
       {/* Info da peça selecionada */}
       {selectedPeca && (
-        <div className="mt-2 rounded-lg border border-green-200 bg-green-50 p-3">
+        <div className="mt-2 rounded-lg border border-green-200 bg-green-50 p-3 dark:border-green-700 dark:bg-green-900/30">
           <div className="flex items-start justify-between">
             <div className="flex-1">
-              <p className="text-sm font-medium text-gray-900">
+              <p className="text-sm font-medium text-gray-900 dark:text-white">
                 {selectedPeca.codigo} - {selectedPeca.descricao}
               </p>
-              <p className="mt-1 text-xs text-gray-600">
+              <p className="mt-1 text-xs text-gray-600 dark:text-gray-400">
                 Estoque: <span className="font-medium">{selectedPeca.quantidadeAtual} {selectedPeca.unidadeMedida}</span>
                 {selectedPeca.marca && ` • Marca: ${selectedPeca.marca}`}
               </p>
             </div>
             <div className="text-right">
-              <p className="text-sm font-semibold text-green-600">
+              <p className="text-sm font-semibold text-green-600 dark:text-green-400">
                 {new Intl.NumberFormat('pt-BR', {
                   style: 'currency',
                   currency: 'BRL',
                 }).format(selectedPeca.valorVenda)}
               </p>
-              <p className="text-xs text-gray-500">Valor de venda</p>
+              <p className="text-xs text-gray-500 dark:text-gray-400">Valor de venda</p>
             </div>
           </div>
         </div>

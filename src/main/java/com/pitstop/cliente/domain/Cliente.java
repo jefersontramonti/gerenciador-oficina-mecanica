@@ -1,5 +1,7 @@
 package com.pitstop.cliente.domain;
 
+import com.pitstop.oficina.domain.Oficina;
+import com.pitstop.shared.security.tenant.TenantContext;
 import jakarta.persistence.*;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.*;
@@ -60,6 +62,14 @@ public class Cliente implements Serializable {
     @GeneratedValue(strategy = GenerationType.UUID)
     @Column(name = "id", updatable = false, nullable = false)
     private UUID id;
+
+    /**
+     * Oficina à qual este cliente pertence (multi-tenant).
+     * Nullable temporariamente para migração de dados existentes.
+     */
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "oficina_id")
+    private Oficina oficina;
 
     /**
      * Tipo de cliente: Pessoa Física (CPF) ou Pessoa Jurídica (CNPJ).
@@ -151,13 +161,21 @@ public class Cliente implements Serializable {
     private LocalDateTime updatedAt;
 
     /**
-     * Valida regras de negócio antes de persistir no banco.
+     * Valida regras de negócio e configura multi-tenancy antes de persistir no banco.
      *
      * @throws IllegalStateException se validação falhar
      */
     @PrePersist
     @PreUpdate
     private void validarRegrasDeNegocio() {
+        // Set oficina from TenantContext if not explicitly set (multi-tenancy)
+        if (this.oficina == null && TenantContext.isSet()) {
+            UUID tenantId = TenantContext.getTenantId();
+            Oficina oficina = new Oficina();
+            oficina.setId(tenantId);
+            this.oficina = oficina;
+        }
+
         // Valida que ao menos um telefone está preenchido
         if ((telefone == null || telefone.isBlank()) && (celular == null || celular.isBlank())) {
             throw new IllegalStateException("Ao menos um telefone (fixo ou celular) deve ser informado");
