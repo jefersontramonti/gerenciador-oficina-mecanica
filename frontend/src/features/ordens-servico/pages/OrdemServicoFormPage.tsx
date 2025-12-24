@@ -99,8 +99,16 @@ export const OrdemServicoFormPage = () => {
         return sum + valorItem;
       }, 0);
 
-    // Calcular valor total (mão de obra + peças)
-    const valorTotal = valorMaoObra + valorPecas;
+    // Calcular valor de serviços
+    const valorServicos = itens
+      .filter((item) => item.tipo === TipoItem.SERVICO)
+      .reduce((sum, item) => {
+        const valorItem = (item.quantidade || 0) * (item.valorUnitario || 0) - (item.desconto || 0);
+        return sum + valorItem;
+      }, 0);
+
+    // Calcular valor total (mão de obra + peças + serviços)
+    const valorTotal = valorMaoObra + valorPecas + valorServicos;
 
     // Calcular desconto (prioriza percentual)
     const desconto = descontoPercentual > 0
@@ -643,7 +651,7 @@ export const OrdemServicoFormPage = () => {
                 disabled
                 className="w-full rounded-lg border border-gray-300 dark:border-gray-600 bg-gray-100 dark:bg-gray-600 text-gray-900 dark:text-gray-100 px-3 py-2 font-medium"
               />
-              <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">Mão de Obra + Peças</p>
+              <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">Mão de Obra + Peças + Serviços</p>
             </div>
 
             {/* Descontos */}

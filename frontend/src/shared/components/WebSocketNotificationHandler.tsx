@@ -1,4 +1,5 @@
 import { useEffect } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
 import { useWebSocket } from '../hooks/useWebSocket';
 import { NotificationType } from '../services/websocket';
 import type { WebSocketNotification } from '../services/websocket';
@@ -21,6 +22,7 @@ import { showSuccess, showInfo, showWarning } from '../utils/notifications';
  */
 export const WebSocketNotificationHandler = () => {
   const { isConnected, subscribeToUserNotifications, subscribeToBroadcast } = useWebSocket();
+  const queryClient = useQueryClient();
 
   useEffect(() => {
     if (!isConnected) {
@@ -38,14 +40,26 @@ export const WebSocketNotificationHandler = () => {
       switch (notification.tipo) {
         case NotificationType.OS_STATUS_CHANGED:
           showInfo(`${notification.titulo}: ${notification.mensagem}`);
+          // Invalidate OS cache
+          queryClient.invalidateQueries({ queryKey: ['ordens-servico'] });
           break;
 
         case NotificationType.OS_CREATED:
           showSuccess(`${notification.titulo}: ${notification.mensagem}`);
+          queryClient.invalidateQueries({ queryKey: ['ordens-servico'] });
           break;
 
         case NotificationType.OS_UPDATED:
           showInfo(`${notification.titulo}: ${notification.mensagem}`);
+          queryClient.invalidateQueries({ queryKey: ['ordens-servico'] });
+          break;
+
+        case NotificationType.OS_APROVADA:
+        case 'OS_APROVADA': // Handle raw string from backend
+          showSuccess(notification.mensagem || `OS aprovada pelo cliente!`);
+          // Invalidate OS cache to reflect the new status
+          queryClient.invalidateQueries({ queryKey: ['ordens-servico'] });
+          queryClient.invalidateQueries({ queryKey: ['dashboard'] });
           break;
 
         case NotificationType.PAYMENT_RECEIVED:
@@ -59,6 +73,7 @@ export const WebSocketNotificationHandler = () => {
         case NotificationType.DASHBOARD_UPDATE:
           // Silent update (don't show toast for dashboard metrics)
           console.log('[WebSocketNotificationHandler] Dashboard update received');
+          queryClient.invalidateQueries({ queryKey: ['dashboard'] });
           break;
 
         default:
@@ -83,7 +98,7 @@ export const WebSocketNotificationHandler = () => {
       unsubscribeOsUpdates?.();
       unsubscribeStockAlerts?.();
     };
-  }, [isConnected, subscribeToUserNotifications, subscribeToBroadcast]);
+  }, [isConnected, subscribeToUserNotifications, subscribeToBroadcast, queryClient]);
 
   // This component renders nothing (invisible handler)
   return null;

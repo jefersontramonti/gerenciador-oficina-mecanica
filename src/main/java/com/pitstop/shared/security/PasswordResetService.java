@@ -2,7 +2,7 @@ package com.pitstop.shared.security;
 
 import com.pitstop.shared.dto.ForgotPasswordRequest;
 import com.pitstop.shared.dto.ResetPasswordRequest;
-import com.pitstop.shared.service.EmailService;
+import com.pitstop.notificacao.service.EmailService;
 import com.pitstop.usuario.domain.Usuario;
 import com.pitstop.usuario.exception.InvalidCredentialsException;
 import com.pitstop.usuario.exception.UsuarioNotFoundException;

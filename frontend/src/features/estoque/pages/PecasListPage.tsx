@@ -3,9 +3,8 @@
  */
 
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import {
-  Package,
   Plus,
   AlertTriangle,
   Eye,
@@ -16,17 +15,10 @@ import {
   ArrowDownCircle,
   ArrowUpCircle,
   Settings,
+  Search,
+  FilterX,
 } from 'lucide-react';
 import { Button } from '@/shared/components/ui/button';
-import { Input } from '@/shared/components/ui/input';
-import { Label } from '@/shared/components/ui/label';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/shared/components/ui/select';
 import {
   Table,
   TableBody,
@@ -42,7 +34,6 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/shared/components/ui/dropdown-menu';
-import { Checkbox } from '@/shared/components/ui/checkbox';
 import { formatCurrency } from '@/shared/utils/formatters';
 import { usePecas, useMarcas, useDesativarPeca, useReativarPeca } from '../hooks/usePecas';
 import { StockBadge, UnidadeMedidaBadge, MovimentacaoModal } from '../components';
@@ -97,7 +88,6 @@ export const PecasListPage = () => {
     if (localFilters.unidadeMedida)
       newFilters.unidadeMedida = localFilters.unidadeMedida as UnidadeMedida;
 
-    // Filtros booleanos: enviar para API apenas se true
     if (localFilters.apenasAtivos) newFilters.ativo = true;
     if (localFilters.apenasEstoqueBaixo) newFilters.estoqueBaixo = true;
 
@@ -139,51 +129,64 @@ export const PecasListPage = () => {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="p-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="mb-6 flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight flex items-center gap-2">
-            <Package className="h-8 w-8" />
-            Gerenciamento de Estoque
-          </h1>
-          <p className="text-muted-foreground">Controle de peças e inventário</p>
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Estoque</h1>
+          <p className="mt-1 text-sm text-gray-600 dark:text-gray-400">
+            {data?.totalElements || 0} peça(s) cadastrada(s)
+          </p>
         </div>
         <div className="flex gap-2">
-          <Button
-            variant="outline"
-            onClick={() => navigate('/estoque/alertas')}
-            className="flex items-center gap-2"
+          <Link
+            to="/estoque/alertas"
+            className="flex items-center gap-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 px-4 py-2 text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700"
           >
-            <AlertTriangle className="h-4 w-4" />
+            <AlertTriangle className="h-5 w-5" />
             Alertas
-          </Button>
-          <Button onClick={() => navigate('/estoque/novo')}>
-            <Plus className="h-4 w-4 mr-2" />
+          </Link>
+          <Link
+            to="/estoque/novo"
+            className="flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-white hover:bg-blue-700"
+          >
+            <Plus className="h-5 w-5" />
             Nova Peça
-          </Button>
+          </Link>
         </div>
       </div>
 
       {/* Filtros */}
-      <div className="bg-card p-4 rounded-lg border space-y-4">
-        <h3 className="font-medium">Filtros</h3>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-          <div className="space-y-2">
-            <Label>Código</Label>
-            <Input
-              placeholder="Buscar por código..."
-              value={localFilters.codigo}
-              onChange={(e) =>
-                setLocalFilters((prev) => ({ ...prev, codigo: e.target.value }))
-              }
-            />
+      <div className="mb-6 rounded-lg bg-white dark:bg-gray-800 p-4 shadow">
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+          {/* Código */}
+          <div>
+            <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
+              Código
+            </label>
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 text-gray-400" />
+              <input
+                type="text"
+                placeholder="Buscar por código..."
+                className="w-full rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 text-gray-900 dark:text-white py-2 pl-10 pr-4 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+                value={localFilters.codigo}
+                onChange={(e) =>
+                  setLocalFilters((prev) => ({ ...prev, codigo: e.target.value }))
+                }
+              />
+            </div>
           </div>
 
-          <div className="space-y-2">
-            <Label>Descrição</Label>
-            <Input
+          {/* Descrição */}
+          <div>
+            <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
+              Descrição
+            </label>
+            <input
+              type="text"
               placeholder="Buscar por descrição..."
+              className="w-full rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 text-gray-900 dark:text-white px-3 py-2 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
               value={localFilters.descricao}
               onChange={(e) =>
                 setLocalFilters((prev) => ({ ...prev, descricao: e.target.value }))
@@ -191,120 +194,129 @@ export const PecasListPage = () => {
             />
           </div>
 
-          <div className="space-y-2">
-            <Label>Marca</Label>
-            <Select
+          {/* Marca */}
+          <div>
+            <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
+              Marca
+            </label>
+            <select
+              className="w-full rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 text-gray-900 dark:text-white px-3 py-2 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
               value={localFilters.marca}
-              onValueChange={(value) =>
-                setLocalFilters((prev) => ({ ...prev, marca: value }))
+              onChange={(e) =>
+                setLocalFilters((prev) => ({ ...prev, marca: e.target.value }))
               }
             >
-              <SelectTrigger>
-                <SelectValue placeholder="Todas as marcas" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="">Todas as marcas</SelectItem>
-                {marcas?.map((marca) => (
-                  <SelectItem key={marca} value={marca}>
-                    {marca}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+              <option value="">Todas as marcas</option>
+              {marcas?.map((marca) => (
+                <option key={marca} value={marca}>
+                  {marca}
+                </option>
+              ))}
+            </select>
           </div>
 
-          <div className="space-y-2">
-            <Label>Unidade de Medida</Label>
-            <Select
+          {/* Unidade de Medida */}
+          <div>
+            <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
+              Unidade de Medida
+            </label>
+            <select
+              className="w-full rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 text-gray-900 dark:text-white px-3 py-2 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
               value={localFilters.unidadeMedida}
-              onValueChange={(value) =>
-                setLocalFilters((prev) => ({ ...prev, unidadeMedida: value }))
+              onChange={(e) =>
+                setLocalFilters((prev) => ({ ...prev, unidadeMedida: e.target.value }))
               }
             >
-              <SelectTrigger>
-                <SelectValue placeholder="Todas" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="">Todas</SelectItem>
-                <SelectItem value={UnidadeMedida.UNIDADE}>Unidade (UN)</SelectItem>
-                <SelectItem value={UnidadeMedida.LITRO}>Litro (L)</SelectItem>
-                <SelectItem value={UnidadeMedida.METRO}>Metro (M)</SelectItem>
-                <SelectItem value={UnidadeMedida.QUILO}>Quilograma (KG)</SelectItem>
-              </SelectContent>
-            </Select>
+              <option value="">Todas</option>
+              <option value={UnidadeMedida.UNIDADE}>Unidade (UN)</option>
+              <option value={UnidadeMedida.LITRO}>Litro (L)</option>
+              <option value={UnidadeMedida.METRO}>Metro (M)</option>
+              <option value={UnidadeMedida.QUILO}>Quilograma (KG)</option>
+            </select>
           </div>
         </div>
 
-        <div className="flex gap-4">
-          <div className="flex items-center space-x-2">
-            <Checkbox
+        {/* Checkboxes e botões */}
+        <div className="mt-4 flex flex-wrap items-center gap-6">
+          <div className="flex items-center gap-2">
+            <input
+              type="checkbox"
               id="apenasAtivos"
+              className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
               checked={localFilters.apenasAtivos}
               onChange={(e) => {
-                const isChecked = e.target.checked;
                 setLocalFilters((prev) => ({
                   ...prev,
-                  apenasAtivos: isChecked,
-                  // Se marcar "Apenas Ativos", desmarca "Estoque Baixo"
-                  apenasEstoqueBaixo: isChecked ? false : prev.apenasEstoqueBaixo
+                  apenasAtivos: e.target.checked,
+                  apenasEstoqueBaixo: e.target.checked ? false : prev.apenasEstoqueBaixo,
                 }));
               }}
             />
             <label
               htmlFor="apenasAtivos"
-              className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer"
+              className="text-sm text-gray-700 dark:text-gray-300 cursor-pointer"
             >
               Apenas ativos
             </label>
           </div>
 
-          <div className="flex items-center space-x-2">
-            <Checkbox
+          <div className="flex items-center gap-2">
+            <input
+              type="checkbox"
               id="apenasEstoqueBaixo"
+              className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
               checked={localFilters.apenasEstoqueBaixo}
               onChange={(e) => {
-                const isChecked = e.target.checked;
                 setLocalFilters((prev) => ({
                   ...prev,
-                  apenasEstoqueBaixo: isChecked,
-                  // Se marcar "Estoque Baixo", desmarca "Apenas Ativos"
-                  apenasAtivos: isChecked ? false : prev.apenasAtivos
+                  apenasEstoqueBaixo: e.target.checked,
+                  apenasAtivos: e.target.checked ? false : prev.apenasAtivos,
                 }));
               }}
             />
             <label
               htmlFor="apenasEstoqueBaixo"
-              className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer"
+              className="text-sm text-gray-700 dark:text-gray-300 cursor-pointer"
             >
               Apenas estoque baixo
             </label>
           </div>
-        </div>
 
-        <div className="flex gap-2">
-          <Button onClick={handleAplicarFiltros}>Aplicar Filtros</Button>
-          <Button variant="outline" onClick={handleLimparFiltros}>
-            Limpar Filtros
-          </Button>
+          <div className="flex gap-2 ml-auto">
+            <button
+              onClick={handleAplicarFiltros}
+              className="flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-white hover:bg-blue-700"
+            >
+              <Search className="h-4 w-4" />
+              Aplicar Filtros
+            </button>
+            <button
+              onClick={handleLimparFiltros}
+              className="flex items-center gap-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 px-4 py-2 text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700"
+            >
+              <FilterX className="h-4 w-4" />
+              Limpar
+            </button>
+          </div>
         </div>
       </div>
 
       {/* Tabela */}
-      <div className="bg-card rounded-lg border">
+      <div className="rounded-lg bg-white dark:bg-gray-800 shadow overflow-hidden">
         <Table>
           <TableHeader>
-            <TableRow>
-              <TableHead>Código</TableHead>
-              <TableHead>Descrição</TableHead>
-              <TableHead>Marca</TableHead>
-              <TableHead className="text-center">Unidade</TableHead>
-              <TableHead className="text-right">Qtd Atual</TableHead>
-              <TableHead className="text-right">Qtd Mín</TableHead>
-              <TableHead className="text-center">Status</TableHead>
-              <TableHead className="text-right">Valor Custo</TableHead>
-              <TableHead className="text-right">Valor Venda</TableHead>
-              <TableHead className="text-right">Margem %</TableHead>
-              <TableHead className="text-right">Ações</TableHead>
+            <TableRow className="bg-gray-50 dark:bg-gray-700">
+              <TableHead className="text-gray-700 dark:text-gray-300">Código</TableHead>
+              <TableHead className="text-gray-700 dark:text-gray-300">Descrição</TableHead>
+              <TableHead className="text-gray-700 dark:text-gray-300">Marca</TableHead>
+              <TableHead className="text-center text-gray-700 dark:text-gray-300">Unidade</TableHead>
+              <TableHead className="text-right text-gray-700 dark:text-gray-300">Qtd Atual</TableHead>
+              <TableHead className="text-right text-gray-700 dark:text-gray-300">Qtd Mín</TableHead>
+              <TableHead className="text-center text-gray-700 dark:text-gray-300">Status</TableHead>
+              <TableHead className="text-right text-gray-700 dark:text-gray-300">Valor Custo</TableHead>
+              <TableHead className="text-right text-gray-700 dark:text-gray-300">Valor Venda</TableHead>
+              <TableHead className="text-right text-gray-700 dark:text-gray-300">Margem %</TableHead>
+              <TableHead className="text-right text-gray-700 dark:text-gray-300">Ações</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -312,39 +324,39 @@ export const PecasListPage = () => {
               <TableRow>
                 <TableCell colSpan={11} className="text-center py-12">
                   <div className="flex justify-center items-center">
-                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
                   </div>
                 </TableCell>
               </TableRow>
             ) : !data?.content || data.content.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={11} className="text-center py-12 text-muted-foreground">
+                <TableCell colSpan={11} className="text-center py-12 text-gray-500 dark:text-gray-400">
                   Nenhuma peça encontrada
                 </TableCell>
               </TableRow>
             ) : (
               data.content.map((peca) => (
                 <TableRow key={peca.id} className={!peca.ativo ? 'opacity-50' : ''}>
-                  <TableCell className="font-medium">{peca.codigo}</TableCell>
-                  <TableCell className="max-w-xs truncate">{peca.descricao}</TableCell>
-                  <TableCell>{peca.marca || '-'}</TableCell>
+                  <TableCell className="font-medium text-gray-900 dark:text-white">{peca.codigo}</TableCell>
+                  <TableCell className="max-w-xs truncate text-gray-700 dark:text-gray-300">{peca.descricao}</TableCell>
+                  <TableCell className="text-gray-700 dark:text-gray-300">{peca.marca || '-'}</TableCell>
                   <TableCell className="text-center">
                     <UnidadeMedidaBadge unidade={peca.unidadeMedida} />
                   </TableCell>
-                  <TableCell className="text-right font-medium">
+                  <TableCell className="text-right font-medium text-gray-900 dark:text-white">
                     {peca.quantidadeAtual}
                   </TableCell>
-                  <TableCell className="text-right">{peca.quantidadeMinima}</TableCell>
+                  <TableCell className="text-right text-gray-700 dark:text-gray-300">{peca.quantidadeMinima}</TableCell>
                   <TableCell className="text-center">
                     <StockBadge
                       quantidadeAtual={peca.quantidadeAtual}
                       quantidadeMinima={peca.quantidadeMinima}
                     />
                   </TableCell>
-                  <TableCell className="text-right">
+                  <TableCell className="text-right text-gray-700 dark:text-gray-300">
                     {formatCurrency(peca.valorCusto)}
                   </TableCell>
-                  <TableCell className="text-right">
+                  <TableCell className="text-right text-gray-700 dark:text-gray-300">
                     {formatCurrency(peca.valorVenda)}
                   </TableCell>
                   <TableCell className="text-right">
@@ -372,16 +384,12 @@ export const PecasListPage = () => {
                           <Eye className="h-4 w-4 mr-2" />
                           Ver Detalhes
                         </DropdownMenuItem>
-                        <DropdownMenuItem
-                          onClick={() => navigate(`/estoque/${peca.id}/editar`)}
-                        >
+                        <DropdownMenuItem onClick={() => navigate(`/estoque/${peca.id}/editar`)}>
                           <Edit className="h-4 w-4 mr-2" />
                           Editar
                         </DropdownMenuItem>
                         <DropdownMenuSeparator />
-                        <DropdownMenuItem
-                          onClick={() => handleMovimentar(peca, 'ENTRADA')}
-                        >
+                        <DropdownMenuItem onClick={() => handleMovimentar(peca, 'ENTRADA')}>
                           <ArrowDownCircle className="h-4 w-4 mr-2 text-green-600" />
                           Registrar Entrada
                         </DropdownMenuItem>
@@ -421,29 +429,27 @@ export const PecasListPage = () => {
         </Table>
       </div>
 
-      {/* Paginação (simplificada) */}
+      {/* Paginação */}
       {data && data.totalPages > 1 && (
-        <div className="flex justify-between items-center">
-          <p className="text-sm text-muted-foreground">
+        <div className="mt-4 flex justify-between items-center">
+          <p className="text-sm text-gray-600 dark:text-gray-400">
             Mostrando {data.content.length} de {data.totalElements} peças
           </p>
           <div className="flex gap-2">
-            <Button
-              variant="outline"
-              size="sm"
+            <button
               disabled={data.first}
               onClick={() => setFilters((prev) => ({ ...prev, page: (prev.page || 0) - 1 }))}
+              className="rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               Anterior
-            </Button>
-            <Button
-              variant="outline"
-              size="sm"
+            </button>
+            <button
               disabled={data.last}
               onClick={() => setFilters((prev) => ({ ...prev, page: (prev.page || 0) + 1 }))}
+              className="rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               Próxima
-            </Button>
+            </button>
           </div>
         </div>
       )}

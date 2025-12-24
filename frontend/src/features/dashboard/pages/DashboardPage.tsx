@@ -3,9 +3,12 @@
  * Exibe estatísticas, gráficos e ordens de serviço recentes
  */
 
-import { Users, Car, ClipboardList, DollarSign } from 'lucide-react';
+import { Users, Car, ClipboardList, DollarSign, TrendingUp, Package, AlertTriangle } from 'lucide-react';
+import { Link } from 'react-router-dom';
 import { useAuth } from '@/features/auth/hooks/useAuth';
+import { usePermissions } from '@/features/auth/hooks/usePermissions';
 import { useDashboardStats } from '../hooks/useDashboardStats';
+import { useDashboardExtras } from '../hooks/useDashboardExtras';
 import { StatCard } from '../components/StatCard';
 import { OSStatusPieChart } from '../components/OSStatusPieChart';
 import { FaturamentoBarChart } from '../components/FaturamentoBarChart';
@@ -13,7 +16,10 @@ import { RecentOSTable } from '../components/RecentOSTable';
 
 export const DashboardPage = () => {
   const { user } = useAuth();
+  const { canManageFinancial } = usePermissions();
   const { data: stats, isLoading } = useDashboardStats();
+  const { data: extras, isLoading: isLoadingExtras } = useDashboardExtras();
+  const showExtras = canManageFinancial();
 
   // TODO: Integrar com WebSocket para invalidar cache quando receber notificações
   // useEffect(() => {
@@ -42,8 +48,8 @@ export const DashboardPage = () => {
         </p>
       </div>
 
-      {/* Stat Cards */}
-      <div className="mb-8 grid gap-6 md:grid-cols-2 lg:grid-cols-4">
+      {/* Stat Cards - Linha 1 */}
+      <div className="mb-6 grid gap-6 md:grid-cols-2 lg:grid-cols-4">
         <StatCard
           title="Total de Clientes"
           value={stats?.totalClientes ?? 0}
@@ -77,6 +83,40 @@ export const DashboardPage = () => {
           isLoading={isLoading}
         />
       </div>
+
+      {/* Stat Cards - Linha 2 (indicadores extras - apenas ADMIN/GERENTE) */}
+      {showExtras && (
+        <div className="mb-8 grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+          <StatCard
+            title="Ticket Médio (Mês)"
+            value={extras ? formatCurrency(extras.ticketMedio) : 'R$ 0,00'}
+            icon={TrendingUp}
+            iconColor="text-purple-600"
+            iconBgColor="bg-purple-100"
+            isLoading={isLoadingExtras}
+          />
+          <StatCard
+            title="Valor Total Estoque"
+            value={extras ? formatCurrency(extras.valorTotalEstoque) : 'R$ 0,00'}
+            icon={Package}
+            iconColor="text-indigo-600"
+            iconBgColor="bg-indigo-100"
+            isLoading={isLoadingExtras}
+          />
+          {extras && extras.estoqueBaixoCount > 0 && (
+            <Link to="/estoque/alertas" className="block">
+              <StatCard
+                title="Peças com Estoque Baixo"
+                value={extras.estoqueBaixoCount}
+                icon={AlertTriangle}
+                iconColor="text-red-600"
+                iconBgColor="bg-red-100"
+                isLoading={isLoadingExtras}
+              />
+            </Link>
+          )}
+        </div>
+      )}
 
       {/* Charts */}
       <div className="mb-8 grid gap-6 lg:grid-cols-2">

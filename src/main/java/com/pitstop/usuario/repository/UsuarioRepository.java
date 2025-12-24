@@ -32,21 +32,23 @@ public interface UsuarioRepository extends JpaRepository<Usuario, UUID> {
     /**
      * Find usuario by email (case-insensitive).
      * GLOBALMENTE único - NÃO filtra por oficinaId.
+     * LEFT JOIN FETCH oficina para evitar LazyInitializationException no JWT.
      *
      * @param email Email to search
      * @return Optional containing usuario if found
      */
-    @Query("SELECT u FROM Usuario u WHERE LOWER(u.email) = LOWER(:email)")
+    @Query("SELECT u FROM Usuario u LEFT JOIN FETCH u.oficina WHERE LOWER(u.email) = LOWER(:email)")
     Optional<Usuario> findByEmail(@Param("email") String email);
 
     /**
      * Find usuario by email (case-insensitive) - alternative method name.
      * GLOBALMENTE único - NÃO filtra por oficinaId.
+     * LEFT JOIN FETCH oficina para evitar LazyInitializationException no JWT.
      *
      * @param email Email to search
      * @return Optional containing usuario if found
      */
-    @Query("SELECT u FROM Usuario u WHERE LOWER(u.email) = LOWER(:email)")
+    @Query("SELECT u FROM Usuario u LEFT JOIN FETCH u.oficina WHERE LOWER(u.email) = LOWER(:email)")
     Optional<Usuario> findByEmailIgnoreCase(@Param("email") String email);
 
     /**
@@ -134,6 +136,16 @@ public interface UsuarioRepository extends JpaRepository<Usuario, UUID> {
      */
     @Query("SELECT u FROM Usuario u WHERE u.oficina.id = :oficinaId AND u.id = :id")
     Optional<Usuario> findByOficinaIdAndId(@Param("oficinaId") UUID oficinaId, @Param("id") UUID id);
+
+    /**
+     * Busca usuário por ID com oficina eager loaded.
+     * Usado para refresh token e geração de JWT.
+     *
+     * @param id ID do usuário
+     * @return Optional contendo o usuário com oficina carregada
+     */
+    @Query("SELECT u FROM Usuario u LEFT JOIN FETCH u.oficina WHERE u.id = :id")
+    Optional<Usuario> findByIdWithOficina(@Param("id") UUID id);
 
     /**
      * Alias para countAdminsAtivosByOficinaId (compatibilidade).

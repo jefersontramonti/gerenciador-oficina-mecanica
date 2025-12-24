@@ -15,6 +15,15 @@ export interface DashboardStats {
 }
 
 /**
+ * Indicadores extras do dashboard
+ */
+export interface DashboardExtras {
+  ticketMedio: number;
+  valorTotalEstoque: number;
+  estoqueBaixoCount: number;
+}
+
+/**
  * Contagem de OS por status
  */
 export interface OSStatusCount {

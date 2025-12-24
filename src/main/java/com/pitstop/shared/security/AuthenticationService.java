@@ -148,8 +148,8 @@ public class AuthenticationService {
             throw new InvalidCredentialsException();
         }
 
-        // 3. Load user from database
-        Usuario usuario = usuarioRepository.findById(userId)
+        // 3. Load user from database (with oficina for JWT generation)
+        Usuario usuario = usuarioRepository.findByIdWithOficina(userId)
                 .orElseThrow(() -> {
                     log.error("Token refresh failed: user not found - {}", userId);
                     return new UsuarioNotFoundException(userId);

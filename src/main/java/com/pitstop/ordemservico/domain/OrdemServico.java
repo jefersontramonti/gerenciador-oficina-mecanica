@@ -249,6 +249,20 @@ public class OrdemServico implements Serializable {
     @Builder.Default
     private Boolean aprovadoPeloCliente = false;
 
+    /**
+     * Token único para aprovação de orçamento pelo cliente via link.
+     * Gerado automaticamente ao criar a OS.
+     */
+    @Column(name = "token_aprovacao", unique = true, length = 64)
+    private String tokenAprovacao;
+
+    /**
+     * Data/hora de expiração do token de aprovação.
+     * Token válido por 7 dias após criação.
+     */
+    @Column(name = "token_aprovacao_expiracao")
+    private LocalDateTime tokenAprovacaoExpiracao;
+
     // ===== OPTIMISTIC LOCKING =====
 
     /**
@@ -327,17 +341,28 @@ public class OrdemServico implements Serializable {
     /**
      * Recalcula todos os valores financeiros da OS com base nos itens.
      * Deve ser chamado sempre que itens forem adicionados/removidos/modificados.
+     *
+     * <p>Usa calcularValorTotal() em vez de getValorTotal() para garantir que
+     * os valores sejam calculados corretamente mesmo antes da persistência JPA.</p>
      */
     public void recalcularValores() {
         // Calcula valor das peças (soma dos itens do tipo PECA)
+        // Usa calcularValorTotal() para calcular o valor antes do @PrePersist
         this.valorPecas = this.itens.stream()
             .filter(item -> item.getTipo() == TipoItem.PECA)
-            .map(ItemOS::getValorTotal)
+            .map(ItemOS::calcularValorTotal)
             .reduce(BigDecimal.ZERO, BigDecimal::add)
             .setScale(2, RoundingMode.HALF_UP);
 
-        // Calcula valor total (mão de obra + peças)
-        this.valorTotal = this.valorMaoObra.add(this.valorPecas)
+        // Calcula valor dos serviços (soma dos itens do tipo SERVICO)
+        BigDecimal valorServicos = this.itens.stream()
+            .filter(item -> item.getTipo() == TipoItem.SERVICO)
+            .map(ItemOS::calcularValorTotal)
+            .reduce(BigDecimal.ZERO, BigDecimal::add)
+            .setScale(2, RoundingMode.HALF_UP);
+
+        // Calcula valor total (mão de obra + peças + serviços)
+        this.valorTotal = this.valorMaoObra.add(this.valorPecas).add(valorServicos)
             .setScale(2, RoundingMode.HALF_UP);
 
         // Calcula desconto total
@@ -484,8 +509,40 @@ public class OrdemServico implements Serializable {
     }
 
     /**
+     * Gera token de aprovação único para esta OS.
+     * Válido por 7 dias.
+     */
+    public void gerarTokenAprovacao() {
+        this.tokenAprovacao = UUID.randomUUID().toString().replace("-", "") +
+                              UUID.randomUUID().toString().replace("-", "").substring(0, 16);
+        this.tokenAprovacaoExpiracao = LocalDateTime.now().plusDays(7);
+    }
+
+    /**
+     * Verifica se o token de aprovação é válido.
+     *
+     * @param token Token a verificar
+     * @return true se válido, false caso contrário
+     */
+    public boolean isTokenAprovacaoValido(String token) {
+        if (token == null || this.tokenAprovacao == null) {
+            return false;
+        }
+        if (!this.tokenAprovacao.equals(token)) {
+            return false;
+        }
+        if (this.tokenAprovacaoExpiracao == null || LocalDateTime.now().isAfter(this.tokenAprovacaoExpiracao)) {
+            return false;
+        }
+        return this.status == StatusOS.ORCAMENTO; // Só pode aprovar se ainda for orçamento
+    }
+
+    /**
      * Lifecycle callback executado antes de salvar no banco.
-     * Define oficina via TenantContext, valida regras de negócio e normaliza dados.
+     * Define oficina via TenantContext e normaliza dados.
+     *
+     * NOTA: recalcularValores() é chamado explicitamente no service para garantir
+     * que os itens já estejam com seus valores calculados antes do cálculo da OS.
      */
     @PrePersist
     @PreUpdate
@@ -497,8 +554,6 @@ public class OrdemServico implements Serializable {
             oficina.setId(tenantId);
             this.oficina = oficina;
         }
-
-        recalcularValores();
 
         // Trim de strings
         if (this.problemasRelatados != null) {

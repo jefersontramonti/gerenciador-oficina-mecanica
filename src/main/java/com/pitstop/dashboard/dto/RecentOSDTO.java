@@ -1,5 +1,6 @@
 package com.pitstop.dashboard.dto;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import com.pitstop.ordemservico.domain.StatusOS;
 import io.swagger.v3.oas.annotations.media.Schema;
 
@@ -41,6 +42,7 @@ public record RecentOSDTO(
     String veiculoPlaca,
 
     @Schema(description = "Data/hora de abertura", example = "2025-11-11T10:30:00")
+    @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss")
     LocalDateTime dataAbertura,
 
     @Schema(description = "Valor final da OS", example = "1250.00")

@@ -9,6 +9,9 @@ package com.pitstop.notificacao.domain;
  * @author PitStop Team
  */
 public enum TemplateNotificacao {
+
+    // ===== TEMPLATES DE OFICINA (SaaS) =====
+
     /**
      * Email de boas-vindas ao criar nova oficina.
      */
@@ -25,14 +28,9 @@ public enum TemplateNotificacao {
     TRIAL_EXPIRED("trial-expired", "Seu período trial expirou"),
 
     /**
-     * Alerta de pagamento vencido.
+     * Alerta de pagamento vencido (plano).
      */
     PAYMENT_OVERDUE("payment-overdue", "Pagamento em atraso"),
-
-    /**
-     * Confirmação de pagamento recebido.
-     */
-    PAYMENT_CONFIRMED("payment-confirmed", "Pagamento confirmado"),
 
     /**
      * Notificação de oficina suspensa.
@@ -52,7 +50,75 @@ public enum TemplateNotificacao {
     /**
      * Alerta de erro crítico no sistema (para SUPER_ADMIN).
      */
-    SYSTEM_ALERT("system-alert", "Alerta do Sistema");
+    SYSTEM_ALERT("system-alert", "Alerta do Sistema"),
+
+    // ===== TEMPLATES DE ORDEM DE SERVIÇO =====
+
+    /**
+     * OS criada - orçamento inicial.
+     */
+    OS_CREATED("os-created", "Orçamento criado - OS #{{numeroOS}}"),
+
+    /**
+     * OS aguardando aprovação do cliente.
+     */
+    OS_WAITING_APPROVAL("os-waiting-approval", "Orçamento aguardando aprovação - OS #{{numeroOS}}"),
+
+    /**
+     * OS aprovada pelo cliente.
+     */
+    OS_APPROVED("os-approved", "Orçamento aprovado - OS #{{numeroOS}}"),
+
+    /**
+     * OS em andamento - serviço iniciado.
+     */
+    OS_IN_PROGRESS("os-in-progress", "Serviço iniciado - OS #{{numeroOS}}"),
+
+    /**
+     * OS aguardando peça.
+     */
+    OS_WAITING_PART("os-waiting-part", "Aguardando peça - OS #{{numeroOS}}"),
+
+    /**
+     * OS finalizada - veículo pronto.
+     */
+    OS_COMPLETED("os-completed", "Veículo pronto para retirada - OS #{{numeroOS}}"),
+
+    /**
+     * OS entregue ao cliente.
+     */
+    OS_DELIVERED("os-delivered", "Veículo entregue - OS #{{numeroOS}}"),
+
+    // ===== TEMPLATES DE PAGAMENTO =====
+
+    /**
+     * Pagamento pendente (OS).
+     */
+    PAYMENT_PENDING("payment-pending", "Pagamento pendente - OS #{{numeroOS}}"),
+
+    /**
+     * Confirmação de pagamento recebido (OS).
+     */
+    PAYMENT_CONFIRMED("payment-confirmed", "Pagamento confirmado - OS #{{numeroOS}}"),
+
+    // ===== TEMPLATES DE LEMBRETES =====
+
+    /**
+     * Lembrete de retirada de veículo.
+     */
+    REMINDER_PICKUP("reminder-pickup", "Seu veículo está pronto para retirada"),
+
+    /**
+     * Lembrete de revisão/manutenção preventiva.
+     */
+    REMINDER_MAINTENANCE("reminder-maintenance", "Hora de fazer a revisão do seu veículo"),
+
+    // ===== TEMPLATE DE TESTE =====
+
+    /**
+     * Mensagem de teste para validar configuração.
+     */
+    TEST("test", "Teste de notificação - PitStop");
 
     private final String templateId;
     private final String subject;

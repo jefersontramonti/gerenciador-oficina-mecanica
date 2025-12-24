@@ -19,6 +19,9 @@ import com.pitstop.veiculo.exception.VeiculoNotFoundException;
 import com.pitstop.veiculo.repository.VeiculoRepository;
 import com.pitstop.ordemservico.event.OrdemServicoFinalizadaEvent;
 import com.pitstop.ordemservico.event.OrdemServicoCanceladaEvent;
+import com.pitstop.notificacao.service.NotificacaoEventPublisher;
+import com.pitstop.oficina.domain.Oficina;
+import com.pitstop.oficina.repository.OficinaRepository;
 import com.pitstop.shared.security.tenant.TenantContext;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -63,10 +66,12 @@ public class OrdemServicoService {
     private final VeiculoRepository veiculoRepository;
     private final UsuarioRepository usuarioRepository;
     private final ClienteRepository clienteRepository;
+    private final OficinaRepository oficinaRepository;
     private final OrdemServicoMapper mapper;
     private final ItemOSMapper itemMapper;
     private final ApplicationEventPublisher applicationEventPublisher;
     private final com.pitstop.financeiro.service.PagamentoService pagamentoService;
+    private final NotificacaoEventPublisher notificacaoEventPublisher;
 
     // ===== CREATE =====
 
@@ -104,17 +109,54 @@ public class OrdemServicoService {
         if (dto.itens() != null && !dto.itens().isEmpty()) {
             dto.itens().forEach(itemDto -> {
                 ItemOS item = itemMapper.toEntity(itemDto);
+                // Calcula o valorTotal do item antes de adicionar
+                item.setValorTotal(item.calcularValorTotal());
                 os.adicionarItem(item);
             });
         }
 
-        // Recalcula valores
-        os.recalcularValores();
+        // Gera token de aprovação
+        os.gerarTokenAprovacao();
 
-        // Salva
+        // Primeira salvada - persiste a OS e os itens
         OrdemServico saved = repository.save(os);
+        repository.flush();
 
-        log.info("OS #{} criada com sucesso - ID: {}", saved.getNumero(), saved.getId());
+        // Agora que os itens estão persistidos, recalcula os valores da OS
+        saved.recalcularValores();
+
+        // Segunda salvada - persiste os valores calculados
+        saved = repository.save(saved);
+        repository.flush();
+
+        log.info("OS #{} criada com sucesso - ID: {}, valorPecas={}, valorTotal={}, valorFinal={}",
+            saved.getNumero(), saved.getId(), saved.getValorPecas(), saved.getValorTotal(), saved.getValorFinal());
+
+        // Busca cliente para notificacao
+        Cliente cliente = clienteRepository.findByOficinaIdAndId(oficinaId, veiculo.getClienteId())
+            .orElse(null);
+
+        // Busca nome da oficina para notificacao
+        String nomeOficina = oficinaRepository.findById(oficinaId)
+            .map(Oficina::getNomeFantasia)
+            .orElse("PitStop");
+
+        // Publica evento de notificacao (assincrono)
+        if (cliente != null) {
+            notificacaoEventPublisher.publicarOSCriada(
+                saved.getId(),
+                saved.getNumero(),
+                cliente.getId(),
+                cliente.getNome(),
+                cliente.getEmail(),
+                cliente.getCelular() != null ? cliente.getCelular() : cliente.getTelefone(),
+                veiculo.getPlacaFormatada(),
+                veiculo.getMarca() + " " + veiculo.getModelo(),
+                saved.getValorFinal(),
+                nomeOficina,
+                saved.getTokenAprovacao()
+            );
+        }
 
         // Retorna response com dados relacionados
         return montarResponse(saved, veiculo, mecanico);
@@ -271,6 +313,9 @@ public class OrdemServicoService {
             os.aprovar(Boolean.TRUE.equals(aprovadoPeloCliente));
             repository.save(os);
             log.info("OS #{} aprovada com sucesso", os.getNumero());
+
+            // Publica evento de notificacao (assincrono)
+            publicarNotificacaoAprovada(os, oficinaId);
         } catch (IllegalStateException e) {
             throw new TransicaoStatusInvalidaException(e.getMessage());
         }
@@ -296,6 +341,9 @@ public class OrdemServicoService {
             os.iniciar();
             repository.save(os);
             log.info("OS #{} iniciada com sucesso", os.getNumero());
+
+            // Publica evento de notificacao (assincrono)
+            publicarNotificacaoEmAndamento(os, oficinaId);
         } catch (IllegalStateException e) {
             throw new TransicaoStatusInvalidaException(e.getMessage());
         }
@@ -335,6 +383,9 @@ public class OrdemServicoService {
 
             repository.save(os);
             log.info("OS #{} finalizada com sucesso", os.getNumero());
+
+            // Publica evento de notificacao (assincrono)
+            publicarNotificacaoFinalizada(os, oficinaId);
         } catch (IllegalStateException e) {
             throw new TransicaoStatusInvalidaException(e.getMessage());
         }
@@ -369,6 +420,9 @@ public class OrdemServicoService {
             os.entregar();
             repository.save(os);
             log.info("OS #{} entregue com sucesso", os.getNumero());
+
+            // Publica evento de notificacao (assincrono)
+            publicarNotificacaoEntregue(os, oficinaId);
         } catch (IllegalStateException e) {
             throw new TransicaoStatusInvalidaException(e.getMessage());
         }
@@ -502,6 +556,9 @@ public class OrdemServicoService {
         Cliente cliente = clienteRepository.findByOficinaIdAndIdIncludingInactive(oficinaId, veiculo.getClienteId())
             .orElseThrow(() -> new ClienteNotFoundException(veiculo.getClienteId()));
 
+        // Força inicialização dos itens (lazy loading)
+        os.getItens().size();
+
         // Mapeia básico
         OrdemServicoResponseDTO response = mapper.toResponse(os);
 
@@ -556,5 +613,152 @@ public class OrdemServicoService {
             response.createdAt(),
             response.updatedAt()
         );
+    }
+
+    // ===== MÉTODOS AUXILIARES DE NOTIFICAÇÃO =====
+
+    /**
+     * Publica notificação de OS aprovada.
+     */
+    private void publicarNotificacaoAprovada(OrdemServico os, UUID oficinaId) {
+        try {
+            Veiculo veiculo = veiculoRepository.findByOficinaIdAndId(oficinaId, os.getVeiculoId())
+                .orElse(null);
+            if (veiculo == null) return;
+
+            Cliente cliente = clienteRepository.findByOficinaIdAndId(oficinaId, veiculo.getClienteId())
+                .orElse(null);
+            if (cliente == null) return;
+
+            String nomeOficina = oficinaRepository.findById(oficinaId)
+                .map(Oficina::getNomeFantasia)
+                .orElse("PitStop");
+
+            notificacaoEventPublisher.publicarOSAprovada(
+                os.getId(),
+                os.getNumero(),
+                cliente.getId(),
+                cliente.getNome(),
+                cliente.getEmail(),
+                cliente.getCelular() != null ? cliente.getCelular() : cliente.getTelefone(),
+                nomeOficina
+            );
+        } catch (Exception e) {
+            log.warn("Falha ao publicar notificacao de OS aprovada: {}", e.getMessage());
+        }
+    }
+
+    /**
+     * Publica notificação de OS em andamento.
+     */
+    private void publicarNotificacaoEmAndamento(OrdemServico os, UUID oficinaId) {
+        try {
+            Veiculo veiculo = veiculoRepository.findByOficinaIdAndId(oficinaId, os.getVeiculoId())
+                .orElse(null);
+            if (veiculo == null) return;
+
+            Cliente cliente = clienteRepository.findByOficinaIdAndId(oficinaId, veiculo.getClienteId())
+                .orElse(null);
+            if (cliente == null) return;
+
+            Usuario mecanico = usuarioRepository.findByOficinaIdAndId(oficinaId, os.getUsuarioId())
+                .orElse(null);
+
+            String nomeOficina = oficinaRepository.findById(oficinaId)
+                .map(Oficina::getNomeFantasia)
+                .orElse("PitStop");
+
+            LocalDateTime previsao = os.getDataPrevisao() != null
+                ? os.getDataPrevisao().atStartOfDay()
+                : null;
+
+            notificacaoEventPublisher.publicarOSEmAndamento(
+                os.getId(),
+                os.getNumero(),
+                cliente.getId(),
+                cliente.getNome(),
+                cliente.getEmail(),
+                cliente.getCelular() != null ? cliente.getCelular() : cliente.getTelefone(),
+                veiculo.getPlacaFormatada(),
+                veiculo.getMarca() + " " + veiculo.getModelo(),
+                mecanico != null ? mecanico.getNome() : "Equipe",
+                previsao,
+                nomeOficina
+            );
+        } catch (Exception e) {
+            log.warn("Falha ao publicar notificacao de OS em andamento: {}", e.getMessage());
+        }
+    }
+
+    /**
+     * Publica notificação de OS finalizada.
+     */
+    private void publicarNotificacaoFinalizada(OrdemServico os, UUID oficinaId) {
+        try {
+            Veiculo veiculo = veiculoRepository.findByOficinaIdAndId(oficinaId, os.getVeiculoId())
+                .orElse(null);
+            if (veiculo == null) return;
+
+            Cliente cliente = clienteRepository.findByOficinaIdAndId(oficinaId, veiculo.getClienteId())
+                .orElse(null);
+            if (cliente == null) return;
+
+            String nomeOficina = oficinaRepository.findById(oficinaId)
+                .map(Oficina::getNomeFantasia)
+                .orElse("PitStop");
+
+            // Monta descrição dos serviços realizados
+            String servicosRealizados = os.getItens().stream()
+                .map(item -> item.getDescricao())
+                .collect(java.util.stream.Collectors.joining(", "));
+
+            notificacaoEventPublisher.publicarOSFinalizada(
+                os.getId(),
+                os.getNumero(),
+                cliente.getId(),
+                cliente.getNome(),
+                cliente.getEmail(),
+                cliente.getCelular() != null ? cliente.getCelular() : cliente.getTelefone(),
+                veiculo.getPlacaFormatada(),
+                veiculo.getMarca() + " " + veiculo.getModelo(),
+                os.getValorFinal(),
+                servicosRealizados,
+                nomeOficina
+            );
+        } catch (Exception e) {
+            log.warn("Falha ao publicar notificacao de OS finalizada: {}", e.getMessage());
+        }
+    }
+
+    /**
+     * Publica notificação de OS entregue.
+     */
+    private void publicarNotificacaoEntregue(OrdemServico os, UUID oficinaId) {
+        try {
+            Veiculo veiculo = veiculoRepository.findByOficinaIdAndId(oficinaId, os.getVeiculoId())
+                .orElse(null);
+            if (veiculo == null) return;
+
+            Cliente cliente = clienteRepository.findByOficinaIdAndId(oficinaId, veiculo.getClienteId())
+                .orElse(null);
+            if (cliente == null) return;
+
+            String nomeOficina = oficinaRepository.findById(oficinaId)
+                .map(Oficina::getNomeFantasia)
+                .orElse("PitStop");
+
+            notificacaoEventPublisher.publicarOSEntregue(
+                os.getId(),
+                os.getNumero(),
+                cliente.getId(),
+                cliente.getNome(),
+                cliente.getEmail(),
+                cliente.getCelular() != null ? cliente.getCelular() : cliente.getTelefone(),
+                veiculo.getPlacaFormatada(),
+                nomeOficina
+            );
+        } catch (Exception e) {
+            log.warn("Falha ao publicar notificacao de OS entregue: {}", e.getMessage());
+        }
     }
 }

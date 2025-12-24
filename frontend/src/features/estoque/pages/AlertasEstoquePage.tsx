@@ -6,16 +6,6 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, AlertTriangle, XCircle, ArrowDownCircle } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/shared/components/ui/tabs';
-import { Button } from '@/shared/components/ui/button';
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/shared/components/ui/table';
-import { Badge } from '@/shared/components/ui/badge';
 import { formatCurrency } from '@/shared/utils/formatters';
 import { useAlertasEstoqueBaixo, useAlertasEstoqueZerado } from '../hooks/usePecas';
 import { StockBadge, UnidadeMedidaBadge, MovimentacaoModal } from '../components';
@@ -49,140 +39,167 @@ export const AlertasEstoquePage = () => {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="p-6">
       {/* Header */}
-      <div>
-        <Button variant="ghost" size="sm" onClick={() => navigate('/estoque')}>
-          <ArrowLeft className="h-4 w-4 mr-2" />
+      <div className="mb-6">
+        <button
+          onClick={() => navigate('/estoque')}
+          className="mb-4 flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200"
+        >
+          <ArrowLeft className="h-4 w-4" />
           Voltar para Estoque
-        </Button>
-        <h1 className="text-3xl font-bold tracking-tight mt-2 flex items-center gap-2">
+        </button>
+        <div className="flex items-center gap-3">
           <AlertTriangle className="h-8 w-8 text-orange-600 dark:text-orange-400" />
-          Alertas de Estoque
-        </h1>
-        <p className="text-muted-foreground">
-          Peças que requerem atenção imediata
-        </p>
+          <div>
+            <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
+              Alertas de Estoque
+            </h1>
+            <p className="mt-1 text-sm text-gray-600 dark:text-gray-400">
+              Peças que requerem atenção imediata
+            </p>
+          </div>
+        </div>
       </div>
 
       {/* Tabs */}
       <Tabs defaultValue="baixo" className="space-y-4">
-        <TabsList className="grid w-full max-w-md grid-cols-2">
+        <TabsList className="grid w-full max-w-md grid-cols-2 bg-gray-100 dark:bg-gray-700">
           <TabsTrigger value="baixo" className="flex items-center gap-2">
             <AlertTriangle className="h-4 w-4" />
             Estoque Baixo
             {dataBaixo && (
-              <Badge variant="secondary">{dataBaixo.totalElements}</Badge>
+              <span className="ml-1 rounded-full bg-orange-100 dark:bg-orange-900/40 px-2 py-0.5 text-xs font-medium text-orange-700 dark:text-orange-300">
+                {dataBaixo.totalElements}
+              </span>
             )}
           </TabsTrigger>
           <TabsTrigger value="zerado" className="flex items-center gap-2">
             <XCircle className="h-4 w-4" />
             Estoque Zerado
             {dataZerado && (
-              <Badge variant="destructive">{dataZerado.totalElements}</Badge>
+              <span className="ml-1 rounded-full bg-red-100 dark:bg-red-900/40 px-2 py-0.5 text-xs font-medium text-red-700 dark:text-red-300">
+                {dataZerado.totalElements}
+              </span>
             )}
           </TabsTrigger>
         </TabsList>
 
         {/* Tab: Estoque Baixo */}
         <TabsContent value="baixo" className="space-y-4">
-          <div className="bg-orange-50 dark:bg-orange-950/30 border border-orange-200 dark:border-orange-800 rounded-lg p-4">
+          <div className="rounded-lg border border-orange-200 dark:border-orange-800 bg-orange-50 dark:bg-orange-900/20 p-4">
             <p className="text-sm text-orange-800 dark:text-orange-300">
               <strong>Atenção:</strong> As peças abaixo estão com quantidade atual{' '}
               <strong>igual ou inferior</strong> à quantidade mínima configurada.
             </p>
           </div>
 
-          <div className="bg-card rounded-lg border">
+          <div className="rounded-lg bg-white dark:bg-gray-800 shadow overflow-hidden">
             {isLoadingBaixo ? (
               <div className="flex justify-center items-center py-12">
-                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
               </div>
             ) : !dataBaixo || dataBaixo.content.length === 0 ? (
-              <div className="text-center py-12 text-muted-foreground">
+              <div className="text-center py-12 text-gray-500 dark:text-gray-400">
                 Nenhuma peça com estoque baixo
               </div>
             ) : (
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Código</TableHead>
-                    <TableHead>Descrição</TableHead>
-                    <TableHead className="text-center">Unidade</TableHead>
-                    <TableHead className="text-right">Qtd Atual</TableHead>
-                    <TableHead className="text-right">Qtd Mínima</TableHead>
-                    <TableHead className="text-center">Status</TableHead>
-                    <TableHead className="text-right">Valor Unit.</TableHead>
-                    <TableHead className="text-right">Ações</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {dataBaixo.content.map((peca) => (
-                    <TableRow key={peca.id}>
-                      <TableCell className="font-medium">{peca.codigo}</TableCell>
-                      <TableCell className="max-w-xs truncate">
-                        {peca.descricao}
-                      </TableCell>
-                      <TableCell className="text-center">
-                        <UnidadeMedidaBadge unidade={peca.unidadeMedida} />
-                      </TableCell>
-                      <TableCell className="text-right font-medium text-orange-600 dark:text-orange-400">
-                        {peca.quantidadeAtual}
-                      </TableCell>
-                      <TableCell className="text-right">
-                        {peca.quantidadeMinima}
-                      </TableCell>
-                      <TableCell className="text-center">
-                        <StockBadge
-                          quantidadeAtual={peca.quantidadeAtual}
-                          quantidadeMinima={peca.quantidadeMinima}
-                        />
-                      </TableCell>
-                      <TableCell className="text-right">
-                        {formatCurrency(peca.valorCusto)}
-                      </TableCell>
-                      <TableCell className="text-right">
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          className="text-green-600 dark:text-green-400 hover:text-green-700 dark:hover:text-green-300"
-                          onClick={() => handleRegistrarEntrada(peca)}
-                        >
-                          <ArrowDownCircle className="h-4 w-4 mr-1" />
-                          Entrada
-                        </Button>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
+              <div className="overflow-x-auto">
+                <table className="w-full divide-y divide-gray-200 dark:divide-gray-700">
+                  <thead className="bg-gray-50 dark:bg-gray-700">
+                    <tr>
+                      <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-700 dark:text-gray-300">
+                        Código
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-700 dark:text-gray-300">
+                        Descrição
+                      </th>
+                      <th className="px-6 py-3 text-center text-xs font-medium uppercase tracking-wider text-gray-700 dark:text-gray-300">
+                        Unidade
+                      </th>
+                      <th className="px-6 py-3 text-right text-xs font-medium uppercase tracking-wider text-gray-700 dark:text-gray-300">
+                        Qtd Atual
+                      </th>
+                      <th className="px-6 py-3 text-right text-xs font-medium uppercase tracking-wider text-gray-700 dark:text-gray-300">
+                        Qtd Mínima
+                      </th>
+                      <th className="px-6 py-3 text-center text-xs font-medium uppercase tracking-wider text-gray-700 dark:text-gray-300">
+                        Status
+                      </th>
+                      <th className="px-6 py-3 text-right text-xs font-medium uppercase tracking-wider text-gray-700 dark:text-gray-300">
+                        Valor Unit.
+                      </th>
+                      <th className="px-6 py-3 text-right text-xs font-medium uppercase tracking-wider text-gray-700 dark:text-gray-300">
+                        Ações
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-gray-200 dark:divide-gray-700 bg-white dark:bg-gray-800">
+                    {dataBaixo.content.map((peca) => (
+                      <tr key={peca.id} className="hover:bg-gray-50 dark:hover:bg-gray-700/50">
+                        <td className="px-6 py-4 text-sm font-medium text-gray-900 dark:text-white">
+                          {peca.codigo}
+                        </td>
+                        <td className="px-6 py-4 text-sm text-gray-900 dark:text-white max-w-xs truncate">
+                          {peca.descricao}
+                        </td>
+                        <td className="px-6 py-4 text-center">
+                          <UnidadeMedidaBadge unidade={peca.unidadeMedida} />
+                        </td>
+                        <td className="px-6 py-4 text-sm text-right font-medium text-orange-600 dark:text-orange-400">
+                          {peca.quantidadeAtual}
+                        </td>
+                        <td className="px-6 py-4 text-sm text-right text-gray-900 dark:text-white">
+                          {peca.quantidadeMinima}
+                        </td>
+                        <td className="px-6 py-4 text-center">
+                          <StockBadge
+                            quantidadeAtual={peca.quantidadeAtual}
+                            quantidadeMinima={peca.quantidadeMinima}
+                          />
+                        </td>
+                        <td className="px-6 py-4 text-sm text-right text-gray-900 dark:text-white">
+                          {formatCurrency(peca.valorCusto)}
+                        </td>
+                        <td className="px-6 py-4 text-right">
+                          <button
+                            onClick={() => handleRegistrarEntrada(peca)}
+                            className="inline-flex items-center gap-1 rounded-lg border border-green-600 dark:border-green-500 px-3 py-1.5 text-sm font-medium text-green-600 dark:text-green-400 hover:bg-green-50 dark:hover:bg-green-900/30"
+                          >
+                            <ArrowDownCircle className="h-4 w-4" />
+                            Entrada
+                          </button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
             )}
           </div>
 
           {/* Paginação */}
           {dataBaixo && dataBaixo.totalPages > 1 && (
             <div className="flex justify-between items-center">
-              <p className="text-sm text-muted-foreground">
+              <p className="text-sm text-gray-600 dark:text-gray-400">
                 Mostrando {dataBaixo.content.length} de {dataBaixo.totalElements}{' '}
                 peças
               </p>
               <div className="flex gap-2">
-                <Button
-                  variant="outline"
-                  size="sm"
+                <button
                   disabled={dataBaixo.first}
                   onClick={() => setPageBaixo((prev) => prev - 1)}
+                  className="rounded-lg border border-gray-300 dark:border-gray-600 px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   Anterior
-                </Button>
-                <Button
-                  variant="outline"
-                  size="sm"
+                </button>
+                <button
                   disabled={dataBaixo.last}
                   onClick={() => setPageBaixo((prev) => prev + 1)}
+                  className="rounded-lg border border-gray-300 dark:border-gray-600 px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   Próxima
-                </Button>
+                </button>
               </div>
             </div>
           )}
@@ -190,7 +207,7 @@ export const AlertasEstoquePage = () => {
 
         {/* Tab: Estoque Zerado */}
         <TabsContent value="zerado" className="space-y-4">
-          <div className="bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-800 rounded-lg p-4">
+          <div className="rounded-lg border border-red-200 dark:border-red-800 bg-red-50 dark:bg-red-900/20 p-4">
             <p className="text-sm text-red-800 dark:text-red-300">
               <strong>Urgente:</strong> As peças abaixo estão com{' '}
               <strong>quantidade zerada</strong>. Registre entradas imediatamente para
@@ -198,91 +215,106 @@ export const AlertasEstoquePage = () => {
             </p>
           </div>
 
-          <div className="bg-card rounded-lg border">
+          <div className="rounded-lg bg-white dark:bg-gray-800 shadow overflow-hidden">
             {isLoadingZerado ? (
               <div className="flex justify-center items-center py-12">
-                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
               </div>
             ) : !dataZerado || dataZerado.content.length === 0 ? (
-              <div className="text-center py-12 text-muted-foreground">
+              <div className="text-center py-12 text-gray-500 dark:text-gray-400">
                 Nenhuma peça com estoque zerado
               </div>
             ) : (
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Código</TableHead>
-                    <TableHead>Descrição</TableHead>
-                    <TableHead className="text-center">Unidade</TableHead>
-                    <TableHead className="text-right">Qtd Mínima</TableHead>
-                    <TableHead className="text-center">Status</TableHead>
-                    <TableHead className="text-right">Valor Unit.</TableHead>
-                    <TableHead className="text-right">Ações</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {dataZerado.content.map((peca) => (
-                    <TableRow key={peca.id} className="bg-red-50/50 dark:bg-red-950/20">
-                      <TableCell className="font-medium">{peca.codigo}</TableCell>
-                      <TableCell className="max-w-xs truncate">
-                        {peca.descricao}
-                      </TableCell>
-                      <TableCell className="text-center">
-                        <UnidadeMedidaBadge unidade={peca.unidadeMedida} />
-                      </TableCell>
-                      <TableCell className="text-right">
-                        {peca.quantidadeMinima}
-                      </TableCell>
-                      <TableCell className="text-center">
-                        <StockBadge
-                          quantidadeAtual={peca.quantidadeAtual}
-                          quantidadeMinima={peca.quantidadeMinima}
-                        />
-                      </TableCell>
-                      <TableCell className="text-right">
-                        {formatCurrency(peca.valorCusto)}
-                      </TableCell>
-                      <TableCell className="text-right">
-                        <Button
-                          size="sm"
-                          className="bg-green-600 hover:bg-green-700 dark:bg-green-700 dark:hover:bg-green-600"
-                          onClick={() => handleRegistrarEntrada(peca)}
-                        >
-                          <ArrowDownCircle className="h-4 w-4 mr-1" />
-                          Entrada Urgente
-                        </Button>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
+              <div className="overflow-x-auto">
+                <table className="w-full divide-y divide-gray-200 dark:divide-gray-700">
+                  <thead className="bg-gray-50 dark:bg-gray-700">
+                    <tr>
+                      <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-700 dark:text-gray-300">
+                        Código
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-700 dark:text-gray-300">
+                        Descrição
+                      </th>
+                      <th className="px-6 py-3 text-center text-xs font-medium uppercase tracking-wider text-gray-700 dark:text-gray-300">
+                        Unidade
+                      </th>
+                      <th className="px-6 py-3 text-right text-xs font-medium uppercase tracking-wider text-gray-700 dark:text-gray-300">
+                        Qtd Mínima
+                      </th>
+                      <th className="px-6 py-3 text-center text-xs font-medium uppercase tracking-wider text-gray-700 dark:text-gray-300">
+                        Status
+                      </th>
+                      <th className="px-6 py-3 text-right text-xs font-medium uppercase tracking-wider text-gray-700 dark:text-gray-300">
+                        Valor Unit.
+                      </th>
+                      <th className="px-6 py-3 text-right text-xs font-medium uppercase tracking-wider text-gray-700 dark:text-gray-300">
+                        Ações
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-gray-200 dark:divide-gray-700 bg-white dark:bg-gray-800">
+                    {dataZerado.content.map((peca) => (
+                      <tr key={peca.id} className="bg-red-50/50 dark:bg-red-950/20 hover:bg-red-50 dark:hover:bg-red-950/30">
+                        <td className="px-6 py-4 text-sm font-medium text-gray-900 dark:text-white">
+                          {peca.codigo}
+                        </td>
+                        <td className="px-6 py-4 text-sm text-gray-900 dark:text-white max-w-xs truncate">
+                          {peca.descricao}
+                        </td>
+                        <td className="px-6 py-4 text-center">
+                          <UnidadeMedidaBadge unidade={peca.unidadeMedida} />
+                        </td>
+                        <td className="px-6 py-4 text-sm text-right text-gray-900 dark:text-white">
+                          {peca.quantidadeMinima}
+                        </td>
+                        <td className="px-6 py-4 text-center">
+                          <StockBadge
+                            quantidadeAtual={peca.quantidadeAtual}
+                            quantidadeMinima={peca.quantidadeMinima}
+                          />
+                        </td>
+                        <td className="px-6 py-4 text-sm text-right text-gray-900 dark:text-white">
+                          {formatCurrency(peca.valorCusto)}
+                        </td>
+                        <td className="px-6 py-4 text-right">
+                          <button
+                            onClick={() => handleRegistrarEntrada(peca)}
+                            className="inline-flex items-center gap-1 rounded-lg bg-green-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-green-700 dark:bg-green-700 dark:hover:bg-green-600"
+                          >
+                            <ArrowDownCircle className="h-4 w-4" />
+                            Entrada Urgente
+                          </button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
             )}
           </div>
 
           {/* Paginação */}
           {dataZerado && dataZerado.totalPages > 1 && (
             <div className="flex justify-between items-center">
-              <p className="text-sm text-muted-foreground">
+              <p className="text-sm text-gray-600 dark:text-gray-400">
                 Mostrando {dataZerado.content.length} de {dataZerado.totalElements}{' '}
                 peças
               </p>
               <div className="flex gap-2">
-                <Button
-                  variant="outline"
-                  size="sm"
+                <button
                   disabled={dataZerado.first}
                   onClick={() => setPageZerado((prev) => prev - 1)}
+                  className="rounded-lg border border-gray-300 dark:border-gray-600 px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   Anterior
-                </Button>
-                <Button
-                  variant="outline"
-                  size="sm"
+                </button>
+                <button
                   disabled={dataZerado.last}
                   onClick={() => setPageZerado((prev) => prev + 1)}
+                  className="rounded-lg border border-gray-300 dark:border-gray-600 px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   Próxima
-                </Button>
+                </button>
               </div>
             </div>
           )}

@@ -57,6 +57,16 @@ const NotasFiscaisListPage = lazy(() => import('./features/financeiro/pages/Nota
 const NotaFiscalFormPage = lazy(() => import('./features/financeiro/pages/NotaFiscalFormPage').then(m => ({ default: m.NotaFiscalFormPage })));
 const NotaFiscalDetailPage = lazy(() => import('./features/financeiro/pages/NotaFiscalDetailPage').then(m => ({ default: m.NotaFiscalDetailPage })));
 
+// Configurações
+const ConfiguracoesPage = lazy(() => import('./features/configuracoes/pages').then(m => ({ default: m.ConfiguracoesPage })));
+
+// Notificações
+const ConfiguracaoNotificacoesPage = lazy(() => import('./features/notificacoes/pages/ConfiguracaoNotificacoesPage').then(m => ({ default: m.ConfiguracaoNotificacoesPage })));
+const HistoricoNotificacoesPage = lazy(() => import('./features/notificacoes/pages/HistoricoNotificacoesPage').then(m => ({ default: m.HistoricoNotificacoesPage })));
+
+// Paginas Publicas (aprovacao de orcamento)
+const AprovarOrcamentoPage = lazy(() => import('./features/ordens-servico/pages/AprovarOrcamentoPage').then(m => ({ default: m.AprovarOrcamentoPage })));
+
 function App() {
   return (
     <BrowserRouter>
@@ -69,6 +79,9 @@ function App() {
             <Route path="/register" element={<PublicRoute><RegisterPage /></PublicRoute>} />
             <Route path="/forgot-password" element={<PublicRoute><ForgotPasswordPage /></PublicRoute>} />
             <Route path="/reset-password" element={<PublicRoute><ResetPasswordPage /></PublicRoute>} />
+
+            {/* Aprovacao de orcamento (rota publica - cliente acessa via email) */}
+            <Route path="/orcamento/aprovar" element={<AprovarOrcamentoPage />} />
 
             {/* Protected routes */}
             <Route
@@ -408,8 +421,36 @@ function App() {
           {/* Configurações */}
           <Route
             path="configuracoes"
-            element={<ComingSoonPage title="Configurações" />}
+            element={
+              <ProtectedRoute>
+                <ConfiguracoesPage />
+              </ProtectedRoute>
+            }
           />
+
+          {/* Notificações - ADMIN e GERENTE */}
+          <Route path="notificacoes">
+            <Route
+              path="configuracao"
+              element={
+                <ProtectedRoute
+                  requiredRoles={[PerfilUsuario.ADMIN, PerfilUsuario.GERENTE]}
+                >
+                  <ConfiguracaoNotificacoesPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="historico"
+              element={
+                <ProtectedRoute
+                  requiredRoles={[PerfilUsuario.ADMIN, PerfilUsuario.GERENTE]}
+                >
+                  <HistoricoNotificacoesPage />
+                </ProtectedRoute>
+              }
+            />
+          </Route>
         </Route>
 
         {/* Unauthorized */}
@@ -444,21 +485,6 @@ function PublicRoute({ children }: { children: React.ReactNode }) {
   }
 
   return <>{children}</>;
-}
-
-/**
- * Coming soon placeholder page
- */
-function ComingSoonPage({ title }: { title: string }) {
-  return (
-    <div className="flex min-h-[calc(100vh-4rem)] items-center justify-center p-6">
-      <div className="text-center">
-        <h1 className="text-4xl font-bold text-gray-900 dark:text-white">{title}</h1>
-        <p className="mt-4 text-lg text-gray-600 dark:text-gray-300">Esta funcionalidade está em desenvolvimento.</p>
-        <p className="mt-2 text-sm text-gray-500 dark:text-gray-400">Em breve estará disponível!</p>
-      </div>
-    </div>
-  );
 }
 
 /**

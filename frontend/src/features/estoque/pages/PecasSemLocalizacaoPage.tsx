@@ -5,7 +5,6 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { MapPinOff, Package, ExternalLink, MapPin } from 'lucide-react';
-import { Button } from '@/shared/components/ui/button';
 import { usePecasSemLocalizacao, useDefinirLocalizacao } from '../hooks/usePecas';
 import { UnidadeMedidaSigla, getStockStatus } from '../types';
 import { formatCurrency } from '@/shared/utils/formatters';
@@ -43,23 +42,25 @@ export const PecasSemLocalizacaoPage = () => {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="p-6">
       {/* Header */}
-      <div>
+      <div className="mb-6">
         <div className="flex items-center gap-3 mb-2">
-          <div className="rounded-full bg-orange-100 dark:bg-orange-950/40 p-2">
+          <div className="rounded-full bg-orange-100 dark:bg-orange-900/30 p-2">
             <MapPinOff className="h-6 w-6 text-orange-600 dark:text-orange-400" />
           </div>
-          <h1 className="text-3xl font-bold">Peças Sem Localização</h1>
+          <div>
+            <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Peças Sem Localização</h1>
+            <p className="mt-1 text-sm text-gray-600 dark:text-gray-400">
+              Gerencie peças que ainda não possuem um local de armazenamento definido
+            </p>
+          </div>
         </div>
-        <p className="text-muted-foreground">
-          Gerencie peças que ainda não possuem um local de armazenamento definido
-        </p>
       </div>
 
       {/* Alert Banner */}
       {pecas.length > 0 && (
-        <div className="rounded-lg border border-orange-200 dark:border-orange-800 bg-orange-50 dark:bg-orange-950/30 p-4">
+        <div className="mb-6 rounded-lg border border-orange-200 dark:border-orange-800 bg-orange-50 dark:bg-orange-900/20 p-4">
           <div className="flex items-start gap-3">
             <MapPinOff className="h-5 w-5 text-orange-600 dark:text-orange-400 mt-0.5" />
             <div className="flex-1">
@@ -75,69 +76,89 @@ export const PecasSemLocalizacaoPage = () => {
       )}
 
       {/* Lista de Peças */}
-      <div className="rounded-lg border bg-card">
+      <div className="rounded-lg bg-white dark:bg-gray-800 shadow overflow-hidden">
         {isLoading ? (
           <div className="flex justify-center items-center py-12">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
           </div>
         ) : pecas.length === 0 ? (
           <div className="text-center py-12 px-4">
-            <div className="rounded-full bg-green-100 dark:bg-green-950/40 w-16 h-16 flex items-center justify-center mx-auto mb-4">
+            <div className="rounded-full bg-green-100 dark:bg-green-900/30 w-16 h-16 flex items-center justify-center mx-auto mb-4">
               <Package className="h-8 w-8 text-green-600 dark:text-green-400" />
             </div>
-            <h3 className="text-lg font-semibold mb-2">Todas as peças têm localização</h3>
-            <p className="text-muted-foreground">
+            <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">Todas as peças têm localização</h3>
+            <p className="text-gray-500 dark:text-gray-400">
               Não há peças sem localização definida no momento.
             </p>
           </div>
         ) : (
           <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead>
-                <tr className="border-b bg-muted/50 text-left text-sm font-medium text-muted-foreground">
-                  <th className="p-4">Código</th>
-                  <th className="p-4">Descrição</th>
-                  <th className="p-4">Marca</th>
-                  <th className="p-4 text-right">Qtd. Atual</th>
-                  <th className="p-4">Status</th>
-                  <th className="p-4 text-right">Valor</th>
-                  <th className="p-4">Local</th>
-                  <th className="p-4"></th>
+            <table className="w-full divide-y divide-gray-200 dark:divide-gray-700">
+              <thead className="bg-gray-50 dark:bg-gray-700">
+                <tr>
+                  <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-700 dark:text-gray-300">
+                    Código
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-700 dark:text-gray-300">
+                    Descrição
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-700 dark:text-gray-300">
+                    Marca
+                  </th>
+                  <th className="px-6 py-3 text-right text-xs font-medium uppercase tracking-wider text-gray-700 dark:text-gray-300">
+                    Qtd. Atual
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-700 dark:text-gray-300">
+                    Status
+                  </th>
+                  <th className="px-6 py-3 text-right text-xs font-medium uppercase tracking-wider text-gray-700 dark:text-gray-300">
+                    Valor
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-700 dark:text-gray-300">
+                    Local
+                  </th>
+                  <th className="px-6 py-3 text-right text-xs font-medium uppercase tracking-wider text-gray-700 dark:text-gray-300">
+                    Ações
+                  </th>
                 </tr>
               </thead>
-              <tbody>
+              <tbody className="divide-y divide-gray-200 dark:divide-gray-700 bg-white dark:bg-gray-800">
                 {pecas.map((peca) => {
                   const status = getStockStatus(peca.quantidadeAtual, peca.quantidadeMinima);
                   const isEditing = selectedPecaId === peca.id;
 
                   return (
-                    <tr key={peca.id} className="border-b hover:bg-muted/50 transition-colors">
-                      <td className="p-4 font-mono text-sm">{peca.codigo}</td>
-                      <td className="p-4">
+                    <tr key={peca.id} className="hover:bg-gray-50 dark:hover:bg-gray-700/50">
+                      <td className="px-6 py-4 text-sm font-mono text-gray-900 dark:text-white">
+                        {peca.codigo}
+                      </td>
+                      <td className="px-6 py-4">
                         <div>
-                          <p className="font-medium">{peca.descricao}</p>
+                          <p className="font-medium text-gray-900 dark:text-white">{peca.descricao}</p>
                           {peca.aplicacao && (
-                            <p className="text-xs text-muted-foreground truncate max-w-xs">
+                            <p className="text-xs text-gray-500 dark:text-gray-400 truncate max-w-xs">
                               {peca.aplicacao}
                             </p>
                           )}
                         </div>
                       </td>
-                      <td className="p-4 text-sm">{peca.marca || '-'}</td>
-                      <td className="p-4 text-right font-medium">
+                      <td className="px-6 py-4 text-sm text-gray-900 dark:text-white">
+                        {peca.marca || '-'}
+                      </td>
+                      <td className="px-6 py-4 text-sm text-right font-medium text-gray-900 dark:text-white">
                         {peca.quantidadeAtual} {UnidadeMedidaSigla[peca.unidadeMedida]}
                       </td>
-                      <td className="p-4">
+                      <td className="px-6 py-4">
                         <span
                           className={`px-2 py-1 rounded-full text-xs font-medium ${status.bgColor} ${status.textColor}`}
                         >
                           {status.label}
                         </span>
                       </td>
-                      <td className="p-4 text-right font-medium">
+                      <td className="px-6 py-4 text-sm text-right font-medium text-gray-900 dark:text-white">
                         {formatCurrency(peca.valorVenda)}
                       </td>
-                      <td className="p-4">
+                      <td className="px-6 py-4">
                         {isEditing ? (
                           <div className="min-w-[200px]">
                             <LocalArmazenamentoSelect
@@ -148,45 +169,45 @@ export const PecasSemLocalizacaoPage = () => {
                             />
                           </div>
                         ) : (
-                          <span className="text-sm text-orange-600 dark:text-orange-400 font-medium">Não definido</span>
+                          <span className="text-sm text-orange-600 dark:text-orange-400 font-medium">
+                            Não definido
+                          </span>
                         )}
                       </td>
-                      <td className="p-4">
+                      <td className="px-6 py-4">
                         <div className="flex items-center gap-2 justify-end">
                           {isEditing ? (
                             <>
-                              <Button
-                                size="sm"
+                              <button
                                 onClick={() => handleAssignLocation(peca.id)}
                                 disabled={!selectedLocalId || definirLocalizacao.isPending}
+                                className="inline-flex items-center gap-1 rounded-lg bg-blue-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
                               >
-                                <MapPin className="h-3 w-3 mr-1" />
+                                <MapPin className="h-3 w-3" />
                                 Salvar
-                              </Button>
-                              <Button
-                                size="sm"
-                                variant="outline"
+                              </button>
+                              <button
                                 onClick={() => {
                                   setSelectedPecaId(null);
                                   setSelectedLocalId('');
                                 }}
+                                className="rounded-lg border border-gray-300 dark:border-gray-600 px-3 py-1.5 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700"
                               >
                                 Cancelar
-                              </Button>
+                              </button>
                             </>
                           ) : (
                             <>
-                              <Button
-                                size="sm"
-                                variant="outline"
+                              <button
                                 onClick={() => setSelectedPecaId(peca.id)}
+                                className="inline-flex items-center gap-1 rounded-lg border border-gray-300 dark:border-gray-600 px-3 py-1.5 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700"
                               >
-                                <MapPin className="h-3 w-3 mr-1" />
+                                <MapPin className="h-3 w-3" />
                                 Definir Local
-                              </Button>
+                              </button>
                               <Link
                                 to={`/estoque/${peca.id}`}
-                                className="inline-flex items-center gap-1 text-sm text-primary hover:underline"
+                                className="inline-flex items-center gap-1 text-sm text-blue-600 dark:text-blue-400 hover:underline"
                               >
                                 <ExternalLink className="h-3 w-3" />
                               </Link>
@@ -204,14 +225,14 @@ export const PecasSemLocalizacaoPage = () => {
 
         {/* Pagination Info */}
         {data && data.totalElements > 0 && (
-          <div className="border-t p-4 text-sm text-muted-foreground">
+          <div className="border-t border-gray-200 dark:border-gray-700 p-4 text-sm text-gray-600 dark:text-gray-400">
             Mostrando {data.numberOfElements} de {data.totalElements} peças
           </div>
         )}
       </div>
 
       {/* Help Text */}
-      <div className="rounded-lg border border-blue-200 dark:border-blue-800 bg-blue-50 dark:bg-blue-950/30 p-4">
+      <div className="mt-6 rounded-lg border border-blue-200 dark:border-blue-800 bg-blue-50 dark:bg-blue-900/20 p-4">
         <h3 className="font-semibold text-blue-900 dark:text-blue-200 mb-2">Dica</h3>
         <p className="text-sm text-blue-800 dark:text-blue-300">
           Você também pode definir o local de armazenamento ao editar uma peça individualmente

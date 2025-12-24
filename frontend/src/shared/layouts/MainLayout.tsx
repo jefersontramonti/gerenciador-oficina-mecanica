@@ -17,6 +17,7 @@ import {
   UserCog,
   MapPin,
   Receipt,
+  Bell,
 } from 'lucide-react';
 import { cn } from '@/shared/utils/cn';
 import { useWebSocket } from '@/shared/hooks/useWebSocket';
@@ -85,6 +86,12 @@ const navigationItems: NavigationItem[] = [
     href: '/financeiro/notas-fiscais',
     icon: Receipt,
     requiredRoles: [PerfilUsuario.ADMIN, PerfilUsuario.GERENTE, PerfilUsuario.ATENDENTE],
+  },
+  {
+    name: 'Notificações',
+    href: '/notificacoes/configuracao',
+    icon: Bell,
+    requiredRoles: [PerfilUsuario.ADMIN, PerfilUsuario.GERENTE],
   },
   {
     name: 'Configurações',

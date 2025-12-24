@@ -143,19 +143,13 @@ public class TemplateCustomizado {
     /**
      * Processa o corpo do template substituindo variáveis.
      *
-     * Para templates simples (WhatsApp/SMS), substitui {variavel} por valores.
-     * Para templates HTML (Email), usa Thymeleaf então não precisa substituir aqui.
+     * Substitui placeholders {variavel} pelos valores correspondentes.
+     * Funciona para todos os tipos de notificação (Email, WhatsApp, SMS, Telegram).
      *
      * @param variaveis Mapa de variáveis
      * @return Corpo processado
      */
     public String processarCorpo(java.util.Map<String, Object> variaveis) {
-        if (tipoNotificacao == TipoNotificacao.EMAIL) {
-            // Email usa Thymeleaf, não precisa processar aqui
-            return corpo;
-        }
-
-        // Para WhatsApp/SMS/Telegram, substitui placeholders simples
         String resultado = corpo;
         if (variaveis != null) {
             for (java.util.Map.Entry<String, Object> entry : variaveis.entrySet()) {

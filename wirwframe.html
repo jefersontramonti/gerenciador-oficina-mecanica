@@ -1,0 +1,719 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Configurações > Comunicação (Wireframe)</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+
+<body class="bg-slate-50 text-slate-900">
+<div class="min-h-screen">
+    <!-- Top bar -->
+    <header class="sticky top-0 z-20 border-b bg-white/90 backdrop-blur">
+        <div class="mx-auto max-w-7xl px-4 py-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between gap-4">
+                <div>
+                    <p class="text-xs text-slate-500">Configurações</p>
+                    <h1 class="text-xl font-semibold tracking-tight">Comunicação</h1>
+                </div>
+
+                <div class="flex items-center gap-2">
+            <span class="hidden sm:inline-flex items-center gap-2 rounded-full border px-3 py-1 text-xs text-slate-600">
+              <span class="h-2 w-2 rounded-full bg-emerald-500"></span>
+              Oficina: Tramonti Auto Center
+            </span>
+                    <button class="rounded-lg border bg-white px-3 py-2 text-sm hover:bg-slate-50">
+                        Salvar tudo
+                    </button>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Content -->
+    <main class="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
+        <!-- Tabs -->
+        <div class="rounded-2xl border bg-white shadow-sm">
+            <div class="border-b px-4 py-3 sm:px-6">
+                <nav class="flex flex-wrap gap-2" aria-label="Tabs">
+                    <button data-tab="tab-canais" class="tab-btn rounded-lg px-3 py-2 text-sm font-medium bg-slate-900 text-white">
+                        Canais
+                    </button>
+                    <button data-tab="tab-whatsapp" class="tab-btn rounded-lg px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-100">
+                        WhatsApp (Evolution)
+                    </button>
+                    <button data-tab="tab-email" class="tab-btn rounded-lg px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-100">
+                        E-mail
+                    </button>
+                    <button data-tab="tab-templates" class="tab-btn rounded-lg px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-100">
+                        Templates
+                    </button>
+                </nav>
+            </div>
+
+            <!-- TAB: CANAIS -->
+            <section id="tab-canais" class="tab-panel p-4 sm:p-6">
+                <div class="grid grid-cols-1 gap-6 lg:grid-cols-3">
+                    <div class="lg:col-span-2">
+                        <h2 class="text-base font-semibold">Canais de comunicação</h2>
+                        <p class="mt-1 text-sm text-slate-600">
+                            Defina quais canais esta oficina utilizará para disparos automáticos.
+                        </p>
+
+                        <div class="mt-6 space-y-4">
+                            <!-- Toggle: WhatsApp -->
+                            <div class="flex items-start justify-between gap-4 rounded-xl border p-4">
+                                <div>
+                                    <p class="font-medium">WhatsApp automático</p>
+                                    <p class="mt-1 text-sm text-slate-600">
+                                        Envio via Evolution API (mensagens transacionais e lembretes).
+                                    </p>
+                                </div>
+
+                                <label class="relative inline-flex cursor-pointer items-center">
+                                    <input id="toggle-whatsapp" type="checkbox" class="peer sr-only" checked />
+                                    <div class="peer h-6 w-11 rounded-full bg-slate-200 after:absolute after:left-[2px] after:top-[2px] after:h-5 after:w-5 after:rounded-full after:bg-white after:transition-all peer-checked:bg-slate-900 peer-checked:after:translate-x-full"></div>
+                                </label>
+                            </div>
+
+                            <!-- Toggle: Email -->
+                            <div class="flex items-start justify-between gap-4 rounded-xl border p-4">
+                                <div>
+                                    <p class="font-medium">E-mail automático</p>
+                                    <p class="mt-1 text-sm text-slate-600">
+                                        Envio via SMTP (confirmações, aprovações e status).
+                                    </p>
+                                </div>
+
+                                <label class="relative inline-flex cursor-pointer items-center">
+                                    <input id="toggle-email" type="checkbox" class="peer sr-only" checked />
+                                    <div class="peer h-6 w-11 rounded-full bg-slate-200 after:absolute after:left-[2px] after:top-[2px] after:h-5 after:w-5 after:rounded-full after:bg-white after:transition-all peer-checked:bg-slate-900 peer-checked:after:translate-x-full"></div>
+                                </label>
+                            </div>
+
+                            <!-- Toggle: Telefone -->
+                            <div class="flex items-start justify-between gap-4 rounded-xl border p-4">
+                                <div>
+                                    <p class="font-medium">Telefone (informativo)</p>
+                                    <p class="mt-1 text-sm text-slate-600">
+                                        Exibido em documentos, rodapé de mensagens e tela do cliente.
+                                    </p>
+                                </div>
+
+                                <label class="relative inline-flex cursor-pointer items-center">
+                                    <input id="toggle-phone" type="checkbox" class="peer sr-only" checked />
+                                    <div class="peer h-6 w-11 rounded-full bg-slate-200 after:absolute after:left-[2px] after:top-[2px] after:h-5 after:w-5 after:rounded-full after:bg-white after:transition-all peer-checked:bg-slate-900 peer-checked:after:translate-x-full"></div>
+                                </label>
+                            </div>
+
+                            <div class="rounded-xl bg-slate-50 p-4 text-sm text-slate-700">
+                                <p class="font-medium">Observação</p>
+                                <p class="mt-1">
+                                    As mensagens só serão enviadas pelos canais habilitados. Templates inativos não disparam.
+                                </p>
+                            </div>
+                        </div>
+
+                        <div class="mt-6 flex flex-wrap gap-2">
+                            <button class="rounded-lg bg-slate-900 px-4 py-2 text-sm font-medium text-white hover:bg-slate-800">
+                                Salvar
+                            </button>
+                            <button class="rounded-lg border bg-white px-4 py-2 text-sm hover:bg-slate-50">
+                                Cancelar
+                            </button>
+                        </div>
+                    </div>
+
+                    <aside class="rounded-2xl border bg-slate-50 p-4">
+                        <h3 class="text-sm font-semibold">Status rápido</h3>
+                        <div class="mt-4 space-y-3 text-sm">
+                            <div class="flex items-center justify-between rounded-xl border bg-white p-3">
+                                <span>WhatsApp</span>
+                                <span class="inline-flex items-center gap-2 text-emerald-700">
+                    <span class="h-2 w-2 rounded-full bg-emerald-500"></span>
+                    Ativo
+                  </span>
+                            </div>
+                            <div class="flex items-center justify-between rounded-xl border bg-white p-3">
+                                <span>E-mail</span>
+                                <span class="inline-flex items-center gap-2 text-emerald-700">
+                    <span class="h-2 w-2 rounded-full bg-emerald-500"></span>
+                    Ativo
+                  </span>
+                            </div>
+                            <div class="flex items-center justify-between rounded-xl border bg-white p-3">
+                                <span>Telefone</span>
+                                <span class="inline-flex items-center gap-2 text-emerald-700">
+                    <span class="h-2 w-2 rounded-full bg-emerald-500"></span>
+                    Ativo
+                  </span>
+                            </div>
+                        </div>
+
+                        <div class="mt-4 rounded-xl border bg-white p-3 text-xs text-slate-600">
+                            Dica: mantenha os disparos transacionais sempre habilitados para reduzir ligações e retrabalho.
+                        </div>
+                    </aside>
+                </div>
+            </section>
+
+            <!-- TAB: WHATSAPP -->
+            <section id="tab-whatsapp" class="tab-panel hidden p-4 sm:p-6">
+                <div class="grid grid-cols-1 gap-6 lg:grid-cols-3">
+                    <div class="lg:col-span-2">
+                        <div class="flex items-start justify-between gap-4">
+                            <div>
+                                <h2 class="text-base font-semibold">WhatsApp (Evolution API)</h2>
+                                <p class="mt-1 text-sm text-slate-600">
+                                    Configure número, instância e teste de envio.
+                                </p>
+                            </div>
+
+                            <span class="inline-flex items-center gap-2 rounded-full border px-3 py-1 text-xs text-emerald-700 bg-emerald-50">
+                  <span class="h-2 w-2 rounded-full bg-emerald-500"></span>
+                  Conectado
+                </span>
+                        </div>
+
+                        <div class="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2">
+                            <div>
+                                <label class="text-sm font-medium">Número do WhatsApp</label>
+                                <input class="mt-1 w-full rounded-lg border px-3 py-2 text-sm" placeholder="+55 11 99999-9999" value="+55 11 99999-9999" />
+                                <p class="mt-1 text-xs text-slate-500">Formato internacional recomendado.</p>
+                            </div>
+
+                            <div>
+                                <label class="text-sm font-medium">Nome da instância</label>
+                                <input class="mt-1 w-full rounded-lg border px-3 py-2 text-sm" placeholder="oficina_tramonti_01" value="oficina_tramonti_01" />
+                                <p class="mt-1 text-xs text-slate-500">Uma instância por oficina (multi-tenant).</p>
+                            </div>
+
+                            <div class="sm:col-span-2">
+                                <label class="text-sm font-medium">Webhook de status</label>
+                                <div class="mt-1 flex gap-2">
+                                    <input class="w-full rounded-lg border px-3 py-2 text-sm" value="https://api.seusistema.com/webhook/whatsapp" />
+                                    <button class="rounded-lg border bg-white px-3 py-2 text-sm hover:bg-slate-50">Copiar</button>
+                                </div>
+                                <p class="mt-1 text-xs text-slate-500">
+                                    Usado para status de entrega, falhas e reconexão.
+                                </p>
+                            </div>
+                        </div>
+
+                        <div class="mt-6 flex flex-wrap gap-2">
+                            <button class="rounded-lg bg-slate-900 px-4 py-2 text-sm font-medium text-white hover:bg-slate-800">
+                                Salvar
+                            </button>
+                            <button id="btn-test-whatsapp" class="rounded-lg border bg-white px-4 py-2 text-sm hover:bg-slate-50">
+                                Testar envio
+                            </button>
+                        </div>
+
+                        <div id="toast-whatsapp" class="mt-4 hidden rounded-xl border bg-emerald-50 p-4 text-sm text-emerald-800">
+                            Teste disparado. Verifique a entrega nos logs.
+                        </div>
+                    </div>
+
+                    <aside class="rounded-2xl border bg-slate-50 p-4">
+                        <h3 class="text-sm font-semibold">Checklist</h3>
+                        <ul class="mt-3 space-y-2 text-sm text-slate-700">
+                            <li class="flex gap-2">
+                                <span class="mt-1 h-2 w-2 rounded-full bg-slate-400"></span>
+                                Instância criada na Evolution API
+                            </li>
+                            <li class="flex gap-2">
+                                <span class="mt-1 h-2 w-2 rounded-full bg-slate-400"></span>
+                                Webhook configurado e acessível
+                            </li>
+                            <li class="flex gap-2">
+                                <span class="mt-1 h-2 w-2 rounded-full bg-slate-400"></span>
+                                Número com permissões e sessão ativa
+                            </li>
+                        </ul>
+
+                        <div class="mt-4 rounded-xl border bg-white p-3 text-xs text-slate-600">
+                            Recomendação: aplique retry com backoff e fallback para e-mail em falhas.
+                        </div>
+                    </aside>
+                </div>
+            </section>
+
+            <!-- TAB: EMAIL -->
+            <section id="tab-email" class="tab-panel hidden p-4 sm:p-6">
+                <div class="grid grid-cols-1 gap-6 lg:grid-cols-3">
+                    <div class="lg:col-span-2">
+                        <h2 class="text-base font-semibold">E-mail (SMTP)</h2>
+                        <p class="mt-1 text-sm text-slate-600">
+                            Configure SMTP para disparos automáticos.
+                        </p>
+
+                        <div class="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2">
+                            <div class="sm:col-span-2">
+                                <label class="text-sm font-medium">E-mail remetente</label>
+                                <input class="mt-1 w-full rounded-lg border px-3 py-2 text-sm" placeholder="contato@oficina.com.br" value="contato@oficina.com.br" />
+                            </div>
+
+                            <div>
+                                <label class="text-sm font-medium">Servidor SMTP</label>
+                                <input class="mt-1 w-full rounded-lg border px-3 py-2 text-sm" placeholder="smtp.gmail.com" value="smtp.gmail.com" />
+                            </div>
+
+                            <div>
+                                <label class="text-sm font-medium">Porta</label>
+                                <input class="mt-1 w-full rounded-lg border px-3 py-2 text-sm" placeholder="587" value="587" />
+                            </div>
+
+                            <div>
+                                <label class="text-sm font-medium">Usuário</label>
+                                <input class="mt-1 w-full rounded-lg border px-3 py-2 text-sm" placeholder="contato@oficina.com.br" value="contato@oficina.com.br" />
+                            </div>
+
+                            <div>
+                                <label class="text-sm font-medium">Senha</label>
+                                <input class="mt-1 w-full rounded-lg border px-3 py-2 text-sm" placeholder="************" value="************" />
+                                <p class="mt-1 text-xs text-slate-500">Armazenar criptografado no backend.</p>
+                            </div>
+                        </div>
+
+                        <div class="mt-6 flex flex-wrap gap-2">
+                            <button class="rounded-lg bg-slate-900 px-4 py-2 text-sm font-medium text-white hover:bg-slate-800">
+                                Salvar
+                            </button>
+                            <button id="btn-test-email" class="rounded-lg border bg-white px-4 py-2 text-sm hover:bg-slate-50">
+                                Testar e-mail
+                            </button>
+                        </div>
+
+                        <div id="toast-email" class="mt-4 hidden rounded-xl border bg-emerald-50 p-4 text-sm text-emerald-800">
+                            Teste disparado. Verifique a caixa de entrada do administrador.
+                        </div>
+                    </div>
+
+                    <aside class="rounded-2xl border bg-slate-50 p-4">
+                        <h3 class="text-sm font-semibold">Boas práticas</h3>
+                        <ul class="mt-3 space-y-2 text-sm text-slate-700">
+                            <li class="flex gap-2">
+                                <span class="mt-1 h-2 w-2 rounded-full bg-slate-400"></span>
+                                Usar TLS (STARTTLS) quando possível
+                            </li>
+                            <li class="flex gap-2">
+                                <span class="mt-1 h-2 w-2 rounded-full bg-slate-400"></span>
+                                Definir DKIM/SPF no domínio da oficina (opcional)
+                            </li>
+                            <li class="flex gap-2">
+                                <span class="mt-1 h-2 w-2 rounded-full bg-slate-400"></span>
+                                Implementar fila e retentativas
+                            </li>
+                        </ul>
+                    </aside>
+                </div>
+            </section>
+
+            <!-- TAB: TEMPLATES -->
+            <section id="tab-templates" class="tab-panel hidden p-4 sm:p-6">
+                <div class="flex flex-col gap-6 lg:flex-row">
+                    <!-- Left: selectors + editor -->
+                    <div class="flex-1">
+                        <div class="flex flex-col gap-4 rounded-2xl border bg-white p-4 sm:p-5">
+                            <div class="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+                                <div class="flex-1">
+                                    <label class="text-sm font-medium">Evento</label>
+                                    <select id="event-select" class="mt-1 w-full rounded-lg border px-3 py-2 text-sm">
+                                        <option value="ORDER_CREATED">Ordem criada</option>
+                                        <option value="ORDER_IN_PROGRESS">Ordem em andamento</option>
+                                        <option value="ORDER_WAITING_APPROVAL">Aguardando aprovação</option>
+                                        <option value="ORDER_COMPLETED">Ordem concluída</option>
+                                        <option value="PAYMENT_PENDING">Pagamento pendente</option>
+                                        <option value="PAYMENT_CONFIRMED">Pagamento confirmado</option>
+                                        <option value="REMINDER_PICKUP">Lembrete de retirada</option>
+                                    </select>
+                                </div>
+
+                                <div class="flex-1">
+                                    <label class="text-sm font-medium">Canal</label>
+                                    <select id="channel-select" class="mt-1 w-full rounded-lg border px-3 py-2 text-sm">
+                                        <option value="WHATSAPP">WhatsApp</option>
+                                        <option value="EMAIL">E-mail</option>
+                                    </select>
+                                </div>
+
+                                <div class="flex gap-2">
+                                    <button class="rounded-lg border bg-white px-3 py-2 text-sm hover:bg-slate-50">
+                                        + Novo template
+                                    </button>
+                                    <button id="btn-toggle-template" class="rounded-lg bg-slate-900 px-3 py-2 text-sm font-medium text-white hover:bg-slate-800">
+                                        Ativo
+                                    </button>
+                                </div>
+                            </div>
+
+                            <!-- Subject (email only) -->
+                            <div id="subject-wrap" class="">
+                                <label class="text-sm font-medium">Assunto (E-mail)</label>
+                                <input id="subject" class="mt-1 w-full rounded-lg border px-3 py-2 text-sm" value="Ordem de Serviço Atualizada" />
+                                <p class="mt-1 text-xs text-slate-500">Opcional para WhatsApp; obrigatório para E-mail.</p>
+                            </div>
+
+                            <div>
+                                <div class="flex items-center justify-between">
+                                    <label class="text-sm font-medium">Mensagem</label>
+                                    <div class="flex items-center gap-2 text-xs text-slate-500">
+                                        <span id="char-count">0</span> caracteres
+                                    </div>
+                                </div>
+
+                                <textarea id="template-body"
+                                          class="mt-1 h-56 w-full resize-none rounded-lg border px-3 py-2 text-sm leading-6"
+                                          placeholder="Digite o template aqui...">Olá {{cliente_nome}},
+
+Sua ordem de serviço nº {{ordem_id}} foi atualizada.
+Veículo: {{modelo}} – {{placa}}
+Status: {{status}}
+
+{{nome_oficina}}</textarea>
+
+                                <p class="mt-2 text-xs text-slate-500">
+                                    Use variáveis entre chaves duplas, por exemplo: <span class="font-mono">{{cliente_nome}}</span>.
+                                </p>
+                            </div>
+
+                            <div class="flex flex-wrap gap-2">
+                                <button id="btn-preview" class="rounded-lg border bg-white px-4 py-2 text-sm hover:bg-slate-50">
+                                    Preview
+                                </button>
+                                <button class="rounded-lg bg-slate-900 px-4 py-2 text-sm font-medium text-white hover:bg-slate-800">
+                                    Salvar
+                                </button>
+                                <button class="rounded-lg border bg-white px-4 py-2 text-sm hover:bg-slate-50">
+                                    Desativar
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Logs snippet -->
+                        <div class="mt-6 rounded-2xl border bg-white p-4 sm:p-5">
+                            <div class="flex items-center justify-between">
+                                <h3 class="text-sm font-semibold">Últimos envios (amostra)</h3>
+                                <button class="text-sm text-slate-700 underline hover:text-slate-900">Ver logs</button>
+                            </div>
+
+                            <div class="mt-4 overflow-hidden rounded-xl border">
+                                <table class="w-full text-left text-sm">
+                                    <thead class="bg-slate-50 text-slate-600">
+                                    <tr>
+                                        <th class="px-3 py-2">Data</th>
+                                        <th class="px-3 py-2">Canal</th>
+                                        <th class="px-3 py-2">Destinatário</th>
+                                        <th class="px-3 py-2">Status</th>
+                                    </tr>
+                                    </thead>
+                                    <tbody class="divide-y">
+                                    <tr>
+                                        <td class="px-3 py-2">2025-12-23 09:12</td>
+                                        <td class="px-3 py-2">WhatsApp</td>
+                                        <td class="px-3 py-2">+55 11 9xxxx-xxxx</td>
+                                        <td class="px-3 py-2">
+                                            <span class="rounded-full bg-emerald-50 px-2 py-1 text-xs text-emerald-700">Enviado</span>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td class="px-3 py-2">2025-12-23 08:41</td>
+                                        <td class="px-3 py-2">E-mail</td>
+                                        <td class="px-3 py-2">cliente@dominio.com</td>
+                                        <td class="px-3 py-2">
+                                            <span class="rounded-full bg-amber-50 px-2 py-1 text-xs text-amber-700">Pendente</span>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td class="px-3 py-2">2025-12-22 18:09</td>
+                                        <td class="px-3 py-2">WhatsApp</td>
+                                        <td class="px-3 py-2">+55 11 9xxxx-xxxx</td>
+                                        <td class="px-3 py-2">
+                                            <span class="rounded-full bg-rose-50 px-2 py-1 text-xs text-rose-700">Falhou</span>
+                                        </td>
+                                    </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Right: variables + rules -->
+                    <aside class="w-full lg:w-96">
+                        <div class="rounded-2xl border bg-slate-50 p-4 sm:p-5">
+                            <h3 class="text-sm font-semibold">Variáveis disponíveis</h3>
+                            <p class="mt-1 text-sm text-slate-600">
+                                Clique para inserir no template.
+                            </p>
+
+                            <div class="mt-4 grid grid-cols-1 gap-2">
+                                <button data-var="{{cliente_nome}}" class="var-btn rounded-xl border bg-white px-3 py-2 text-left text-sm hover:bg-slate-50">
+                                    <span class="font-mono">{{cliente_nome}}</span>
+                                    <span class="block text-xs text-slate-500">Nome do cliente</span>
+                                </button>
+                                <button data-var="{{placa}}" class="var-btn rounded-xl border bg-white px-3 py-2 text-left text-sm hover:bg-slate-50">
+                                    <span class="font-mono">{{placa}}</span>
+                                    <span class="block text-xs text-slate-500">Placa do veículo</span>
+                                </button>
+                                <button data-var="{{modelo}}" class="var-btn rounded-xl border bg-white px-3 py-2 text-left text-sm hover:bg-slate-50">
+                                    <span class="font-mono">{{modelo}}</span>
+                                    <span class="block text-xs text-slate-500">Modelo do veículo</span>
+                                </button>
+                                <button data-var="{{ordem_id}}" class="var-btn rounded-xl border bg-white px-3 py-2 text-left text-sm hover:bg-slate-50">
+                                    <span class="font-mono">{{ordem_id}}</span>
+                                    <span class="block text-xs text-slate-500">Número da OS</span>
+                                </button>
+                                <button data-var="{{valor_total}}" class="var-btn rounded-xl border bg-white px-3 py-2 text-left text-sm hover:bg-slate-50">
+                                    <span class="font-mono">{{valor_total}}</span>
+                                    <span class="block text-xs text-slate-500">Valor total</span>
+                                </button>
+                                <button data-var="{{data_previsao}}" class="var-btn rounded-xl border bg-white px-3 py-2 text-left text-sm hover:bg-slate-50">
+                                    <span class="font-mono">{{data_previsao}}</span>
+                                    <span class="block text-xs text-slate-500">Data de previsão</span>
+                                </button>
+                                <button data-var="{{status}}" class="var-btn rounded-xl border bg-white px-3 py-2 text-left text-sm hover:bg-slate-50">
+                                    <span class="font-mono">{{status}}</span>
+                                    <span class="block text-xs text-slate-500">Status da OS</span>
+                                </button>
+                                <button data-var="{{nome_oficina}}" class="var-btn rounded-xl border bg-white px-3 py-2 text-left text-sm hover:bg-slate-50">
+                                    <span class="font-mono">{{nome_oficina}}</span>
+                                    <span class="block text-xs text-slate-500">Nome da oficina</span>
+                                </button>
+                            </div>
+
+                            <div class="mt-5 rounded-xl border bg-white p-3 text-xs text-slate-600">
+                                Regra recomendada: WhatsApp para mensagens curtas e transacionais; e-mail para detalhamento e anexos.
+                            </div>
+                        </div>
+
+                        <div class="mt-6 rounded-2xl border bg-white p-4 sm:p-5">
+                            <h3 class="text-sm font-semibold">Políticas de envio (wireframe)</h3>
+                            <div class="mt-4 space-y-3 text-sm">
+                                <label class="flex items-center gap-2">
+                                    <input type="checkbox" class="h-4 w-4 rounded border" checked />
+                                    <span>Aplicar horário comercial</span>
+                                </label>
+                                <div class="grid grid-cols-2 gap-2">
+                                    <div>
+                                        <label class="text-xs text-slate-600">Início</label>
+                                        <input class="mt-1 w-full rounded-lg border px-3 py-2 text-sm" value="08:00" />
+                                    </div>
+                                    <div>
+                                        <label class="text-xs text-slate-600">Fim</label>
+                                        <input class="mt-1 w-full rounded-lg border px-3 py-2 text-sm" value="18:00" />
+                                    </div>
+                                </div>
+
+                                <label class="flex items-center gap-2">
+                                    <input type="checkbox" class="h-4 w-4 rounded border" checked />
+                                    <span>Fallback WhatsApp → E-mail se falhar</span>
+                                </label>
+
+                                <label class="flex items-center gap-2">
+                                    <input type="checkbox" class="h-4 w-4 rounded border" />
+                                    <span>Exigir opt-in do cliente</span>
+                                </label>
+                            </div>
+                        </div>
+                    </aside>
+                </div>
+            </section>
+        </div>
+    </main>
+</div>
+
+<!-- Preview Modal -->
+<div id="preview-modal" class="fixed inset-0 z-50 hidden">
+    <div class="absolute inset-0 bg-slate-900/50"></div>
+    <div class="relative mx-auto mt-24 w-[min(92vw,720px)] rounded-2xl bg-white shadow-xl">
+        <div class="flex items-center justify-between border-b px-4 py-3 sm:px-6">
+            <div>
+                <p class="text-xs text-slate-500">Preview renderizado</p>
+                <p class="text-sm font-semibold" id="preview-title">Template</p>
+            </div>
+            <button id="btn-close-preview" class="rounded-lg border bg-white px-3 py-2 text-sm hover:bg-slate-50">
+                Fechar
+            </button>
+        </div>
+        <div class="px-4 py-4 sm:px-6">
+            <div id="preview-subject-wrap" class="mb-3 hidden">
+                <p class="text-xs text-slate-500">Assunto</p>
+                <p id="preview-subject" class="rounded-xl border bg-slate-50 px-3 py-2 text-sm"></p>
+            </div>
+
+            <p class="text-xs text-slate-500">Mensagem</p>
+            <pre id="preview-body" class="mt-1 whitespace-pre-wrap rounded-xl border bg-slate-50 px-3 py-3 text-sm leading-6"></pre>
+
+            <div class="mt-4 rounded-xl border bg-white p-3 text-xs text-slate-600">
+                Este preview usa dados fictícios apenas para validar o template.
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Tabs
+    const tabButtons = document.querySelectorAll(".tab-btn");
+    const tabPanels = document.querySelectorAll(".tab-panel");
+
+    function activateTab(tabId) {
+        tabPanels.forEach(p => p.classList.toggle("hidden", p.id !== tabId));
+        tabButtons.forEach(b => {
+            const active = b.dataset.tab === tabId;
+            b.classList.toggle("bg-slate-900", active);
+            b.classList.toggle("text-white", active);
+            b.classList.toggle("text-slate-700", !active);
+            b.classList.toggle("hover:bg-slate-100", !active);
+        });
+    }
+
+    tabButtons.forEach(btn => {
+        btn.addEventListener("click", () => activateTab(btn.dataset.tab));
+    });
+
+    // Toasts
+    const btnTestWhats = document.getElementById("btn-test-whatsapp");
+    const toastWhats = document.getElementById("toast-whatsapp");
+    if (btnTestWhats) {
+        btnTestWhats.addEventListener("click", () => {
+            toastWhats.classList.remove("hidden");
+            setTimeout(() => toastWhats.classList.add("hidden"), 2500);
+        });
+    }
+
+    const btnTestEmail = document.getElementById("btn-test-email");
+    const toastEmail = document.getElementById("toast-email");
+    if (btnTestEmail) {
+        btnTestEmail.addEventListener("click", () => {
+            toastEmail.classList.remove("hidden");
+            setTimeout(() => toastEmail.classList.add("hidden"), 2500);
+        });
+    }
+
+    // Template editor helpers
+    const templateBody = document.getElementById("template-body");
+    const charCount = document.getElementById("char-count");
+    const varButtons = document.querySelectorAll(".var-btn");
+
+    function updateCharCount() {
+        if (!templateBody || !charCount) return;
+        charCount.textContent = templateBody.value.length.toString();
+    }
+    if (templateBody) {
+        templateBody.addEventListener("input", updateCharCount);
+        updateCharCount();
+    }
+
+    function insertAtCursor(textarea, text) {
+        const start = textarea.selectionStart;
+        const end = textarea.selectionEnd;
+        const before = textarea.value.substring(0, start);
+        const after = textarea.value.substring(end);
+        textarea.value = before + text + after;
+        textarea.focus();
+        const newPos = start + text.length;
+        textarea.setSelectionRange(newPos, newPos);
+        updateCharCount();
+    }
+
+    varButtons.forEach(btn => {
+        btn.addEventListener("click", () => {
+            if (!templateBody) return;
+            insertAtCursor(templateBody, btn.dataset.var || "");
+        });
+    });
+
+    // Subject visibility based on channel
+    const channelSelect = document.getElementById("channel-select");
+    const subjectWrap = document.getElementById("subject-wrap");
+    function syncSubjectVisibility() {
+        if (!channelSelect || !subjectWrap) return;
+        subjectWrap.classList.toggle("hidden", channelSelect.value !== "EMAIL");
+    }
+    if (channelSelect) {
+        channelSelect.addEventListener("change", syncSubjectVisibility);
+        syncSubjectVisibility();
+    }
+
+    // Preview rendering
+    const previewModal = document.getElementById("preview-modal");
+    const btnPreview = document.getElementById("btn-preview");
+    const btnClosePreview = document.getElementById("btn-close-preview");
+    const previewBody = document.getElementById("preview-body");
+    const previewTitle = document.getElementById("preview-title");
+    const previewSubjectWrap = document.getElementById("preview-subject-wrap");
+    const previewSubject = document.getElementById("preview-subject");
+    const subjectInput = document.getElementById("subject");
+    const eventSelect = document.getElementById("event-select");
+
+    const sampleData = {
+        cliente_nome: "Carlos Almeida",
+        placa: "ABC1D23",
+        modelo: "Toyota Corolla 2019",
+        ordem_id: "OS-10458",
+        valor_total: "R$ 1.280,00",
+        data_previsao: "27/12/2025",
+        status: "Em andamento",
+        nome_oficina: "Tramonti Auto Center"
+    };
+
+    function renderTemplate(text) {
+        return text.replace(/\{\{\s*([a-zA-Z0-9_]+)\s*\}\}/g, (match, key) => {
+            if (sampleData[key] !== undefined) return sampleData[key];
+            return match; // mantém se não existir
+        });
+    }
+
+    function openPreview() {
+        if (!previewModal || !previewBody) return;
+
+        const channel = channelSelect ? channelSelect.value : "WHATSAPP";
+        const event = eventSelect ? eventSelect.value : "EVENT";
+
+        previewTitle.textContent = `Evento: ${event} • Canal: ${channel}`;
+
+        // Subject
+        const isEmail = channel === "EMAIL";
+        previewSubjectWrap.classList.toggle("hidden", !isEmail);
+        if (isEmail && previewSubject && subjectInput) {
+            previewSubject.textContent = renderTemplate(subjectInput.value || "");
+        }
+
+        // Body
+        previewBody.textContent = renderTemplate(templateBody ? templateBody.value : "");
+
+        previewModal.classList.remove("hidden");
+    }
+
+    function closePreview() {
+        if (!previewModal) return;
+        previewModal.classList.add("hidden");
+    }
+
+    if (btnPreview) btnPreview.addEventListener("click", openPreview);
+    if (btnClosePreview) btnClosePreview.addEventListener("click", closePreview);
+
+    // Close modal on background click
+    if (previewModal) {
+        previewModal.addEventListener("click", (e) => {
+            if (e.target === previewModal) closePreview();
+        });
+    }
+
+    // Template active toggle button (wireframe only)
+    const btnToggleTemplate = document.getElementById("btn-toggle-template");
+    if (btnToggleTemplate) {
+        btnToggleTemplate.addEventListener("click", () => {
+            const isActive = btnToggleTemplate.textContent.trim() === "Ativo";
+            btnToggleTemplate.textContent = isActive ? "Inativo" : "Ativo";
+            btnToggleTemplate.classList.toggle("bg-slate-900", !isActive);
+            btnToggleTemplate.classList.toggle("hover:bg-slate-800", !isActive);
+            btnToggleTemplate.classList.toggle("bg-slate-200", isActive);
+            btnToggleTemplate.classList.toggle("text-white", !isActive);
+            btnToggleTemplate.classList.toggle("text-slate-800", isActive);
+        });
+    }
+</script>
+</body>
+</html>

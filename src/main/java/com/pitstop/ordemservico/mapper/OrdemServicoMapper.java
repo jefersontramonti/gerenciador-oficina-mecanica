@@ -39,6 +39,8 @@ public interface OrdemServicoMapper {
     @Mapping(target = "descontoValor", constant = "0")
     @Mapping(target = "valorFinal", ignore = true) // Calculado automaticamente
     @Mapping(target = "aprovadoPeloCliente", constant = "false")
+    @Mapping(target = "tokenAprovacao", ignore = true) // Gerado automaticamente no service
+    @Mapping(target = "tokenAprovacaoExpiracao", ignore = true) // Gerado automaticamente no service
     @Mapping(target = "version", ignore = true) // Optimistic locking gerenciado pelo JPA
     @Mapping(target = "createdAt", ignore = true)
     @Mapping(target = "updatedAt", ignore = true)
@@ -67,6 +69,8 @@ public interface OrdemServicoMapper {
     @Mapping(target = "valorTotal", ignore = true) // Calculado automaticamente
     @Mapping(target = "valorFinal", ignore = true) // Calculado automaticamente
     @Mapping(target = "aprovadoPeloCliente", ignore = true) // Alterado via método aprovar()
+    @Mapping(target = "tokenAprovacao", ignore = true) // Não pode ser alterado
+    @Mapping(target = "tokenAprovacaoExpiracao", ignore = true) // Não pode ser alterado
     @Mapping(target = "version", ignore = true)
     @Mapping(target = "createdAt", ignore = true)
     @Mapping(target = "updatedAt", ignore = true)

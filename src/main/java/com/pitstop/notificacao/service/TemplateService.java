@@ -122,6 +122,18 @@ public class TemplateService {
             case OFICINA_SUSPENDED -> criarCorpoSuspended(tipoNotificacao);
             case OFICINA_ACTIVATED -> criarCorpoActivated(tipoNotificacao);
             case DAILY_METRICS, SYSTEM_ALERT -> "Mensagem: {mensagem}";
+            // Templates de OS
+            case OS_CREATED -> criarCorpoOSCriada(tipoNotificacao);
+            case OS_WAITING_APPROVAL -> criarCorpoOSAguardandoAprovacao(tipoNotificacao);
+            case OS_APPROVED -> criarCorpoOSAprovada(tipoNotificacao);
+            case OS_IN_PROGRESS -> criarCorpoOSEmAndamento(tipoNotificacao);
+            case OS_WAITING_PART -> criarCorpoOSAguardandoPeca(tipoNotificacao);
+            case OS_COMPLETED -> criarCorpoOSFinalizada(tipoNotificacao);
+            case OS_DELIVERED -> criarCorpoOSEntregue(tipoNotificacao);
+            case PAYMENT_PENDING -> criarCorpoPagamentoPendente(tipoNotificacao);
+            case REMINDER_PICKUP -> criarCorpoLembreteRetirada(tipoNotificacao);
+            case REMINDER_MAINTENANCE -> criarCorpoLembreteRevisao(tipoNotificacao);
+            case TEST -> criarCorpoTeste(tipoNotificacao);
         };
 
         return TemplateCustomizado.builder()
@@ -253,6 +265,288 @@ public class TemplateService {
             Sua conta foi reativada com sucesso.
 
             Bem-vindo de volta ao PitStop! 🚗
+            """;
+    }
+
+    // ===== TEMPLATES DE ORDEM DE SERVICO =====
+
+    private String criarCorpoOSCriada(TipoNotificacao tipo) {
+        if (tipo == TipoNotificacao.EMAIL) {
+            return """
+                <h1>Orcamento Criado - OS #{numeroOS}</h1>
+                <p>Ola {nomeCliente},</p>
+                <p>Seu orcamento foi criado com sucesso!</p>
+                <p><strong>Veiculo:</strong> {veiculoModelo} - {veiculoPlaca}</p>
+                <p><strong>Valor Estimado:</strong> R$ {valorTotal}</p>
+                <div style="margin: 30px 0; text-align: center;">
+                    <a href="{linkAprovacao}" style="display: inline-block; padding: 16px 40px; background: linear-gradient(135deg, #28a745 0%, #20c997 100%); color: #ffffff; text-decoration: none; border-radius: 6px; font-size: 16px; font-weight: 600; box-shadow: 0 4px 6px rgba(40, 167, 69, 0.4);">Aprovar Orcamento</a>
+                </div>
+                <p style="font-size: 14px; color: #666;">Ou copie e cole o link abaixo no seu navegador:</p>
+                <p style="font-size: 12px; padding: 12px; background-color: #f8f9fa; border-left: 4px solid #28a745; word-break: break-all; font-family: monospace;">{linkAprovacao}</p>
+                <p>Atenciosamente,<br/>{nomeOficina}</p>
+                """;
+        }
+        return """
+            🔧 *Orcamento Criado - OS #{numeroOS}*
+
+            Ola {nomeCliente}!
+
+            Seu orcamento foi criado com sucesso.
+
+            🚗 Veiculo: {veiculoModelo} - {veiculoPlaca}
+            💰 Valor: R$ {valorTotal}
+
+            ✅ Para aprovar, acesse: {linkAprovacao}
+
+            {nomeOficina}
+            """;
+    }
+
+    private String criarCorpoOSAguardandoAprovacao(TipoNotificacao tipo) {
+        if (tipo == TipoNotificacao.EMAIL) {
+            return """
+                <h1>Orcamento Aguardando Aprovacao - OS #{numeroOS}</h1>
+                <p>Ola {nomeCliente},</p>
+                <p>Seu orcamento esta aguardando aprovacao.</p>
+                <p><strong>Valor Total:</strong> R$ {valorTotal}</p>
+                <p>Por favor, entre em contato para aprovar.</p>
+                <p>Atenciosamente,<br/>{nomeOficina}</p>
+                """;
+        }
+        return """
+            ⏳ *Orcamento Aguardando Aprovacao*
+
+            Ola {nomeCliente}!
+
+            Seu orcamento (OS #{numeroOS}) esta aguardando sua aprovacao.
+
+            💰 Valor: R$ {valorTotal}
+
+            Entre em contato para aprovar!
+
+            {nomeOficina}
+            """;
+    }
+
+    private String criarCorpoOSAprovada(TipoNotificacao tipo) {
+        if (tipo == TipoNotificacao.EMAIL) {
+            return """
+                <h1>Orcamento Aprovado - OS #{numeroOS}</h1>
+                <p>Ola {nomeCliente},</p>
+                <p>Seu orcamento foi aprovado com sucesso!</p>
+                <p>Em breve iniciaremos os servicos.</p>
+                <p>Atenciosamente,<br/>{nomeOficina}</p>
+                """;
+        }
+        return """
+            ✅ *Orcamento Aprovado - OS #{numeroOS}*
+
+            Ola {nomeCliente}!
+
+            Seu orcamento foi aprovado com sucesso!
+
+            Em breve iniciaremos os servicos.
+
+            {nomeOficina}
+            """;
+    }
+
+    private String criarCorpoOSEmAndamento(TipoNotificacao tipo) {
+        if (tipo == TipoNotificacao.EMAIL) {
+            return """
+                <h1>Servico Iniciado - OS #{numeroOS}</h1>
+                <p>Ola {nomeCliente},</p>
+                <p>O servico do seu veiculo {veiculoModelo} ({veiculoPlaca}) foi iniciado!</p>
+                <p><strong>Mecanico responsavel:</strong> {mecanico}</p>
+                <p><strong>Previsao de conclusao:</strong> {dataPrevisao}</p>
+                <p>Atenciosamente,<br/>{nomeOficina}</p>
+                """;
+        }
+        return """
+            🔧 *Servico Iniciado - OS #{numeroOS}*
+
+            Ola {nomeCliente}!
+
+            O servico do seu veiculo foi iniciado!
+
+            🚗 {veiculoModelo} - {veiculoPlaca}
+            👨‍🔧 Mecanico: {mecanico}
+            📅 Previsao: {dataPrevisao}
+
+            {nomeOficina}
+            """;
+    }
+
+    private String criarCorpoOSAguardandoPeca(TipoNotificacao tipo) {
+        if (tipo == TipoNotificacao.EMAIL) {
+            return """
+                <h1>Aguardando Peca - OS #{numeroOS}</h1>
+                <p>Ola {nomeCliente},</p>
+                <p>O servico do seu veiculo esta aguardando a chegada de uma peca.</p>
+                <p><strong>Peca:</strong> {pecaAguardada}</p>
+                <p><strong>Previsao de chegada:</strong> {previsaoChegada}</p>
+                <p>Atenciosamente,<br/>{nomeOficina}</p>
+                """;
+        }
+        return """
+            ⏳ *Aguardando Peca - OS #{numeroOS}*
+
+            Ola {nomeCliente}!
+
+            O servico esta aguardando uma peca.
+
+            🔩 Peca: {pecaAguardada}
+            📅 Previsao: {previsaoChegada}
+
+            {nomeOficina}
+            """;
+    }
+
+    private String criarCorpoOSFinalizada(TipoNotificacao tipo) {
+        if (tipo == TipoNotificacao.EMAIL) {
+            return """
+                <h1>Veiculo Pronto - OS #{numeroOS}</h1>
+                <p>Ola {nomeCliente},</p>
+                <p>Otima noticia! O servico do seu veiculo {veiculoModelo} ({veiculoPlaca}) foi finalizado!</p>
+                <p><strong>Servicos realizados:</strong> {servicosRealizados}</p>
+                <p><strong>Valor Total:</strong> R$ {valorTotal}</p>
+                <p>Seu veiculo esta pronto para retirada.</p>
+                <p>Atenciosamente,<br/>{nomeOficina}</p>
+                """;
+        }
+        return """
+            🎉 *Veiculo Pronto - OS #{numeroOS}*
+
+            Ola {nomeCliente}!
+
+            Otima noticia! O servico foi finalizado!
+
+            🚗 {veiculoModelo} - {veiculoPlaca}
+            🔧 Servicos: {servicosRealizados}
+            💰 Valor: R$ {valorTotal}
+
+            Seu veiculo esta pronto para retirada!
+
+            {nomeOficina}
+            """;
+    }
+
+    private String criarCorpoOSEntregue(TipoNotificacao tipo) {
+        if (tipo == TipoNotificacao.EMAIL) {
+            return """
+                <h1>Veiculo Entregue - OS #{numeroOS}</h1>
+                <p>Ola {nomeCliente},</p>
+                <p>Confirmamos a entrega do seu veiculo {veiculoPlaca}.</p>
+                <p>Obrigado pela preferencia!</p>
+                <p>Atenciosamente,<br/>{nomeOficina}</p>
+                """;
+        }
+        return """
+            ✅ *Veiculo Entregue - OS #{numeroOS}*
+
+            Ola {nomeCliente}!
+
+            Confirmamos a entrega do seu veiculo ({veiculoPlaca}).
+
+            Obrigado pela preferencia! 🚗
+
+            {nomeOficina}
+            """;
+    }
+
+    private String criarCorpoPagamentoPendente(TipoNotificacao tipo) {
+        if (tipo == TipoNotificacao.EMAIL) {
+            return """
+                <h1>Pagamento Pendente - OS #{numeroOS}</h1>
+                <p>Ola {nomeCliente},</p>
+                <p>Identificamos que ha um pagamento pendente.</p>
+                <p><strong>Valor:</strong> R$ {valorPendente}</p>
+                <p><strong>Vencimento:</strong> {dataVencimento}</p>
+                <p>Atenciosamente,<br/>{nomeOficina}</p>
+                """;
+        }
+        return """
+            💳 *Pagamento Pendente - OS #{numeroOS}*
+
+            Ola {nomeCliente}!
+
+            Ha um pagamento pendente.
+
+            💰 Valor: R$ {valorPendente}
+            📅 Vencimento: {dataVencimento}
+
+            {nomeOficina}
+            """;
+    }
+
+    private String criarCorpoLembreteRetirada(TipoNotificacao tipo) {
+        if (tipo == TipoNotificacao.EMAIL) {
+            return """
+                <h1>Lembrete: Seu Veiculo Esta Pronto!</h1>
+                <p>Ola {nomeCliente},</p>
+                <p>Seu veiculo ({veiculoPlaca}) esta pronto ha {diasEsperando} dias.</p>
+                <p>Por favor, agende a retirada.</p>
+                <p>Atenciosamente,<br/>{nomeOficina}</p>
+                """;
+        }
+        return """
+            ⏰ *Lembrete: Veiculo Pronto!*
+
+            Ola {nomeCliente}!
+
+            Seu veiculo ({veiculoPlaca}) esta pronto ha {diasEsperando} dias.
+
+            Por favor, agende a retirada!
+
+            {nomeOficina}
+            """;
+    }
+
+    private String criarCorpoLembreteRevisao(TipoNotificacao tipo) {
+        if (tipo == TipoNotificacao.EMAIL) {
+            return """
+                <h1>Hora da Revisao!</h1>
+                <p>Ola {nomeCliente},</p>
+                <p>Esta na hora de fazer a revisao do seu {veiculoModelo} ({veiculoPlaca}).</p>
+                <p><strong>Quilometragem atual:</strong> {quilometragemAtual} km</p>
+                <p><strong>Proxima revisao:</strong> {proximaRevisao}</p>
+                <p>Agende sua visita!</p>
+                <p>Atenciosamente,<br/>{nomeOficina}</p>
+                """;
+        }
+        return """
+            🔧 *Hora da Revisao!*
+
+            Ola {nomeCliente}!
+
+            Seu {veiculoModelo} ({veiculoPlaca}) precisa de revisao.
+
+            🚗 KM atual: {quilometragemAtual}
+            📅 Proxima revisao: {proximaRevisao}
+
+            Agende sua visita!
+
+            {nomeOficina}
+            """;
+    }
+
+    private String criarCorpoTeste(TipoNotificacao tipo) {
+        if (tipo == TipoNotificacao.EMAIL) {
+            return """
+                <h1>Teste de Notificacao - PitStop</h1>
+                <p>Esta e uma mensagem de teste.</p>
+                <p>Se voce recebeu este e-mail, a configuracao de e-mail esta funcionando corretamente!</p>
+                <p>Atenciosamente,<br/>{nomeOficina}</p>
+                """;
+        }
+        return """
+            🧪 *Teste de Notificacao - PitStop*
+
+            Esta e uma mensagem de teste.
+
+            Se voce recebeu esta mensagem, a configuracao esta funcionando corretamente!
+
+            ✅ {nomeOficina}
             """;
     }
 }

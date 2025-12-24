@@ -488,4 +488,14 @@ public interface OrdemServicoRepository extends JpaRepository<OrdemServico, UUID
     default List<Object[]> calcularFaturamentoMensal(UUID oficinaId, int meses) {
         return calcularFaturamentoMensalByOficinaId(oficinaId, meses);
     }
+
+    /**
+     * Busca OS por token de aprovação (para aprovação pública pelo cliente).
+     * Este método é usado sem verificação de tenant pois é acesso público.
+     *
+     * @param tokenAprovacao token único de aprovação
+     * @return Optional contendo a OS se encontrada
+     */
+    @Query("SELECT os FROM OrdemServico os WHERE os.tokenAprovacao = :tokenAprovacao")
+    Optional<OrdemServico> findByTokenAprovacao(@Param("tokenAprovacao") String tokenAprovacao);
 }

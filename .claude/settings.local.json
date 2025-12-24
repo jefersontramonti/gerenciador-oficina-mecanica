@@ -14,7 +14,10 @@
       "Bash(./mvnw.cmd spring-boot:run)",
       "Bash(cd:*)",
       "Bash(./mvnw clean compile:*)",
-      "Bash(find:*)"
+      "Bash(find:*)",
+      "Bash(xargs -I {} find {} -name \"*.java\")",
+      "Bash(curl:*)",
+      "Bash(tasklist)"
     ],
     "deny": [],
     "ask": []

@@ -6,6 +6,7 @@
 import { api } from '@/shared/services/api';
 import type {
   DashboardStats,
+  DashboardExtras,
   OSStatusCount,
   FaturamentoMensal,
   RecentOS,
@@ -244,5 +245,41 @@ export const dashboardService = {
       params: { limit: 10 },
     });
     return data;
+  },
+
+  /**
+   * Busca indicadores extras do dashboard (ticket médio, valor estoque, estoque baixo)
+   */
+  async getExtras(): Promise<DashboardExtras> {
+    if (USE_MOCK_DATA) {
+      await delay(600);
+      return {
+        ticketMedio: 1580.50,
+        valorTotalEstoque: 45750.00,
+        estoqueBaixoCount: 8,
+      };
+    }
+
+    // Buscar em paralelo para melhor performance
+    const now = new Date();
+    const firstDayOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+    const lastDayOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59);
+
+    const [ticketMedioRes, valorEstoqueRes, estoqueBaixoRes] = await Promise.all([
+      api.get<{ ticketMedio: number }>('/ordens-servico/dashboard/ticket-medio', {
+        params: {
+          dataInicio: firstDayOfMonth.toISOString(),
+          dataFim: lastDayOfMonth.toISOString(),
+        },
+      }).catch(() => ({ data: { ticketMedio: 0 } })),
+      api.get<number>('/estoque/relatorios/valor-total').catch(() => ({ data: 0 })),
+      api.get<number>('/estoque/dashboard/estoque-baixo').catch(() => ({ data: 0 })),
+    ]);
+
+    return {
+      ticketMedio: ticketMedioRes.data.ticketMedio || 0,
+      valorTotalEstoque: valorEstoqueRes.data || 0,
+      estoqueBaixoCount: estoqueBaixoRes.data || 0,
+    };
   },
 };
