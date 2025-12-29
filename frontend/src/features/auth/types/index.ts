@@ -3,6 +3,7 @@
  */
 
 export const PerfilUsuario = {
+  SUPER_ADMIN: 'SUPER_ADMIN',
   ADMIN: 'ADMIN',
   GERENTE: 'GERENTE',
   ATENDENTE: 'ATENDENTE',
@@ -17,7 +18,7 @@ export interface Usuario {
   email: string;
   perfil: PerfilUsuario;
   perfilNome?: string | null;
-  oficinaId: string;
+  oficinaId: string | null; // SUPER_ADMIN has null oficinaId
   ativo: boolean;
   ultimoAcesso: string | number[] | null;
   createdAt: string | number[];

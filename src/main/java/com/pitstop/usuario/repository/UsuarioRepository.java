@@ -166,4 +166,36 @@ public interface UsuarioRepository extends JpaRepository<Usuario, UUID> {
      */
     @Query("SELECT u FROM Usuario u WHERE u.oficina.id = :oficinaId")
     Page<Usuario> findByOficinaId(@Param("oficinaId") UUID oficinaId, Pageable pageable);
+
+    /**
+     * Find the first active user with a specific profile in a workshop.
+     * Used for impersonation (finding an admin to impersonate).
+     *
+     * @param oficinaId ID da oficina (tenant)
+     * @param perfil Perfil to filter
+     * @return Optional containing the first matching user
+     */
+    @Query("SELECT u FROM Usuario u LEFT JOIN FETCH u.oficina WHERE u.oficina.id = :oficinaId AND u.perfil = :perfil AND u.ativo = true ORDER BY u.createdAt ASC LIMIT 1")
+    Optional<Usuario> findFirstByOficinaIdAndPerfilAndAtivoTrue(@Param("oficinaId") UUID oficinaId, @Param("perfil") PerfilUsuario perfil);
+
+    // =====================================
+    // SUPER_ADMIN QUERIES (No oficina filter)
+    // =====================================
+
+    /**
+     * Count all active users in the system.
+     * Used by SUPER_ADMIN for reports.
+     *
+     * @return Count of active users
+     */
+    long countByAtivoTrue();
+
+    /**
+     * Find all users by perfil (SUPER_ADMIN).
+     * No oficina filter - for system-wide queries.
+     *
+     * @param perfil Perfil to filter
+     * @return List of users with the specified perfil
+     */
+    List<Usuario> findByPerfil(PerfilUsuario perfil);
 }

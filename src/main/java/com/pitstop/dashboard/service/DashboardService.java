@@ -45,7 +45,6 @@ public class DashboardService {
      */
     @Transactional(readOnly = true)
     public DashboardStatsDTO getDashboardStats() {
-        log.debug("Calculando estatísticas do dashboard");
 
         UUID oficinaId = TenantContext.getTenantId();
 
@@ -81,7 +80,6 @@ public class DashboardService {
      */
     @Transactional(readOnly = true)
     public List<RecentOSDTO> getRecentOS(int limit) {
-        log.debug("Buscando {} OS mais recentes", limit);
 
         UUID oficinaId = TenantContext.getTenantId();
 
@@ -131,7 +129,6 @@ public class DashboardService {
      */
     @Transactional(readOnly = true)
     public List<OSStatusCountDTO> getOSByStatus() {
-        log.debug("Buscando contagem de OS por status");
 
         UUID oficinaId = TenantContext.getTenantId();
 
@@ -188,7 +185,6 @@ public class DashboardService {
      */
     @Transactional(readOnly = true)
     public List<FaturamentoMensalDTO> getFaturamentoMensal(int meses) {
-        log.debug("Buscando faturamento mensal dos últimos {} meses", meses);
 
         UUID oficinaId = TenantContext.getTenantId();
 

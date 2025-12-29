@@ -18,11 +18,22 @@ import {
   MapPin,
   Receipt,
   Bell,
+  Building2,
+  CreditCard,
+  ClipboardList,
+  Crown,
+  Layers,
+  AlertTriangle,
+  BarChart3,
+  Headphones,
+  Megaphone,
+  Flag,
 } from 'lucide-react';
 import { cn } from '@/shared/utils/cn';
 import { useWebSocket } from '@/shared/hooks/useWebSocket';
 import { WebSocketNotificationHandler } from '@/shared/components/WebSocketNotificationHandler';
 import { useContadorEstoqueBaixo } from '@/features/estoque/hooks/usePecas';
+import { useComunicadosNaoLidos } from '@/features/comunicados/hooks/useComunicados';
 import { ThemeToggle } from '@/shared/components/common';
 
 interface NavigationItem {
@@ -32,12 +43,83 @@ interface NavigationItem {
   requiredRoles?: PerfilUsuario[]; // Se não definido, todos têm acesso
 }
 
+// Navigation items for SUPER_ADMIN (SaaS management)
+const superAdminNavigationItems: NavigationItem[] = [
+  {
+    name: 'Dashboard SaaS',
+    href: '/admin',
+    icon: Crown,
+    requiredRoles: [PerfilUsuario.SUPER_ADMIN],
+  },
+  {
+    name: 'Oficinas',
+    href: '/admin/oficinas',
+    icon: Building2,
+    requiredRoles: [PerfilUsuario.SUPER_ADMIN],
+  },
+  {
+    name: 'Planos',
+    href: '/admin/planos',
+    icon: Layers,
+    requiredRoles: [PerfilUsuario.SUPER_ADMIN],
+  },
+  {
+    name: 'Faturas',
+    href: '/admin/faturas',
+    icon: Receipt,
+    requiredRoles: [PerfilUsuario.SUPER_ADMIN],
+  },
+  {
+    name: 'Inadimplência',
+    href: '/admin/inadimplencia',
+    icon: AlertTriangle,
+    requiredRoles: [PerfilUsuario.SUPER_ADMIN],
+  },
+  {
+    name: 'Pagamentos',
+    href: '/admin/pagamentos',
+    icon: CreditCard,
+    requiredRoles: [PerfilUsuario.SUPER_ADMIN],
+  },
+  {
+    name: 'Relatórios',
+    href: '/admin/relatorios',
+    icon: BarChart3,
+    requiredRoles: [PerfilUsuario.SUPER_ADMIN],
+  },
+  {
+    name: 'Tickets/Suporte',
+    href: '/admin/tickets',
+    icon: Headphones,
+    requiredRoles: [PerfilUsuario.SUPER_ADMIN],
+  },
+  {
+    name: 'Comunicados',
+    href: '/admin/comunicados',
+    icon: Megaphone,
+    requiredRoles: [PerfilUsuario.SUPER_ADMIN],
+  },
+  {
+    name: 'Feature Flags',
+    href: '/admin/features',
+    icon: Flag,
+    requiredRoles: [PerfilUsuario.SUPER_ADMIN],
+  },
+  {
+    name: 'Auditoria',
+    href: '/admin/audit',
+    icon: ClipboardList,
+    requiredRoles: [PerfilUsuario.SUPER_ADMIN],
+  },
+];
+
+// Navigation items for regular users (oficina management)
 const navigationItems: NavigationItem[] = [
   {
     name: 'Dashboard',
     href: '/',
     icon: LayoutDashboard,
-    // Todos têm acesso
+    requiredRoles: [PerfilUsuario.ADMIN, PerfilUsuario.GERENTE, PerfilUsuario.ATENDENTE, PerfilUsuario.MECANICO],
   },
   {
     name: 'Clientes',
@@ -94,6 +176,12 @@ const navigationItems: NavigationItem[] = [
     requiredRoles: [PerfilUsuario.ADMIN, PerfilUsuario.GERENTE],
   },
   {
+    name: 'Comunicados',
+    href: '/comunicados',
+    icon: Megaphone,
+    requiredRoles: [PerfilUsuario.ADMIN, PerfilUsuario.GERENTE, PerfilUsuario.ATENDENTE, PerfilUsuario.MECANICO],
+  },
+  {
     name: 'Configurações',
     href: '/configuracoes',
     icon: Settings,
@@ -102,20 +190,21 @@ const navigationItems: NavigationItem[] = [
 ];
 
 /**
- * Filtra itens do menu baseado no perfil do usuário
+ * Retorna os itens de navegação apropriados baseado no perfil do usuário
  */
-const filterNavigationByRole = (
-  items: NavigationItem[],
-  userPerfil?: PerfilUsuario
-): NavigationItem[] => {
+const getNavigationForRole = (userPerfil?: PerfilUsuario): NavigationItem[] => {
   if (!userPerfil) return [];
 
-  return items.filter((item) => {
-    // Se não há restrição de roles, todos podem acessar
+  // SUPER_ADMIN tem sua própria navegação específica
+  if (userPerfil === PerfilUsuario.SUPER_ADMIN) {
+    return superAdminNavigationItems;
+  }
+
+  // Outros perfis usam a navegação padrão
+  return navigationItems.filter((item) => {
     if (!item.requiredRoles || item.requiredRoles.length === 0) {
       return true;
     }
-    // Verifica se o perfil do usuário está na lista de perfis permitidos
     return item.requiredRoles.includes(userPerfil);
   });
 };
@@ -131,9 +220,12 @@ export const MainLayout = () => {
   // Badge de alerta de estoque baixo
   const { data: contadorEstoqueBaixo } = useContadorEstoqueBaixo();
 
-  // Filter navigation items based on user's profile
+  // Badge de comunicados não lidos (apenas para usuários de oficina, não SUPER_ADMIN)
+  const { data: comunicadosNaoLidos } = useComunicadosNaoLidos();
+
+  // Get navigation items based on user's profile
   const navigation = useMemo(
-    () => filterNavigationByRole(navigationItems, user?.perfil),
+    () => getNavigationForRole(user?.perfil),
     [user?.perfil]
   );
 
@@ -162,7 +254,8 @@ export const MainLayout = () => {
         <nav className="flex-1 space-y-1 overflow-y-auto p-4">
           {navigation.map((item) => {
             const isActive = location.pathname === item.href;
-            const showBadge = item.href === '/estoque' && contadorEstoqueBaixo && contadorEstoqueBaixo > 0;
+            const showEstoqueBadge = item.href === '/estoque' && contadorEstoqueBaixo && contadorEstoqueBaixo > 0;
+            const showComunicadosBadge = item.href === '/comunicados' && comunicadosNaoLidos && comunicadosNaoLidos > 0;
 
             return (
               <Link
@@ -177,9 +270,14 @@ export const MainLayout = () => {
               >
                 <item.icon className="h-5 w-5" />
                 <span className="flex-1">{item.name}</span>
-                {showBadge && (
+                {showEstoqueBadge && (
                   <span className="inline-flex items-center justify-center rounded-full bg-orange-100 px-2 py-0.5 text-xs font-medium text-orange-800 dark:bg-orange-900/30 dark:text-orange-400">
                     {contadorEstoqueBaixo}
+                  </span>
+                )}
+                {showComunicadosBadge && (
+                  <span className="inline-flex items-center justify-center rounded-full bg-red-500 px-2 py-0.5 text-xs font-bold text-white">
+                    {comunicadosNaoLidos > 99 ? '99+' : comunicadosNaoLidos}
                   </span>
                 )}
               </Link>
@@ -233,7 +331,8 @@ export const MainLayout = () => {
             <nav className="space-y-1 p-4">
               {navigation.map((item) => {
                 const isActive = location.pathname === item.href;
-                const showBadge = item.href === '/estoque' && contadorEstoqueBaixo && contadorEstoqueBaixo > 0;
+                const showEstoqueBadge = item.href === '/estoque' && contadorEstoqueBaixo && contadorEstoqueBaixo > 0;
+                const showComunicadosBadge = item.href === '/comunicados' && comunicadosNaoLidos && comunicadosNaoLidos > 0;
 
                 return (
                   <Link
@@ -249,9 +348,14 @@ export const MainLayout = () => {
                   >
                     <item.icon className="h-5 w-5" />
                     <span className="flex-1">{item.name}</span>
-                    {showBadge && (
+                    {showEstoqueBadge && (
                       <span className="inline-flex items-center justify-center rounded-full bg-orange-100 px-2 py-0.5 text-xs font-medium text-orange-800 dark:bg-orange-900/30 dark:text-orange-400">
                         {contadorEstoqueBaixo}
+                      </span>
+                    )}
+                    {showComunicadosBadge && (
+                      <span className="inline-flex items-center justify-center rounded-full bg-red-500 px-2 py-0.5 text-xs font-bold text-white">
+                        {comunicadosNaoLidos > 99 ? '99+' : comunicadosNaoLidos}
                       </span>
                     )}
                   </Link>

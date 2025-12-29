@@ -50,7 +50,6 @@ public class ConfiguracaoNotificacaoController {
     @PreAuthorize("hasAnyAuthority('ADMIN', 'GERENTE')")
     @Operation(summary = "Obter configuracao", description = "Retorna a configuracao de notificacoes da oficina")
     public ResponseEntity<ConfiguracaoNotificacaoDTO> getConfiguracao() {
-        log.debug("GET /api/notificacoes/configuracao - Buscando configuracao");
         ConfiguracaoNotificacaoDTO config = service.getConfiguracao();
         return ResponseEntity.ok(config);
     }
@@ -170,7 +169,6 @@ public class ConfiguracaoNotificacaoController {
     @PreAuthorize("hasAnyAuthority('ADMIN', 'GERENTE')")
     @Operation(summary = "Status WhatsApp", description = "Verifica status da conexao com Evolution API")
     public ResponseEntity<EvolutionInstanceStatus> statusWhatsApp() {
-        log.debug("GET /api/notificacoes/configuracao/whatsapp/status");
         EvolutionInstanceStatus status = service.verificarConexaoWhatsApp();
         return ResponseEntity.ok(status);
     }
@@ -183,7 +181,6 @@ public class ConfiguracaoNotificacaoController {
     @PreAuthorize("hasAnyAuthority('ADMIN', 'GERENTE')")
     @Operation(summary = "QR Code WhatsApp", description = "Gera QR Code para conectar WhatsApp")
     public ResponseEntity<Map<String, String>> qrCodeWhatsApp() {
-        log.debug("GET /api/notificacoes/configuracao/whatsapp/qrcode");
         String qrCode = service.gerarQrCodeWhatsApp();
         if (qrCode == null) {
             return ResponseEntity.ok(Map.of("status", "connected", "message", "WhatsApp ja esta conectado"));
@@ -219,7 +216,6 @@ public class ConfiguracaoNotificacaoController {
     @PreAuthorize("hasAnyAuthority('ADMIN', 'GERENTE')")
     @Operation(summary = "Status Telegram", description = "Verifica status da conexao com o bot do Telegram")
     public ResponseEntity<Map<String, Object>> statusTelegram() {
-        log.debug("GET /api/notificacoes/configuracao/telegram/status");
         boolean conectado = service.verificarConexaoTelegram();
         var botInfo = telegramService.getBotInfo(service.getOficinaId());
 

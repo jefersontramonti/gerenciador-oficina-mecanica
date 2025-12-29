@@ -172,7 +172,6 @@ public class OrdemServicoService {
      * @throws OrdemServicoNotFoundException se não encontrada
      */
     public OrdemServicoResponseDTO buscarPorId(UUID id) {
-        log.debug("Buscando OS por ID: {}", id);
 
         UUID oficinaId = TenantContext.getTenantId();
         OrdemServico os = repository.findByOficinaIdAndId(oficinaId, id)
@@ -189,7 +188,6 @@ public class OrdemServicoService {
      * @throws OrdemServicoNotFoundException se não encontrada
      */
     public OrdemServicoResponseDTO buscarPorNumero(Long numero) {
-        log.debug("Buscando OS por número: {}", numero);
 
         UUID oficinaId = TenantContext.getTenantId();
         OrdemServico os = repository.findByOficinaIdAndNumero(oficinaId, numero)
@@ -217,7 +215,6 @@ public class OrdemServicoService {
         LocalDateTime dataFim,
         Pageable pageable
     ) {
-        log.debug("Listando OS com filtros - Status: {}, Veículo: {}, Usuário: {}", status, veiculoId, usuarioId);
 
         UUID oficinaId = TenantContext.getTenantId();
         String statusStr = status != null ? status.name() : null;
@@ -235,7 +232,6 @@ public class OrdemServicoService {
      * @return página de OS do veículo
      */
     public Page<OrdemServicoResponseDTO> buscarHistoricoVeiculo(UUID veiculoId, Pageable pageable) {
-        log.debug("Buscando histórico de OS do veículo ID: {}", veiculoId);
 
         UUID oficinaId = TenantContext.getTenantId();
         return repository.findHistoricoVeiculo(oficinaId, veiculoId, pageable)
@@ -481,7 +477,6 @@ public class OrdemServicoService {
      */
     @Cacheable(value = "osCountByStatus")
     public Map<StatusOS, Long> contarPorStatus() {
-        log.debug("Contando OS por status");
 
         UUID oficinaId = TenantContext.getTenantId();
         List<Object[]> results = repository.countByStatus(oficinaId);
@@ -501,7 +496,6 @@ public class OrdemServicoService {
      * @return valor total faturado
      */
     public BigDecimal calcularFaturamento(LocalDateTime dataInicio, LocalDateTime dataFim) {
-        log.debug("Calculando faturamento entre {} e {}", dataInicio, dataFim);
         UUID oficinaId = TenantContext.getTenantId();
         return repository.calcularFaturamento(oficinaId, dataInicio, dataFim);
     }
@@ -514,7 +508,6 @@ public class OrdemServicoService {
      * @return ticket médio
      */
     public BigDecimal calcularTicketMedio(LocalDateTime dataInicio, LocalDateTime dataFim) {
-        log.debug("Calculando ticket médio entre {} e {}", dataInicio, dataFim);
         UUID oficinaId = TenantContext.getTenantId();
         return repository.calcularTicketMedio(oficinaId, dataInicio, dataFim);
     }

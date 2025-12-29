@@ -96,8 +96,6 @@ public class ClienteService {
     @Transactional(readOnly = true)
     @Cacheable(value = "clientes", key = "#id")
     public ClienteResponse findById(UUID id) {
-        log.debug("Buscando cliente por ID (incluindo inativos): {}", id);
-
         UUID oficinaId = TenantContext.getTenantId();
         // Usa query customizada que ignora @Where clause para permitir buscar clientes inativos
         Cliente cliente = clienteRepository.findByOficinaIdAndIdIncludingInactive(oficinaId, id)
@@ -116,8 +114,6 @@ public class ClienteService {
     @Transactional(readOnly = true)
     @Cacheable(value = "clientes", key = "#cpfCnpj")
     public ClienteResponse findByCpfCnpj(String cpfCnpj) {
-        log.debug("Buscando cliente por CPF/CNPJ: {}", cpfCnpj);
-
         UUID oficinaId = TenantContext.getTenantId();
         Cliente cliente = clienteRepository.findByOficinaIdAndCpfCnpj(oficinaId, cpfCnpj)
             .orElseThrow(() -> new ClienteNotFoundException(cpfCnpj));
@@ -133,8 +129,6 @@ public class ClienteService {
      */
     @Transactional(readOnly = true)
     public Page<ClienteResponse> findAll(Pageable pageable) {
-        log.debug("Listando clientes: page={}, size={}", pageable.getPageNumber(), pageable.getPageSize());
-
         UUID oficinaId = TenantContext.getTenantId();
         return clienteRepository.findByOficinaId(oficinaId, pageable)
             .map(clienteMapper::toResponse);
@@ -149,8 +143,6 @@ public class ClienteService {
      */
     @Transactional(readOnly = true)
     public Page<ClienteResponse> findByTipo(TipoCliente tipo, Pageable pageable) {
-        log.debug("Buscando clientes por tipo: {}", tipo);
-
         UUID oficinaId = TenantContext.getTenantId();
         return clienteRepository.findByOficinaIdAndTipo(oficinaId, tipo, pageable)
             .map(clienteMapper::toResponse);
@@ -165,8 +157,6 @@ public class ClienteService {
      */
     @Transactional(readOnly = true)
     public Page<ClienteResponse> findByNome(String nome, Pageable pageable) {
-        log.debug("Buscando clientes por nome: {}", nome);
-
         UUID oficinaId = TenantContext.getTenantId();
         return clienteRepository.findByOficinaIdAndNomeContainingIgnoreCase(oficinaId, nome, pageable)
             .map(clienteMapper::toResponse);
@@ -184,8 +174,6 @@ public class ClienteService {
      */
     @Transactional(readOnly = true)
     public Page<ClienteResponse> findByFiltros(String nome, TipoCliente tipo, Boolean ativo, String cidade, String estado, Pageable pageable) {
-        log.debug("Busca com filtros: nome={}, tipo={}, ativo={}, cidade={}, estado={}", nome, tipo, ativo, cidade, estado);
-
         UUID oficinaId = TenantContext.getTenantId();
         // Converte enum para string para evitar erro BYTEA do PostgreSQL
         String tipoStr = (tipo != null) ? tipo.name() : null;
@@ -275,7 +263,6 @@ public class ClienteService {
     @Transactional(readOnly = true)
     @Cacheable(value = "clientes", key = "'estados'")
     public List<String> findEstados() {
-        log.debug("Buscando lista de estados");
         UUID oficinaId = TenantContext.getTenantId();
         return clienteRepository.findDistinctEstados(oficinaId);
     }
@@ -289,7 +276,6 @@ public class ClienteService {
     @Transactional(readOnly = true)
     @Cacheable(value = "clientes", key = "'cidades'")
     public List<String> findCidades() {
-        log.debug("Buscando lista de cidades");
         UUID oficinaId = TenantContext.getTenantId();
         return clienteRepository.findDistinctCidades(oficinaId);
     }
@@ -302,7 +288,6 @@ public class ClienteService {
      */
     @Transactional(readOnly = true)
     public long countByTipo(TipoCliente tipo) {
-        log.debug("Contando clientes por tipo: {}", tipo);
         UUID oficinaId = TenantContext.getTenantId();
         return clienteRepository.countByOficinaIdAndTipo(oficinaId, tipo);
     }

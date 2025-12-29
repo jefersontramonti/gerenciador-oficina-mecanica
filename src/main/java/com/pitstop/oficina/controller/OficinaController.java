@@ -86,7 +86,6 @@ public class OficinaController {
     public ResponseEntity<OficinaResponse> findById(
         @Parameter(description = "ID da oficina") @PathVariable UUID id
     ) {
-        log.debug("GET /api/oficinas/{} - Buscando oficina", id);
 
         OficinaResponse response = oficinaService.findById(id);
 
@@ -105,7 +104,6 @@ public class OficinaController {
     public ResponseEntity<OficinaResponse> findByCnpj(
         @Parameter(description = "CNPJ (14 dígitos)") @PathVariable String cnpj
     ) {
-        log.debug("GET /api/oficinas/cnpj/{} - Buscando oficina", cnpj);
 
         OficinaResponse response = oficinaService.findByCnpj(cnpj);
 
@@ -126,9 +124,6 @@ public class OficinaController {
     public ResponseEntity<Page<OficinaResumoResponse>> findAll(
         @PageableDefault(size = 20, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable
     ) {
-        log.debug("GET /api/oficinas - Listando todas as oficinas. Page: {}, Size: {}",
-            pageable.getPageNumber(), pageable.getPageSize());
-
         Page<OficinaResumoResponse> response = oficinaService.findAll(pageable);
 
         return ResponseEntity.ok(response);
@@ -155,9 +150,6 @@ public class OficinaController {
         @Parameter(description = "CNPJ (busca parcial)") @RequestParam(required = false) String cnpj,
         @PageableDefault(size = 20, sort = "nome") Pageable pageable
     ) {
-        log.debug("GET /api/oficinas/search - Filtros: status={}, plano={}, nome={}, cnpj={}",
-            status, plano, nome, cnpj);
-
         Page<OficinaResumoResponse> response = oficinaService.findWithFilters(status, plano, nome, cnpj, pageable);
 
         return ResponseEntity.ok(response);
@@ -177,7 +169,6 @@ public class OficinaController {
         @Parameter(description = "Status") @PathVariable StatusOficina status,
         @PageableDefault(size = 20) Pageable pageable
     ) {
-        log.debug("GET /api/oficinas/status/{} - Listando oficinas", status);
 
         Page<OficinaResumoResponse> response = oficinaService.findByStatus(status, pageable);
 
@@ -195,7 +186,6 @@ public class OficinaController {
     @GetMapping("/vencimento-proximo")
     @PreAuthorize("hasRole('SUPER_ADMIN')")
     public ResponseEntity<List<OficinaResumoResponse>> findVencimentoProximo() {
-        log.debug("GET /api/oficinas/vencimento-proximo");
 
         List<OficinaResumoResponse> response = oficinaService.findVencimentoProximo();
 
@@ -351,7 +341,6 @@ public class OficinaController {
     @GetMapping("/metrics")
     @PreAuthorize("hasRole('SUPER_ADMIN')")
     public ResponseEntity<MetricsResponse> getMetrics() {
-        log.debug("GET /api/oficinas/metrics - Obtendo métricas SaaS");
 
         long totalAtivas = oficinaService.countAtivas();
         Double mrr = oficinaService.calculateMRR();

@@ -119,3 +119,27 @@ databaseChangeLog:
   - include:
       file: db/changelog/migrations/V041__add_teste_event_to_historico.sql
       relativeToChangelogFile: false
+  - include:
+      file: db/changelog/migrations/V042__create_planos_table.sql
+      relativeToChangelogFile: false
+  - include:
+      file: db/changelog/migrations/V043__create_faturas_table.sql
+      relativeToChangelogFile: false
+  - include:
+      file: db/changelog/migrations/V044__create_acordos_table.sql
+      relativeToChangelogFile: false
+  - include:
+      file: db/changelog/migrations/V045__create_comunicados_table.sql
+      relativeToChangelogFile: false
+  - include:
+      file: db/changelog/migrations/V046__create_tickets_table.sql
+      relativeToChangelogFile: false
+  - include:
+      file: db/changelog/migrations/V047__create_feature_flags_table.sql
+      relativeToChangelogFile: false
+  - include:
+      file: db/changelog/migrations/V048__insert_all_feature_flags.sql
+      relativeToChangelogFile: false
+  - include:
+      file: db/changelog/migrations/V049__fix_oficinas_contact_format.sql
+      relativeToChangelogFile: false

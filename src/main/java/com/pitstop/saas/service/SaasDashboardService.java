@@ -4,9 +4,7 @@ import com.pitstop.oficina.domain.Oficina;
 import com.pitstop.oficina.domain.PlanoAssinatura;
 import com.pitstop.oficina.domain.StatusOficina;
 import com.pitstop.oficina.repository.OficinaRepository;
-import com.pitstop.saas.dto.DashboardStatsResponse;
-import com.pitstop.saas.dto.MRRBreakdownResponse;
-import com.pitstop.saas.dto.OficinaResumoDTO;
+import com.pitstop.saas.dto.*;
 import com.pitstop.saas.repository.SaasPagamentoRepository;
 import jakarta.persistence.EntityManager;
 import lombok.RequiredArgsConstructor;
@@ -20,10 +18,12 @@ import org.springframework.transaction.annotation.Transactional;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.YearMonth;
+import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * Service for SaaS dashboard statistics and metrics.
@@ -284,5 +284,351 @@ public class SaasDashboardService {
             return new BigDecimal(value.toString());
         }
         return BigDecimal.ZERO;
+    }
+
+    // ===== ADVANCED METRICS =====
+
+    /**
+     * Gets comprehensive dashboard metrics including financial KPIs.
+     *
+     * @return advanced metrics DTO
+     */
+    public DashboardMetricsDTO getAdvancedMetrics() {
+        log.debug("Calculating advanced SaaS dashboard metrics");
+
+        LocalDate hoje = LocalDate.now();
+        LocalDateTime inicioMes = hoje.withDayOfMonth(1).atStartOfDay();
+        LocalDateTime fimMes = hoje.plusMonths(1).withDayOfMonth(1).atStartOfDay();
+        LocalDateTime inicioMesAnterior = inicioMes.minusMonths(1);
+
+        // MRR calculations
+        BigDecimal mrrTotal = BigDecimal.valueOf(oficinaRepository.calculateMRR());
+        BigDecimal mrrAnterior = BigDecimal.valueOf(
+            Optional.ofNullable(oficinaRepository.calculateMRRAt(inicioMes)).orElse(0.0)
+        );
+        BigDecimal mrrGrowth = calculateGrowthPercentage(mrrAnterior, mrrTotal);
+        BigDecimal arrTotal = mrrTotal.multiply(BigDecimal.valueOf(12));
+
+        // Workshop counts
+        int oficinasAtivas = (int) oficinaRepository.countByStatus(StatusOficina.ATIVA);
+        int oficinasTrial = (int) oficinaRepository.countByStatus(StatusOficina.TRIAL);
+        int oficinasInativas = (int) oficinaRepository.countByStatus(StatusOficina.INATIVA);
+        int oficinasInadimplentes = (int) countInadimplentes();
+
+        // Monthly changes
+        Long novasOficinas30d = oficinaRepository.countCreatedBetween(inicioMes, fimMes);
+        Long cancelamentos30d = oficinaRepository.countCancelledBetween(inicioMes, fimMes);
+
+        // Churn rate (cancelamentos / ativos no início do mês * 100)
+        Long ativasInicioMes = oficinaRepository.countActiveAt(inicioMes);
+        BigDecimal churnRate = ativasInicioMes > 0
+            ? BigDecimal.valueOf(cancelamentos30d)
+                .divide(BigDecimal.valueOf(ativasInicioMes), 4, RoundingMode.HALF_UP)
+                .multiply(BigDecimal.valueOf(100))
+                .setScale(2, RoundingMode.HALF_UP)
+            : BigDecimal.ZERO;
+
+        // LTV calculation (MRR médio * meses médios de permanência)
+        // Simplified: assume average 12 months retention
+        BigDecimal ltvMultiplier = BigDecimal.valueOf(12);
+        BigDecimal avgMrrPerWorkshop = oficinasAtivas > 0
+            ? mrrTotal.divide(BigDecimal.valueOf(oficinasAtivas), 2, RoundingMode.HALF_UP)
+            : BigDecimal.ZERO;
+        BigDecimal ltv = avgMrrPerWorkshop.multiply(ltvMultiplier);
+
+        // CAC placeholder (would need marketing spend data)
+        BigDecimal cac = BigDecimal.ZERO;
+
+        // User metrics
+        int usuariosAtivos = safeGetInt(oficinaRepository.countActiveUsers());
+        int usuariosTotais = safeGetInt(oficinaRepository.countTotalUsers());
+        int loginsMes = countLoginsMes();
+
+        // General data
+        long totalClientes = countTotalClientes();
+        long totalVeiculos = countTotalVeiculos();
+        long totalOS = countTotalOS();
+        long totalOSMes = countOSMes(inicioMes, fimMes);
+        BigDecimal faturamentoMes = calculateFaturamentoMes(inicioMes, fimMes);
+
+        return new DashboardMetricsDTO(
+            mrrTotal,
+            mrrGrowth,
+            arrTotal,
+            churnRate,
+            ltv,
+            cac,
+            oficinasAtivas,
+            oficinasTrial,
+            oficinasInativas,
+            oficinasInadimplentes,
+            novasOficinas30d.intValue(),
+            cancelamentos30d.intValue(),
+            usuariosAtivos,
+            usuariosTotais,
+            loginsMes,
+            totalClientes,
+            totalVeiculos,
+            totalOS,
+            totalOSMes,
+            faturamentoMes
+        );
+    }
+
+    /**
+     * Gets MRR evolution over the specified number of months.
+     *
+     * @param months number of months to include
+     * @return MRR evolution data
+     */
+    public MRREvolutionDTO getMRREvolution(int months) {
+        log.debug("Calculating MRR evolution for {} months", months);
+
+        List<MRREvolutionDTO.MonthlyMRRData> data = new ArrayList<>();
+        YearMonth currentMonth = YearMonth.now();
+        BigDecimal previousMrr = null;
+        BigDecimal totalMrr = BigDecimal.ZERO;
+
+        DateTimeFormatter labelFormatter = DateTimeFormatter.ofPattern("MMM/yy", new Locale("pt", "BR"));
+
+        for (int i = months - 1; i >= 0; i--) {
+            YearMonth month = currentMonth.minusMonths(i);
+            LocalDateTime endOfMonth = month.atEndOfMonth().atTime(23, 59, 59);
+
+            // For current month, use current MRR; for past months, estimate
+            BigDecimal mrr;
+            int oficinasAtivas;
+
+            if (i == 0) {
+                // Current month
+                mrr = BigDecimal.valueOf(oficinaRepository.calculateMRR());
+                oficinasAtivas = (int) oficinaRepository.countByStatus(StatusOficina.ATIVA);
+            } else {
+                // Historical data (approximation)
+                Double historicalMrr = oficinaRepository.calculateMRRAt(endOfMonth);
+                mrr = BigDecimal.valueOf(historicalMrr != null ? historicalMrr : 0);
+                Long historicalActive = oficinaRepository.countActiveAt(endOfMonth);
+                oficinasAtivas = historicalActive != null ? historicalActive.intValue() : 0;
+            }
+
+            BigDecimal growth = previousMrr != null
+                ? calculateGrowthPercentage(previousMrr, mrr)
+                : BigDecimal.ZERO;
+
+            data.add(new MRREvolutionDTO.MonthlyMRRData(
+                month.toString(),
+                month.atDay(1).format(labelFormatter),
+                mrr,
+                growth,
+                oficinasAtivas
+            ));
+
+            previousMrr = mrr;
+            totalMrr = totalMrr.add(mrr);
+        }
+
+        // Calculate overall growth
+        BigDecimal firstMrr = data.isEmpty() ? BigDecimal.ZERO : data.get(0).mrr();
+        BigDecimal lastMrr = data.isEmpty() ? BigDecimal.ZERO : data.get(data.size() - 1).mrr();
+        BigDecimal totalGrowth = calculateGrowthPercentage(firstMrr, lastMrr);
+
+        // Average MRR
+        BigDecimal averageMRR = data.isEmpty()
+            ? BigDecimal.ZERO
+            : totalMrr.divide(BigDecimal.valueOf(data.size()), 2, RoundingMode.HALF_UP);
+
+        return new MRREvolutionDTO(data, totalGrowth, averageMRR);
+    }
+
+    /**
+     * Gets churn rate evolution over the specified number of months.
+     *
+     * @param months number of months to include
+     * @return churn evolution data
+     */
+    public ChurnEvolutionDTO getChurnEvolution(int months) {
+        log.debug("Calculating churn evolution for {} months", months);
+
+        List<ChurnEvolutionDTO.MonthlyChurnData> data = new ArrayList<>();
+        YearMonth currentMonth = YearMonth.now();
+        int totalCancelled = 0;
+        BigDecimal totalChurn = BigDecimal.ZERO;
+
+        DateTimeFormatter labelFormatter = DateTimeFormatter.ofPattern("MMM/yy", new Locale("pt", "BR"));
+
+        for (int i = months - 1; i >= 0; i--) {
+            YearMonth month = currentMonth.minusMonths(i);
+            LocalDateTime startOfMonth = month.atDay(1).atStartOfDay();
+            LocalDateTime endOfMonth = month.atEndOfMonth().atTime(23, 59, 59);
+
+            Long cancelled = oficinaRepository.countCancelledBetween(startOfMonth, endOfMonth);
+            Long activeAtStart = oficinaRepository.countActiveAt(startOfMonth);
+
+            int cancelledInt = cancelled != null ? cancelled.intValue() : 0;
+            int activeAtStartInt = activeAtStart != null ? activeAtStart.intValue() : 0;
+
+            BigDecimal churnRate = activeAtStartInt > 0
+                ? BigDecimal.valueOf(cancelledInt)
+                    .divide(BigDecimal.valueOf(activeAtStartInt), 4, RoundingMode.HALF_UP)
+                    .multiply(BigDecimal.valueOf(100))
+                    .setScale(2, RoundingMode.HALF_UP)
+                : BigDecimal.ZERO;
+
+            data.add(new ChurnEvolutionDTO.MonthlyChurnData(
+                month.toString(),
+                month.atDay(1).format(labelFormatter),
+                churnRate,
+                cancelledInt,
+                activeAtStartInt
+            ));
+
+            totalCancelled += cancelledInt;
+            totalChurn = totalChurn.add(churnRate);
+        }
+
+        BigDecimal averageChurn = data.isEmpty()
+            ? BigDecimal.ZERO
+            : totalChurn.divide(BigDecimal.valueOf(data.size()), 2, RoundingMode.HALF_UP);
+
+        BigDecimal currentChurn = data.isEmpty()
+            ? BigDecimal.ZERO
+            : data.get(data.size() - 1).churnRate();
+
+        return new ChurnEvolutionDTO(data, averageChurn, currentChurn, totalCancelled);
+    }
+
+    /**
+     * Gets signups vs cancellations comparison over the specified number of months.
+     *
+     * @param months number of months to include
+     * @return signups vs cancellations data
+     */
+    public SignupsVsCancellationsDTO getSignupsVsCancellations(int months) {
+        log.debug("Calculating signups vs cancellations for {} months", months);
+
+        List<SignupsVsCancellationsDTO.MonthlySignupData> data = new ArrayList<>();
+        YearMonth currentMonth = YearMonth.now();
+        int totalSignups = 0;
+        int totalCancellations = 0;
+
+        DateTimeFormatter labelFormatter = DateTimeFormatter.ofPattern("MMM/yy", new Locale("pt", "BR"));
+
+        for (int i = months - 1; i >= 0; i--) {
+            YearMonth month = currentMonth.minusMonths(i);
+            LocalDateTime startOfMonth = month.atDay(1).atStartOfDay();
+            LocalDateTime endOfMonth = month.atEndOfMonth().atTime(23, 59, 59);
+            LocalDate startDate = month.atDay(1);
+            LocalDate endDate = month.atEndOfMonth();
+
+            Long signups = oficinaRepository.countCreatedBetween(startOfMonth, endOfMonth);
+            Long cancellations = oficinaRepository.countCancelledBetween(startOfMonth, endOfMonth);
+            Long conversions = oficinaRepository.countTrialConversionsBetween(startDate, endDate);
+
+            int signupsInt = signups != null ? signups.intValue() : 0;
+            int cancellationsInt = cancellations != null ? cancellations.intValue() : 0;
+            int conversionsInt = conversions != null ? conversions.intValue() : 0;
+
+            data.add(new SignupsVsCancellationsDTO.MonthlySignupData(
+                month.toString(),
+                month.atDay(1).format(labelFormatter),
+                signupsInt,
+                cancellationsInt,
+                signupsInt - cancellationsInt,
+                conversionsInt
+            ));
+
+            totalSignups += signupsInt;
+            totalCancellations += cancellationsInt;
+        }
+
+        return new SignupsVsCancellationsDTO(
+            data,
+            totalSignups,
+            totalCancellations,
+            totalSignups - totalCancellations
+        );
+    }
+
+    // ===== HELPER METHODS =====
+
+    private BigDecimal calculateGrowthPercentage(BigDecimal previous, BigDecimal current) {
+        if (previous == null || previous.compareTo(BigDecimal.ZERO) == 0) {
+            return current != null && current.compareTo(BigDecimal.ZERO) > 0
+                ? BigDecimal.valueOf(100)
+                : BigDecimal.ZERO;
+        }
+        return current.subtract(previous)
+            .divide(previous, 4, RoundingMode.HALF_UP)
+            .multiply(BigDecimal.valueOf(100))
+            .setScale(2, RoundingMode.HALF_UP);
+    }
+
+    private long countInadimplentes() {
+        try {
+            return jdbcTemplate.queryForObject(
+                "SELECT COUNT(*) FROM oficinas WHERE status = 'ATIVA' AND data_vencimento_plano < CURRENT_DATE",
+                Long.class
+            );
+        } catch (Exception e) {
+            return 0L;
+        }
+    }
+
+    private int countLoginsMes() {
+        // Placeholder - would need audit log integration
+        return 0;
+    }
+
+    private long countTotalClientes() {
+        try {
+            return jdbcTemplate.queryForObject("SELECT COUNT(*) FROM clientes", Long.class);
+        } catch (Exception e) {
+            return 0L;
+        }
+    }
+
+    private long countTotalVeiculos() {
+        try {
+            return jdbcTemplate.queryForObject("SELECT COUNT(*) FROM veiculos", Long.class);
+        } catch (Exception e) {
+            return 0L;
+        }
+    }
+
+    private long countTotalOS() {
+        try {
+            return jdbcTemplate.queryForObject("SELECT COUNT(*) FROM ordem_servico", Long.class);
+        } catch (Exception e) {
+            return 0L;
+        }
+    }
+
+    private long countOSMes(LocalDateTime inicio, LocalDateTime fim) {
+        try {
+            return jdbcTemplate.queryForObject(
+                "SELECT COUNT(*) FROM ordem_servico WHERE created_at >= ? AND created_at < ?",
+                Long.class,
+                inicio, fim
+            );
+        } catch (Exception e) {
+            return 0L;
+        }
+    }
+
+    private BigDecimal calculateFaturamentoMes(LocalDateTime inicio, LocalDateTime fim) {
+        try {
+            Double valor = jdbcTemplate.queryForObject(
+                "SELECT COALESCE(SUM(valor_final), 0) FROM ordem_servico WHERE status = 'ENTREGUE' AND created_at >= ? AND created_at < ?",
+                Double.class,
+                inicio, fim
+            );
+            return valor != null ? BigDecimal.valueOf(valor) : BigDecimal.ZERO;
+        } catch (Exception e) {
+            return BigDecimal.ZERO;
+        }
+    }
+
+    private int safeGetInt(Long value) {
+        return value != null ? value.intValue() : 0;
     }
 }

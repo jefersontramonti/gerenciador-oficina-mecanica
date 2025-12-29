@@ -30,9 +30,13 @@ export const LoginPage = () => {
   const onSubmit = async (data: LoginFormData) => {
     try {
       setApiError(null);
-      await login({ ...data, rememberMe });
-      // Sempre redireciona para o dashboard após login bem-sucedido
-      navigate('/', { replace: true });
+      const result = await login({ ...data, rememberMe });
+      // Redireciona baseado no perfil do usuário
+      if (result.usuario.perfil === 'SUPER_ADMIN') {
+        navigate('/admin', { replace: true });
+      } else {
+        navigate('/', { replace: true });
+      }
     } catch (err: any) {
       setApiError(err.message || 'Erro ao fazer login');
     }

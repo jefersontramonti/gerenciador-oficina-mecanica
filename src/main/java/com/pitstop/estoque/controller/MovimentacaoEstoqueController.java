@@ -148,7 +148,6 @@ public class MovimentacaoEstoqueController {
             @RequestParam(required = false) UUID usuarioId,
             @PageableDefault(size = 20, sort = "dataMovimentacao") Pageable pageable
     ) {
-        log.debug("GET /api/movimentacoes-estoque - Listando movimentações");
 
         Page<MovimentacaoEstoque> movimentacoes = movimentacaoService.buscarComFiltros(
                 pecaId, tipo, dataInicio, dataFim, usuarioId, pageable
@@ -170,7 +169,6 @@ public class MovimentacaoEstoqueController {
             @PathVariable UUID pecaId,
             @PageableDefault(size = 20) Pageable pageable
     ) {
-        log.debug("GET /api/movimentacoes-estoque/peca/{} - Buscando histórico", pecaId);
 
         Page<MovimentacaoEstoque> movimentacoes = movimentacaoService.buscarHistoricoPeca(pecaId, pageable);
         Page<MovimentacaoEstoqueResponseDTO> response = movimentacoes.map(movimentacaoMapper::toResponseDTO);
@@ -188,7 +186,6 @@ public class MovimentacaoEstoqueController {
     public ResponseEntity<List<MovimentacaoEstoqueResponseDTO>> buscarPorOS(
             @PathVariable UUID ordemServicoId
     ) {
-        log.debug("GET /api/movimentacoes-estoque/ordem-servico/{} - Buscando movimentações da OS", ordemServicoId);
 
         List<MovimentacaoEstoque> movimentacoes = movimentacaoService.buscarPorOS(ordemServicoId);
         List<MovimentacaoEstoqueResponseDTO> response = movimentacoes.stream()

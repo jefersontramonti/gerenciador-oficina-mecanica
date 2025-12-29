@@ -498,6 +498,28 @@ public class GlobalExceptionHandler {
     // ========== EXCEÇÕES GENÉRICAS ==========
 
     /**
+     * Trata exceção de regra de negócio violada.
+     * HTTP 400 - Bad Request
+     */
+    @ExceptionHandler(BusinessException.class)
+    public ProblemDetail handleBusinessException(
+            BusinessException ex,
+            WebRequest request
+    ) {
+        log.warn("Erro de negócio: {}", ex.getMessage());
+
+        ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(
+                HttpStatus.BAD_REQUEST,
+                ex.getMessage()
+        );
+        problemDetail.setTitle("Erro de Negócio");
+        problemDetail.setType(URI.create("https://pitstop.com/errors/business-error"));
+        problemDetail.setProperty("timestamp", Instant.now());
+
+        return problemDetail;
+    }
+
+    /**
      * Trata exceção genérica de recurso não encontrado.
      * HTTP 404 - Not Found
      */

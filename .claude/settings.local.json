@@ -17,7 +17,8 @@
       "Bash(find:*)",
       "Bash(xargs -I {} find {} -name \"*.java\")",
       "Bash(curl:*)",
-      "Bash(tasklist)"
+      "Bash(tasklist)",
+      "Bash(git -C \"C:\\\\Users\\\\maninho\\\\Desktop\\\\Projeto oficina mecanica\\\\PitStop\" status --short)"
     ],
     "deny": [],
     "ask": []

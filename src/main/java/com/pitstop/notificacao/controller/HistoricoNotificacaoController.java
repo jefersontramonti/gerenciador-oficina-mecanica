@@ -55,9 +55,6 @@ public class HistoricoNotificacaoController {
         @RequestParam(required = false) String destinatario,
         @PageableDefault(size = 20, sort = "createdAt") Pageable pageable
     ) {
-        log.debug("GET /api/notificacoes/historico - tipo={}, status={}, evento={}, destinatario={}",
-            tipo, status, evento, destinatario);
-
         // Usa metodo com filtros combinados
         Page<HistoricoNotificacaoDTO.Resumido> page = historicoService.listarComFiltros(tipo, status, evento, pageable);
 
@@ -75,7 +72,6 @@ public class HistoricoNotificacaoController {
         @PathVariable StatusNotificacao status,
         @PageableDefault(size = 20) Pageable pageable
     ) {
-        log.debug("GET /api/notificacoes/historico/status/{}", status);
         Page<HistoricoNotificacaoDTO.Resumido> page = historicoService.listarPorStatus(status, pageable);
         return ResponseEntity.ok(page);
     }
@@ -91,7 +87,6 @@ public class HistoricoNotificacaoController {
         @PathVariable EventoNotificacao evento,
         @PageableDefault(size = 20) Pageable pageable
     ) {
-        log.debug("GET /api/notificacoes/historico/evento/{}", evento);
         Page<HistoricoNotificacaoDTO.Resumido> page = historicoService.listarPorEvento(evento, pageable);
         return ResponseEntity.ok(page);
     }
@@ -107,7 +102,6 @@ public class HistoricoNotificacaoController {
         @PathVariable TipoNotificacao canal,
         @PageableDefault(size = 20) Pageable pageable
     ) {
-        log.debug("GET /api/notificacoes/historico/canal/{}", canal);
         Page<HistoricoNotificacaoDTO.Resumido> page = historicoService.listarPorCanal(canal, pageable);
         return ResponseEntity.ok(page);
     }
@@ -120,7 +114,6 @@ public class HistoricoNotificacaoController {
     @PreAuthorize("hasAnyAuthority('ADMIN', 'GERENTE', 'ATENDENTE')")
     @Operation(summary = "Buscar por ID", description = "Retorna detalhes completos de uma notificacao")
     public ResponseEntity<HistoricoNotificacaoDTO> buscarPorId(@PathVariable UUID id) {
-        log.debug("GET /api/notificacoes/historico/{}", id);
         HistoricoNotificacaoDTO historico = historicoService.buscarPorId(id);
         return ResponseEntity.ok(historico);
     }
@@ -135,7 +128,6 @@ public class HistoricoNotificacaoController {
     public ResponseEntity<List<HistoricoNotificacaoDTO.Resumido>> listarPorOrdemServico(
         @PathVariable UUID ordemServicoId
     ) {
-        log.debug("GET /api/notificacoes/historico/os/{}", ordemServicoId);
         List<HistoricoNotificacaoDTO.Resumido> lista = historicoService.listarPorOrdemServico(ordemServicoId);
         return ResponseEntity.ok(lista);
     }
@@ -151,7 +143,6 @@ public class HistoricoNotificacaoController {
         @PathVariable UUID clienteId,
         @PageableDefault(size = 20) Pageable pageable
     ) {
-        log.debug("GET /api/notificacoes/historico/cliente/{}", clienteId);
         Page<HistoricoNotificacaoDTO.Resumido> page = historicoService.listarPorCliente(clienteId, pageable);
         return ResponseEntity.ok(page);
     }
@@ -193,7 +184,6 @@ public class HistoricoNotificacaoController {
         @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate dataInicio,
         @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate dataFim
     ) {
-        log.debug("GET /api/notificacoes/historico/metricas - {} a {}", dataInicio, dataFim);
         NotificacaoMetricasDTO metricas = historicoService.getMetricas(dataInicio, dataFim);
         return ResponseEntity.ok(metricas);
     }
@@ -206,7 +196,6 @@ public class HistoricoNotificacaoController {
     @PreAuthorize("hasAnyAuthority('ADMIN', 'GERENTE', 'ATENDENTE')")
     @Operation(summary = "Contadores dashboard", description = "Retorna contadores para exibicao no dashboard")
     public ResponseEntity<Map<String, Long>> getDashboard() {
-        log.debug("GET /api/notificacoes/historico/dashboard");
         Map<String, Long> contadores = Map.of(
             "total", historicoService.contarTotal(),
             "enviadas", historicoService.contarEnviadas(),

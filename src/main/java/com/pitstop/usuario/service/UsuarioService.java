@@ -98,7 +98,6 @@ public class UsuarioService {
      */
     @Cacheable(value = "usuarios", key = "#id")
     public UsuarioResponse findById(UUID id) {
-        log.debug("Buscando usuário por ID: {}", id);
 
         UUID oficinaId = TenantContext.getTenantId();
         Usuario usuario = usuarioRepository.findByOficinaIdAndId(oficinaId, id)
@@ -119,7 +118,6 @@ public class UsuarioService {
      */
     @Cacheable(value = "usuarios", key = "#email.toLowerCase()")
     public UsuarioResponse findByEmail(String email) {
-        log.debug("Buscando usuário por email: {}", email);
 
         String emailNormalizado = StringUtils.hasText(email)
                 ? email.trim().toLowerCase()
@@ -141,9 +139,6 @@ public class UsuarioService {
      * @return Página de usuários
      */
     public Page<UsuarioResponse> findAll(Pageable pageable) {
-        log.debug("Listando usuários com paginação: page={}, size={}",
-                pageable.getPageNumber(), pageable.getPageSize());
-
         UUID oficinaId = TenantContext.getTenantId();
         return usuarioRepository.findByOficinaId(oficinaId, pageable)
                 .map(usuarioMapper::toResponse);
@@ -157,7 +152,6 @@ public class UsuarioService {
      */
     // @Cacheable(value = "usuarios", key = "'perfil:' + #perfil.name()") // Temporariamente desabilitado
     public List<UsuarioResponse> findByPerfil(PerfilUsuario perfil) {
-        log.debug("Buscando usuários com perfil: {}", perfil);
 
         UUID oficinaId = TenantContext.getTenantId();
         return usuarioRepository.findByOficinaIdAndPerfil(oficinaId, perfil).stream()
@@ -172,7 +166,6 @@ public class UsuarioService {
      */
     @Cacheable(value = "usuarios", key = "'ativos'")
     public List<UsuarioResponse> findAllAtivos() {
-        log.debug("Buscando todos os usuários ativos");
 
         UUID oficinaId = TenantContext.getTenantId();
         return usuarioRepository.findByOficinaIdAndAtivoTrue(oficinaId).stream()

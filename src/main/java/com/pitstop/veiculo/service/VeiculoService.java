@@ -104,7 +104,6 @@ public class VeiculoService {
     @Transactional(readOnly = true)
     @Cacheable(value = "veiculos", key = "#id")
     public VeiculoResponseDTO findById(UUID id) {
-        log.debug("Buscando veículo por ID: {}", id);
 
         UUID oficinaId = TenantContext.getTenantId();
         Veiculo veiculo = veiculoRepository.findByOficinaIdAndId(oficinaId, id)
@@ -126,7 +125,6 @@ public class VeiculoService {
     @Transactional(readOnly = true)
     @Cacheable(value = "veiculos", key = "#placa")
     public VeiculoResponseDTO findByPlaca(String placa) {
-        log.debug("Buscando veículo por placa: {}", placa);
 
         UUID oficinaId = TenantContext.getTenantId();
         String placaNormalizada = placa.trim().toUpperCase().replace("-", "");
@@ -148,7 +146,6 @@ public class VeiculoService {
      */
     @Transactional(readOnly = true)
     public Page<VeiculoResponseDTO> findAll(Pageable pageable) {
-        log.debug("Listando veículos: page={}, size={}", pageable.getPageNumber(), pageable.getPageSize());
 
         UUID oficinaId = TenantContext.getTenantId();
         return veiculoRepository.findByOficinaId(oficinaId, pageable)
@@ -169,7 +166,6 @@ public class VeiculoService {
      */
     @Transactional(readOnly = true)
     public Page<VeiculoResponseDTO> findByClienteId(UUID clienteId, Pageable pageable) {
-        log.debug("Buscando veículos do cliente: {}", clienteId);
 
         UUID oficinaId = TenantContext.getTenantId();
         // Valida se cliente existe
@@ -197,7 +193,6 @@ public class VeiculoService {
      */
     @Transactional(readOnly = true)
     public Page<VeiculoResponseDTO> findByFiltros(UUID clienteId, String placa, String marca, String modelo, Integer ano, Pageable pageable) {
-        log.debug("Busca com filtros: clienteId={}, placa={}, marca={}, modelo={}, ano={}", clienteId, placa, marca, modelo, ano);
 
         UUID oficinaId = TenantContext.getTenantId();
         // Normaliza placa se fornecida
@@ -305,7 +300,6 @@ public class VeiculoService {
     @Transactional(readOnly = true)
     @Cacheable(value = "veiculos", key = "'marcas'")
     public List<String> findMarcas() {
-        log.debug("Buscando lista de marcas");
         UUID oficinaId = TenantContext.getTenantId();
         return veiculoRepository.findDistinctMarcas(oficinaId);
     }
@@ -319,7 +313,6 @@ public class VeiculoService {
     @Transactional(readOnly = true)
     @Cacheable(value = "veiculos", key = "'modelos'")
     public List<String> findModelos() {
-        log.debug("Buscando lista de modelos");
         UUID oficinaId = TenantContext.getTenantId();
         return veiculoRepository.findDistinctModelos(oficinaId);
     }
@@ -333,7 +326,6 @@ public class VeiculoService {
     @Transactional(readOnly = true)
     @Cacheable(value = "veiculos", key = "'anos'")
     public List<Integer> findAnos() {
-        log.debug("Buscando lista de anos");
         UUID oficinaId = TenantContext.getTenantId();
         return veiculoRepository.findDistinctAnos(oficinaId);
     }
@@ -346,7 +338,6 @@ public class VeiculoService {
      */
     @Transactional(readOnly = true)
     public long countByClienteId(UUID clienteId) {
-        log.debug("Contando veículos do cliente: {}", clienteId);
         UUID oficinaId = TenantContext.getTenantId();
         return veiculoRepository.countByOficinaIdAndClienteId(oficinaId, clienteId);
     }

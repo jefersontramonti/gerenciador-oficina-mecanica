@@ -48,7 +48,6 @@ public class TemplateController {
     @Operation(summary = "Listar templates", description = "Lista todos os templates da oficina")
     public ResponseEntity<List<TemplateCustomizadoDTO>> listar() {
         UUID oficinaId = TenantContext.getTenantId();
-        log.debug("GET /api/notificacoes/templates - Listando templates da oficina {}", oficinaId);
 
         List<TemplateCustomizado> templates = repository.findByOficinaIdAndAtivoTrueOrderByTipoTemplate(oficinaId);
         List<TemplateCustomizadoDTO> dtos = templates.stream()
@@ -70,7 +69,6 @@ public class TemplateController {
         @PathVariable TipoNotificacao tipoNotificacao
     ) {
         UUID oficinaId = TenantContext.getTenantId();
-        log.debug("GET /api/notificacoes/templates/{}/{}", tipoTemplate, tipoNotificacao);
 
         // Usa o TemplateService para buscar com fallback
         TemplateCustomizado template = templateService.obterTemplate(oficinaId, tipoTemplate, tipoNotificacao);

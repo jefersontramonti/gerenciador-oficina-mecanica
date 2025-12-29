@@ -64,7 +64,6 @@ public class LocalArmazenamentoController {
     @PreAuthorize("hasAnyAuthority('ADMIN', 'GERENTE', 'ATENDENTE', 'MECANICO')")
     @Operation(summary = "Listar todos", description = "Lista todos os locais ativos")
     public ResponseEntity<List<LocalArmazenamentoResponseDTO>> listarTodos() {
-        log.debug("GET /api/locais-armazenamento - Listando todos os locais");
 
         List<LocalArmazenamento> locais = localService.listarTodos();
         List<LocalArmazenamentoResponseDTO> response = locais.stream()
@@ -82,7 +81,6 @@ public class LocalArmazenamentoController {
     @PreAuthorize("hasAnyAuthority('ADMIN', 'GERENTE', 'ATENDENTE', 'MECANICO')")
     @Operation(summary = "Buscar por ID", description = "Retorna detalhes de um local específico")
     public ResponseEntity<LocalArmazenamentoResponseDTO> buscarPorId(@PathVariable UUID id) {
-        log.debug("GET /api/locais-armazenamento/{} - Buscando local por ID", id);
 
         LocalArmazenamento local = localService.buscarPorId(id);
         LocalArmazenamentoResponseDTO response = localMapper.toResponseDTO(local);
@@ -98,7 +96,6 @@ public class LocalArmazenamentoController {
     @PreAuthorize("hasAnyAuthority('ADMIN', 'GERENTE', 'ATENDENTE', 'MECANICO')")
     @Operation(summary = "Buscar por código", description = "Busca local pelo código único")
     public ResponseEntity<LocalArmazenamentoResponseDTO> buscarPorCodigo(@PathVariable String codigo) {
-        log.debug("GET /api/locais-armazenamento/codigo/{} - Buscando local por código", codigo);
 
         LocalArmazenamento local = localService.buscarPorCodigo(codigo);
         LocalArmazenamentoResponseDTO response = localMapper.toResponseDTO(local);
@@ -114,7 +111,6 @@ public class LocalArmazenamentoController {
     @PreAuthorize("hasAnyAuthority('ADMIN', 'GERENTE', 'ATENDENTE', 'MECANICO')")
     @Operation(summary = "Listar locais raiz", description = "Lista locais sem pai (normalmente depósitos, vitrines)")
     public ResponseEntity<List<LocalArmazenamentoResponseDTO>> listarLocaisRaiz() {
-        log.debug("GET /api/locais-armazenamento/raiz - Listando locais raiz");
 
         List<LocalArmazenamento> locais = localService.listarLocaisRaiz();
         List<LocalArmazenamentoResponseDTO> response = locais.stream()
@@ -132,7 +128,6 @@ public class LocalArmazenamentoController {
     @PreAuthorize("hasAnyAuthority('ADMIN', 'GERENTE', 'ATENDENTE', 'MECANICO')")
     @Operation(summary = "Listar filhos", description = "Lista locais filhos de um local pai")
     public ResponseEntity<List<LocalArmazenamentoResponseDTO>> listarFilhos(@PathVariable UUID paiId) {
-        log.debug("GET /api/locais-armazenamento/filhos/{} - Listando filhos", paiId);
 
         List<LocalArmazenamento> locais = localService.listarFilhos(paiId);
         List<LocalArmazenamentoResponseDTO> response = locais.stream()
@@ -150,7 +145,6 @@ public class LocalArmazenamentoController {
     @PreAuthorize("hasAnyAuthority('ADMIN', 'GERENTE', 'ATENDENTE', 'MECANICO')")
     @Operation(summary = "Listar por tipo", description = "Lista locais de um tipo específico")
     public ResponseEntity<List<LocalArmazenamentoResponseDTO>> listarPorTipo(@PathVariable TipoLocal tipo) {
-        log.debug("GET /api/locais-armazenamento/tipo/{} - Listando por tipo", tipo);
 
         List<LocalArmazenamento> locais = localService.listarPorTipo(tipo);
         List<LocalArmazenamentoResponseDTO> response = locais.stream()
@@ -170,7 +164,6 @@ public class LocalArmazenamentoController {
     public ResponseEntity<List<LocalArmazenamentoResponseDTO>> buscarPorDescricao(
             @RequestParam String descricao
     ) {
-        log.debug("GET /api/locais-armazenamento/buscar?descricao={}", descricao);
 
         List<LocalArmazenamento> locais = localService.buscarPorDescricao(descricao);
         List<LocalArmazenamentoResponseDTO> response = locais.stream()

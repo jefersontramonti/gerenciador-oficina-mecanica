@@ -1,9 +1,7 @@
 package com.pitstop.saas.controller;
 
 import com.pitstop.oficina.domain.StatusOficina;
-import com.pitstop.saas.dto.DashboardStatsResponse;
-import com.pitstop.saas.dto.MRRBreakdownResponse;
-import com.pitstop.saas.dto.OficinaResumoDTO;
+import com.pitstop.saas.dto.*;
 import com.pitstop.saas.service.SaasDashboardService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -75,7 +73,7 @@ public class SaasDashboardController {
      */
     @GetMapping("/trials-expiring")
     public ResponseEntity<Page<OficinaResumoDTO>> getTrialsExpiring(
-        @PageableDefault(size = 20, sort = "dataFimTrial", direction = Sort.Direction.ASC)
+        @PageableDefault(size = 20, sort = "dataVencimentoPlano", direction = Sort.Direction.ASC)
         Pageable pageable
     ) {
         log.info("SUPER_ADMIN requested workshops with expiring trials");
@@ -105,5 +103,88 @@ public class SaasDashboardController {
             : dashboardService.getAllOficinas(pageable);
 
         return ResponseEntity.ok(workshops);
+    }
+
+    // ===== ADVANCED METRICS ENDPOINTS =====
+
+    /**
+     * GET /api/saas/dashboard/metrics
+     *
+     * Returns comprehensive dashboard metrics including financial KPIs.
+     * Includes MRR, ARR, churn rate, LTV, CAC, and growth indicators.
+     *
+     * @return advanced dashboard metrics
+     */
+    @GetMapping("/metrics")
+    public ResponseEntity<DashboardMetricsDTO> getAdvancedMetrics() {
+        log.info("SUPER_ADMIN requested advanced dashboard metrics");
+        DashboardMetricsDTO metrics = dashboardService.getAdvancedMetrics();
+        return ResponseEntity.ok(metrics);
+    }
+
+    /**
+     * GET /api/saas/dashboard/mrr-evolution
+     *
+     * Returns MRR evolution data for the specified number of months.
+     * Useful for trend analysis and revenue forecasting.
+     *
+     * @param months number of months to include (default: 12)
+     * @return MRR evolution data for charts
+     */
+    @GetMapping("/mrr-evolution")
+    public ResponseEntity<MRREvolutionDTO> getMRREvolution(
+        @RequestParam(defaultValue = "12") int months
+    ) {
+        log.info("SUPER_ADMIN requested MRR evolution for {} months", months);
+
+        // Limit to reasonable range
+        months = Math.min(Math.max(months, 1), 24);
+
+        MRREvolutionDTO evolution = dashboardService.getMRREvolution(months);
+        return ResponseEntity.ok(evolution);
+    }
+
+    /**
+     * GET /api/saas/dashboard/churn-evolution
+     *
+     * Returns churn rate evolution data for the specified number of months.
+     * Helps identify retention trends and potential issues.
+     *
+     * @param months number of months to include (default: 12)
+     * @return churn evolution data for charts
+     */
+    @GetMapping("/churn-evolution")
+    public ResponseEntity<ChurnEvolutionDTO> getChurnEvolution(
+        @RequestParam(defaultValue = "12") int months
+    ) {
+        log.info("SUPER_ADMIN requested churn evolution for {} months", months);
+
+        // Limit to reasonable range
+        months = Math.min(Math.max(months, 1), 24);
+
+        ChurnEvolutionDTO evolution = dashboardService.getChurnEvolution(months);
+        return ResponseEntity.ok(evolution);
+    }
+
+    /**
+     * GET /api/saas/dashboard/signups-vs-cancellations
+     *
+     * Returns comparison of new signups vs cancellations per month.
+     * Visualizes net growth trends over time.
+     *
+     * @param months number of months to include (default: 12)
+     * @return signups vs cancellations data for charts
+     */
+    @GetMapping("/signups-vs-cancellations")
+    public ResponseEntity<SignupsVsCancellationsDTO> getSignupsVsCancellations(
+        @RequestParam(defaultValue = "12") int months
+    ) {
+        log.info("SUPER_ADMIN requested signups vs cancellations for {} months", months);
+
+        // Limit to reasonable range
+        months = Math.min(Math.max(months, 1), 24);
+
+        SignupsVsCancellationsDTO data = dashboardService.getSignupsVsCancellations(months);
+        return ResponseEntity.ok(data);
     }
 }

@@ -18,7 +18,9 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -90,7 +92,6 @@ public class OficinaService {
      */
     @Cacheable(value = "oficinas", key = "#id")
     public OficinaResponse findById(UUID id) {
-        log.debug("Buscando oficina por ID: {}", id);
 
         Oficina oficina = oficinaRepository.findById(id)
             .orElseThrow(() -> new OficinaNotFoundException(id));
@@ -106,7 +107,6 @@ public class OficinaService {
      * @throws OficinaNotFoundException se não encontrada
      */
     public OficinaResponse findByCnpj(String cnpjCpf) {
-        log.debug("Buscando oficina por CNPJ/CPF: {}", cnpjCpf);
 
         Oficina oficina = oficinaRepository.findByCnpj(cnpjCpf)
             .orElseThrow(() -> new OficinaNotFoundException(cnpjCpf));
@@ -121,7 +121,6 @@ public class OficinaService {
      * @return Página de oficinas (resumo)
      */
     public Page<OficinaResumoResponse> findAll(Pageable pageable) {
-        log.debug("Listando todas as oficinas. Page: {}, Size: {}", pageable.getPageNumber(), pageable.getPageSize());
 
         return oficinaRepository.findAll(pageable)
             .map(oficinaMapper::toResumoResponse);
@@ -144,11 +143,38 @@ public class OficinaService {
         String cnpj,
         Pageable pageable
     ) {
-        log.debug("Listando oficinas com filtros. Status: {}, Plano: {}, Nome: {}, CNPJ: {}",
-            status, plano, nome, cnpj);
+        // Convert enums to strings for native query
+        String statusStr = status != null ? status.name() : null;
+        String planoStr = plano != null ? plano.name() : null;
 
-        return oficinaRepository.findWithFilters(status, plano, nome, cnpj, pageable)
+        // Convert pageable sort to snake_case for native query
+        Pageable nativePageable = convertToNativePageable(pageable);
+
+        return oficinaRepository.findWithFiltersNative(statusStr, planoStr, nome, cnpj, nativePageable)
             .map(oficinaMapper::toResumoResponse);
+    }
+
+    /**
+     * Converts a Pageable with camelCase sort properties to snake_case for native queries.
+     */
+    private Pageable convertToNativePageable(Pageable pageable) {
+        if (pageable.getSort().isUnsorted()) {
+            return PageRequest.of(pageable.getPageNumber(), pageable.getPageSize(),
+                Sort.by(Sort.Direction.DESC, "created_at"));
+        }
+
+        Sort.Order[] orders = pageable.getSort().stream()
+            .map(order -> new Sort.Order(order.getDirection(), toSnakeCase(order.getProperty())))
+            .toArray(Sort.Order[]::new);
+
+        return PageRequest.of(pageable.getPageNumber(), pageable.getPageSize(), Sort.by(orders));
+    }
+
+    /**
+     * Converts camelCase to snake_case.
+     */
+    private String toSnakeCase(String camelCase) {
+        return camelCase.replaceAll("([a-z])([A-Z])", "$1_$2").toLowerCase();
     }
 
     /**
@@ -159,7 +185,6 @@ public class OficinaService {
      * @return Página de oficinas com o status
      */
     public Page<OficinaResumoResponse> findByStatus(StatusOficina status, Pageable pageable) {
-        log.debug("Buscando oficinas por status: {}", status);
 
         return oficinaRepository.findByStatus(status, pageable)
             .map(oficinaMapper::toResumoResponse);
@@ -175,7 +200,6 @@ public class OficinaService {
         LocalDate hoje = LocalDate.now();
         LocalDate daquiA7Dias = hoje.plusDays(7);
 
-        log.debug("Buscando oficinas com vencimento entre {} e {}", hoje, daquiA7Dias);
 
         List<Oficina> oficinas = oficinaRepository.findByDataVencimentoBetween(hoje, daquiA7Dias);
 
@@ -191,7 +215,6 @@ public class OficinaService {
      * @return Lista de oficinas vencidas
      */
     public List<OficinaResponse> findVencidas() {
-        log.debug("Buscando oficinas vencidas");
 
         List<Oficina> oficinas = oficinaRepository.findVencidas(LocalDate.now());
 

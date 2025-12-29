@@ -95,7 +95,6 @@ public class AuthController {
             )
     })
     public ResponseEntity<LoginResponse> login(@Valid @RequestBody LoginRequest request) {
-        log.debug("POST /api/auth/login - email: {}", request.email());
 
         LoginResponse response = authenticationService.login(request);
 
@@ -151,7 +150,6 @@ public class AuthController {
             @RequestBody(required = false) RefreshTokenRequest requestBody,
             @CookieValue(name = "refreshToken", required = false) String cookieRefreshToken
     ) {
-        log.debug("POST /api/auth/refresh");
 
         // Priority: cookie > request body (cookie is more secure)
         String refreshToken = cookieRefreshToken != null
@@ -209,7 +207,6 @@ public class AuthController {
             )
     })
     public ResponseEntity<Void> logout(@AuthenticationPrincipal CustomUserDetails userDetails) {
-        log.debug("POST /api/auth/logout");
 
         UUID userId = userDetails.getUsuario().getId();
         authenticationService.logout(userId);
@@ -262,7 +259,6 @@ public class AuthController {
             )
     })
     public ResponseEntity<LoginResponse> register(@Valid @RequestBody RegisterRequest request) {
-        log.debug("POST /api/auth/register - email: {}", request.email());
 
         LoginResponse response = authenticationService.register(request);
 
@@ -308,7 +304,6 @@ public class AuthController {
             )
     })
     public ResponseEntity<UsuarioResponse> getCurrentUser(@AuthenticationPrincipal CustomUserDetails userDetails) {
-        log.debug("GET /api/auth/me");
 
         UUID userId = userDetails.getUsuario().getId();
         UsuarioResponse response = authenticationService.getCurrentUser(userId);
@@ -357,7 +352,6 @@ public class AuthController {
             @AuthenticationPrincipal CustomUserDetails userDetails,
             @Valid @RequestBody UpdateProfileRequest request
     ) {
-        log.debug("PUT /api/auth/profile");
 
         UUID userId = userDetails.getUsuario().getId();
         UsuarioResponse response = authenticationService.updateProfile(userId, request);
@@ -403,7 +397,6 @@ public class AuthController {
             @AuthenticationPrincipal CustomUserDetails userDetails,
             @Valid @RequestBody ChangePasswordRequest request
     ) {
-        log.debug("PUT /api/auth/password");
 
         UUID userId = userDetails.getUsuario().getId();
         authenticationService.changePassword(userId, request);
@@ -440,7 +433,6 @@ public class AuthController {
             )
     })
     public ResponseEntity<Void> forgotPassword(@Valid @RequestBody ForgotPasswordRequest request) {
-        log.debug("POST /api/auth/forgot-password - email: {}", request.email());
 
         passwordResetService.forgotPassword(request);
 
@@ -477,7 +469,6 @@ public class AuthController {
             )
     })
     public ResponseEntity<Void> resetPassword(@Valid @RequestBody ResetPasswordRequest request) {
-        log.debug("POST /api/auth/reset-password");
 
         passwordResetService.resetPassword(request);
 

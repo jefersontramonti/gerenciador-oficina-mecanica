@@ -64,8 +64,32 @@ const ConfiguracoesPage = lazy(() => import('./features/configuracoes/pages').th
 const ConfiguracaoNotificacoesPage = lazy(() => import('./features/notificacoes/pages/ConfiguracaoNotificacoesPage').then(m => ({ default: m.ConfiguracaoNotificacoesPage })));
 const HistoricoNotificacoesPage = lazy(() => import('./features/notificacoes/pages/HistoricoNotificacoesPage').then(m => ({ default: m.HistoricoNotificacoesPage })));
 
+// Comunicados (para oficinas)
+const ComunicadosOficinaPage = lazy(() => import('./features/comunicados').then(m => ({ default: m.ComunicadosPage })));
+
 // Paginas Publicas (aprovacao de orcamento)
 const AprovarOrcamentoPage = lazy(() => import('./features/ordens-servico/pages/AprovarOrcamentoPage').then(m => ({ default: m.AprovarOrcamentoPage })));
+
+// Admin (SUPER_ADMIN) pages
+const SaasDashboardPage = lazy(() => import('./features/admin/pages').then(m => ({ default: m.SaasDashboardPage })));
+const AdminOficinasPage = lazy(() => import('./features/admin/pages').then(m => ({ default: m.OficinasPage })));
+const OficinaDetailPage = lazy(() => import('./features/admin/pages').then(m => ({ default: m.OficinaDetailPage })));
+const CreateOficinaPage = lazy(() => import('./features/admin/pages').then(m => ({ default: m.CreateOficinaPage })));
+const EditOficinaPage = lazy(() => import('./features/admin/pages').then(m => ({ default: m.EditOficinaPage })));
+const AdminPagamentosPage = lazy(() => import('./features/admin/pages').then(m => ({ default: m.PagamentosPage })));
+const AuditPage = lazy(() => import('./features/admin/pages').then(m => ({ default: m.AuditPage })));
+const PlanosListPage = lazy(() => import('./features/admin/pages').then(m => ({ default: m.PlanosListPage })));
+const PlanoFormPage = lazy(() => import('./features/admin/pages').then(m => ({ default: m.PlanoFormPage })));
+const FaturasListPage = lazy(() => import('./features/admin/pages').then(m => ({ default: m.FaturasListPage })));
+const FaturaDetailPage = lazy(() => import('./features/admin/pages').then(m => ({ default: m.FaturaDetailPage })));
+const InadimplenciaPage = lazy(() => import('./features/admin/pages').then(m => ({ default: m.InadimplenciaPage })));
+const RelatoriosPage = lazy(() => import('./features/admin/pages').then(m => ({ default: m.RelatoriosPage })));
+const TicketsListPage = lazy(() => import('./features/admin/pages').then(m => ({ default: m.TicketsListPage })));
+const TicketDetailPage = lazy(() => import('./features/admin/pages').then(m => ({ default: m.TicketDetailPage })));
+const ComunicadosListPage = lazy(() => import('./features/admin/pages').then(m => ({ default: m.ComunicadosListPage })));
+const ComunicadoFormPage = lazy(() => import('./features/admin/pages').then(m => ({ default: m.ComunicadoFormPage })));
+const ComunicadoDetailPage = lazy(() => import('./features/admin/pages').then(m => ({ default: m.ComunicadoDetailPage })));
+const FeatureFlagsPage = lazy(() => import('./features/admin/pages').then(m => ({ default: m.FeatureFlagsPage })));
 
 function App() {
   return (
@@ -451,6 +475,200 @@ function App() {
               }
             />
           </Route>
+
+          {/* Comunicados - Todos da oficina podem ver */}
+          <Route
+            path="comunicados"
+            element={
+              <ProtectedRoute
+                requiredRoles={[PerfilUsuario.ADMIN, PerfilUsuario.GERENTE, PerfilUsuario.ATENDENTE, PerfilUsuario.MECANICO]}
+              >
+                <ComunicadosOficinaPage />
+              </ProtectedRoute>
+            }
+          />
+
+          {/* Admin SaaS - SUPER_ADMIN apenas */}
+          <Route path="admin">
+            <Route
+              index
+              element={
+                <ProtectedRoute requiredRoles={[PerfilUsuario.SUPER_ADMIN]}>
+                  <SaasDashboardPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route path="oficinas">
+              <Route
+                index
+                element={
+                  <ProtectedRoute requiredRoles={[PerfilUsuario.SUPER_ADMIN]}>
+                    <AdminOficinasPage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="nova"
+                element={
+                  <ProtectedRoute requiredRoles={[PerfilUsuario.SUPER_ADMIN]}>
+                    <CreateOficinaPage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path=":id"
+                element={
+                  <ProtectedRoute requiredRoles={[PerfilUsuario.SUPER_ADMIN]}>
+                    <OficinaDetailPage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path=":id/editar"
+                element={
+                  <ProtectedRoute requiredRoles={[PerfilUsuario.SUPER_ADMIN]}>
+                    <EditOficinaPage />
+                  </ProtectedRoute>
+                }
+              />
+            </Route>
+            <Route
+              path="pagamentos"
+              element={
+                <ProtectedRoute requiredRoles={[PerfilUsuario.SUPER_ADMIN]}>
+                  <AdminPagamentosPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="audit"
+              element={
+                <ProtectedRoute requiredRoles={[PerfilUsuario.SUPER_ADMIN]}>
+                  <AuditPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route path="planos">
+              <Route
+                index
+                element={
+                  <ProtectedRoute requiredRoles={[PerfilUsuario.SUPER_ADMIN]}>
+                    <PlanosListPage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="novo"
+                element={
+                  <ProtectedRoute requiredRoles={[PerfilUsuario.SUPER_ADMIN]}>
+                    <PlanoFormPage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path=":id/editar"
+                element={
+                  <ProtectedRoute requiredRoles={[PerfilUsuario.SUPER_ADMIN]}>
+                    <PlanoFormPage />
+                  </ProtectedRoute>
+                }
+              />
+            </Route>
+            <Route path="faturas">
+              <Route
+                index
+                element={
+                  <ProtectedRoute requiredRoles={[PerfilUsuario.SUPER_ADMIN]}>
+                    <FaturasListPage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path=":id"
+                element={
+                  <ProtectedRoute requiredRoles={[PerfilUsuario.SUPER_ADMIN]}>
+                    <FaturaDetailPage />
+                  </ProtectedRoute>
+                }
+              />
+            </Route>
+            <Route
+              path="inadimplencia"
+              element={
+                <ProtectedRoute requiredRoles={[PerfilUsuario.SUPER_ADMIN]}>
+                  <InadimplenciaPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="relatorios"
+              element={
+                <ProtectedRoute requiredRoles={[PerfilUsuario.SUPER_ADMIN]}>
+                  <RelatoriosPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route path="tickets">
+              <Route
+                index
+                element={
+                  <ProtectedRoute requiredRoles={[PerfilUsuario.SUPER_ADMIN]}>
+                    <TicketsListPage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path=":id"
+                element={
+                  <ProtectedRoute requiredRoles={[PerfilUsuario.SUPER_ADMIN]}>
+                    <TicketDetailPage />
+                  </ProtectedRoute>
+                }
+              />
+            </Route>
+            <Route path="comunicados">
+              <Route
+                index
+                element={
+                  <ProtectedRoute requiredRoles={[PerfilUsuario.SUPER_ADMIN]}>
+                    <ComunicadosListPage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="novo"
+                element={
+                  <ProtectedRoute requiredRoles={[PerfilUsuario.SUPER_ADMIN]}>
+                    <ComunicadoFormPage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path=":id"
+                element={
+                  <ProtectedRoute requiredRoles={[PerfilUsuario.SUPER_ADMIN]}>
+                    <ComunicadoDetailPage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path=":id/editar"
+                element={
+                  <ProtectedRoute requiredRoles={[PerfilUsuario.SUPER_ADMIN]}>
+                    <ComunicadoFormPage />
+                  </ProtectedRoute>
+                }
+              />
+            </Route>
+            <Route
+              path="features"
+              element={
+                <ProtectedRoute requiredRoles={[PerfilUsuario.SUPER_ADMIN]}>
+                  <FeatureFlagsPage />
+                </ProtectedRoute>
+              }
+            />
+          </Route>
         </Route>
 
         {/* Unauthorized */}
@@ -468,9 +686,10 @@ function App() {
 
 /**
  * Public route - redirects to home if already authenticated
+ * SUPER_ADMIN users are redirected to /admin instead of /
  */
 function PublicRoute({ children }: { children: React.ReactNode }) {
-  const { isAuthenticated, isLoading } = useAuth();
+  const { isAuthenticated, isLoading, user } = useAuth();
 
   if (isLoading) {
     return (
@@ -481,6 +700,10 @@ function PublicRoute({ children }: { children: React.ReactNode }) {
   }
 
   if (isAuthenticated) {
+    // SUPER_ADMIN goes to /admin, others go to /
+    if (user?.perfil === PerfilUsuario.SUPER_ADMIN) {
+      return <Navigate to="/admin" replace />;
+    }
     return <Navigate to="/" replace />;
   }
 

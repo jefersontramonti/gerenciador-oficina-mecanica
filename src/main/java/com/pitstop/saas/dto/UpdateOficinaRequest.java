@@ -1,14 +1,14 @@
 package com.pitstop.saas.dto;
 
-import com.pitstop.oficina.domain.PlanoAssinatura;
 import jakarta.validation.constraints.*;
+import java.math.BigDecimal;
 
 /**
  * Request DTO for updating workshop information.
  *
  * Allows SUPER_ADMIN to modify workshop details including plan,
- * contact information, and address. Status changes are handled
- * by specific endpoints (activate, suspend, cancel).
+ * contact information, address, and custom pricing.
+ * Status changes are handled by specific endpoints (activate, suspend, cancel).
  *
  * @author PitStop Team
  */
@@ -30,8 +30,12 @@ public record UpdateOficinaRequest(
     @Pattern(regexp = "\\d{10,11}", message = "Telefone deve ter 10 ou 11 dígitos")
     String telefone,
 
-    @NotNull(message = "Plano é obrigatório")
-    PlanoAssinatura plano,
+    @NotBlank(message = "Plano é obrigatório")
+    String plano,
+
+    @NotNull(message = "Valor da mensalidade é obrigatório")
+    @DecimalMin(value = "0.0", message = "Valor da mensalidade deve ser positivo")
+    BigDecimal valorMensalidade,
 
     // Endereço
     @NotBlank(message = "CEP é obrigatório")
@@ -65,6 +69,7 @@ public record UpdateOficinaRequest(
      * Creates a request for updating workshop information.
      * CNPJ cannot be changed (immutable identifier).
      * Status changes must be done through specific action endpoints.
+     * valorMensalidade allows setting a custom price for this specific workshop.
      */
     public UpdateOficinaRequest {
         // Compact constructor

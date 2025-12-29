@@ -76,7 +76,6 @@ public class EstoqueController {
             @RequestParam(required = false) Boolean estoqueBaixo,
             @PageableDefault(size = 20, sort = "descricao") Pageable pageable
     ) {
-        log.debug("GET /api/estoque - Listando peças com filtros: ativo={}, estoqueBaixo={}", ativo, estoqueBaixo);
 
         Page<Peca> pecas = estoqueService.listarComFiltros(codigo, descricao, marca, unidadeMedida, ativo, estoqueBaixo, pageable);
         Page<PecaResponseDTO> response = pecas.map(pecaMapper::toResponseDTO);
@@ -92,7 +91,6 @@ public class EstoqueController {
     @PreAuthorize("hasAnyAuthority('ADMIN', 'GERENTE', 'ATENDENTE', 'MECANICO')")
     @Operation(summary = "Buscar peça por ID", description = "Retorna detalhes completos da peça")
     public ResponseEntity<PecaResponseDTO> buscarPorId(@PathVariable UUID id) {
-        log.debug("GET /api/estoque/{} - Buscando peça por ID", id);
 
         Peca peca = estoqueService.buscarPorId(id);
         PecaResponseDTO response = pecaMapper.toResponseDTO(peca);
@@ -108,7 +106,6 @@ public class EstoqueController {
     @PreAuthorize("hasAnyAuthority('ADMIN', 'GERENTE', 'ATENDENTE', 'MECANICO')")
     @Operation(summary = "Buscar peça por código", description = "Busca peça pelo código único (SKU)")
     public ResponseEntity<PecaResponseDTO> buscarPorCodigo(@PathVariable String codigo) {
-        log.debug("GET /api/estoque/codigo/{} - Buscando peça por código", codigo);
 
         Peca peca = estoqueService.buscarPorCodigo(codigo);
         PecaResponseDTO response = pecaMapper.toResponseDTO(peca);
@@ -180,7 +177,6 @@ public class EstoqueController {
     public ResponseEntity<Page<PecaResponseDTO>> listarEstoqueBaixo(
             @PageableDefault(size = 20) Pageable pageable
     ) {
-        log.debug("GET /api/estoque/alertas/baixo - Listando peças com estoque baixo");
 
         Page<Peca> pecas = estoqueService.listarEstoqueBaixo(pageable);
         Page<PecaResponseDTO> response = pecas.map(pecaMapper::toResponseDTO);
@@ -198,7 +194,6 @@ public class EstoqueController {
     public ResponseEntity<Page<PecaResponseDTO>> listarEstoqueZerado(
             @PageableDefault(size = 20) Pageable pageable
     ) {
-        log.debug("GET /api/estoque/alertas/zerado - Listando peças sem estoque");
 
         Page<Peca> pecas = estoqueService.listarEstoqueZerado(pageable);
         Page<PecaResponseDTO> response = pecas.map(pecaMapper::toResponseDTO);
@@ -214,7 +209,6 @@ public class EstoqueController {
     @PreAuthorize("hasAnyAuthority('ADMIN', 'GERENTE')")
     @Operation(summary = "Valor total do inventário", description = "Calcula valor total de todas as peças em estoque")
     public ResponseEntity<BigDecimal> calcularValorTotalInventario() {
-        log.debug("GET /api/estoque/relatorios/valor-total - Calculando valor do inventário");
 
         BigDecimal valorTotal = estoqueService.calcularValorTotalInventario();
 
@@ -224,11 +218,17 @@ public class EstoqueController {
     /**
      * Conta peças com estoque baixo.
      * GET /api/estoque/dashboard/estoque-baixo
+     * Retorna 0 para SUPER_ADMIN (não tem estoque próprio).
      */
     @GetMapping("/dashboard/estoque-baixo")
-    @PreAuthorize("hasAnyAuthority('ADMIN', 'GERENTE', 'ATENDENTE')")
+    @PreAuthorize("hasAnyAuthority('ADMIN', 'GERENTE', 'ATENDENTE', 'SUPER_ADMIN')")
     @Operation(summary = "Quantidade de peças com estoque baixo", description = "Retorna contador para dashboard")
     public ResponseEntity<Long> contarEstoqueBaixo() {
+        // SUPER_ADMIN não tem oficina/estoque próprio
+        UUID oficinaId = com.pitstop.shared.security.tenant.TenantContext.getTenantIdOrNull();
+        if (oficinaId == null) {
+            return ResponseEntity.ok(0L);
+        }
         long count = estoqueService.contarEstoqueBaixo();
         log.info("GET /api/estoque/dashboard/estoque-baixo - Retornando contagem: {}", count);
         return ResponseEntity.ok(count);
@@ -258,7 +258,6 @@ public class EstoqueController {
     public ResponseEntity<Page<PecaResponseDTO>> listarPecasSemLocalizacao(
             @PageableDefault(size = 20) Pageable pageable
     ) {
-        log.debug("GET /api/estoque/sem-localizacao - Listando peças sem localização");
 
         Page<Peca> pecas = estoqueService.listarPecasSemLocalizacao(pageable);
         Page<PecaResponseDTO> response = pecas.map(pecaMapper::toResponseDTO);

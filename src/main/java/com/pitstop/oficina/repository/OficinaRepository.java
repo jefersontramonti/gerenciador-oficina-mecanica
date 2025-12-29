@@ -107,6 +107,7 @@ public interface OficinaRepository extends JpaRepository<Oficina, UUID> {
 
     /**
      * Busca oficinas com filtros avançados (para Super Admin).
+     * Usa native query para evitar problema com lower(bytea).
      *
      * @param status Status da oficina (null = todos)
      * @param plano Plano de assinatura (null = todos)
@@ -115,18 +116,26 @@ public interface OficinaRepository extends JpaRepository<Oficina, UUID> {
      * @param pageable Informações de paginação
      * @return Página de oficinas que atendem os filtros
      */
-    @Query("""
-        SELECT o FROM Oficina o
-        WHERE (:status IS NULL OR o.status = :status)
-          AND (:plano IS NULL OR o.plano = :plano)
-          AND (:nome IS NULL OR LOWER(o.razaoSocial) LIKE LOWER(CONCAT('%', :nome, '%'))
-               OR LOWER(o.nomeFantasia) LIKE LOWER(CONCAT('%', :nome, '%')))
-          AND (:cnpj IS NULL OR o.cnpjCpf LIKE CONCAT('%', :cnpj, '%'))
-        ORDER BY o.id DESC
-        """)
-    Page<Oficina> findWithFilters(
-        @Param("status") StatusOficina status,
-        @Param("plano") PlanoAssinatura plano,
+    @Query(value = """
+        SELECT * FROM oficinas o
+        WHERE (:status IS NULL OR o.status = CAST(:status AS VARCHAR))
+          AND (:plano IS NULL OR o.plano = CAST(:plano AS VARCHAR))
+          AND (:nome IS NULL OR LOWER(CAST(o.razao_social AS VARCHAR)) LIKE LOWER(CONCAT('%', CAST(:nome AS VARCHAR), '%'))
+               OR LOWER(CAST(o.nome_fantasia AS VARCHAR)) LIKE LOWER(CONCAT('%', CAST(:nome AS VARCHAR), '%')))
+          AND (:cnpj IS NULL OR CAST(o.cnpj_cpf AS VARCHAR) LIKE CONCAT('%', CAST(:cnpj AS VARCHAR), '%'))
+        """,
+        countQuery = """
+        SELECT COUNT(*) FROM oficinas o
+        WHERE (:status IS NULL OR o.status = CAST(:status AS VARCHAR))
+          AND (:plano IS NULL OR o.plano = CAST(:plano AS VARCHAR))
+          AND (:nome IS NULL OR LOWER(CAST(o.razao_social AS VARCHAR)) LIKE LOWER(CONCAT('%', CAST(:nome AS VARCHAR), '%'))
+               OR LOWER(CAST(o.nome_fantasia AS VARCHAR)) LIKE LOWER(CONCAT('%', CAST(:nome AS VARCHAR), '%')))
+          AND (:cnpj IS NULL OR CAST(o.cnpj_cpf AS VARCHAR) LIKE CONCAT('%', CAST(:cnpj AS VARCHAR), '%'))
+        """,
+        nativeQuery = true)
+    Page<Oficina> findWithFiltersNative(
+        @Param("status") String status,
+        @Param("plano") String plano,
         @Param("nome") String nome,
         @Param("cnpj") String cnpj,
         Pageable pageable
@@ -223,4 +232,99 @@ public interface OficinaRepository extends JpaRepository<Oficina, UUID> {
         @Param("dataLimite") LocalDate dataLimite,
         Pageable pageable
     );
+
+    // ===== MÉTRICAS AVANÇADAS PARA DASHBOARD =====
+
+    /**
+     * Conta oficinas criadas em um período (para novos cadastros).
+     *
+     * @param dataInicio Data inicial
+     * @param dataFim Data final
+     * @return Número de oficinas criadas no período
+     */
+    @Query("SELECT COUNT(o) FROM Oficina o WHERE o.createdAt >= :dataInicio AND o.createdAt < :dataFim")
+    Long countCreatedBetween(
+        @Param("dataInicio") java.time.LocalDateTime dataInicio,
+        @Param("dataFim") java.time.LocalDateTime dataFim
+    );
+
+    /**
+     * Conta oficinas canceladas em um período.
+     *
+     * @param dataInicio Data inicial
+     * @param dataFim Data final
+     * @return Número de cancelamentos no período
+     */
+    @Query("SELECT COUNT(o) FROM Oficina o WHERE o.status = 'CANCELADA' AND o.updatedAt >= :dataInicio AND o.updatedAt < :dataFim")
+    Long countCancelledBetween(
+        @Param("dataInicio") java.time.LocalDateTime dataInicio,
+        @Param("dataFim") java.time.LocalDateTime dataFim
+    );
+
+    /**
+     * Conta oficinas que estavam ativas no início de um mês.
+     *
+     * @param data Data de referência
+     * @return Número de oficinas ativas na data
+     */
+    @Query("SELECT COUNT(o) FROM Oficina o WHERE o.status IN ('ATIVA', 'TRIAL') AND o.createdAt < :data")
+    Long countActiveAt(@Param("data") java.time.LocalDateTime data);
+
+    /**
+     * Calcula MRR em uma data específica (aproximado).
+     *
+     * @param data Data de referência
+     * @return MRR na data
+     */
+    @Query("SELECT COALESCE(SUM(o.valorMensalidade), 0) FROM Oficina o WHERE o.status = 'ATIVA' AND o.createdAt < :data")
+    Double calculateMRRAt(@Param("data") java.time.LocalDateTime data);
+
+    /**
+     * Conta conversões de trial para pago em um período.
+     * Aproximação: oficinas ativas criadas no período com plano pago.
+     *
+     * @param dataInicio Data inicial
+     * @param dataFim Data final
+     * @return Número de conversões
+     */
+    @Query("""
+        SELECT COUNT(o) FROM Oficina o
+        WHERE o.status = 'ATIVA'
+          AND o.plano IS NOT NULL
+          AND o.dataAssinatura >= :dataInicio
+          AND o.dataAssinatura < :dataFim
+        """)
+    Long countTrialConversionsBetween(
+        @Param("dataInicio") LocalDate dataInicio,
+        @Param("dataFim") LocalDate dataFim
+    );
+
+    /**
+     * Conta total de usuários ativos em todas as oficinas.
+     */
+    @Query(value = "SELECT COUNT(*) FROM usuarios WHERE oficina_id IN (SELECT id FROM oficinas WHERE status = 'ATIVA')", nativeQuery = true)
+    Long countActiveUsers();
+
+    /**
+     * Conta total de usuários no sistema.
+     */
+    @Query(value = "SELECT COUNT(*) FROM usuarios WHERE oficina_id IS NOT NULL", nativeQuery = true)
+    Long countTotalUsers();
+
+    /**
+     * Conta oficinas por plano de assinatura.
+     *
+     * @param plano Plano de assinatura
+     * @return Número de oficinas com o plano
+     */
+    long countByPlano(PlanoAssinatura plano);
+
+    /**
+     * Busca oficinas por lista de status.
+     * Usado para geração de faturas (ATIVA e TRIAL).
+     *
+     * @param statuses Lista de status
+     * @return Lista de oficinas com os status informados
+     */
+    List<Oficina> findByStatusIn(List<StatusOficina> statuses);
 }

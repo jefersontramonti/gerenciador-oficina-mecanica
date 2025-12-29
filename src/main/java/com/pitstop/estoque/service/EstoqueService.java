@@ -119,7 +119,6 @@ public class EstoqueService {
      */
     @Transactional(readOnly = true)
     public Peca buscarPorId(UUID id) {
-        log.debug("Buscando peça por ID: {}", id);
         UUID oficinaId = TenantContext.getTenantId();
         return pecaRepository.findByOficinaIdAndId(oficinaId, id)
                 .orElseThrow(() -> new PecaNotFoundException(id));
@@ -134,7 +133,6 @@ public class EstoqueService {
      */
     @Transactional(readOnly = true)
     public Peca buscarPorCodigo(String codigo) {
-        log.debug("Buscando peça por código: {}", codigo);
         UUID oficinaId = TenantContext.getTenantId();
         return pecaRepository.findByOficinaIdAndCodigoAndAtivoTrue(oficinaId, codigo)
                 .orElseThrow(() -> new PecaNotFoundException(codigo));
@@ -148,7 +146,6 @@ public class EstoqueService {
      */
     @Transactional(readOnly = true)
     public Page<Peca> listarTodas(Pageable pageable) {
-        log.debug("Listando todas as peças ativas - Página: {}", pageable.getPageNumber());
         UUID oficinaId = TenantContext.getTenantId();
         return pecaRepository.findByOficinaIdAndAtivoTrueOrderByDescricaoAsc(oficinaId, pageable);
     }
@@ -175,8 +172,6 @@ public class EstoqueService {
             Boolean estoqueBaixo,
             Pageable pageable
     ) {
-        log.debug("Listando peças com filtros - codigo: {}, descricao: {}, marca: {}, unidade: {}, ativo: {}, estoqueBaixo: {}",
-                codigo, descricao, marca, unidadeMedida, ativo, estoqueBaixo);
         UUID oficinaId = TenantContext.getTenantId();
         return pecaRepository.findByFilters(oficinaId, codigo, descricao, marca, unidadeMedida, ativo, estoqueBaixo, pageable);
     }
@@ -189,7 +184,6 @@ public class EstoqueService {
      */
     @Transactional(readOnly = true)
     public Page<Peca> listarEstoqueBaixo(Pageable pageable) {
-        log.debug("Listando peças com estoque baixo");
         UUID oficinaId = TenantContext.getTenantId();
         return pecaRepository.findEstoqueBaixo(oficinaId, pageable);
     }
@@ -202,7 +196,6 @@ public class EstoqueService {
      */
     @Transactional(readOnly = true)
     public Page<Peca> listarEstoqueZerado(Pageable pageable) {
-        log.debug("Listando peças com estoque zerado");
         UUID oficinaId = TenantContext.getTenantId();
         return pecaRepository.findEstoqueZerado(oficinaId, pageable);
     }
@@ -216,7 +209,6 @@ public class EstoqueService {
      */
     @Transactional(readOnly = true)
     public Page<Peca> buscarPorMarca(String marca, Pageable pageable) {
-        log.debug("Buscando peças por marca: {}", marca);
         UUID oficinaId = TenantContext.getTenantId();
         return pecaRepository.findByOficinaIdAndMarcaContainingIgnoreCaseAndAtivoTrue(oficinaId, marca, pageable);
     }
@@ -230,7 +222,6 @@ public class EstoqueService {
      */
     @Transactional(readOnly = true)
     public Page<Peca> buscarPorDescricao(String descricao, Pageable pageable) {
-        log.debug("Buscando peças por descrição: {}", descricao);
         UUID oficinaId = TenantContext.getTenantId();
         return pecaRepository.findByOficinaIdAndDescricaoContainingIgnoreCaseAndAtivoTrue(oficinaId, descricao, pageable);
     }
@@ -289,7 +280,6 @@ public class EstoqueService {
      */
     @Transactional(readOnly = true)
     public BigDecimal calcularValorTotalInventario() {
-        log.debug("Calculando valor total do inventário");
         UUID oficinaId = TenantContext.getTenantId();
         BigDecimal valorTotal = pecaRepository.calcularValorTotalInventario(oficinaId);
         log.info("Valor total do inventário: R$ {}", valorTotal);
@@ -340,7 +330,6 @@ public class EstoqueService {
      */
     @Transactional(readOnly = true)
     public Page<Peca> listarPecasSemLocalizacao(Pageable pageable) {
-        log.debug("Listando peças sem localização");
         UUID oficinaId = TenantContext.getTenantId();
         return pecaRepository.findPecasSemLocalizacao(oficinaId, pageable);
     }

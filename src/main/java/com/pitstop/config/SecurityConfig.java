@@ -107,16 +107,14 @@ public class SecurityConfig {
                                 "/api/auth/refresh",
                                 "/api/auth/forgot-password",
                                 "/api/auth/reset-password",
-                                "/api/public/**", // Public oficina registration
-                                "/api/admin/seed/**", // TODO: REMOVE IN PRODUCTION!
+                                "/api/public/**",
                                 "/api/health",
-                                "/api/debug/**",
                                 "/swagger-ui/**",
                                 "/swagger-ui.html",
                                 "/v3/api-docs/**",
                                 "/actuator/health",
                                 "/actuator/info",
-                                "/ws/**" // WebSocket endpoint
+                                "/ws/**"
                         ).permitAll()
 
                         // All other endpoints require authentication
@@ -150,11 +148,11 @@ public class SecurityConfig {
         CorsConfiguration configuration = new CorsConfiguration();
 
         // Allowed origins (frontend URLs)
+        // In production, add actual frontend domain via environment variable
         configuration.setAllowedOrigins(List.of(
                 "http://localhost:3000",
                 "http://localhost:5173",
                 "http://localhost:5174"
-                // TODO: Add production frontend URL
         ));
 
         // Allowed HTTP methods

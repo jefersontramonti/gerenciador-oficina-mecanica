@@ -4,15 +4,17 @@
  */
 
 import { Users, Car, ClipboardList, DollarSign, TrendingUp, Package, AlertTriangle } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { Link, Navigate } from 'react-router-dom';
 import { useAuth } from '@/features/auth/hooks/useAuth';
 import { usePermissions } from '@/features/auth/hooks/usePermissions';
+import { PerfilUsuario } from '@/features/auth/types';
 import { useDashboardStats } from '../hooks/useDashboardStats';
 import { useDashboardExtras } from '../hooks/useDashboardExtras';
 import { StatCard } from '../components/StatCard';
 import { OSStatusPieChart } from '../components/OSStatusPieChart';
 import { FaturamentoBarChart } from '../components/FaturamentoBarChart';
 import { RecentOSTable } from '../components/RecentOSTable';
+import { ComunicadoAlert } from '@/features/comunicados';
 
 export const DashboardPage = () => {
   const { user } = useAuth();
@@ -20,6 +22,11 @@ export const DashboardPage = () => {
   const { data: stats, isLoading } = useDashboardStats();
   const { data: extras, isLoading: isLoadingExtras } = useDashboardExtras();
   const showExtras = canManageFinancial();
+
+  // SUPER_ADMIN deve ir para o Dashboard SaaS
+  if (user?.perfil === PerfilUsuario.SUPER_ADMIN) {
+    return <Navigate to="/admin" replace />;
+  }
 
   // TODO: Integrar com WebSocket para invalidar cache quando receber notificações
   // useEffect(() => {
@@ -47,6 +54,9 @@ export const DashboardPage = () => {
           Bem-vindo(a), <span className="font-medium">{user?.nome}</span>!
         </p>
       </div>
+
+      {/* Alerta de Comunicados */}
+      <ComunicadoAlert />
 
       {/* Stat Cards - Linha 1 */}
       <div className="mb-6 grid gap-6 md:grid-cols-2 lg:grid-cols-4">

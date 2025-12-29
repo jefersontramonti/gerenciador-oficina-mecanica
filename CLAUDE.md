@@ -4,352 +4,420 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Development Commands
 
-### Maven Build & Run
-- **Run application**: `./mvnw spring-boot:run` (Windows: `mvnw.cmd spring-boot:run`)
-- **Build JAR**: `./mvnw clean package`
-- **Run tests**: `./mvnw test`
-- **Run single test**: `./mvnw test -Dtest=ClassNameTest`
-- **Skip tests**: `./mvnw clean package -DskipTests`
-- **Clean build**: `./mvnw clean install`
+### Backend (Maven)
+```bash
+# Run application
+./mvnw spring-boot:run          # Linux/Mac
+mvnw.cmd spring-boot:run        # Windows
+
+# Build & Package
+./mvnw clean package            # Build JAR
+./mvnw clean package -DskipTests # Skip tests
+./mvnw clean install            # Full install
+
+# Testing
+./mvnw test                     # Run all tests
+./mvnw test -Dtest=ClassNameTest # Single test class
+```
+
+### Frontend (npm)
+```bash
+cd frontend
+npm install                     # Install dependencies
+npm run dev                     # Start dev server (port 5173)
+npm run build                   # Production build
+npm run preview                 # Preview production build
+npm run lint                    # Run ESLint
+```
 
 ### Docker Compose
-- **Start services**: `docker-compose up -d` (PostgreSQL, Redis)
-- **Stop services**: `docker-compose down`
-- **View logs**: `docker-compose logs -f`
-- **Rebuild containers**: `docker-compose up -d --build`
+```bash
+docker-compose up -d            # Start PostgreSQL + Redis
+docker-compose down             # Stop services
+docker-compose logs -f          # View logs
+```
 
-### Development Mode
-- Spring Boot DevTools is included for hot reload
-- Application automatically restarts on code changes
-- Docker Compose support is enabled (services start automatically in dev mode)
+### Quick Start
+1. Start Docker Desktop
+2. Run `docker-compose up -d`
+3. Run `./mvnw spring-boot:run` (backend on port 8080)
+4. Run `cd frontend && npm run dev` (frontend on port 5173)
+5. Access: http://localhost:5173
 
 ## Project Overview
 
-**PitStop** is a web-based management system for small to medium-sized automotive repair shops (oficinas mecânicas). The system handles service orders, inventory management, customer/vehicle records, financial tracking, and real-time notifications.
+**PitStop** is a complete web-based management system for automotive repair shops (oficinas mecânicas) with multi-tenancy SaaS architecture. The system handles service orders, inventory management, customer/vehicle records, financial tracking, real-time notifications, and SaaS administration.
 
-**Architecture**: Monolithic modular backend (Spring Boot) + SPA frontend (React)
-**Current Status**: Initial project setup - ready for feature implementation
+**Architecture**: Modular Monolith (Spring Boot) + SPA (React/TypeScript)
+**Status**: Production-ready MVP with 10+ functional modules
 
 ## Technology Stack
 
-### Backend
-- **Language**: Java 25 LTS (Oracle No-Fee License, support until 2033)
-- **Framework**: Spring Boot 3.5.7-SNAPSHOT
-- **Build Tool**: Maven 3.9+
-- **Database**: PostgreSQL 16
-- **Cache**: Redis 7.x (development via Docker Compose)
-- **Security**: Spring Security with JWT authentication
-- **ORM**: Spring Data JPA with Hibernate
-- **Migrations**: Liquibase (to be configured)
-- **WebSocket**: Spring WebSocket with STOMP protocol
+### Backend (Implemented)
+| Component | Technology |
+|-----------|------------|
+| Language | Java 25 LTS |
+| Framework | Spring Boot 3.5.7-SNAPSHOT |
+| Database | PostgreSQL 16 |
+| Cache | Redis 7.x |
+| Security | Spring Security + JWT (HS512) |
+| ORM | Spring Data JPA + Hibernate |
+| Migrations | Liquibase (41 migrations) |
+| API Docs | SpringDoc OpenAPI 2.7.0 |
+| PDF | OpenPDF 1.3.30 |
+| Mapping | MapStruct 1.6.0 |
+| Metrics | Micrometer + Prometheus |
+| WebSocket | Spring WebSocket + STOMP |
 
-### Key Libraries (Planned)
-- **JWT**: `io.jsonwebtoken:jjwt` 0.12.6
-- **Mapping**: MapStruct 1.6.0
-- **API Docs**: springdoc-openapi 2.6.0
-- **Monitoring**: Micrometer + Prometheus
-- **Reports**: iText 8.0.3 (simple PDFs), JasperReports 6.21.3 (complex reports), Apache POI 5.2.5 (Excel)
-- **Redis Client**: Lettuce (included in Spring Data Redis)
-- **Integrations**: Mercado Pago SDK, Twilio (WhatsApp), Telegram Bots API
+### Frontend (Implemented)
+| Component | Technology |
+|-----------|------------|
+| Library | React 19.0.0 + TypeScript 5.9 |
+| Build Tool | Vite 7.0+ |
+| State (UI) | Redux Toolkit 2.9.0 |
+| State (Server) | React Query 5.62.0 |
+| HTTP | Axios 1.7.9 |
+| WebSocket | STOMP.js + SockJS |
+| UI | Tailwind CSS 4.0 + Custom Components |
+| Forms | React Hook Form + Zod 3.24.1 |
+| Charts | ECharts 5.5.1 |
+| Routing | React Router 7.0.0 |
+| Icons | Lucide React |
 
-### Frontend (Planned)
-- **Library**: React 19.0.0 with TypeScript 5.9
-- **Build Tool**: Vite 6.0+
-- **State**: Redux Toolkit 2.9.0 (UI state) + React Query 5.62.0 (server state)
-- **HTTP**: Axios 1.7.9 with interceptors for JWT
-- **WebSocket**: STOMP.js 7.0.0 + SockJS 1.6.1
-- **UI**: Tailwind CSS 4.0 + shadcn/ui (Radix UI components)
-- **Forms**: React Hook Form 7.54.0 + Zod 3.24.1
-- **Charts**: Apache ECharts 5.5.1
-- **Routing**: React Router 7.0.0
+### External Integrations (Implemented)
+- **WhatsApp**: Evolution API (self-hosted)
+- **Telegram**: Telegram Bots API
+- **Email**: Spring Mail + Thymeleaf templates
+- **Phone Validation**: libphonenumber
 
-## Architecture
+## Package Structure
 
-### Package Structure (To Be Implemented)
-
-The project will follow a **modular monolith** architecture with vertical slices:
-
+### Backend (`src/main/java/com/pitstop/`)
 ```
-src/main/java/com/example/pitstop/
-├── config/                    # Spring configuration classes
-│   ├── SecurityConfig.java
-│   ├── WebSocketConfig.java
-│   ├── CacheConfig.java
-│   └── OpenAPIConfig.java
-├── shared/                    # Shared infrastructure
-│   ├── security/             # JWT, authentication
-│   ├── exception/            # Global exception handling
-│   ├── dto/                  # Common DTOs
-│   └── utils/                # Utilities
+com.pitstop/
+├── config/                    # Spring configuration (10 files)
+│   ├── SecurityConfig.java   # JWT + CORS + method security
+│   ├── CacheConfig.java      # Redis caching
+│   ├── WebSocketConfig.java  # STOMP WebSocket
+│   ├── OpenAPIConfig.java    # Swagger/OpenAPI
+│   └── ...
+├── shared/                    # Infrastructure (40+ files)
+│   ├── security/             # JWT, TenantContext, filters
+│   ├── audit/                # Audit logging
+│   ├── exception/            # Global error handling
+│   ├── controller/           # AuthController
+│   └── service/              # RefreshToken, PasswordReset
 ├── cliente/                  # Customer module
-│   ├── domain/              # Entities, value objects
-│   ├── repository/          # JPA repositories
-│   ├── service/             # Business logic
-│   ├── controller/          # REST endpoints
-│   └── dto/                 # Module-specific DTOs
-├── veiculo/                 # Vehicle module
-├── ordemservico/            # Service order module
-├── estoque/                 # Inventory module
-├── financeiro/              # Financial module
-├── usuario/                 # User management module
-└── notificacao/             # Notification module (WebSocket)
+├── veiculo/                  # Vehicle module
+├── ordemservico/             # Service Order module (CORE)
+├── estoque/                  # Inventory module
+├── financeiro/               # Financial module
+├── notificacao/              # Notification module
+├── oficina/                  # Workshop configuration
+├── usuario/                  # User management
+├── dashboard/                # Dashboard statistics
+└── saas/                     # SaaS administration (SUPER_ADMIN)
 ```
 
-### Domain Model
+### Frontend (`frontend/src/`)
+```
+src/
+├── features/                  # Feature modules
+│   ├── admin/                # SaaS Admin (SUPER_ADMIN)
+│   ├── auth/                 # Authentication
+│   ├── clientes/             # Customers
+│   ├── veiculos/             # Vehicles
+│   ├── ordens-servico/       # Service Orders
+│   ├── estoque/              # Inventory
+│   ├── financeiro/           # Payments & Invoices
+│   ├── notificacoes/         # Notifications config
+│   ├── usuarios/             # User management
+│   ├── dashboard/            # Dashboard
+│   └── configuracoes/        # Settings
+├── shared/
+│   ├── components/           # UI components
+│   ├── services/             # API services
+│   ├── store/                # Redux store
+│   ├── hooks/                # Custom hooks
+│   └── layouts/              # MainLayout
+└── config/                   # Environment, QueryClient
+```
 
-#### Core Entities
+## Domain Model
 
-**Cliente** (Customer)
-- `UUID id` (PK)
-- `TipoCliente tipo` (PESSOA_FISICA | PESSOA_JURIDICA)
-- `String nome`, `cpfCnpj` (unique), `email`, `telefone`, `celular`
-- `Endereco endereco` (embedded: logradouro, numero, complemento, bairro, cidade, estado, cep)
-- `Boolean ativo`
-- Timestamps: `createdAt`, `updatedAt`
-- Relationship: One-to-Many with Veiculo
-
-**Veiculo** (Vehicle)
-- `UUID id` (PK), `UUID clienteId` (FK)
-- `String placa` (unique), `marca`, `modelo`, `ano`, `cor`, `chassi`
-- `Integer quilometragem`
-- Timestamps: `createdAt`, `updatedAt`
-- Relationship: One-to-Many with OrdemServico
-
-**OrdemServico** (Service Order)
-- `UUID id` (PK), `Long numero` (sequential unique), `UUID veiculoId` (FK), `UUID usuarioId` (FK - mechanic)
-- `StatusOS status` enum (ORCAMENTO, APROVADO, EM_ANDAMENTO, AGUARDANDO_PECA, FINALIZADO, ENTREGUE, CANCELADO)
-- Dates: `dataAbertura`, `dataPrevisao`, `dataFinalizacao`, `dataEntrega`
-- `String problemasRelatados`, `diagnostico`, `observacoes`
-- Financial: `valorMaoObra`, `valorPecas`, `valorTotal`, `descontoPercentual`, `descontoValor`, `valorFinal`
-- `Boolean aprovadoPeloCliente`
-- Timestamps: `createdAt`, `updatedAt`
-- Relationships: One-to-Many with ItemOS, Pagamento, MovimentacaoEstoque
-
-**ItemOS** (Service Order Item)
-- `UUID id` (PK), `UUID ordemServicoId` (FK)
-- `TipoItem tipo` (PECA | SERVICO)
-- `UUID pecaId` (FK, nullable)
-- `String descricao`, `Integer quantidade`, `BigDecimal valorUnitario`, `valorTotal`, `desconto`
-
-**Peca** (Part/Inventory Item)
-- `UUID id` (PK), `String codigo` (unique)
-- `String descricao`, `marca`, `aplicacao`, `localizacao`
-- Stock: `quantidadeAtual`, `quantidadeMinima`
-- Financial: `valorCusto`, `valorVenda`, `BigDecimal margemLucro`
-- `Boolean ativo`
-- Timestamps: `createdAt`, `updatedAt`
-
-**MovimentacaoEstoque** (Inventory Movement)
-- `UUID id` (PK), `UUID pecaId` (FK), `UUID ordemServicoId` (FK, nullable), `UUID usuarioId` (FK)
-- `TipoMovimentacao tipo` (ENTRADA | SAIDA | AJUSTE | DEVOLUCAO)
-- `Integer quantidade`, `BigDecimal valorUnitario`, `valorTotal`
-- `String motivo`, `observacao`, `LocalDateTime dataMovimentacao`
-- Timestamp: `createdAt`
-
-**Pagamento** (Payment)
-- `UUID id` (PK), `UUID ordemServicoId` (FK)
-- `TipoPagamento tipo` (DINHEIRO, CARTAO_CREDITO, CARTAO_DEBITO, PIX, TRANSFERENCIA, BOLETO)
-- `BigDecimal valor`, `LocalDate dataPagamento`, `dataVencimento`
-- `StatusPagamento status` (PENDENTE, PAGO, CANCELADO, ESTORNADO)
-- `String observacao`
-- Timestamp: `createdAt`
+### Core Entities
 
 **Usuario** (User)
-- `UUID id` (PK)
-- `String nome`, `email` (unique), `senha` (BCrypt hashed)
-- `PerfilUsuario perfil` (ADMIN, GERENTE, ATENDENTE, MECANICO)
-- `Boolean ativo`, `LocalDateTime ultimoAcesso`
-- Timestamps: `createdAt`, `updatedAt`
+- Roles: `SUPER_ADMIN` | `ADMIN` | `GERENTE` | `ATENDENTE` | `MECANICO`
+- SUPER_ADMIN has no `oficinaId` (manages all workshops)
+- BCrypt password hashing (strength 12)
 
-### Database Indexes (To Be Created via Liquibase)
+**Oficina** (Workshop/Tenant)
+- Multi-tenant isolation via `oficina_id` on all entities
+- Status: `ATIVA` | `INATIVA` | `SUSPENSA` | `CANCELADA`
+- Plans: `ECONOMICO` | `PROFISSIONAL` | `TURBINADO`
 
-Performance-critical indexes:
-- `cliente.cpfCnpj`, `veiculo.placa`, `peca.codigo`, `usuario.email` (unique indexes)
-- `ordemServico.numero` (unique)
-- `ordemServico.status`, `ordemServico.dataAbertura`
-- Composite: `ordemServico(status, dataAbertura)`, `movimentacaoEstoque(pecaId, dataMovimentacao)`
+**Cliente** (Customer)
+- Types: `PESSOA_FISICA` | `PESSOA_JURIDICA`
+- Embedded `Endereco` (address)
+- Soft delete via `ativo` field
+
+**Veiculo** (Vehicle)
+- Unique `placa` (license plate) per tenant
+- Linked to Cliente (Many-to-One)
+
+**OrdemServico** (Service Order) - CORE ENTITY
+- Status workflow: `ORCAMENTO` → `APROVADO` → `EM_ANDAMENTO` → `AGUARDANDO_PECA` → `FINALIZADO` → `ENTREGUE` | `CANCELADO`
+- Sequential numbering via PostgreSQL sequence
+- Financial: `valorMaoObra`, `valorPecas`, `valorTotal`, `descontoPercentual`, `valorFinal`
+- Items: `PECA` | `SERVICO`
+- Automatic stock deduction on delivery
+
+**Peca** (Inventory Part)
+- SKU code (unique per tenant)
+- Quantity tracking with minimum alerts
+- Hierarchical storage locations (`LocalArmazenamento`)
+- Movement types: `ENTRADA` | `SAIDA` | `AJUSTE` | `DEVOLUCAO`
+
+**Pagamento** (Payment)
+- Types: `DINHEIRO` | `CARTAO_CREDITO` | `CARTAO_DEBITO` | `PIX` | `TRANSFERENCIA` | `BOLETO`
+- Status: `PENDENTE` | `PAGO` | `CANCELADO` | `ESTORNADO`
+
+**NotaFiscal** (Invoice)
+- Types: `SERVICO` | `PRODUTO` | `MISTA`
+- Status: `RASCUNHO` | `EMITIDA` | `CANCELADA`
 
 ## Security & Authentication
 
-### JWT Implementation
+### JWT Configuration
+- **Access Token**: 15 min validity, stored in memory (frontend)
+- **Refresh Token**: 7 days validity, HttpOnly cookie + Redis
+- **Algorithm**: HS512 with 256-bit secret
+- Claims: `sub` (userId), `email`, `perfil`, `oficinaId`
 
-**Token Strategy**:
-- **Access Token**: 15 minutes validity, stored in memory (frontend), contains `userId`, `email`, `perfil`, `exp`
-- **Refresh Token**: 7 days validity, stored in HttpOnly cookie + Redis, rotated on each refresh
-- **Algorithm**: HS512 (HMAC SHA-512) with 256-bit secret (environment variable)
+### Role Permissions (RBAC)
+| Role | Permissions |
+|------|-------------|
+| `SUPER_ADMIN` | Full SaaS access, manages all workshops via `/api/saas/*` |
+| `ADMIN` | Full workshop access including user management |
+| `GERENTE` | All modules except user management, financial reports |
+| `ATENDENTE` | CRUD customers/vehicles/orders, inventory view, payments |
+| `MECANICO` | View assigned orders, update status, read-only inventory |
 
-**Authentication Flow**:
-1. POST `/api/auth/login` with `{email, senha}`
-2. Backend validates with BCrypt (12 rounds)
-3. Generate Access + Refresh tokens
-4. Return tokens + user data
-5. Frontend stores in memory, Axios interceptor adds to requests
-6. On 401: Call `/api/auth/refresh`, retry original request
+### Multi-Tenancy
+- `TenantContext` (ThreadLocal) extracts `oficinaId` from JWT
+- All repositories automatically filter by tenant
+- SUPER_ADMIN bypasses tenant filtering
 
-### Authorization (RBAC)
+## API Endpoints
 
-**Role Permissions**:
-- **ADMIN**: Full system access including user management
-- **GERENTE**: All modules except user management, financial reports, approve discounts
-- **ATENDENTE**: CRUD for customers/vehicles/service orders, view inventory, register payments
-- **MECANICO**: View assigned service orders, update status, add notes, read-only inventory
-
-**Implementation**: Spring Security `@PreAuthorize` annotations at method level
-
-## API Design
-
-### REST Conventions
-
-**Base URL**: `http://localhost:8080/api`
-
-**Standards**:
-- RESTful endpoints with proper HTTP methods (GET, POST, PUT, DELETE, PATCH)
-- JSON content-type
-- Pagination: `?page=0&size=20`
-- Sorting: `?sort=nome,asc`
-- Filtering: `?status=ATIVO&nome=João`
-
-**Response Format**:
-```json
-// Success
-{
-  "data": {...},
-  "timestamp": "2025-10-16T10:30:00Z"
-}
-
-// Error
-{
-  "error": "RESOURCE_NOT_FOUND",
-  "message": "Cliente não encontrado",
-  "status": 404,
-  "timestamp": "2025-10-16T10:30:00Z",
-  "path": "/api/clientes/123"
-}
-
-// Paginated
-{
-  "content": [...],
-  "pageable": {...},
-  "totalElements": 100,
-  "totalPages": 5,
-  "number": 0,
-  "size": 20
-}
+### Authentication (`/api/auth/*`)
+```
+POST /api/auth/login           # Login, returns tokens
+POST /api/auth/register        # Register new user
+POST /api/auth/refresh         # Rotate access token
+POST /api/auth/logout          # Invalidate refresh token
+GET  /api/auth/me              # Current user profile
+PUT  /api/auth/profile         # Update profile
+PUT  /api/auth/password        # Change password
+POST /api/auth/forgot-password # Initiate password reset
+POST /api/auth/reset-password  # Complete password reset
 ```
 
-### WebSocket (Real-time)
+### Customers (`/api/clientes/*`)
+```
+GET  /api/clientes             # List (paginated, filterable)
+POST /api/clientes             # Create
+GET  /api/clientes/{id}        # Get by ID
+PUT  /api/clientes/{id}        # Update
+DELETE /api/clientes/{id}      # Soft delete
+PATCH /api/clientes/{id}/reativar # Reactivate
+GET  /api/clientes/cpf-cnpj/{cpfCnpj} # Get by CPF/CNPJ
+GET  /api/clientes/estatisticas # Statistics
+```
 
-**Protocol**: STOMP over WebSocket/SockJS
+### Vehicles (`/api/veiculos/*`)
+```
+GET  /api/veiculos             # List
+POST /api/veiculos             # Create
+GET  /api/veiculos/{id}        # Get by ID
+PUT  /api/veiculos/{id}        # Update
+DELETE /api/veiculos/{id}      # Delete
+GET  /api/veiculos/placa/{placa} # Get by license plate
+GET  /api/veiculos/cliente/{clienteId} # Get by customer
+```
+
+### Service Orders (`/api/ordens-servico/*`)
+```
+GET  /api/ordens-servico       # List (status, date, vehicle filters)
+POST /api/ordens-servico       # Create
+GET  /api/ordens-servico/{id}  # Get by ID
+PUT  /api/ordens-servico/{id}  # Update (ORCAMENTO/APROVADO only)
+PATCH /api/ordens-servico/{id}/status # Change status
+DELETE /api/ordens-servico/{id} # Cancel
+GET  /api/ordens-servico/{id}/pdf # Generate PDF
+```
+
+### Inventory (`/api/estoque/*`)
+```
+# Parts
+GET  /api/estoque/pecas        # List parts
+POST /api/estoque/pecas        # Create part
+GET  /api/estoque/pecas/{id}   # Get by ID
+PUT  /api/estoque/pecas/{id}   # Update
+DELETE /api/estoque/pecas/{id} # Soft delete
+
+# Storage Locations
+GET  /api/estoque/locais       # List locations (hierarchical)
+POST /api/estoque/locais       # Create location
+PUT  /api/estoque/locais/{id}  # Update
+DELETE /api/estoque/locais/{id} # Delete
+
+# Movements
+POST /api/estoque/movimentacoes/entrada # Stock in
+POST /api/estoque/movimentacoes/saida   # Stock out
+POST /api/estoque/movimentacoes/ajuste  # Adjust
+GET  /api/estoque/movimentacoes         # History
+```
+
+### Financial (`/api/financeiro/*`)
+```
+# Payments
+GET  /api/financeiro/pagamentos            # List
+POST /api/financeiro/pagamentos            # Create
+PATCH /api/financeiro/pagamentos/{id}/confirmar # Confirm
+PATCH /api/financeiro/pagamentos/{id}/cancelar  # Cancel
+
+# Invoices
+GET  /api/financeiro/notas-fiscais         # List
+POST /api/financeiro/notas-fiscais         # Create
+PATCH /api/financeiro/notas-fiscais/{id}/emitir   # Emit
+PATCH /api/financeiro/notas-fiscais/{id}/cancelar # Cancel
+GET  /api/financeiro/notas-fiscais/{id}/pdf       # Download PDF
+```
+
+### Notifications (`/api/notificacoes/*`)
+```
+GET  /api/notificacoes/configuracao  # Get settings
+PUT  /api/notificacoes/configuracao  # Update settings
+GET  /api/notificacoes/templates     # List templates
+GET  /api/notificacoes/historico     # Notification history
+GET  /api/notificacoes/metricas      # Metrics
+```
+
+### SaaS Admin (`/api/saas/*`) - SUPER_ADMIN only
+```
+# Dashboard
+GET  /api/saas/dashboard/stats       # Global statistics
+GET  /api/saas/dashboard/mrr         # MRR breakdown
+
+# Workshops
+GET  /api/saas/oficinas              # List all workshops
+POST /api/saas/oficinas              # Create workshop
+GET  /api/saas/oficinas/{id}         # Get details
+PUT  /api/saas/oficinas/{id}         # Update
+PATCH /api/saas/oficinas/{id}/status # Change status
+
+# Payments & Audit
+GET  /api/saas/pagamentos            # Workshop payments
+GET  /api/saas/audit                 # Audit logs
+POST /api/saas/jobs/trigger          # Trigger scheduled jobs
+```
+
+### Dashboard (`/api/dashboard/*`)
+```
+GET  /api/dashboard/stats            # Dashboard statistics
+```
+
+## Frontend Routes
+
+```
+/                              # Dashboard (protected)
+/login                         # Public
+/register                      # Public
+/forgot-password               # Public
+/reset-password                # Public
+/orcamento/aprovar             # Public (customer approval)
+
+/clientes                      # Customer list
+/clientes/novo                 # Create customer
+/clientes/:id                  # Customer details
+/clientes/:id/editar           # Edit customer
+
+/veiculos                      # Vehicle list
+/veiculos/novo                 # Create vehicle
+/veiculos/:id                  # Vehicle details
+/veiculos/:id/editar           # Edit vehicle
+
+/ordens-servico                # Service order list
+/ordens-servico/novo           # Create order
+/ordens-servico/:id            # Order details
+/ordens-servico/:id/editar     # Edit order
+
+/estoque                       # Inventory list
+/estoque/novo                  # Create part
+/estoque/alertas               # Low stock alerts
+/estoque/sem-localizacao       # Parts without location
+/estoque/:id                   # Part details
+/estoque/locais                # Storage locations
+
+/financeiro                    # Payments
+/financeiro/notas-fiscais      # Invoices
+
+/usuarios                      # User management (ADMIN/GERENTE)
+/configuracoes                 # User settings
+/notificacoes/configuracao     # Notification settings (ADMIN/GERENTE)
+/notificacoes/historico        # Notification history
+
+/admin                         # SaaS Dashboard (SUPER_ADMIN)
+/admin/oficinas                # Workshop management
+/admin/pagamentos              # SaaS payments
+/admin/audit                   # Audit logs
+```
+
+## WebSocket (Real-time)
+
 **Connection**: `ws://localhost:8080/ws`
+**Protocol**: STOMP over SockJS
 
-**Destinations**:
-- User-specific: `/user/queue/notifications`, `/user/queue/messages`
-- Broadcast: `/topic/os-updates`, `/topic/estoque-alerts`, `/topic/dashboard-updates`
+**Topics**:
+- `/user/queue/notifications` - Personal notifications
+- `/topic/os-updates` - Service order updates
+- `/topic/estoque-alerts` - Low stock alerts
+- `/topic/dashboard-updates` - Dashboard refresh
 
-**Message Format**:
-```json
-{
-  "tipo": "OS_STATUS_CHANGED",
-  "titulo": "OS Finalizada",
-  "mensagem": "OS #123 foi finalizada",
-  "timestamp": "2025-10-16T10:30:00Z",
-  "dados": {
-    "osId": "uuid",
-    "novoStatus": "FINALIZADA"
-  }
-}
-```
+**Notification Types**:
+- `OS_STATUS_CHANGED`, `OS_CREATED`, `OS_UPDATED`, `OS_APROVADA`
+- `PAYMENT_RECEIVED`, `STOCK_ALERT`, `DASHBOARD_UPDATE`
+
+## Database Migrations
+
+Located in `src/main/resources/db/changelog/migrations/`
+
+Key migrations:
+- `V001-V010`: Core entities (usuarios, oficinas, clientes, veiculos)
+- `V011-V020`: Service orders, items, status workflow
+- `V021-V030`: Inventory (pecas, movimentacoes, locais_armazenamento)
+- `V031-V040`: Financial (pagamentos, notas_fiscais)
+- `V041`: Notifications (configuracoes, templates, historico)
 
 ## Caching Strategy
 
-**Redis-based caching** (Spring Cache abstraction):
-- **Categorias/Peças**: 24h TTL (static data)
-- **Consultas frequentes**: 1h TTL
-- **Sessões de usuário**: 30min TTL
-- **Relatórios**: 15min TTL
-- Cache invalidation on CREATE/UPDATE/DELETE operations via `@CacheEvict`
+**Redis Configuration**:
+- Default TTL: 1 hour
+- Connection: Lettuce client
+- Null values: not cached
 
-## Testing Strategy
+**Cache Keys**:
+- Workshop data: 24h TTL
+- Frequent queries: 1h TTL
+- User sessions: 30min TTL
+- Reports: 15min TTL
 
-### Backend Tests
+**Invalidation**: `@CacheEvict` on CREATE/UPDATE/DELETE
 
-**Unit Tests** (JUnit 5 + Mockito + AssertJ):
-- Services, repositories, utilities, validators
-- Target: 80% coverage
-- Naming: `ClassNameTest.java`
+## Environment Variables
 
-**Integration Tests** (Spring Boot Test + TestContainers):
-- Controllers with MockMvc
-- Database operations with PostgreSQL container
-- Redis caching
-- Security filters
-- Target: 70% coverage
-- Naming: `ClassNameIntegrationTest.java`
-
-**E2E Tests** (Postman/Newman or Karate):
-- Complete workflows
-- API contracts
-- Naming: `FeatureE2ETest.java`
-
-**TestContainers**: Isolated PostgreSQL and Redis containers for reproducible integration tests
-
-## Observability
-
-### Actuator Endpoints
-- `/actuator/health` - Health checks
-- `/actuator/metrics` - Application metrics
-- `/actuator/prometheus` - Prometheus scraping endpoint
-- `/actuator/info` - Application info
-
-### Custom Metrics (Micrometer)
-Business metrics:
-- `pitstop.os.created` (counter)
-- `pitstop.os.processing.time` (timer)
-- `pitstop.os.in.progress` (gauge)
-- `pitstop.faturamento.diario` (gauge)
-- `pitstop.estoque.baixo` (gauge)
-
-### Logging
-- **Framework**: SLF4J + Logback (Spring Boot default)
-- **Development**: Colorized console output
-- **Production**: JSON structured logs
-- **Levels**: ERROR (critical), WARN (important), INFO (flow), DEBUG/TRACE (dev only)
-- **Correlation**: Include `userId` and `requestId` in logs
-
-## Integrations (Planned)
-
-### Payment Gateway
-- **Provider**: Mercado Pago SDK 2.1.26
-- **Methods**: PIX (QR Code), credit/debit cards, boleto
-- **Webhooks**: Automatic OS status update on payment confirmation
-
-### Messaging
-- **WhatsApp**: Twilio WhatsApp Business API (SDK 10.4.1) or Evolution API (self-hosted)
-- **Telegram**: Telegram Bots API 6.9.7.1 for internal notifications
-- **Email**: Spring Boot Mail Sender + AWS SES (production) or SMTP (dev)
-
-### Templates
-- Email templates: Thymeleaf HTML with PDF attachments (iText)
-- WhatsApp templates: Pre-approved with variables `{nome}`, `{veiculo}`, `{valor}`, `{data}`
-
-## Development Roadmap
-
-### Phase 1 - MVP (10 weeks)
-**Weeks 1-2**: Infrastructure setup (project structure, Docker Compose, migrations, security)
-**Weeks 3-4**: Customers & Vehicles modules (CRUD + API)
-**Weeks 5-7**: Service Orders (complex business logic, PDF generation, WebSocket)
-**Weeks 8-9**: Inventory & Financial modules (stock control, payments)
-**Week 10**: Testing, bug fixes, deployment
-
-### Phase 2 - Enhancements (4 weeks)
-Basic reports (PDF service orders, Excel exports), automated emails, dashboard with charts, advanced filters
-
-### Phase 3 - Complete (6 weeks)
-Observability (Prometheus + Grafana), advanced reports (JasperReports), payment integration, WhatsApp/Telegram bots
-
-## Environment Configuration
-
-### Required Environment Variables
 ```properties
 # Database
 SPRING_DATASOURCE_URL=jdbc:postgresql://localhost:5432/pitstop
@@ -357,65 +425,72 @@ SPRING_DATASOURCE_USERNAME=myuser
 SPRING_DATASOURCE_PASSWORD=secret
 
 # Redis
-SPRING_REDIS_HOST=localhost
-SPRING_REDIS_PORT=6379
+SPRING_DATA_REDIS_HOST=localhost
+SPRING_DATA_REDIS_PORT=6379
 
 # JWT
 JWT_SECRET=<256-bit-random-key>
-JWT_ACCESS_EXPIRATION=900000  # 15 min in ms
-JWT_REFRESH_EXPIRATION=604800000  # 7 days in ms
+JWT_ACCESS_EXPIRATION=900000
+JWT_REFRESH_EXPIRATION=604800000
 
-# Email (development)
+# Email
 SPRING_MAIL_HOST=smtp.mailtrap.io
 SPRING_MAIL_PORT=2525
-SPRING_MAIL_USERNAME=<mailtrap-user>
-SPRING_MAIL_PASSWORD=<mailtrap-pass>
+SPRING_MAIL_USERNAME=<user>
+SPRING_MAIL_PASSWORD=<pass>
 
-# Production integrations (when ready)
-MERCADOPAGO_ACCESS_TOKEN=<token>
-TWILIO_ACCOUNT_SID=<sid>
-TWILIO_AUTH_TOKEN=<token>
-AWS_SES_ACCESS_KEY=<key>
-AWS_SES_SECRET_KEY=<secret>
+# WhatsApp (Evolution API)
+EVOLUTION_API_URL=<url>
+EVOLUTION_API_KEY=<key>
+
+# Telegram
+TELEGRAM_BOT_TOKEN=<token>
 ```
-
-### Development vs Production
-- **Development**: Uses Docker Compose for PostgreSQL and Redis (automatically started by Spring Boot Docker Compose support)
-- **Production**: Managed database services (AWS RDS, ElastiCache or DigitalOcean managed databases)
 
 ## Common Patterns
 
-### Entity Validation
-Use Bean Validation annotations (`@NotNull`, `@Size`, `@Email`, etc.) + custom validators for complex business rules
+### Backend
+- **Multi-tenancy**: All queries filtered by `TenantContext.getCurrentOficinaId()`
+- **Soft deletes**: `ativo` boolean field instead of hard delete
+- **Optimistic locking**: `@Version` on concurrent entities
+- **Event-driven**: Service order changes trigger notification events
+- **State machine**: OrdemServico has defined valid transitions
+- **DTO mapping**: MapStruct for compile-time safe mapping
 
-### DTO Mapping
-Use MapStruct for compile-time mapping between entities and DTOs (high performance, type-safe)
+### Frontend
+- **Feature-first structure**: Each module self-contained
+- **React Query for server state**: Consistent query keys, cache invalidation
+- **Redux for UI state**: Only auth state currently
+- **Zod validation**: All forms have schemas
+- **Token in memory**: XSS protection (not localStorage)
 
-### Exception Handling
-Implement global `@ControllerAdvice` with `@ExceptionHandler` methods for consistent error responses
+## Observability
 
-### Transactional Operations
-Use `@Transactional` at service layer for operations requiring ACID guarantees (especially service order creation with inventory movements)
+**Actuator Endpoints**:
+- `/actuator/health` - Health check
+- `/actuator/metrics` - Micrometer metrics
+- `/actuator/prometheus` - Prometheus scraping
+- `/actuator/info` - App info
 
-## Important Notes
+**Swagger UI**: http://localhost:8080/swagger-ui.html
 
-- **Java 25 LTS**: Leverage modern features (Virtual Threads, Pattern Matching, Records for DTOs, Sealed Classes for enums)
-- **Package Naming**: Current package is `com.example.pitstop.pitstop` - consider refactoring to `com.pitstop` for cleaner structure
-- **Spring Boot 3.5.7-SNAPSHOT**: This is a snapshot version; consider switching to stable 3.5.x release when available
-- **PostgreSQL Docker**: Current `compose.yaml` uses `postgres:latest` - should pin to `postgres:16-alpine` for consistency
-- **Liquibase**: Not yet configured - needs to be added to `pom.xml` and configured in `application.properties`
-- **Redis**: Needs to be added to `compose.yaml` and dependencies for caching
-- **API Documentation**: Add springdoc-openapi dependency for auto-generated Swagger UI at `/swagger-ui.html`
+## What's Next (Not Yet Implemented)
 
-## Quick Start Checklist
+1. **Mercado Pago Integration** - Payment gateway
+2. **JasperReports** - Complex reports
+3. **File Upload Service** - Logos, documents
+4. **API Rate Limiting** - Request throttling
+5. **Comprehensive Tests** - Unit/Integration coverage
+6. **SaaS Advanced Features** - Billing, invoices, feature flags (see `docs/SUPER_ADMIN_IMPLEMENTATION_PLAN.md`)
 
-1. Ensure Java 25 is installed (`java -version`)
-2. Start Docker Desktop
-3. Run `docker-compose up -d` to start PostgreSQL
-4. Run `./mvnw spring-boot:run` to start the application
-5. Application should start on `http://localhost:8080`
-6. Access Actuator health: `http://localhost:8080/actuator/health`
+## Important Files
 
-## Additional Resources
-
-See `Sistema de Gerenciamento de Oficina Mecânica.md` for complete technical specification including detailed stack decisions, architecture diagrams, and implementation justifications.
+| File | Purpose |
+|------|---------|
+| `CLAUDE.md` | This file - project guidance |
+| `docs/SUPER_ADMIN_IMPLEMENTATION_PLAN.md` | SaaS panel roadmap |
+| `docs/PITSTOP_FUNCIONALIDADES.md` | Feature documentation |
+| `compose.yaml` | Docker Compose config |
+| `pom.xml` | Maven dependencies |
+| `frontend/package.json` | Frontend dependencies |
+| `src/main/resources/application.properties` | Spring config |

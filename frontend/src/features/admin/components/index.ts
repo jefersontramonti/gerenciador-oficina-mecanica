@@ -1,0 +1,1 @@
+export { AlterarPlanoModal } from './AlterarPlanoModal';
