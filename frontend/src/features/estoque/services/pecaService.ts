@@ -29,6 +29,7 @@ export const listarPecas = async (
   if (restFilters.unidadeMedida) params.append('unidadeMedida', restFilters.unidadeMedida);
   if (restFilters.ativo !== undefined) params.append('ativo', restFilters.ativo.toString());
   if (restFilters.estoqueBaixo !== undefined) params.append('estoqueBaixo', restFilters.estoqueBaixo.toString());
+  if (restFilters.localArmazenamentoId) params.append('localArmazenamentoId', restFilters.localArmazenamentoId);
 
   params.append('page', page.toString());
   params.append('size', size.toString());

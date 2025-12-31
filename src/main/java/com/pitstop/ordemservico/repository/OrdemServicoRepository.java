@@ -498,4 +498,81 @@ public interface OrdemServicoRepository extends JpaRepository<OrdemServico, UUID
      */
     @Query("SELECT os FROM OrdemServico os WHERE os.tokenAprovacao = :tokenAprovacao")
     Optional<OrdemServico> findByTokenAprovacao(@Param("tokenAprovacao") String tokenAprovacao);
+
+    // ========== QUERIES OTIMIZADAS PARA LISTAGEM ==========
+
+    /**
+     * Query otimizada para listagem com JOINs - evita N+1.
+     * Retorna todos os dados necessários em uma única consulta.
+     *
+     * @param oficinaId ID da oficina (tenant)
+     * @param status status da OS (null para ignorar)
+     * @param veiculoId ID do veículo (null para ignorar)
+     * @param usuarioId ID do mecânico (null para ignorar)
+     * @param dataInicio data inicial do período (null para ignorar)
+     * @param dataFim data final do período (null para ignorar)
+     * @param pageable configuração de paginação e ordenação
+     * @return página de arrays com dados completos
+     */
+    @Query(value = """
+        SELECT
+            os.id AS os_id,
+            os.numero,
+            os.status,
+            os.data_abertura,
+            os.data_previsao,
+            os.data_finalizacao,
+            os.data_entrega,
+            os.valor_mao_obra,
+            os.valor_pecas,
+            os.valor_total,
+            os.desconto_percentual,
+            os.valor_final,
+            os.problemas_relatados,
+            os.diagnostico,
+            os.observacoes,
+            os.veiculo_id,
+            os.usuario_id,
+            v.placa AS veiculo_placa,
+            v.marca AS veiculo_marca,
+            v.modelo AS veiculo_modelo,
+            v.ano AS veiculo_ano,
+            v.cor AS veiculo_cor,
+            v.cliente_id,
+            c.nome AS cliente_nome,
+            c.telefone AS cliente_telefone,
+            c.email AS cliente_email,
+            u.nome AS mecanico_nome
+        FROM ordem_servico os
+        LEFT JOIN veiculos v ON os.veiculo_id = v.id
+        LEFT JOIN clientes c ON v.cliente_id = c.id
+        LEFT JOIN usuarios u ON os.usuario_id = u.id
+        WHERE os.oficina_id = :oficinaId
+        AND (:status IS NULL OR os.status = :status)
+        AND (:veiculoId IS NULL OR os.veiculo_id = :veiculoId)
+        AND (:usuarioId IS NULL OR os.usuario_id = :usuarioId)
+        AND (CAST(:dataInicio AS timestamp) IS NULL OR os.data_abertura >= :dataInicio)
+        AND (CAST(:dataFim AS timestamp) IS NULL OR os.data_abertura <= :dataFim)
+        ORDER BY os.data_abertura DESC
+        """,
+        countQuery = """
+        SELECT COUNT(*)
+        FROM ordem_servico os
+        WHERE os.oficina_id = :oficinaId
+        AND (:status IS NULL OR os.status = :status)
+        AND (:veiculoId IS NULL OR os.veiculo_id = :veiculoId)
+        AND (:usuarioId IS NULL OR os.usuario_id = :usuarioId)
+        AND (CAST(:dataInicio AS timestamp) IS NULL OR os.data_abertura >= :dataInicio)
+        AND (CAST(:dataFim AS timestamp) IS NULL OR os.data_abertura <= :dataFim)
+        """,
+        nativeQuery = true)
+    Page<Object[]> findByFiltrosOptimized(
+        @Param("oficinaId") UUID oficinaId,
+        @Param("status") String status,
+        @Param("veiculoId") UUID veiculoId,
+        @Param("usuarioId") UUID usuarioId,
+        @Param("dataInicio") LocalDateTime dataInicio,
+        @Param("dataFim") LocalDateTime dataFim,
+        Pageable pageable
+    );
 }

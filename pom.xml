@@ -203,6 +203,13 @@
             <version>8.13.26</version>
         </dependency>
 
+        <!-- Mercado Pago SDK for payment processing -->
+        <dependency>
+            <groupId>com.mercadopago</groupId>
+            <artifactId>sdk-java</artifactId>
+            <version>2.1.29</version>
+        </dependency>
+
         <!-- TestContainers for integration tests -->
         <dependency>
             <groupId>org.testcontainers</groupId>

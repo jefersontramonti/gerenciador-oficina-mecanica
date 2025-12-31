@@ -184,6 +184,7 @@ public interface PecaRepository extends JpaRepository<Peca, UUID> {
      * @param unidadeMedida unidade de medida (opcional)
      * @param ativo filtro por status ativo (opcional)
      * @param estoqueBaixo filtro por estoque baixo (opcional)
+     * @param localArmazenamentoId filtro por local de armazenamento (opcional)
      * @param pageable paginação
      * @return página de peças filtradas
      */
@@ -196,6 +197,7 @@ public interface PecaRepository extends JpaRepository<Peca, UUID> {
             AND (COALESCE(:marca, '') = '' OR LOWER(p.marca) LIKE LOWER(CONCAT('%', :marca, '%')))
             AND (:unidadeMedida IS NULL OR p.unidadeMedida = :unidadeMedida)
             AND (:estoqueBaixo IS NULL OR (:estoqueBaixo = true AND p.quantidadeAtual <= p.quantidadeMinima) OR (:estoqueBaixo = false))
+            AND (:localArmazenamentoId IS NULL OR p.localArmazenamento.id = :localArmazenamentoId)
             ORDER BY p.descricao
             """)
     Page<Peca> findByFilters(
@@ -206,6 +208,7 @@ public interface PecaRepository extends JpaRepository<Peca, UUID> {
             @Param("unidadeMedida") UnidadeMedida unidadeMedida,
             @Param("ativo") Boolean ativo,
             @Param("estoqueBaixo") Boolean estoqueBaixo,
+            @Param("localArmazenamentoId") UUID localArmazenamentoId,
             Pageable pageable
     );
 

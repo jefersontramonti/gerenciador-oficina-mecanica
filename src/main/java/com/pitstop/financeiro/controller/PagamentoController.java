@@ -6,6 +6,8 @@ import com.pitstop.financeiro.dto.ConfirmarPagamentoDTO;
 import com.pitstop.financeiro.dto.PagamentoRequestDTO;
 import com.pitstop.financeiro.dto.PagamentoResponseDTO;
 import com.pitstop.financeiro.service.PagamentoService;
+import com.pitstop.ordemservico.domain.OrdemServico;
+import com.pitstop.ordemservico.repository.OrdemServicoRepository;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -47,6 +49,7 @@ import java.util.UUID;
 public class PagamentoController {
 
     private final PagamentoService pagamentoService;
+    private final OrdemServicoRepository ordemServicoRepository;
 
     @PostMapping
     @PreAuthorize("hasAnyAuthority('ADMIN', 'GERENTE', 'ATENDENTE')")
@@ -175,11 +178,28 @@ public class PagamentoController {
     public ResponseEntity<Map<String, Object>> resumoFinanceiroOS(@PathVariable UUID ordemServicoId) {
         log.info("GET /api/pagamentos/ordem-servico/{}/resumo - Resumo financeiro", ordemServicoId);
 
+        // Buscar a OS para obter o valor total
+        OrdemServico os = ordemServicoRepository.findById(ordemServicoId)
+            .orElseThrow(() -> new IllegalArgumentException("Ordem de serviço não encontrada"));
+
+        // Valor total da OS (usar valorFinal se existir, senão valorTotal)
+        BigDecimal valorTotalOS = os.getValorFinal() != null ? os.getValorFinal() :
+                                  (os.getValorTotal() != null ? os.getValorTotal() : BigDecimal.ZERO);
+
+        // Total efetivamente pago (soma dos pagamentos com status PAGO)
         BigDecimal totalPago = pagamentoService.calcularTotalPago(ordemServicoId);
-        BigDecimal totalPendente = pagamentoService.calcularTotalPendente(ordemServicoId);
-        boolean quitada = pagamentoService.isOrdemServicoQuitada(ordemServicoId);
+
+        // Total pendente = valor da OS - total pago (não pode ser negativo)
+        BigDecimal totalPendente = valorTotalOS.subtract(totalPago);
+        if (totalPendente.compareTo(BigDecimal.ZERO) < 0) {
+            totalPendente = BigDecimal.ZERO;
+        }
+
+        // Quitada = total pago >= valor da OS
+        boolean quitada = totalPago.compareTo(valorTotalOS) >= 0;
 
         Map<String, Object> resumo = Map.of(
+            "valorTotalOS", valorTotalOS,
             "totalPago", totalPago,
             "totalPendente", totalPendente,
             "quitada", quitada

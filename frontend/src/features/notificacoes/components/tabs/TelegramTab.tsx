@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Send, CheckCircle, XCircle, AlertCircle, Loader2, ExternalLink } from 'lucide-react';
+import { Send, CheckCircle, XCircle, AlertCircle, Loader2, ExternalLink, Key, ShieldCheck } from 'lucide-react';
 import { useConfiguracoes, useConfigurarTelegram, useTelegramStatus, useTestarNotificacao } from '../../hooks/useNotificacoes';
 
 export function TelegramTab() {
@@ -150,27 +150,59 @@ export function TelegramTab() {
 
           <div className="mt-4 grid grid-cols-1 gap-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                Bot Token
-              </label>
-              <input
-                type="password"
-                value={formData.botToken}
-                onChange={(e) => setFormData({ ...formData, botToken: e.target.value })}
-                placeholder={config?.temTelegramConfigurado ? '••••••••••••••••' : 'Cole o token do seu bot'}
-                className="mt-1 w-full rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 px-3 py-2 text-sm text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:border-blue-500 dark:focus:border-blue-400 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
-              />
-              <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
-                Obtenha o token criando um bot no{' '}
-                <a
-                  href="https://t.me/BotFather"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-blue-600 dark:text-blue-400 hover:underline"
-                >
-                  @BotFather
-                </a>
-              </p>
+              <div className="flex items-center justify-between">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                  Bot Token
+                </label>
+                {config?.temTelegramConfigurado && (
+                  <span className="inline-flex items-center gap-1 rounded-full bg-green-100 dark:bg-green-900/30 px-2 py-0.5 text-xs font-medium text-green-700 dark:text-green-400">
+                    <ShieldCheck className="h-3 w-3" />
+                    Configurado
+                  </span>
+                )}
+              </div>
+
+              {config?.temTelegramConfigurado ? (
+                <div className="mt-1 space-y-2">
+                  <div className="flex items-center gap-2 rounded-lg border border-green-200 dark:border-green-800 bg-green-50 dark:bg-green-900/20 px-3 py-2">
+                    <Key className="h-4 w-4 text-green-600 dark:text-green-400" />
+                    <span className="text-sm text-green-700 dark:text-green-300">
+                      Token salvo com segurança
+                    </span>
+                  </div>
+                  <input
+                    type="password"
+                    value={formData.botToken}
+                    onChange={(e) => setFormData({ ...formData, botToken: e.target.value })}
+                    placeholder="Cole um novo token para substituir"
+                    className="w-full rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 px-3 py-2 text-sm text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:border-blue-500 dark:focus:border-blue-400 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+                  />
+                  <p className="text-xs text-gray-500 dark:text-gray-400">
+                    Deixe em branco para manter o token atual, ou cole um novo para substituir
+                  </p>
+                </div>
+              ) : (
+                <>
+                  <input
+                    type="password"
+                    value={formData.botToken}
+                    onChange={(e) => setFormData({ ...formData, botToken: e.target.value })}
+                    placeholder="Cole o token do seu bot aqui"
+                    className="mt-1 w-full rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 px-3 py-2 text-sm text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:border-blue-500 dark:focus:border-blue-400 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+                  />
+                  <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                    Obtenha o token criando um bot no{' '}
+                    <a
+                      href="https://t.me/BotFather"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-blue-600 dark:text-blue-400 hover:underline"
+                    >
+                      @BotFather
+                    </a>
+                  </p>
+                </>
+              )}
             </div>
 
             <div>

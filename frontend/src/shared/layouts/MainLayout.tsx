@@ -170,6 +170,12 @@ const navigationItems: NavigationItem[] = [
     requiredRoles: [PerfilUsuario.ADMIN, PerfilUsuario.GERENTE, PerfilUsuario.ATENDENTE],
   },
   {
+    name: 'Gateway de Pagamento',
+    href: '/financeiro/gateways',
+    icon: CreditCard,
+    requiredRoles: [PerfilUsuario.ADMIN],
+  },
+  {
     name: 'Notificações',
     href: '/notificacoes/configuracao',
     icon: Bell,

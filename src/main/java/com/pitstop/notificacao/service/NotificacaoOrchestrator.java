@@ -8,9 +8,11 @@ import com.pitstop.notificacao.domain.TipoNotificacao;
 import com.pitstop.notificacao.dto.EnviarNotificacaoRequest;
 import com.pitstop.notificacao.dto.EnviarNotificacaoResponse;
 import com.pitstop.notificacao.repository.ConfiguracaoNotificacaoRepository;
+import com.pitstop.ordemservico.service.OrdemServicoPDFService;
 import com.pitstop.shared.security.tenant.TenantContext;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -43,6 +45,11 @@ public class NotificacaoOrchestrator {
     private final WhatsAppService whatsAppService;
     private final TelegramService telegramService;
     private final TemplateService templateService;
+    private final OrdemServicoPDFService ordemServicoPDFService;
+    private final TempFileService tempFileService;
+
+    @Value("${app.base-url:http://localhost:8080}")
+    private String baseUrl;
 
     /**
      * Envia notificacao para todos os canais configurados para o evento.
@@ -126,6 +133,8 @@ public class NotificacaoOrchestrator {
      * Envia notificacao para um evento de OS.
      * Nota: Este metodo NAO e @Async porque o caller (OrdemServicoEventListener) ja e async.
      *
+     * <p>Para eventos OS_ENTREGUE, gera e anexa o PDF da ordem de servico automaticamente.</p>
+     *
      * @param evento Evento que disparou
      * @param destinatarioEmail Email do cliente
      * @param destinatarioTelefone Telefone do cliente
@@ -165,6 +174,30 @@ public class NotificacaoOrchestrator {
             // Por ora, apenas loga
         }
 
+        // Gera PDF para eventos OS_ENTREGUE
+        byte[] pdfBytes = null;
+        String pdfUrl = null;
+        String pdfFileName = null;
+
+        if (evento == EventoNotificacao.OS_ENTREGUE && ordemServicoId != null) {
+            try {
+                pdfBytes = ordemServicoPDFService.gerarPDF(ordemServicoId);
+                String numeroOS = variaveis.get("numeroOS") != null
+                    ? variaveis.get("numeroOS").toString()
+                    : ordemServicoId.toString().substring(0, 8);
+                pdfFileName = "OS-" + numeroOS + ".pdf";
+
+                // Armazena PDF temporariamente para WhatsApp/Telegram
+                String token = tempFileService.storePdf(pdfBytes, pdfFileName);
+                pdfUrl = baseUrl + "/api/public/files/" + token;
+
+                log.info("PDF gerado para OS {}: {} ({} bytes)", ordemServicoId, pdfFileName, pdfBytes.length);
+            } catch (Exception e) {
+                log.error("Erro ao gerar PDF para OS {}: {}", ordemServicoId, e.getMessage());
+                // Continua com notificacao sem PDF
+            }
+        }
+
         // Envia por email se habilitado
         if (config.isEventoHabilitado(evento, TipoNotificacao.EMAIL) && destinatarioEmail != null) {
             try {
@@ -176,14 +209,20 @@ public class NotificacaoOrchestrator {
                 String assunto = templateService.processarAssunto(template, variaveis);
                 String corpo = templateService.processarCorpo(template, variaveis);
 
-                var request = com.pitstop.notificacao.dto.NotificacaoRequest.builder()
-                    .tipo(TipoNotificacao.EMAIL)
-                    .destinatario(destinatarioEmail)
-                    .assunto(assunto)
-                    .mensagem(corpo)
-                    .build();
-                emailService.enviar(request);
-                log.info("Email enviado para {} (evento: {})", destinatarioEmail, evento);
+                // Se tem PDF, envia com anexo
+                if (pdfBytes != null && evento == EventoNotificacao.OS_ENTREGUE) {
+                    emailService.enviarComPdf(destinatarioEmail, assunto, corpo, pdfBytes, pdfFileName);
+                    log.info("Email com PDF enviado para {} (evento: {})", destinatarioEmail, evento);
+                } else {
+                    var request = com.pitstop.notificacao.dto.NotificacaoRequest.builder()
+                        .tipo(TipoNotificacao.EMAIL)
+                        .destinatario(destinatarioEmail)
+                        .assunto(assunto)
+                        .mensagem(corpo)
+                        .build();
+                    emailService.enviar(request);
+                    log.info("Email enviado para {} (evento: {})", destinatarioEmail, evento);
+                }
             } catch (Exception e) {
                 log.error("Erro ao enviar email para {}: {}", destinatarioEmail, e.getMessage());
             }
@@ -192,16 +231,33 @@ public class NotificacaoOrchestrator {
         // Envia por WhatsApp se habilitado
         if (config.isEventoHabilitado(evento, TipoNotificacao.WHATSAPP) && destinatarioTelefone != null) {
             try {
-                whatsAppService.enviarComTemplate(
-                    destinatarioTelefone,
-                    nomeDestinatario,
-                    evento,
-                    variaveis,
-                    ordemServicoId,
-                    clienteId,
-                    null // automatico
-                );
-                log.info("WhatsApp enviado para {} (evento: {})", destinatarioTelefone, evento);
+                // Se tem PDF, envia documento
+                if (pdfUrl != null && evento == EventoNotificacao.OS_ENTREGUE) {
+                    String legenda = "Ola " + nomeDestinatario + "! Segue o comprovante da sua Ordem de Servico.";
+                    whatsAppService.enviarDocumento(
+                        destinatarioTelefone,
+                        nomeDestinatario,
+                        pdfUrl,
+                        pdfFileName,
+                        legenda,
+                        evento,
+                        variaveis,
+                        ordemServicoId,
+                        clienteId
+                    );
+                    log.info("WhatsApp com PDF enviado para {} (evento: {})", destinatarioTelefone, evento);
+                } else {
+                    whatsAppService.enviarComTemplate(
+                        destinatarioTelefone,
+                        nomeDestinatario,
+                        evento,
+                        variaveis,
+                        ordemServicoId,
+                        clienteId,
+                        null // automatico
+                    );
+                    log.info("WhatsApp enviado para {} (evento: {})", destinatarioTelefone, evento);
+                }
             } catch (Exception e) {
                 log.error("Erro ao enviar WhatsApp para {}: {}", destinatarioTelefone, e.getMessage());
             }
@@ -210,16 +266,36 @@ public class NotificacaoOrchestrator {
         // Envia por Telegram se habilitado
         if (config.isEventoHabilitado(evento, TipoNotificacao.TELEGRAM)) {
             try {
-                telegramService.enviarComTemplate(
-                    null, // usa chat_id configurado
-                    nomeDestinatario,
-                    evento,
-                    variaveis,
-                    ordemServicoId,
-                    clienteId,
-                    null // automatico
-                );
-                log.info("Telegram enviado (evento: {})", evento);
+                // Se tem PDF em bytes, envia documento diretamente
+                if (pdfBytes != null && evento == EventoNotificacao.OS_ENTREGUE) {
+                    String legenda = "*Comprovante OS #" + variaveis.get("numeroOS") + "*\n\n" +
+                        "Olá " + nomeDestinatario + "!\n" +
+                        "Segue em anexo o comprovante da sua Ordem de Serviço.\n\n" +
+                        "Obrigado pela preferência!\n" +
+                        "_" + variaveis.get("nomeOficina") + "_";
+                    telegramService.enviarDocumentoBytes(
+                        pdfBytes,
+                        pdfFileName,
+                        nomeDestinatario,
+                        legenda,
+                        evento,
+                        variaveis,
+                        ordemServicoId,
+                        clienteId
+                    );
+                    log.info("Telegram com PDF enviado via bytes (evento: {})", evento);
+                } else {
+                    telegramService.enviarComTemplate(
+                        null, // usa chat_id configurado
+                        nomeDestinatario,
+                        evento,
+                        variaveis,
+                        ordemServicoId,
+                        clienteId,
+                        null // automatico
+                    );
+                    log.info("Telegram enviado (evento: {})", evento);
+                }
             } catch (Exception e) {
                 log.error("Erro ao enviar Telegram: {}", e.getMessage());
             }

@@ -102,7 +102,7 @@ public class TelegramApiClient {
     }
 
     /**
-     * Envia documento/arquivo.
+     * Envia documento/arquivo via URL.
      *
      * @param config Configuracao do Telegram
      * @param documentUrl URL do documento
@@ -125,6 +125,99 @@ public class TelegramApiClient {
         }
 
         return enviar(url, body);
+    }
+
+    /**
+     * Envia documento/arquivo via bytes (upload direto).
+     * Usa multipart/form-data para enviar o arquivo binario.
+     *
+     * @param config Configuracao do Telegram
+     * @param documentBytes Conteudo do documento em bytes
+     * @param fileName Nome do arquivo
+     * @param caption Legenda opcional
+     * @return Resultado do envio
+     */
+    public TelegramSendResult enviarDocumentoBytes(
+        TelegramConfig config,
+        byte[] documentBytes,
+        String fileName,
+        String caption
+    ) {
+        String url = config.getApiUrl("sendDocument");
+
+        try {
+            // Usa multipart para enviar o arquivo
+            org.springframework.util.LinkedMultiValueMap<String, Object> body =
+                new org.springframework.util.LinkedMultiValueMap<>();
+
+            body.add("chat_id", config.chatId());
+
+            // Cria resource do arquivo
+            org.springframework.core.io.ByteArrayResource fileResource =
+                new org.springframework.core.io.ByteArrayResource(documentBytes) {
+                    @Override
+                    public String getFilename() {
+                        return fileName;
+                    }
+                };
+
+            HttpHeaders fileHeaders = new HttpHeaders();
+            fileHeaders.setContentType(MediaType.APPLICATION_PDF);
+            HttpEntity<org.springframework.core.io.ByteArrayResource> fileEntity =
+                new HttpEntity<>(fileResource, fileHeaders);
+
+            body.add("document", fileEntity);
+
+            if (caption != null && !caption.isBlank()) {
+                body.add("caption", caption);
+                body.add("parse_mode", "Markdown");
+            }
+
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.MULTIPART_FORM_DATA);
+
+            log.debug("Enviando documento para Telegram API: {} ({} bytes)", fileName, documentBytes.length);
+
+            ResponseEntity<String> response = restTemplate.exchange(
+                url,
+                HttpMethod.POST,
+                new HttpEntity<>(body, headers),
+                String.class
+            );
+
+            if (response.getStatusCode().is2xxSuccessful() && response.getBody() != null) {
+                JsonNode json = objectMapper.readTree(response.getBody());
+
+                if (json.path("ok").asBoolean(false)) {
+                    String messageId = String.valueOf(json.path("result").path("message_id").asLong());
+                    log.info("Documento enviado com sucesso via Telegram: {} (message_id: {})", fileName, messageId);
+                    return TelegramSendResult.sucesso(messageId, response.getBody());
+                }
+
+                String errorDescription = json.path("description").asText("Erro desconhecido");
+                String errorCode = String.valueOf(json.path("error_code").asInt(0));
+                return TelegramSendResult.falha(errorCode, errorDescription, response.getBody());
+            }
+
+            return TelegramSendResult.falha(
+                "RESPONSE_ERROR",
+                "Resposta inesperada: " + response.getStatusCode(),
+                response.getBody()
+            );
+
+        } catch (HttpClientErrorException e) {
+            log.error("Erro HTTP ao enviar documento via Telegram API: {} - {}",
+                e.getStatusCode(), e.getResponseBodyAsString());
+
+            String codigo = "HTTP_" + e.getStatusCode().value();
+            String mensagem = extrairMensagemErro(e.getResponseBodyAsString());
+
+            return TelegramSendResult.falha(codigo, mensagem, e.getResponseBodyAsString());
+
+        } catch (Exception e) {
+            log.error("Erro ao enviar documento via Telegram API: {}", e.getMessage(), e);
+            return TelegramSendResult.falha("EXCEPTION", e.getMessage(), null);
+        }
     }
 
     /**

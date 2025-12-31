@@ -73,7 +73,24 @@ export const ClienteFormPage = () => {
       }
       navigate('/clientes');
     } catch (error: any) {
-      showError(error.message || 'Erro ao salvar cliente');
+      // Trata erros específicos da API (RFC 7807 - ProblemDetail)
+      const status = error.status || error.response?.status;
+      const detail = error.detail || error.response?.data?.detail || error.message;
+      const fieldErrors = error.errors || error.response?.data?.errors;
+
+      if (status === 409) {
+        // CPF/CNPJ duplicado
+        showError(detail || 'Este CPF/CNPJ já está cadastrado no sistema');
+      } else if (status === 400 && fieldErrors) {
+        // Erros de validação de campos - mostra o primeiro erro encontrado
+        const firstError = Object.values(fieldErrors)[0];
+        showError(typeof firstError === 'string' ? firstError : String(firstError));
+      } else if (detail) {
+        // Mensagem específica da API
+        showError(detail);
+      } else {
+        showError('Erro ao salvar cliente. Verifique os dados e tente novamente.');
+      }
     }
   };
 

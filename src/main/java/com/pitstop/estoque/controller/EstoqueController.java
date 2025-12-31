@@ -74,10 +74,11 @@ public class EstoqueController {
             @RequestParam(required = false) UnidadeMedida unidadeMedida,
             @RequestParam(required = false) Boolean ativo,
             @RequestParam(required = false) Boolean estoqueBaixo,
+            @RequestParam(required = false) UUID localArmazenamentoId,
             @PageableDefault(size = 20, sort = "descricao") Pageable pageable
     ) {
 
-        Page<Peca> pecas = estoqueService.listarComFiltros(codigo, descricao, marca, unidadeMedida, ativo, estoqueBaixo, pageable);
+        Page<Peca> pecas = estoqueService.listarComFiltros(codigo, descricao, marca, unidadeMedida, ativo, estoqueBaixo, localArmazenamentoId, pageable);
         Page<PecaResponseDTO> response = pecas.map(pecaMapper::toResponseDTO);
 
         return ResponseEntity.ok(response);

@@ -124,10 +124,10 @@ export const ActionButtons: React.FC<ActionButtonsProps> = ({ ordemServico, resu
 
   const getButtonVariant = (variant: string) => {
     const variants = {
-      primary: 'bg-blue-600 text-white hover:bg-blue-700',
-      success: 'bg-green-600 text-white hover:bg-green-700',
-      warning: 'bg-yellow-600 text-white hover:bg-yellow-700',
-      danger: 'border border-red-600 text-red-600 hover:bg-red-50',
+      primary: 'bg-blue-600 text-white hover:bg-blue-700 dark:bg-blue-700 dark:hover:bg-blue-600',
+      success: 'bg-green-600 text-white hover:bg-green-700 dark:bg-green-700 dark:hover:bg-green-600',
+      warning: 'bg-yellow-600 text-white hover:bg-yellow-700 dark:bg-yellow-700 dark:hover:bg-yellow-600',
+      danger: 'border border-red-600 text-red-600 hover:bg-red-50 dark:border-red-500 dark:text-red-400 dark:hover:bg-red-900/20',
     };
     return variants[variant as keyof typeof variants] || variants.primary;
   };

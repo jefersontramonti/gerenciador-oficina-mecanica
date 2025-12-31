@@ -119,13 +119,8 @@ public class HistoricoNotificacaoService {
     @Transactional(readOnly = true)
     public HistoricoNotificacaoDTO buscarPorId(UUID id) {
         UUID oficinaId = TenantContext.getTenantId();
-        HistoricoNotificacao historico = repository.findById(id)
+        HistoricoNotificacao historico = repository.findByOficinaIdAndId(oficinaId, id)
             .orElseThrow(() -> new IllegalArgumentException("Notificacao nao encontrada"));
-
-        // Verifica se pertence a oficina
-        if (!historico.getOficinaId().equals(oficinaId)) {
-            throw new SecurityException("Acesso negado a esta notificacao");
-        }
 
         return HistoricoNotificacaoDTO.fromEntity(historico);
     }
@@ -138,7 +133,8 @@ public class HistoricoNotificacaoService {
      */
     @Transactional(readOnly = true)
     public List<HistoricoNotificacaoDTO.Resumido> listarPorOrdemServico(UUID ordemServicoId) {
-        return repository.findByOrdemServicoIdOrderByCreatedAtDesc(ordemServicoId)
+        UUID oficinaId = TenantContext.getTenantId();
+        return repository.findByOficinaIdAndOrdemServicoId(oficinaId, ordemServicoId)
             .stream()
             .map(HistoricoNotificacaoDTO.Resumido::fromEntity)
             .toList();
@@ -153,7 +149,8 @@ public class HistoricoNotificacaoService {
      */
     @Transactional(readOnly = true)
     public Page<HistoricoNotificacaoDTO.Resumido> listarPorCliente(UUID clienteId, Pageable pageable) {
-        return repository.findByClienteIdOrderByCreatedAtDesc(clienteId, pageable)
+        UUID oficinaId = TenantContext.getTenantId();
+        return repository.findByOficinaIdAndClienteId(oficinaId, clienteId, pageable)
             .map(HistoricoNotificacaoDTO.Resumido::fromEntity);
     }
 

@@ -118,6 +118,7 @@ export interface PecaFilters {
   unidadeMedida?: UnidadeMedida;
   ativo?: boolean;
   estoqueBaixo?: boolean;
+  localArmazenamentoId?: string;
   page?: number;
   size?: number;
   sort?: string[];

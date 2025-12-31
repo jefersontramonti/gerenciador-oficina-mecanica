@@ -108,34 +108,69 @@ public interface HistoricoNotificacaoRepository extends JpaRepository<HistoricoN
     // ===== BUSCAS POR ORDEM DE SERVICO =====
 
     /**
-     * Lista todas as notificacoes de uma OS.
+     * Lista todas as notificacoes de uma OS com validação de tenant.
+     * IMPORTANTE: Sempre usar este método para garantir isolamento multi-tenant.
      *
+     * @param oficinaId ID da oficina (tenant)
      * @param ordemServicoId ID da OS
      * @return Lista de notificacoes
      */
-    List<HistoricoNotificacao> findByOrdemServicoIdOrderByCreatedAtDesc(UUID ordemServicoId);
+    @Query("""
+        SELECT h FROM HistoricoNotificacao h
+        WHERE h.oficinaId = :oficinaId
+          AND h.ordemServicoId = :ordemServicoId
+        ORDER BY h.createdAt DESC
+        """)
+    List<HistoricoNotificacao> findByOficinaIdAndOrdemServicoId(
+        @Param("oficinaId") UUID oficinaId,
+        @Param("ordemServicoId") UUID ordemServicoId
+    );
 
     // ===== BUSCAS POR CLIENTE =====
 
     /**
-     * Lista todas as notificacoes enviadas para um cliente.
+     * Lista todas as notificacoes enviadas para um cliente com validação de tenant.
+     * IMPORTANTE: Sempre usar este método para garantir isolamento multi-tenant.
      *
+     * @param oficinaId ID da oficina (tenant)
      * @param clienteId ID do cliente
      * @param pageable Paginacao
      * @return Pagina de historico
      */
-    Page<HistoricoNotificacao> findByClienteIdOrderByCreatedAtDesc(UUID clienteId, Pageable pageable);
+    @Query("""
+        SELECT h FROM HistoricoNotificacao h
+        WHERE h.oficinaId = :oficinaId
+          AND h.clienteId = :clienteId
+        ORDER BY h.createdAt DESC
+        """)
+    Page<HistoricoNotificacao> findByOficinaIdAndClienteId(
+        @Param("oficinaId") UUID oficinaId,
+        @Param("clienteId") UUID clienteId,
+        Pageable pageable
+    );
 
     // ===== BUSCAS POR DESTINATARIO =====
 
     /**
-     * Lista historico por destinatario (email ou telefone).
+     * Lista historico por destinatario (email ou telefone) com validação de tenant.
+     * IMPORTANTE: Sempre usar este método para garantir isolamento multi-tenant.
      *
+     * @param oficinaId ID da oficina (tenant)
      * @param destinatario Email ou telefone
      * @param pageable Paginacao
      * @return Pagina de historico
      */
-    Page<HistoricoNotificacao> findByDestinatarioOrderByCreatedAtDesc(String destinatario, Pageable pageable);
+    @Query("""
+        SELECT h FROM HistoricoNotificacao h
+        WHERE h.oficinaId = :oficinaId
+          AND h.destinatario = :destinatario
+        ORDER BY h.createdAt DESC
+        """)
+    Page<HistoricoNotificacao> findByOficinaIdAndDestinatario(
+        @Param("oficinaId") UUID oficinaId,
+        @Param("destinatario") String destinatario,
+        Pageable pageable
+    );
 
     // ===== PENDENTES E REENVIO =====
 
@@ -283,12 +318,42 @@ public interface HistoricoNotificacaoRepository extends JpaRepository<HistoricoN
     // ===== BUSCA POR ID EXTERNO =====
 
     /**
-     * Busca notificacao pelo ID externo (retornado pela API).
+     * Busca notificacao pelo ID externo (para callbacks de APIs externas).
+     * NOTA: Este método é usado para callbacks de APIs externas (Twilio, Evolution API)
+     * que não possuem contexto de tenant. O idExterno é único globalmente.
      *
      * @param idExterno Message ID da API
      * @return Notificacao se encontrada
      */
     java.util.Optional<HistoricoNotificacao> findByIdExterno(String idExterno);
+
+    /**
+     * Busca notificacao pelo ID externo com validação de tenant.
+     * Use este método quando houver contexto de tenant disponível.
+     *
+     * @param oficinaId ID da oficina (tenant)
+     * @param idExterno Message ID da API
+     * @return Notificacao se encontrada
+     */
+    @Query("SELECT h FROM HistoricoNotificacao h WHERE h.oficinaId = :oficinaId AND h.idExterno = :idExterno")
+    java.util.Optional<HistoricoNotificacao> findByOficinaIdAndIdExterno(
+        @Param("oficinaId") UUID oficinaId,
+        @Param("idExterno") String idExterno
+    );
+
+    /**
+     * Busca notificacao por ID com validação de tenant.
+     * IMPORTANTE: Sempre usar este método ao invés de findById() para garantir isolamento multi-tenant.
+     *
+     * @param oficinaId ID da oficina (tenant)
+     * @param id ID da notificacao
+     * @return Notificacao se encontrada
+     */
+    @Query("SELECT h FROM HistoricoNotificacao h WHERE h.oficinaId = :oficinaId AND h.id = :id")
+    java.util.Optional<HistoricoNotificacao> findByOficinaIdAndId(
+        @Param("oficinaId") UUID oficinaId,
+        @Param("id") UUID id
+    );
 
     // ===== LIMPEZA =====
 

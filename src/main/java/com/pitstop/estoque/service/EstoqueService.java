@@ -159,6 +159,7 @@ public class EstoqueService {
      * @param unidadeMedida filtro por unidade (opcional)
      * @param ativo filtro por status ativo (opcional)
      * @param estoqueBaixo filtro por estoque baixo (opcional)
+     * @param localArmazenamentoId filtro por local de armazenamento (opcional)
      * @param pageable paginação
      * @return página de peças filtradas
      */
@@ -170,10 +171,11 @@ public class EstoqueService {
             UnidadeMedida unidadeMedida,
             Boolean ativo,
             Boolean estoqueBaixo,
+            UUID localArmazenamentoId,
             Pageable pageable
     ) {
         UUID oficinaId = TenantContext.getTenantId();
-        return pecaRepository.findByFilters(oficinaId, codigo, descricao, marca, unidadeMedida, ativo, estoqueBaixo, pageable);
+        return pecaRepository.findByFilters(oficinaId, codigo, descricao, marca, unidadeMedida, ativo, estoqueBaixo, localArmazenamentoId, pageable);
     }
 
     /**

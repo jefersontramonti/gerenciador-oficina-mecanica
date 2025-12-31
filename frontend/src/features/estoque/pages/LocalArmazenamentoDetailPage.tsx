@@ -11,11 +11,11 @@ export const LocalArmazenamentoDetailPage = () => {
 
   const { data: local, isLoading } = useLocalArmazenamento(id);
   const { data: filhos = [] } = useLocaisFilhos(id);
-  const { data: todasPecas, isLoading: pecasLoading } = usePecas({});
+  const { data: pecasData, isLoading: pecasLoading } = usePecas(
+    id ? { localArmazenamentoId: id, size: 100 } : {}
+  );
 
-  const pecasNoLocal = todasPecas?.content.filter(
-    (peca) => peca.localArmazenamento?.id === id
-  ) || [];
+  const pecasNoLocal = pecasData?.content || [];
 
   if (isLoading) {
     return (

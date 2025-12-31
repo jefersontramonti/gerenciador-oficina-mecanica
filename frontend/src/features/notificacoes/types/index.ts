@@ -123,6 +123,8 @@ export interface Notificacao {
   numeroOS?: number;
   clienteId?: string;
   nomeCliente?: string;
+  motivoAgendamento?: string;
+  respostaApi?: Record<string, unknown>;
   createdAt: string;
 }
 

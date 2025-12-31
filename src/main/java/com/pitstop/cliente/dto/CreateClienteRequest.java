@@ -1,6 +1,7 @@
 package com.pitstop.cliente.dto;
 
 import com.pitstop.cliente.domain.TipoCliente;
+import com.pitstop.shared.validation.CpfCnpj;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.*;
 import lombok.AllArgsConstructor;
@@ -35,7 +36,7 @@ public class CreateClienteRequest {
 
     @Schema(
         description = "CPF (formato: 000.000.000-00) ou CNPJ (formato: 00.000.000/0000-00)",
-        example = "123.456.789-00",
+        example = "529.982.247-25",
         required = true
     )
     @NotBlank(message = "CPF/CNPJ é obrigatório")
@@ -43,6 +44,7 @@ public class CreateClienteRequest {
         regexp = "^(\\d{3}\\.\\d{3}\\.\\d{3}-\\d{2}|\\d{2}\\.\\d{3}\\.\\d{3}/\\d{4}-\\d{2})$",
         message = "CPF/CNPJ deve estar no formato válido (CPF: 000.000.000-00 ou CNPJ: 00.000.000/0000-00)"
     )
+    @CpfCnpj(message = "CPF/CNPJ inválido - dígitos verificadores não conferem")
     private String cpfCnpj;
 
     @Schema(description = "E-mail do cliente", example = "joao@email.com")

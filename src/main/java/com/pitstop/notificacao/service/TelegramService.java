@@ -89,18 +89,22 @@ public class TelegramService {
         }
 
         if (!config.getTelegramHabilitado()) {
-            historico.marcarComoFalha("Telegram nao esta habilitado para esta oficina", "TELEGRAM_DISABLED");
+            historico.marcarComoFalha("Telegram nao esta habilitado para esta oficina. Ative em Configuracoes > Notificacoes.", "TELEGRAM_DISABLED");
             return historicoRepository.save(historico);
         }
 
         if (!config.temTelegramConfigurado()) {
-            historico.marcarComoFalha("Telegram nao esta configurado (bot token ou chat id ausente)", "TELEGRAM_NOT_CONFIGURED");
+            historico.marcarComoFalha("Telegram nao configurado. Informe o Bot Token e Chat ID em Configuracoes > Notificacoes > Telegram.", "TELEGRAM_NOT_CONFIGURED");
             return historicoRepository.save(historico);
         }
 
         // Verifica horario comercial
         if (!config.podeEnviarAgora()) {
-            historico.agendar(calcularProximoHorario(config));
+            String motivo = gerarMotivoAgendamento(config);
+            java.time.LocalDateTime proximoHorario = calcularProximoHorario(config);
+            historico.agendar(proximoHorario);
+            historico.setMotivoAgendamento(motivo);
+            log.info("Telegram agendado para {}: {}", proximoHorario, motivo);
             return historicoRepository.save(historico);
         }
 
@@ -116,16 +120,32 @@ public class TelegramService {
 
         // Envia via Telegram API
         TelegramConfig telegramConfig = TelegramConfig.from(config);
-        TelegramSendResult result = telegramApiClient.enviarTexto(telegramConfig, targetChatId, mensagem);
 
-        if (result.sucesso()) {
-            historico.marcarComoEnviado(result.messageId());
-            historico.setRespostaApi(Map.of("response", result.respostaJson()));
-        } else {
-            historico.marcarComoFalha(result.erroMensagem(), result.erroCodigo());
-            if (result.respostaJson() != null) {
-                historico.setRespostaApi(Map.of("error", result.respostaJson()));
+        // Validacao extra de seguranca
+        if (telegramConfig == null || !telegramConfig.isValid()) {
+            historico.marcarComoFalha("Configuracao do Telegram invalida ou incompleta", "INVALID_CONFIG");
+            return historicoRepository.save(historico);
+        }
+
+        try {
+            TelegramSendResult result = telegramApiClient.enviarTexto(telegramConfig, targetChatId, mensagem);
+
+            if (result.sucesso()) {
+                historico.marcarComoEnviado(result.messageId());
+                if (result.respostaJson() != null) {
+                    historico.setRespostaApi(Map.of("response", result.respostaJson()));
+                }
+            } else {
+                String erroMsg = result.erroMensagem() != null ? result.erroMensagem() : "Erro desconhecido ao enviar mensagem";
+                historico.marcarComoFalha(erroMsg, result.erroCodigo());
+                if (result.respostaJson() != null) {
+                    historico.setRespostaApi(Map.of("error", result.respostaJson()));
+                }
             }
+        } catch (Exception e) {
+            log.error("Erro ao enviar Telegram: {}", e.getMessage(), e);
+            String erroMsg = e.getMessage() != null ? e.getMessage() : "Erro de conexao com Telegram API";
+            historico.marcarComoFalha(erroMsg, "EXCEPTION");
         }
 
         return historicoRepository.save(historico);
@@ -248,6 +268,244 @@ public class TelegramService {
     }
 
     /**
+     * Envia documento/arquivo via Telegram.
+     *
+     * @param documentoUrl URL publica do documento
+     * @param nomeDestinatario Nome do destinatario
+     * @param legenda Legenda/mensagem opcional
+     * @param evento Evento que disparou
+     * @param variaveis Variaveis do template
+     * @param ordemServicoId ID da OS relacionada
+     * @param clienteId ID do cliente
+     * @return Historico da notificacao
+     */
+    @Transactional
+    public HistoricoNotificacao enviarDocumento(
+        String documentoUrl,
+        String nomeDestinatario,
+        String legenda,
+        EventoNotificacao evento,
+        Map<String, Object> variaveis,
+        UUID ordemServicoId,
+        UUID clienteId
+    ) {
+        UUID oficinaId = TenantContext.getTenantId();
+
+        // Busca configuracao da oficina
+        ConfiguracaoNotificacao config = configuracaoRepository
+            .findByOficinaIdAndAtivoTrue(oficinaId)
+            .orElse(null);
+
+        // Cria registro de historico
+        HistoricoNotificacao historico = HistoricoNotificacao.criar(
+            oficinaId,
+            evento,
+            TipoNotificacao.TELEGRAM,
+            config != null ? config.getTelegramChatId() : null,
+            nomeDestinatario,
+            null,
+            legenda != null ? legenda : "Documento enviado",
+            variaveis,
+            null,
+            ordemServicoId,
+            clienteId,
+            null
+        );
+
+        // Valida configuracao
+        if (config == null) {
+            historico.marcarComoFalha("Configuracao de notificacao nao encontrada", "CONFIG_NOT_FOUND");
+            return historicoRepository.save(historico);
+        }
+
+        if (!config.getTelegramHabilitado()) {
+            historico.marcarComoFalha("Telegram nao esta habilitado para esta oficina. Ative em Configuracoes > Notificacoes.", "TELEGRAM_DISABLED");
+            return historicoRepository.save(historico);
+        }
+
+        if (!config.temTelegramConfigurado()) {
+            historico.marcarComoFalha("Telegram nao configurado. Informe o Bot Token e Chat ID em Configuracoes > Notificacoes > Telegram.", "TELEGRAM_NOT_CONFIGURED");
+            return historicoRepository.save(historico);
+        }
+
+        // Verifica horario comercial
+        if (!config.podeEnviarAgora()) {
+            String motivo = gerarMotivoAgendamento(config);
+            java.time.LocalDateTime proximoHorario = calcularProximoHorario(config);
+            historico.agendar(proximoHorario);
+            historico.setMotivoAgendamento(motivo);
+            log.info("Telegram documento agendado para {}: {}", proximoHorario, motivo);
+            return historicoRepository.save(historico);
+        }
+
+        // Modo simulacao
+        if (config.getModoSimulacao()) {
+            log.info("[SIMULACAO] Telegram documento: {} ({})", legenda, documentoUrl);
+            historico.marcarComoEnviado("SIMULADO-DOC-" + UUID.randomUUID());
+            return historicoRepository.save(historico);
+        }
+
+        // Envia documento via Telegram API
+        TelegramConfig telegramConfig = TelegramConfig.from(config);
+
+        // Validacao extra de seguranca
+        if (telegramConfig == null || !telegramConfig.isValid()) {
+            historico.marcarComoFalha("Configuracao do Telegram invalida ou incompleta", "INVALID_CONFIG");
+            return historicoRepository.save(historico);
+        }
+
+        try {
+            TelegramSendResult result = telegramApiClient.enviarDocumento(
+                telegramConfig,
+                documentoUrl,
+                legenda
+            );
+
+            if (result.sucesso()) {
+                historico.marcarComoEnviado(result.messageId());
+                if (result.respostaJson() != null) {
+                    historico.setRespostaApi(Map.of("response", result.respostaJson()));
+                }
+                log.info("Documento Telegram enviado: {}", legenda);
+            } else {
+                String erroMsg = result.erroMensagem() != null ? result.erroMensagem() : "Erro desconhecido ao enviar documento";
+                historico.marcarComoFalha(erroMsg, result.erroCodigo());
+                if (result.respostaJson() != null) {
+                    historico.setRespostaApi(Map.of("error", result.respostaJson()));
+                }
+                log.error("Erro ao enviar documento Telegram: {}", erroMsg);
+            }
+        } catch (Exception e) {
+            log.error("Erro ao enviar documento Telegram: {}", e.getMessage(), e);
+            String erroMsg = e.getMessage() != null ? e.getMessage() : "Erro de conexao com Telegram API";
+            historico.marcarComoFalha(erroMsg, "EXCEPTION");
+        }
+
+        return historicoRepository.save(historico);
+    }
+
+    /**
+     * Envia documento/arquivo via Telegram usando bytes diretamente.
+     * Este metodo faz upload direto do arquivo, nao requer URL publica.
+     *
+     * @param documentBytes Conteudo do documento em bytes
+     * @param fileName Nome do arquivo
+     * @param nomeDestinatario Nome do destinatario
+     * @param legenda Legenda/mensagem opcional
+     * @param evento Evento que disparou
+     * @param variaveis Variaveis do template
+     * @param ordemServicoId ID da OS relacionada
+     * @param clienteId ID do cliente
+     * @return Historico da notificacao
+     */
+    @Transactional
+    public HistoricoNotificacao enviarDocumentoBytes(
+        byte[] documentBytes,
+        String fileName,
+        String nomeDestinatario,
+        String legenda,
+        EventoNotificacao evento,
+        Map<String, Object> variaveis,
+        UUID ordemServicoId,
+        UUID clienteId
+    ) {
+        UUID oficinaId = TenantContext.getTenantId();
+
+        // Busca configuracao da oficina
+        ConfiguracaoNotificacao config = configuracaoRepository
+            .findByOficinaIdAndAtivoTrue(oficinaId)
+            .orElse(null);
+
+        // Cria registro de historico
+        HistoricoNotificacao historico = HistoricoNotificacao.criar(
+            oficinaId,
+            evento,
+            TipoNotificacao.TELEGRAM,
+            config != null ? config.getTelegramChatId() : null,
+            nomeDestinatario,
+            null,
+            legenda != null ? legenda : "Documento: " + fileName,
+            variaveis,
+            null,
+            ordemServicoId,
+            clienteId,
+            null
+        );
+
+        // Valida configuracao
+        if (config == null) {
+            historico.marcarComoFalha("Configuracao de notificacao nao encontrada", "CONFIG_NOT_FOUND");
+            return historicoRepository.save(historico);
+        }
+
+        if (!config.getTelegramHabilitado()) {
+            historico.marcarComoFalha("Telegram nao esta habilitado para esta oficina", "TELEGRAM_DISABLED");
+            return historicoRepository.save(historico);
+        }
+
+        if (!config.temTelegramConfigurado()) {
+            historico.marcarComoFalha("Telegram nao configurado (Bot Token ou Chat ID ausente)", "TELEGRAM_NOT_CONFIGURED");
+            return historicoRepository.save(historico);
+        }
+
+        // Verifica horario comercial
+        if (!config.podeEnviarAgora()) {
+            String motivo = gerarMotivoAgendamento(config);
+            java.time.LocalDateTime proximoHorario = calcularProximoHorario(config);
+            historico.agendar(proximoHorario);
+            historico.setMotivoAgendamento(motivo);
+            log.info("Telegram documento agendado para {}: {}", proximoHorario, motivo);
+            return historicoRepository.save(historico);
+        }
+
+        // Modo simulacao
+        if (config.getModoSimulacao()) {
+            log.info("[SIMULACAO] Telegram documento bytes: {} ({} bytes)", fileName, documentBytes.length);
+            historico.marcarComoEnviado("SIMULADO-DOC-BYTES-" + UUID.randomUUID());
+            return historicoRepository.save(historico);
+        }
+
+        // Envia documento via Telegram API
+        TelegramConfig telegramConfig = TelegramConfig.from(config);
+
+        // Validacao extra de seguranca
+        if (telegramConfig == null || !telegramConfig.isValid()) {
+            historico.marcarComoFalha("Configuracao do Telegram invalida ou incompleta", "INVALID_CONFIG");
+            return historicoRepository.save(historico);
+        }
+
+        try {
+            TelegramSendResult result = telegramApiClient.enviarDocumentoBytes(
+                telegramConfig,
+                documentBytes,
+                fileName,
+                legenda
+            );
+
+            if (result.sucesso()) {
+                historico.marcarComoEnviado(result.messageId());
+                if (result.respostaJson() != null) {
+                    historico.setRespostaApi(Map.of("response", result.respostaJson()));
+                }
+                log.info("Documento Telegram enviado via bytes: {} ({} bytes)", fileName, documentBytes.length);
+            } else {
+                String erroMsg = result.erroMensagem() != null ? result.erroMensagem() : "Erro desconhecido ao enviar documento";
+                historico.marcarComoFalha(erroMsg, result.erroCodigo());
+                if (result.respostaJson() != null) {
+                    historico.setRespostaApi(Map.of("error", result.respostaJson()));
+                }
+                log.error("Erro ao enviar documento Telegram via bytes: {}", erroMsg);
+            }
+        } catch (Exception e) {
+            log.error("Erro ao enviar documento Telegram via bytes: {}", e.getMessage(), e);
+            String erroMsg = e.getMessage() != null ? e.getMessage() : "Erro de conexao com Telegram API";
+            historico.marcarComoFalha(erroMsg, "EXCEPTION");
+        }
+
+        return historicoRepository.save(historico);
+    }
+
+    /**
      * Reenvia uma notificacao que falhou.
      *
      * @param historicoId ID do historico
@@ -324,5 +582,40 @@ public class TelegramService {
             return false;
         }
         return true;
+    }
+
+    /**
+     * Gera mensagem explicativa do motivo do agendamento.
+     */
+    private String gerarMotivoAgendamento(ConfiguracaoNotificacao config) {
+        java.time.LocalTime agora = java.time.LocalTime.now();
+        java.time.DayOfWeek diaSemana = java.time.LocalDate.now().getDayOfWeek();
+
+        // Verifica se e domingo
+        if (diaSemana == java.time.DayOfWeek.SUNDAY && !config.getEnviarDomingos()) {
+            return "Envio bloqueado aos domingos. Desative 'Aplicar horario comercial' ou habilite 'Enviar aos domingos' nas configuracoes.";
+        }
+
+        // Verifica se e sabado
+        if (diaSemana == java.time.DayOfWeek.SATURDAY && !config.getEnviarSabados()) {
+            return "Envio bloqueado aos sabados. Desative 'Aplicar horario comercial' ou habilite 'Enviar aos sabados' nas configuracoes.";
+        }
+
+        // Verifica horario
+        java.time.LocalTime inicio = config.getHorarioInicio();
+        java.time.LocalTime fim = config.getHorarioFim();
+
+        if (inicio != null && fim != null) {
+            if (agora.isBefore(inicio)) {
+                return String.format("Fora do horario comercial. Horario permitido: %s - %s. Desative 'Aplicar horario comercial' para enviar agora.",
+                    inicio.toString(), fim.toString());
+            }
+            if (agora.isAfter(fim)) {
+                return String.format("Fora do horario comercial. Horario permitido: %s - %s. Desative 'Aplicar horario comercial' para enviar agora.",
+                    inicio.toString(), fim.toString());
+            }
+        }
+
+        return "Fora do horario comercial configurado. Desative 'Aplicar horario comercial' nas configuracoes para enviar agora.";
     }
 }

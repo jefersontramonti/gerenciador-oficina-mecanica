@@ -11,6 +11,7 @@ import com.pitstop.cliente.exception.ClienteValidationException;
 import com.pitstop.cliente.exception.CpfCnpjAlreadyExistsException;
 import com.pitstop.cliente.repository.ClienteRepository;
 import com.pitstop.shared.security.tenant.TenantContext;
+import com.pitstop.shared.validation.CpfCnpjUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.cache.annotation.CacheEvict;
@@ -72,7 +73,20 @@ public class ClienteService {
             throw new CpfCnpjAlreadyExistsException(request.getCpfCnpj());
         }
 
-        // TODO: Adicionar validação de dígitos verificadores de CPF/CNPJ
+        // Valida dígitos verificadores do CPF/CNPJ
+        if (!CpfCnpjUtils.isValid(request.getCpfCnpj())) {
+            log.warn("CPF/CNPJ com dígitos verificadores inválidos: {}", request.getCpfCnpj());
+            throw new ClienteValidationException("CPF/CNPJ inválido - os dígitos verificadores não conferem");
+        }
+
+        // Valida compatibilidade entre tipo e documento
+        boolean isCpf = CpfCnpjUtils.isCpf(request.getCpfCnpj());
+        if (request.getTipo() == TipoCliente.PESSOA_FISICA && !isCpf) {
+            throw new ClienteValidationException("Pessoa Física deve informar CPF (11 dígitos)");
+        }
+        if (request.getTipo() == TipoCliente.PESSOA_JURIDICA && isCpf) {
+            throw new ClienteValidationException("Pessoa Jurídica deve informar CNPJ (14 dígitos)");
+        }
 
         Cliente cliente = clienteMapper.toEntity(request);
         Cliente savedCliente = clienteRepository.save(cliente);

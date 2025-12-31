@@ -42,6 +42,7 @@ public interface UsuarioMapper {
      * @param usuario Entidade Usuario
      * @return DTO de resposta com dados seguros
      */
+    @Mapping(source = "oficina.id", target = "oficinaId")
     UsuarioResponse toResponse(Usuario usuario);
 
     /**

@@ -49,7 +49,7 @@ public class DashboardController {
      * @return estatísticas consolidadas
      */
     @GetMapping("/stats")
-    @PreAuthorize("hasAnyAuthority('ADMIN', 'GERENTE', 'ATENDENTE')")
+    @PreAuthorize("hasAnyAuthority('ADMIN', 'GERENTE', 'ATENDENTE', 'MECANICO')")
     @Operation(
             summary = "Estatísticas do dashboard",
             description = "Retorna estatísticas consolidadas: total de clientes, veículos, OS ativas e faturamento do mês"
@@ -81,7 +81,7 @@ public class DashboardController {
      * @return lista de OS recentes
      */
     @GetMapping("/os-recentes")
-    @PreAuthorize("hasAnyAuthority('ADMIN', 'GERENTE', 'ATENDENTE')")
+    @PreAuthorize("hasAnyAuthority('ADMIN', 'GERENTE', 'ATENDENTE', 'MECANICO')")
     @Operation(
             summary = "Ordens de serviço recentes",
             description = "Retorna lista das OS mais recentes com informações de cliente e veículo"
@@ -125,7 +125,7 @@ public class DashboardController {
      * @return lista de contagens por status
      */
     @GetMapping("/os-por-status")
-    @PreAuthorize("hasAnyAuthority('ADMIN', 'GERENTE', 'ATENDENTE')")
+    @PreAuthorize("hasAnyAuthority('ADMIN', 'GERENTE', 'ATENDENTE', 'MECANICO')")
     @Operation(
             summary = "Contagem de OS por status",
             description = "Retorna quantidade de ordens de serviço agrupadas por status para gráficos"
@@ -159,7 +159,7 @@ public class DashboardController {
      * @return lista de faturamento mensal
      */
     @GetMapping("/faturamento-mensal")
-    @PreAuthorize("hasAnyAuthority('ADMIN', 'GERENTE', 'ATENDENTE')")
+    @PreAuthorize("hasAnyAuthority('ADMIN', 'GERENTE', 'ATENDENTE', 'MECANICO')")
     @Operation(
             summary = "Faturamento mensal",
             description = "Retorna faturamento dos últimos N meses para gráficos de evolução"

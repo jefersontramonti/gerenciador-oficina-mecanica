@@ -11,9 +11,11 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
@@ -64,6 +66,9 @@ public class AuthController {
     private final AuthenticationService authenticationService;
     private final PasswordResetService passwordResetService;
 
+    @Value("${spring.profiles.active:dev}")
+    private String activeProfile;
+
     /**
      * Authenticates a user and returns JWT tokens.
      *
@@ -94,14 +99,17 @@ public class AuthController {
                     content = @Content
             )
     })
-    public ResponseEntity<LoginResponse> login(@Valid @RequestBody LoginRequest request) {
+    public ResponseEntity<LoginResponse> login(
+            @Valid @RequestBody LoginRequest request,
+            HttpServletRequest httpRequest
+    ) {
 
         LoginResponse response = authenticationService.login(request);
 
         // Create HttpOnly cookie with refresh token (7 days)
         ResponseCookie cookie = ResponseCookie.from("refreshToken", response.refreshToken())
                 .httpOnly(true)
-                .secure(false) // TODO: Set to true in production (requires HTTPS)
+                .secure(isSecureRequest(httpRequest))
                 .path("/api/auth")
                 .maxAge(7 * 24 * 60 * 60) // 7 days in seconds
                 .sameSite("Strict")
@@ -148,7 +156,8 @@ public class AuthController {
     })
     public ResponseEntity<RefreshResponse> refresh(
             @RequestBody(required = false) RefreshTokenRequest requestBody,
-            @CookieValue(name = "refreshToken", required = false) String cookieRefreshToken
+            @CookieValue(name = "refreshToken", required = false) String cookieRefreshToken,
+            HttpServletRequest httpRequest
     ) {
 
         // Priority: cookie > request body (cookie is more secure)
@@ -166,7 +175,7 @@ public class AuthController {
         // Update HttpOnly cookie with new refresh token
         ResponseCookie cookie = ResponseCookie.from("refreshToken", response.refreshToken())
                 .httpOnly(true)
-                .secure(false) // TODO: Set to true in production
+                .secure(isSecureRequest(httpRequest))
                 .path("/api/auth")
                 .maxAge(7 * 24 * 60 * 60)
                 .sameSite("Strict")
@@ -206,7 +215,10 @@ public class AuthController {
                     content = @Content
             )
     })
-    public ResponseEntity<Void> logout(@AuthenticationPrincipal CustomUserDetails userDetails) {
+    public ResponseEntity<Void> logout(
+            @AuthenticationPrincipal CustomUserDetails userDetails,
+            HttpServletRequest httpRequest
+    ) {
 
         UUID userId = userDetails.getUsuario().getId();
         authenticationService.logout(userId);
@@ -214,7 +226,7 @@ public class AuthController {
         // Clear the refresh token cookie
         ResponseCookie cookie = ResponseCookie.from("refreshToken", "")
                 .httpOnly(true)
-                .secure(false) // TODO: Set to true in production
+                .secure(isSecureRequest(httpRequest))
                 .path("/api/auth")
                 .maxAge(0) // Expire immediately
                 .sameSite("Strict")
@@ -258,14 +270,17 @@ public class AuthController {
                     content = @Content
             )
     })
-    public ResponseEntity<LoginResponse> register(@Valid @RequestBody RegisterRequest request) {
+    public ResponseEntity<LoginResponse> register(
+            @Valid @RequestBody RegisterRequest request,
+            HttpServletRequest httpRequest
+    ) {
 
         LoginResponse response = authenticationService.register(request);
 
         // Create HttpOnly cookie with refresh token (7 days)
         ResponseCookie cookie = ResponseCookie.from("refreshToken", response.refreshToken())
                 .httpOnly(true)
-                .secure(false) // TODO: Set to true in production
+                .secure(isSecureRequest(httpRequest))
                 .path("/api/auth")
                 .maxAge(7 * 24 * 60 * 60)
                 .sameSite("Strict")
@@ -475,5 +490,34 @@ public class AuthController {
         log.info("Password reset successful");
 
         return ResponseEntity.ok().build();
+    }
+
+    /**
+     * Determines if the current request is secure (HTTPS).
+     *
+     * <p>Detection methods (in priority order):</p>
+     * <ol>
+     *   <li>Production profile always returns true (assumes HTTPS termination at load balancer)</li>
+     *   <li>X-Forwarded-Proto header (set by reverse proxies/load balancers)</li>
+     *   <li>Request.isSecure() (direct HTTPS connection)</li>
+     * </ol>
+     *
+     * @param request the HTTP request
+     * @return true if request is secure (HTTPS)
+     */
+    private boolean isSecureRequest(HttpServletRequest request) {
+        // In production, always use secure cookies (HTTPS is required)
+        if ("prod".equalsIgnoreCase(activeProfile)) {
+            return true;
+        }
+
+        // Check X-Forwarded-Proto header (set by reverse proxies like nginx, AWS ALB)
+        String forwardedProto = request.getHeader("X-Forwarded-Proto");
+        if (forwardedProto != null) {
+            return "https".equalsIgnoreCase(forwardedProto);
+        }
+
+        // Fallback to direct connection check
+        return request.isSecure();
     }
 }

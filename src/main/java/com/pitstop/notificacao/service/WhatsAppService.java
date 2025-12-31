@@ -84,24 +84,36 @@ public class WhatsAppService {
 
         // Valida configuracao
         if (config == null) {
-            historico.marcarComoFalha("Configuracao de notificacao nao encontrada", "CONFIG_NOT_FOUND");
+            historico.marcarComoFalha(
+                "Configuracao de notificacao nao encontrada. Acesse Configuracoes > Notificacoes para configurar.",
+                "CONFIG_NOT_FOUND"
+            );
             return historicoRepository.save(historico);
         }
 
         if (!config.getWhatsappHabilitado()) {
-            historico.marcarComoFalha("WhatsApp nao esta habilitado para esta oficina", "WHATSAPP_DISABLED");
+            historico.marcarComoFalha(
+                "WhatsApp nao esta habilitado para esta oficina. Ative em Configuracoes > Notificacoes > WhatsApp.",
+                "WHATSAPP_DISABLED"
+            );
             return historicoRepository.save(historico);
         }
 
         if (!config.temEvolutionApiConfigurada()) {
-            historico.marcarComoFalha("Evolution API nao esta configurada", "EVOLUTION_NOT_CONFIGURED");
+            historico.marcarComoFalha(
+                "Evolution API nao esta configurada. Configure a URL da API, nome da instancia e API Key em Configuracoes > Notificacoes > WhatsApp.",
+                "EVOLUTION_NOT_CONFIGURED"
+            );
             return historicoRepository.save(historico);
         }
 
         // Verifica horario comercial
         if (!config.podeEnviarAgora()) {
-            // Agenda para proximo horario disponivel
+            // Agenda para proximo horario disponivel com mensagem clara
+            String motivo = gerarMotivoAgendamento(config);
+            log.info("WhatsApp agendado para {}: {}", numero, motivo);
             historico.agendar(calcularProximoHorario(config));
+            historico.setMotivoAgendamento(motivo);
             return historicoRepository.save(historico);
         }
 
@@ -230,6 +242,121 @@ public class WhatsAppService {
     }
 
     /**
+     * Envia documento/arquivo via WhatsApp.
+     *
+     * @param numero Numero do destinatario
+     * @param nomeDestinatario Nome do destinatario
+     * @param documentoUrl URL publica do documento
+     * @param nomeArquivo Nome do arquivo
+     * @param legenda Legenda/mensagem opcional
+     * @param evento Evento que disparou
+     * @param variaveis Variaveis do template
+     * @param ordemServicoId ID da OS relacionada
+     * @param clienteId ID do cliente
+     * @return Historico da notificacao
+     */
+    @Transactional
+    public HistoricoNotificacao enviarDocumento(
+        String numero,
+        String nomeDestinatario,
+        String documentoUrl,
+        String nomeArquivo,
+        String legenda,
+        EventoNotificacao evento,
+        Map<String, Object> variaveis,
+        UUID ordemServicoId,
+        UUID clienteId
+    ) {
+        UUID oficinaId = TenantContext.getTenantId();
+
+        // Busca configuracao da oficina
+        ConfiguracaoNotificacao config = configuracaoRepository
+            .findByOficinaIdAndAtivoTrue(oficinaId)
+            .orElse(null);
+
+        // Cria registro de historico
+        HistoricoNotificacao historico = HistoricoNotificacao.criar(
+            oficinaId,
+            evento,
+            TipoNotificacao.WHATSAPP,
+            numero,
+            nomeDestinatario,
+            null,
+            legenda != null ? legenda : "Documento: " + nomeArquivo,
+            variaveis,
+            null,
+            ordemServicoId,
+            clienteId,
+            null
+        );
+
+        // Valida configuracao
+        if (config == null) {
+            historico.marcarComoFalha(
+                "Configuracao de notificacao nao encontrada. Acesse Configuracoes > Notificacoes para configurar.",
+                "CONFIG_NOT_FOUND"
+            );
+            return historicoRepository.save(historico);
+        }
+
+        if (!config.getWhatsappHabilitado()) {
+            historico.marcarComoFalha(
+                "WhatsApp nao esta habilitado para esta oficina. Ative em Configuracoes > Notificacoes > WhatsApp.",
+                "WHATSAPP_DISABLED"
+            );
+            return historicoRepository.save(historico);
+        }
+
+        if (!config.temEvolutionApiConfigurada()) {
+            historico.marcarComoFalha(
+                "Evolution API nao esta configurada. Configure a URL da API, nome da instancia e API Key em Configuracoes > Notificacoes > WhatsApp.",
+                "EVOLUTION_NOT_CONFIGURED"
+            );
+            return historicoRepository.save(historico);
+        }
+
+        // Verifica horario comercial
+        if (!config.podeEnviarAgora()) {
+            String motivo = gerarMotivoAgendamento(config);
+            log.info("WhatsApp documento agendado para {}: {}", numero, motivo);
+            historico.agendar(calcularProximoHorario(config));
+            historico.setMotivoAgendamento(motivo);
+            return historicoRepository.save(historico);
+        }
+
+        // Modo simulacao
+        if (config.getModoSimulacao()) {
+            log.info("[SIMULACAO] WhatsApp documento para {}: {} ({})", numero, nomeArquivo, documentoUrl);
+            historico.marcarComoEnviado("SIMULADO-DOC-" + UUID.randomUUID());
+            return historicoRepository.save(historico);
+        }
+
+        // Envia documento via Evolution API
+        EvolutionConfig evolutionConfig = EvolutionConfig.from(config);
+        EvolutionSendResult result = evolutionApiClient.enviarDocumento(
+            evolutionConfig,
+            numero,
+            documentoUrl,
+            nomeArquivo,
+            legenda
+        );
+
+        if (result.sucesso()) {
+            historico.marcarComoEnviado(result.messageId());
+            historico.setRespostaApi(Map.of("response", result.respostaJson()));
+            log.info("Documento WhatsApp enviado para {}: {}", numero, nomeArquivo);
+        } else {
+            historico.marcarComoFalha(result.erroMensagem(), result.erroCodigo());
+            if (result.respostaJson() != null) {
+                historico.setRespostaApi(Map.of("error", result.respostaJson()));
+            }
+            log.error("Erro ao enviar documento WhatsApp para {}: {}", numero, result.erroMensagem());
+        }
+
+        return historicoRepository.save(historico);
+    }
+
+    /**
      * Reenvia uma notificacao que falhou.
      *
      * @param historicoId ID do historico
@@ -306,5 +433,51 @@ public class WhatsAppService {
             return false;
         }
         return true;
+    }
+
+    /**
+     * Gera uma mensagem clara explicando por que a notificacao foi agendada.
+     */
+    private String gerarMotivoAgendamento(ConfiguracaoNotificacao config) {
+        java.time.LocalTime agora = java.time.LocalTime.now();
+        java.time.DayOfWeek diaSemana = java.time.LocalDate.now().getDayOfWeek();
+
+        // Verifica se e domingo
+        if (diaSemana == java.time.DayOfWeek.SUNDAY && !config.getEnviarDomingos()) {
+            return "Envio bloqueado aos domingos conforme suas configuracoes. " +
+                   "Para enviar agora, desative 'Aplicar horario comercial' ou habilite 'Enviar aos domingos' " +
+                   "em Configuracoes > Notificacoes > Politicas de Envio.";
+        }
+
+        // Verifica se e sabado
+        if (diaSemana == java.time.DayOfWeek.SATURDAY && !config.getEnviarSabados()) {
+            return "Envio bloqueado aos sabados conforme suas configuracoes. " +
+                   "Para enviar agora, desative 'Aplicar horario comercial' ou habilite 'Enviar aos sabados' " +
+                   "em Configuracoes > Notificacoes > Politicas de Envio.";
+        }
+
+        // Verifica horario comercial
+        java.time.LocalTime inicio = config.getHorarioInicio();
+        java.time.LocalTime fim = config.getHorarioFim();
+
+        if (agora.isBefore(inicio)) {
+            return String.format(
+                "Fora do horario comercial (antes das %s). " +
+                "Horario configurado: %s as %s. " +
+                "Para enviar agora, desative 'Aplicar horario comercial' em Configuracoes > Notificacoes > Politicas de Envio.",
+                inicio, inicio, fim
+            );
+        }
+
+        if (agora.isAfter(fim)) {
+            return String.format(
+                "Fora do horario comercial (apos %s). " +
+                "Horario configurado: %s as %s. " +
+                "Para enviar agora, desative 'Aplicar horario comercial' em Configuracoes > Notificacoes > Politicas de Envio.",
+                fim, inicio, fim
+            );
+        }
+
+        return "Agendado conforme politicas de envio configuradas.";
     }
 }

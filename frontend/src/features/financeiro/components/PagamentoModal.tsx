@@ -91,8 +91,8 @@ export function PagamentoModal({
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
         {/* Tipo de Pagamento */}
         <div>
-          <label className="mb-1 block text-sm font-medium text-gray-700">
-            Tipo de Pagamento <span className="text-red-600">*</span>
+          <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
+            Tipo de Pagamento <span className="text-red-600 dark:text-red-400">*</span>
           </label>
           <Controller
             name="tipo"
@@ -101,9 +101,9 @@ export function PagamentoModal({
               <select
                 {...field}
                 className={`
-                  w-full rounded-lg border px-3 py-2
-                  focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20
-                  ${errors.tipo ? 'border-red-500' : 'border-gray-300'}
+                  w-full rounded-lg border px-3 py-2 bg-white dark:bg-gray-700 text-gray-900 dark:text-white
+                  focus:border-blue-500 dark:focus:border-blue-400 focus:outline-none focus:ring-2 focus:ring-blue-500/20
+                  ${errors.tipo ? 'border-red-500 dark:border-red-400' : 'border-gray-300 dark:border-gray-600'}
                 `}
               >
                 <option value="">Selecione o tipo</option>
@@ -116,15 +116,15 @@ export function PagamentoModal({
             )}
           />
           {errors.tipo && (
-            <p className="mt-1 text-sm text-red-600">{errors.tipo.message}</p>
+            <p className="mt-1 text-sm text-red-600 dark:text-red-400">{errors.tipo.message}</p>
           )}
         </div>
 
         {/* Valor e Data de Vencimento */}
         <div className="grid gap-4 md:grid-cols-2">
           <div>
-            <label className="mb-1 block text-sm font-medium text-gray-700">
-              Valor (R$) <span className="text-red-600">*</span>
+            <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
+              Valor (R$) <span className="text-red-600 dark:text-red-400">*</span>
             </label>
             <input
               type="number"
@@ -132,36 +132,37 @@ export function PagamentoModal({
               placeholder="0.00"
               {...register('valor', { valueAsNumber: true })}
               className={`
-                w-full rounded-lg border px-3 py-2
-                focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20
-                ${errors.valor ? 'border-red-500' : 'border-gray-300'}
+                w-full rounded-lg border px-3 py-2 bg-white dark:bg-gray-700 text-gray-900 dark:text-white
+                placeholder-gray-400 dark:placeholder-gray-500
+                focus:border-blue-500 dark:focus:border-blue-400 focus:outline-none focus:ring-2 focus:ring-blue-500/20
+                ${errors.valor ? 'border-red-500 dark:border-red-400' : 'border-gray-300 dark:border-gray-600'}
               `}
             />
             {errors.valor && (
-              <p className="mt-1 text-sm text-red-600">{errors.valor.message}</p>
+              <p className="mt-1 text-sm text-red-600 dark:text-red-400">{errors.valor.message}</p>
             )}
             {valorDefault && (
-              <p className="mt-1 text-xs text-green-600">
+              <p className="mt-1 text-xs text-green-600 dark:text-green-400">
                 ✓ Valor sugerido: R$ {valorDefault.toFixed(2)}
               </p>
             )}
           </div>
 
           <div>
-            <label className="mb-1 block text-sm font-medium text-gray-700">
+            <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
               Data de Vencimento
             </label>
             <input
               type="date"
               {...register('dataVencimento')}
               className={`
-                w-full rounded-lg border px-3 py-2
-                focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20
-                ${errors.dataVencimento ? 'border-red-500' : 'border-gray-300'}
+                w-full rounded-lg border px-3 py-2 bg-white dark:bg-gray-700 text-gray-900 dark:text-white
+                focus:border-blue-500 dark:focus:border-blue-400 focus:outline-none focus:ring-2 focus:ring-blue-500/20
+                ${errors.dataVencimento ? 'border-red-500 dark:border-red-400' : 'border-gray-300 dark:border-gray-600'}
               `}
             />
             {errors.dataVencimento && (
-              <p className="mt-1 text-sm text-red-600">{errors.dataVencimento.message}</p>
+              <p className="mt-1 text-sm text-red-600 dark:text-red-400">{errors.dataVencimento.message}</p>
             )}
           </div>
         </div>
@@ -169,8 +170,8 @@ export function PagamentoModal({
         {/* Parcelas */}
         <div className="grid gap-4 md:grid-cols-2">
           <div>
-            <label className="mb-1 block text-sm font-medium text-gray-700">
-              Número de Parcelas <span className="text-red-600">*</span>
+            <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
+              Número de Parcelas <span className="text-red-600 dark:text-red-400">*</span>
             </label>
             <input
               type="number"
@@ -178,19 +179,19 @@ export function PagamentoModal({
               max="12"
               {...register('parcelas', { valueAsNumber: true })}
               className={`
-                w-full rounded-lg border px-3 py-2
-                focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20
-                ${errors.parcelas ? 'border-red-500' : 'border-gray-300'}
+                w-full rounded-lg border px-3 py-2 bg-white dark:bg-gray-700 text-gray-900 dark:text-white
+                focus:border-blue-500 dark:focus:border-blue-400 focus:outline-none focus:ring-2 focus:ring-blue-500/20
+                ${errors.parcelas ? 'border-red-500 dark:border-red-400' : 'border-gray-300 dark:border-gray-600'}
               `}
             />
             {errors.parcelas && (
-              <p className="mt-1 text-sm text-red-600">{errors.parcelas.message}</p>
+              <p className="mt-1 text-sm text-red-600 dark:text-red-400">{errors.parcelas.message}</p>
             )}
-            <p className="mt-1 text-xs text-gray-500">Máximo de 12 parcelas</p>
+            <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">Máximo de 12 parcelas</p>
           </div>
 
           <div>
-            <label className="mb-1 block text-sm font-medium text-gray-700">
+            <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
               Parcela Atual
             </label>
             <input
@@ -198,15 +199,15 @@ export function PagamentoModal({
               min="1"
               {...register('parcelaAtual', { valueAsNumber: true })}
               className={`
-                w-full rounded-lg border px-3 py-2
-                focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20
-                ${errors.parcelaAtual ? 'border-red-500' : 'border-gray-300'}
+                w-full rounded-lg border px-3 py-2 bg-white dark:bg-gray-700 text-gray-900 dark:text-white
+                focus:border-blue-500 dark:focus:border-blue-400 focus:outline-none focus:ring-2 focus:ring-blue-500/20
+                ${errors.parcelaAtual ? 'border-red-500 dark:border-red-400' : 'border-gray-300 dark:border-gray-600'}
               `}
             />
             {errors.parcelaAtual && (
-              <p className="mt-1 text-sm text-red-600">{errors.parcelaAtual.message}</p>
+              <p className="mt-1 text-sm text-red-600 dark:text-red-400">{errors.parcelaAtual.message}</p>
             )}
-            <p className="mt-1 text-xs text-gray-500">
+            <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
               Útil para registrar parcelas já pagas
             </p>
           </div>
@@ -214,38 +215,39 @@ export function PagamentoModal({
 
         {/* Observação */}
         <div>
-          <label className="mb-1 block text-sm font-medium text-gray-700">
+          <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
             Observação
           </label>
           <textarea
             placeholder="Adicione observações sobre o pagamento..."
             {...register('observacao')}
             className={`
-              w-full rounded-lg border px-3 py-2
-              focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20
-              ${errors.observacao ? 'border-red-500' : 'border-gray-300'}
+              w-full rounded-lg border px-3 py-2 bg-white dark:bg-gray-700 text-gray-900 dark:text-white
+              placeholder-gray-400 dark:placeholder-gray-500
+              focus:border-blue-500 dark:focus:border-blue-400 focus:outline-none focus:ring-2 focus:ring-blue-500/20
+              ${errors.observacao ? 'border-red-500 dark:border-red-400' : 'border-gray-300 dark:border-gray-600'}
             `}
             rows={3}
           />
           {errors.observacao && (
-            <p className="mt-1 text-sm text-red-600">{errors.observacao.message}</p>
+            <p className="mt-1 text-sm text-red-600 dark:text-red-400">{errors.observacao.message}</p>
           )}
         </div>
 
         {/* Botões */}
-        <div className="flex justify-end gap-2 border-t border-gray-200 pt-4">
+        <div className="flex justify-end gap-2 border-t border-gray-200 dark:border-gray-700 pt-4">
           <button
             type="button"
             onClick={handleClose}
             disabled={isPending}
-            className="rounded-lg border border-gray-300 px-4 py-2 text-gray-700 hover:bg-gray-50 disabled:opacity-50"
+            className="rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 px-4 py-2 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-600 disabled:opacity-50"
           >
             Cancelar
           </button>
           <button
             type="submit"
             disabled={isPending}
-            className="rounded-lg bg-blue-600 px-4 py-2 text-white hover:bg-blue-700 disabled:bg-gray-400"
+            className="rounded-lg bg-blue-600 px-4 py-2 text-white hover:bg-blue-700 disabled:bg-gray-400 dark:disabled:bg-gray-600"
           >
             {isPending ? 'Salvando...' : 'Criar Pagamento'}
           </button>

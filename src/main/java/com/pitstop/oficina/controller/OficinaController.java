@@ -207,7 +207,7 @@ public class OficinaController {
         @ApiResponse(responseCode = "404", description = "Oficina não encontrada")
     })
     @PutMapping("/{id}")
-    @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_ADMIN')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'GERENTE', 'SUPER_ADMIN')")
     public ResponseEntity<OficinaResponse> update(
         @PathVariable UUID id,
         @Valid @RequestBody UpdateOficinaRequest request

@@ -198,6 +198,7 @@ public class OrdemServicoService {
 
     /**
      * Lista OS com filtros opcionais e paginação.
+     * OTIMIZADO: Usa query nativa com JOINs para evitar N+1 queries.
      *
      * @param status status da OS (opcional)
      * @param veiculoId ID do veículo (opcional)
@@ -219,9 +220,108 @@ public class OrdemServicoService {
         UUID oficinaId = TenantContext.getTenantId();
         String statusStr = status != null ? status.name() : null;
 
-        Page<OrdemServico> page = repository.findByFiltros(oficinaId, statusStr, veiculoId, usuarioId, dataInicio, dataFim, pageable);
+        // Usa query otimizada que traz todos os dados em uma única consulta
+        Page<Object[]> page = repository.findByFiltrosOptimized(
+            oficinaId, statusStr, veiculoId, usuarioId, dataInicio, dataFim, pageable
+        );
 
-        return page.map(this::montarResponse);
+        return page.map(this::mapFromNativeQuery);
+    }
+
+    /**
+     * Mapeia resultado da query nativa para DTO.
+     * Índices conforme SELECT da query findByFiltrosOptimized:
+     * 0:id, 1:numero, 2:status, 3:data_abertura, 4:data_previsao, 5:data_finalizacao,
+     * 6:data_entrega, 7:valor_mao_obra, 8:valor_pecas, 9:valor_total, 10:desconto_percentual,
+     * 11:valor_final, 12:problemas_relatados, 13:diagnostico, 14:observacoes,
+     * 15:veiculo_id, 16:usuario_id, 17:veiculo_placa, 18:veiculo_marca, 19:veiculo_modelo,
+     * 20:veiculo_ano, 21:veiculo_cor, 22:cliente_id, 23:cliente_nome, 24:cliente_telefone,
+     * 25:cliente_email, 26:mecanico_nome
+     */
+    private OrdemServicoResponseDTO mapFromNativeQuery(Object[] row) {
+        UUID osId = (UUID) row[0];
+        Long numero = row[1] != null ? ((Number) row[1]).longValue() : null;
+        StatusOS osStatus = row[2] != null ? StatusOS.valueOf((String) row[2]) : null;
+
+        // Datas
+        LocalDateTime dataAbertura = row[3] != null ? ((java.sql.Timestamp) row[3]).toLocalDateTime() : null;
+        LocalDate dataPrevisao = row[4] != null ? ((java.sql.Date) row[4]).toLocalDate() : null;
+        LocalDateTime dataFinalizacao = row[5] != null ? ((java.sql.Timestamp) row[5]).toLocalDateTime() : null;
+        LocalDateTime dataEntrega = row[6] != null ? ((java.sql.Timestamp) row[6]).toLocalDateTime() : null;
+
+        // Valores
+        BigDecimal valorMaoObra = row[7] != null ? (BigDecimal) row[7] : BigDecimal.ZERO;
+        BigDecimal valorPecas = row[8] != null ? (BigDecimal) row[8] : BigDecimal.ZERO;
+        BigDecimal valorTotal = row[9] != null ? (BigDecimal) row[9] : BigDecimal.ZERO;
+        BigDecimal descontoPercentual = row[10] != null ? (BigDecimal) row[10] : BigDecimal.ZERO;
+        BigDecimal valorFinal = row[11] != null ? (BigDecimal) row[11] : BigDecimal.ZERO;
+
+        // Textos
+        String problemasRelatados = (String) row[12];
+        String diagnostico = (String) row[13];
+        String observacoes = (String) row[14];
+
+        // IDs
+        UUID veiculoIdVal = (UUID) row[15];
+        UUID usuarioIdVal = (UUID) row[16];
+
+        // Veiculo
+        VeiculoResumoDTO veiculoDto = new VeiculoResumoDTO(
+            veiculoIdVal,
+            (String) row[17], // placa
+            (String) row[18], // marca
+            (String) row[19], // modelo
+            row[20] != null ? ((Number) row[20]).intValue() : null, // ano
+            (String) row[21]  // cor
+        );
+
+        // Cliente
+        UUID clienteId = (UUID) row[22];
+        ClienteResumoDTO clienteDto = clienteId != null ? new ClienteResumoDTO(
+            clienteId,
+            (String) row[23], // nome
+            null, // cpfCnpj - não retornamos na listagem
+            (String) row[24], // telefone
+            (String) row[25]  // email
+        ) : null;
+
+        // Mecânico
+        UsuarioResumoDTO mecanicoDto = usuarioIdVal != null ? new UsuarioResumoDTO(
+            usuarioIdVal,
+            (String) row[26], // nome
+            null, // email
+            null  // perfil
+        ) : null;
+
+        // Calcula desconto em valor
+        BigDecimal descontoValor = valorTotal.multiply(descontoPercentual)
+            .divide(BigDecimal.valueOf(100), 2, java.math.RoundingMode.HALF_UP);
+
+        return new OrdemServicoResponseDTO(
+            osId,
+            numero,
+            osStatus,
+            veiculoDto,
+            clienteDto,
+            mecanicoDto,
+            dataAbertura,
+            dataPrevisao,
+            dataFinalizacao,
+            dataEntrega,
+            problemasRelatados,
+            diagnostico,
+            observacoes,
+            valorMaoObra,
+            valorPecas,
+            valorTotal,
+            descontoPercentual,
+            descontoValor,
+            valorFinal,
+            null, // aprovadoPeloCliente - não retornamos na listagem básica
+            null, // itens - não carregamos na listagem
+            null, // createdAt
+            null  // updatedAt
+        );
     }
 
     /**

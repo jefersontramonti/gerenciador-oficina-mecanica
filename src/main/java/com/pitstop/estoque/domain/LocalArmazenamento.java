@@ -4,6 +4,7 @@ import com.pitstop.oficina.domain.Oficina;
 import com.pitstop.shared.security.tenant.TenantContext;
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.Hibernate;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
@@ -124,10 +125,17 @@ public class LocalArmazenamento {
      * Retorna o caminho completo hierárquico do local.
      * Exemplo: "Depósito Principal > Setor A > Armário 1 > Prateleira 3"
      *
-     * @return caminho completo
+     * Verifica se o proxy Hibernate está inicializado antes de acessar
+     * recursivamente para evitar LazyInitializationException.
+     *
+     * @return caminho completo (ou parcial se hierarquia não estiver carregada)
      */
     public String getCaminhoCompleto() {
         if (localizacaoPai == null) {
+            return descricao;
+        }
+        // Verifica se o proxy do pai está inicializado para evitar LazyInitializationException
+        if (!Hibernate.isInitialized(localizacaoPai)) {
             return descricao;
         }
         return localizacaoPai.getCaminhoCompleto() + " > " + descricao;
@@ -137,11 +145,18 @@ public class LocalArmazenamento {
      * Calcula o nível na hierarquia.
      * Nível 0 = raiz (sem pai), nível 1 = filho direto da raiz, etc.
      *
-     * @return nível na hierarquia
+     * Verifica se o proxy Hibernate está inicializado antes de acessar
+     * recursivamente para evitar LazyInitializationException.
+     *
+     * @return nível na hierarquia (1 se hierarquia não estiver carregada)
      */
     public int getNivel() {
         if (localizacaoPai == null) {
             return 0;
+        }
+        // Verifica se o proxy do pai está inicializado para evitar LazyInitializationException
+        if (!Hibernate.isInitialized(localizacaoPai)) {
+            return 1; // Retorna 1 se tem pai mas não consegue calcular recursivamente
         }
         return 1 + localizacaoPai.getNivel();
     }

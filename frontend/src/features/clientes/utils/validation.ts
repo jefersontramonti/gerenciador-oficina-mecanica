@@ -11,6 +11,92 @@ const telefonePattern = /^(\(\d{2}\)\s?)?\d{4,5}-?\d{4}$/;
 const cepPattern = /^\d{5}-\d{3}$/;
 const ufPattern = /^[A-Z]{2}$/;
 
+/**
+ * Remove formatação do CPF/CNPJ (pontos, traços, barras)
+ */
+const removeFormatacao = (documento: string): string => {
+  return documento.replace(/[^\d]/g, '');
+};
+
+/**
+ * Valida CPF com dígitos verificadores (algoritmo Receita Federal)
+ */
+const isValidCpf = (cpf: string): boolean => {
+  const limpo = removeFormatacao(cpf);
+
+  if (limpo.length !== 11) return false;
+
+  // Rejeita CPFs com todos os dígitos iguais
+  if (/^(\d)\1{10}$/.test(limpo)) return false;
+
+  // Calcula primeiro dígito verificador
+  let soma = 0;
+  for (let i = 0; i < 9; i++) {
+    soma += parseInt(limpo.charAt(i)) * (10 - i);
+  }
+  let resto = soma % 11;
+  const primeiroDigito = resto < 2 ? 0 : 11 - resto;
+
+  if (parseInt(limpo.charAt(9)) !== primeiroDigito) return false;
+
+  // Calcula segundo dígito verificador
+  soma = 0;
+  for (let i = 0; i < 10; i++) {
+    soma += parseInt(limpo.charAt(i)) * (11 - i);
+  }
+  resto = soma % 11;
+  const segundoDigito = resto < 2 ? 0 : 11 - resto;
+
+  return parseInt(limpo.charAt(10)) === segundoDigito;
+};
+
+/**
+ * Valida CNPJ com dígitos verificadores (algoritmo Receita Federal)
+ */
+const isValidCnpj = (cnpj: string): boolean => {
+  const limpo = removeFormatacao(cnpj);
+
+  if (limpo.length !== 14) return false;
+
+  // Rejeita CNPJs com todos os dígitos iguais
+  if (/^(\d)\1{13}$/.test(limpo)) return false;
+
+  const pesosPrimeiroDigito = [5, 4, 3, 2, 9, 8, 7, 6, 5, 4, 3, 2];
+  const pesosSegundoDigito = [6, 5, 4, 3, 2, 9, 8, 7, 6, 5, 4, 3, 2];
+
+  // Calcula primeiro dígito verificador
+  let soma = 0;
+  for (let i = 0; i < 12; i++) {
+    soma += parseInt(limpo.charAt(i)) * pesosPrimeiroDigito[i];
+  }
+  let resto = soma % 11;
+  const primeiroDigito = resto < 2 ? 0 : 11 - resto;
+
+  if (parseInt(limpo.charAt(12)) !== primeiroDigito) return false;
+
+  // Calcula segundo dígito verificador
+  soma = 0;
+  for (let i = 0; i < 13; i++) {
+    soma += parseInt(limpo.charAt(i)) * pesosSegundoDigito[i];
+  }
+  resto = soma % 11;
+  const segundoDigito = resto < 2 ? 0 : 11 - resto;
+
+  return parseInt(limpo.charAt(13)) === segundoDigito;
+};
+
+/**
+ * Valida CPF ou CNPJ automaticamente baseado no tamanho
+ */
+const isValidCpfCnpj = (documento: string): boolean => {
+  const limpo = removeFormatacao(documento);
+
+  if (limpo.length === 11) return isValidCpf(documento);
+  if (limpo.length === 14) return isValidCnpj(documento);
+
+  return false;
+};
+
 // Create cliente validation
 export const createClienteSchema = z.object({
   tipo: z.enum(['PESSOA_FISICA', 'PESSOA_JURIDICA'], {
@@ -22,7 +108,11 @@ export const createClienteSchema = z.object({
     .min(1, 'CPF/CNPJ é obrigatório')
     .refine(
       (val) => cpfPattern.test(val) || cnpjPattern.test(val),
-      'CPF/CNPJ inválido. Use formato: 000.000.000-00 ou 00.000.000/0000-00'
+      'Formato inválido. Use: 000.000.000-00 (CPF) ou 00.000.000/0000-00 (CNPJ)'
+    )
+    .refine(
+      (val) => isValidCpfCnpj(val),
+      'CPF/CNPJ inválido - os dígitos verificadores não conferem'
     ),
   email: z.string().email('Email inválido').max(100).optional().or(z.literal('')),
   telefone: z

@@ -143,3 +143,15 @@ databaseChangeLog:
   - include:
       file: db/changelog/migrations/V049__fix_oficinas_contact_format.sql
       relativeToChangelogFile: false
+  - include:
+      file: db/changelog/migrations/V050__add_motivo_agendamento_to_historico.sql
+      relativeToChangelogFile: false
+  - include:
+      file: db/changelog/migrations/V051__create_configuracoes_gateway_table.sql
+      relativeToChangelogFile: false
+  - include:
+      file: db/changelog/migrations/V052__create_contas_bancarias_table.sql
+      relativeToChangelogFile: false
+  - include:
+      file: db/changelog/migrations/V053__create_pagamentos_online_table.sql
+      relativeToChangelogFile: false

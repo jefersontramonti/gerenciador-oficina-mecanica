@@ -276,8 +276,16 @@ public class ConfiguracaoNotificacaoController {
 
                     if (historico.getStatus() == com.pitstop.notificacao.domain.StatusNotificacao.ENVIADO) {
                         return ResponseEntity.ok(new TesteNotificacaoResponse(true, "Mensagem de teste enviada com sucesso"));
+                    } else if (historico.getStatus() == com.pitstop.notificacao.domain.StatusNotificacao.AGENDADO) {
+                        String motivo = historico.getMotivoAgendamento() != null
+                            ? historico.getMotivoAgendamento()
+                            : "Notificacao agendada para envio posterior conforme politicas de envio.";
+                        return ResponseEntity.ok(new TesteNotificacaoResponse(false, motivo));
                     } else {
-                        return ResponseEntity.ok(new TesteNotificacaoResponse(false, historico.getErroMensagem()));
+                        String erro = historico.getErroMensagem() != null
+                            ? historico.getErroMensagem()
+                            : "Falha ao enviar. Verifique as configuracoes.";
+                        return ResponseEntity.ok(new TesteNotificacaoResponse(false, erro));
                     }
                 }
                 case SMS -> {
@@ -301,8 +309,16 @@ public class ConfiguracaoNotificacaoController {
 
                     if (historico.getStatus() == com.pitstop.notificacao.domain.StatusNotificacao.ENVIADO) {
                         return ResponseEntity.ok(new TesteNotificacaoResponse(true, "Mensagem de teste enviada com sucesso"));
+                    } else if (historico.getStatus() == com.pitstop.notificacao.domain.StatusNotificacao.AGENDADO) {
+                        String motivo = historico.getMotivoAgendamento() != null
+                            ? historico.getMotivoAgendamento()
+                            : "Notificacao agendada para envio posterior conforme politicas de envio.";
+                        return ResponseEntity.ok(new TesteNotificacaoResponse(false, motivo));
                     } else {
-                        return ResponseEntity.ok(new TesteNotificacaoResponse(false, historico.getErroMensagem()));
+                        String erro = historico.getErroMensagem() != null
+                            ? historico.getErroMensagem()
+                            : "Falha ao enviar. Verifique as configuracoes.";
+                        return ResponseEntity.ok(new TesteNotificacaoResponse(false, erro));
                     }
                 }
                 default -> {

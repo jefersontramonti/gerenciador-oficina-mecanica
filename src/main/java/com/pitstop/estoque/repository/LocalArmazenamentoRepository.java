@@ -35,7 +35,7 @@ public interface LocalArmazenamentoRepository extends JpaRepository<LocalArmazen
      * @param id ID do local
      * @return Optional contendo o local se encontrado
      */
-    @Query("SELECT DISTINCT l FROM LocalArmazenamento l LEFT JOIN FETCH l.locaisFilhos WHERE l.oficina.id = :oficinaId AND l.id = :id")
+    @Query("SELECT DISTINCT l FROM LocalArmazenamento l LEFT JOIN FETCH l.locaisFilhos LEFT JOIN FETCH l.localizacaoPai WHERE l.oficina.id = :oficinaId AND l.id = :id")
     Optional<LocalArmazenamento> findByOficinaIdAndId(@Param("oficinaId") UUID oficinaId, @Param("id") UUID id);
 
     /**
@@ -45,7 +45,7 @@ public interface LocalArmazenamentoRepository extends JpaRepository<LocalArmazen
      * @param codigo código único do local
      * @return Optional contendo o local se encontrado
      */
-    @Query("SELECT DISTINCT l FROM LocalArmazenamento l LEFT JOIN FETCH l.locaisFilhos WHERE l.oficina.id = :oficinaId AND l.codigo = :codigo")
+    @Query("SELECT DISTINCT l FROM LocalArmazenamento l LEFT JOIN FETCH l.locaisFilhos LEFT JOIN FETCH l.localizacaoPai WHERE l.oficina.id = :oficinaId AND l.codigo = :codigo")
     Optional<LocalArmazenamento> findByOficinaIdAndCodigo(@Param("oficinaId") UUID oficinaId, @Param("codigo") String codigo);
 
     /**
@@ -77,7 +77,7 @@ public interface LocalArmazenamentoRepository extends JpaRepository<LocalArmazen
      * @param oficinaId ID da oficina (tenant)
      * @return lista de locais ativos
      */
-    @Query("SELECT DISTINCT l FROM LocalArmazenamento l LEFT JOIN FETCH l.locaisFilhos WHERE l.oficina.id = :oficinaId AND l.ativo = true ORDER BY l.descricao")
+    @Query("SELECT DISTINCT l FROM LocalArmazenamento l LEFT JOIN FETCH l.locaisFilhos LEFT JOIN FETCH l.localizacaoPai WHERE l.oficina.id = :oficinaId AND l.ativo = true ORDER BY l.descricao")
     List<LocalArmazenamento> findByOficinaIdAndAtivoTrue(@Param("oficinaId") UUID oficinaId);
 
     /**
@@ -99,7 +99,7 @@ public interface LocalArmazenamentoRepository extends JpaRepository<LocalArmazen
      * @param paiId ID do local pai
      * @return lista de locais filhos
      */
-    @Query("SELECT DISTINCT l FROM LocalArmazenamento l LEFT JOIN FETCH l.locaisFilhos WHERE l.oficina.id = :oficinaId AND l.localizacaoPai.id = :paiId AND l.ativo = true ORDER BY l.descricao")
+    @Query("SELECT DISTINCT l FROM LocalArmazenamento l LEFT JOIN FETCH l.locaisFilhos LEFT JOIN FETCH l.localizacaoPai WHERE l.oficina.id = :oficinaId AND l.localizacaoPai.id = :paiId AND l.ativo = true ORDER BY l.descricao")
     List<LocalArmazenamento> findByOficinaIdAndLocalizacaoPaiId(@Param("oficinaId") UUID oficinaId, @Param("paiId") UUID paiId);
 
     /**
@@ -110,7 +110,7 @@ public interface LocalArmazenamentoRepository extends JpaRepository<LocalArmazen
      * @param tipo tipo do local
      * @return lista de locais do tipo especificado
      */
-    @Query("SELECT DISTINCT l FROM LocalArmazenamento l LEFT JOIN FETCH l.locaisFilhos WHERE l.oficina.id = :oficinaId AND l.tipo = :tipo AND l.ativo = true ORDER BY l.descricao")
+    @Query("SELECT DISTINCT l FROM LocalArmazenamento l LEFT JOIN FETCH l.locaisFilhos LEFT JOIN FETCH l.localizacaoPai WHERE l.oficina.id = :oficinaId AND l.tipo = :tipo AND l.ativo = true ORDER BY l.descricao")
     List<LocalArmazenamento> findByOficinaIdAndTipoAndAtivoTrue(@Param("oficinaId") UUID oficinaId, @Param("tipo") TipoLocal tipo);
 
     /**
@@ -192,7 +192,7 @@ public interface LocalArmazenamentoRepository extends JpaRepository<LocalArmazen
      * @param descricao texto a buscar
      * @return lista de locais encontrados
      */
-    @Query("SELECT DISTINCT l FROM LocalArmazenamento l LEFT JOIN FETCH l.locaisFilhos WHERE l.oficina.id = :oficinaId AND LOWER(l.descricao) LIKE LOWER(CONCAT('%', :descricao, '%')) AND l.ativo = true ORDER BY l.descricao")
+    @Query("SELECT DISTINCT l FROM LocalArmazenamento l LEFT JOIN FETCH l.locaisFilhos LEFT JOIN FETCH l.localizacaoPai WHERE l.oficina.id = :oficinaId AND LOWER(l.descricao) LIKE LOWER(CONCAT('%', :descricao, '%')) AND l.ativo = true ORDER BY l.descricao")
     List<LocalArmazenamento> findByOficinaIdAndDescricaoContainingIgnoreCaseAndAtivoTrue(@Param("oficinaId") UUID oficinaId, @Param("descricao") String descricao);
 
     /**
@@ -226,7 +226,8 @@ public interface LocalArmazenamentoRepository extends JpaRepository<LocalArmazen
      * @param pageable paginação
      * @return página de locais
      */
-    @Query("SELECT DISTINCT l FROM LocalArmazenamento l LEFT JOIN FETCH l.locaisFilhos WHERE l.oficina.id = :oficinaId")
+    @Query(value = "SELECT DISTINCT l FROM LocalArmazenamento l LEFT JOIN FETCH l.locaisFilhos LEFT JOIN FETCH l.localizacaoPai WHERE l.oficina.id = :oficinaId",
+           countQuery = "SELECT COUNT(DISTINCT l) FROM LocalArmazenamento l WHERE l.oficina.id = :oficinaId")
     Page<LocalArmazenamento> findByOficinaId(@Param("oficinaId") UUID oficinaId, Pageable pageable);
 
     /**

@@ -1,7 +1,7 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Mail, MessageSquare, Eye, Save, Clock, X, Send, Smile, Bell, Smartphone, Loader2 } from 'lucide-react';
-import { useNotificacoes } from '../../hooks/useNotificacoes';
+import { useNotificacoes, useConfiguracoes, useUpdateConfiguracao } from '../../hooks/useNotificacoes';
 import type { TipoNotificacao, StatusNotificacao } from '../../types';
 
 interface Template {
@@ -655,7 +655,65 @@ export function TemplatesTab() {
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   const [selectedEmojiCategory, setSelectedEmojiCategory] = useState(0);
 
+  // State for sending policies
+  const [policies, setPolicies] = useState({
+    respeitarHorarioComercial: true,
+    horarioInicio: '08:00',
+    horarioFim: '18:00',
+    enviarSabados: true,
+    enviarDomingos: false,
+    usarFallbackEmail: true,
+  });
+  const [policiesChanged, setPoliciesChanged] = useState(false);
+  const [savingPolicies, setSavingPolicies] = useState(false);
+
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+
+  // Fetch configurations
+  const { data: config } = useConfiguracoes();
+  const updateConfigMutation = useUpdateConfiguracao();
+
+  // Load policies from config
+  useEffect(() => {
+    if (config) {
+      setPolicies({
+        respeitarHorarioComercial: config.respeitarHorarioComercial ?? true,
+        horarioInicio: config.horarioInicio || '08:00',
+        horarioFim: config.horarioFim || '18:00',
+        enviarSabados: config.enviarSabados ?? true,
+        enviarDomingos: config.enviarDomingos ?? false,
+        usarFallbackEmail: config.canalFallback === 'EMAIL',
+      });
+      setPoliciesChanged(false);
+    }
+  }, [config]);
+
+  const handlePolicyChange = (field: keyof typeof policies, value: boolean | string) => {
+    setPolicies(prev => ({ ...prev, [field]: value }));
+    setPoliciesChanged(true);
+  };
+
+  const handleSavePolicies = async () => {
+    setSavingPolicies(true);
+    try {
+      await updateConfigMutation.mutateAsync({
+        data: {
+          respeitarHorarioComercial: policies.respeitarHorarioComercial,
+          horarioInicio: policies.horarioInicio,
+          horarioFim: policies.horarioFim,
+          enviarSabados: policies.enviarSabados,
+          enviarDomingos: policies.enviarDomingos,
+          canalFallback: policies.usarFallbackEmail ? 'EMAIL' : undefined,
+        },
+      });
+      setPoliciesChanged(false);
+      alert('Políticas de envio salvas com sucesso!');
+    } catch (error: any) {
+      alert(error.response?.data?.message || 'Erro ao salvar políticas');
+    } finally {
+      setSavingPolicies(false);
+    }
+  };
 
   // Fetch recent notifications for the table
   const { data: recentNotificacoes, isLoading: loadingNotificacoes } = useNotificacoes({ page: 0, size: 5 });
@@ -1098,51 +1156,101 @@ export function TemplatesTab() {
 
         {/* Sending Policies */}
         <div className="mt-6 rounded-2xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 p-4">
-          <h3 className="text-sm font-semibold text-gray-900 dark:text-white">Políticas de envio</h3>
+          <div className="flex items-center justify-between">
+            <h3 className="text-sm font-semibold text-gray-900 dark:text-white">Políticas de envio</h3>
+            {policiesChanged && (
+              <span className="text-xs text-orange-600 dark:text-orange-400">• Alterações não salvas</span>
+            )}
+          </div>
           <div className="mt-4 space-y-3 text-sm">
             <label className="flex items-center gap-2 cursor-pointer">
               <input
                 type="checkbox"
-                defaultChecked
+                checked={policies.respeitarHorarioComercial}
+                onChange={(e) => handlePolicyChange('respeitarHorarioComercial', e.target.checked)}
                 className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
               />
               <span className="text-gray-700 dark:text-gray-300">Aplicar horário comercial</span>
             </label>
-            <div className="ml-6 grid grid-cols-2 gap-2">
-              <div>
-                <label className="text-xs text-gray-600 dark:text-gray-400">Início</label>
-                <input
-                  type="time"
-                  defaultValue="08:00"
-                  className="mt-1 w-full rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 px-2 py-1 text-sm text-gray-900 dark:text-white"
-                />
-              </div>
-              <div>
-                <label className="text-xs text-gray-600 dark:text-gray-400">Fim</label>
-                <input
-                  type="time"
-                  defaultValue="18:00"
-                  className="mt-1 w-full rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 px-2 py-1 text-sm text-gray-900 dark:text-white"
-                />
-              </div>
-            </div>
+            {policies.respeitarHorarioComercial && (
+              <>
+                <div className="ml-6 grid grid-cols-2 gap-2">
+                  <div>
+                    <label className="text-xs text-gray-600 dark:text-gray-400">Início</label>
+                    <input
+                      type="time"
+                      value={policies.horarioInicio}
+                      onChange={(e) => handlePolicyChange('horarioInicio', e.target.value)}
+                      className="mt-1 w-full rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 px-2 py-1 text-sm text-gray-900 dark:text-white"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-xs text-gray-600 dark:text-gray-400">Fim</label>
+                    <input
+                      type="time"
+                      value={policies.horarioFim}
+                      onChange={(e) => handlePolicyChange('horarioFim', e.target.value)}
+                      className="mt-1 w-full rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 px-2 py-1 text-sm text-gray-900 dark:text-white"
+                    />
+                  </div>
+                </div>
+                <div className="ml-6 space-y-2">
+                  <label className="flex items-center gap-2 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={policies.enviarSabados}
+                      onChange={(e) => handlePolicyChange('enviarSabados', e.target.checked)}
+                      className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                    />
+                    <span className="text-gray-600 dark:text-gray-400 text-xs">Enviar aos sábados</span>
+                  </label>
+                  <label className="flex items-center gap-2 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={policies.enviarDomingos}
+                      onChange={(e) => handlePolicyChange('enviarDomingos', e.target.checked)}
+                      className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                    />
+                    <span className="text-gray-600 dark:text-gray-400 text-xs">Enviar aos domingos</span>
+                  </label>
+                </div>
+              </>
+            )}
 
             <label className="flex items-center gap-2 cursor-pointer">
               <input
                 type="checkbox"
-                defaultChecked
+                checked={policies.usarFallbackEmail}
+                onChange={(e) => handlePolicyChange('usarFallbackEmail', e.target.checked)}
                 className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
               />
               <span className="text-gray-700 dark:text-gray-300">Fallback WhatsApp → E-mail se falhar</span>
             </label>
+          </div>
 
-            <label className="flex items-center gap-2 cursor-pointer">
-              <input
-                type="checkbox"
-                className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
-              />
-              <span className="text-gray-700 dark:text-gray-300">Exigir opt-in do cliente</span>
-            </label>
+          {/* Save Button */}
+          <div className="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
+            <button
+              onClick={handleSavePolicies}
+              disabled={!policiesChanged || savingPolicies}
+              className={`w-full flex items-center justify-center gap-2 rounded-lg px-4 py-2 text-sm font-medium transition-colors ${
+                policiesChanged
+                  ? 'bg-blue-600 text-white hover:bg-blue-700'
+                  : 'bg-gray-100 dark:bg-gray-700 text-gray-400 dark:text-gray-500 cursor-not-allowed'
+              }`}
+            >
+              {savingPolicies ? (
+                <>
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                  Salvando...
+                </>
+              ) : (
+                <>
+                  <Save className="h-4 w-4" />
+                  Salvar Políticas
+                </>
+              )}
+            </button>
           </div>
         </div>
       </aside>

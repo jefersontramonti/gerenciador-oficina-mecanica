@@ -167,6 +167,13 @@ public class HistoricoNotificacao {
     @Column(name = "data_agendada")
     private LocalDateTime dataAgendada;
 
+    /**
+     * Motivo do agendamento (mensagem explicativa).
+     * Ex: "Envio bloqueado aos domingos conforme configuracoes."
+     */
+    @Column(name = "motivo_agendamento", columnDefinition = "TEXT")
+    private String motivoAgendamento;
+
     // ===== RESPOSTA DA API =====
 
     /**

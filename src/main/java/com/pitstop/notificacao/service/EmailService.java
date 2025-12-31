@@ -6,6 +6,7 @@ import jakarta.mail.internet.MimeMessage;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.io.ByteArrayResource;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
@@ -199,6 +200,72 @@ public class EmailService {
         );
 
         enviar(request);
+    }
+
+    /**
+     * Envia email com anexo (PDF ou outro arquivo).
+     *
+     * @param destinatario Email de destino
+     * @param assunto Assunto do email
+     * @param corpo Corpo do email (pode ser HTML)
+     * @param anexoBytes Conteudo do anexo em bytes
+     * @param nomeArquivo Nome do arquivo anexo
+     * @param tipoMime Tipo MIME do anexo (ex: application/pdf)
+     */
+    public void enviarComAnexo(
+        String destinatario,
+        String assunto,
+        String corpo,
+        byte[] anexoBytes,
+        String nomeArquivo,
+        String tipoMime
+    ) {
+        try {
+            MimeMessage mimeMessage = mailSender.createMimeMessage();
+            MimeMessageHelper helper = new MimeMessageHelper(mimeMessage, true, "UTF-8");
+
+            helper.setFrom(String.format("%s <%s>", fromName, fromEmail));
+            helper.setTo(destinatario);
+            helper.setSubject(assunto);
+
+            // Verifica se e HTML
+            boolean isHtml = contemHtml(corpo);
+            if (isHtml) {
+                helper.setText(wrapInHtmlLayout(corpo), true);
+            } else {
+                helper.setText(corpo, false);
+            }
+
+            // Adiciona o anexo
+            helper.addAttachment(nomeArquivo, new ByteArrayResource(anexoBytes), tipoMime);
+
+            mailSender.send(mimeMessage);
+            log.info("Email com anexo enviado para: {} (arquivo: {})", destinatario, nomeArquivo);
+
+        } catch (MessagingException e) {
+            log.error("Erro ao criar email com anexo para {}: {}", destinatario, e.getMessage(), e);
+            throw new RuntimeException("Falha ao criar email com anexo", e);
+        }
+    }
+
+    /**
+     * Envia email com PDF anexo.
+     *
+     * @param destinatario Email de destino
+     * @param assunto Assunto do email
+     * @param corpo Corpo do email
+     * @param pdfBytes Conteudo do PDF
+     * @param nomePdf Nome do arquivo PDF
+     */
+    public void enviarComPdf(
+        String destinatario,
+        String assunto,
+        String corpo,
+        byte[] pdfBytes,
+        String nomePdf
+    ) {
+        String nomeCompleto = nomePdf.endsWith(".pdf") ? nomePdf : nomePdf + ".pdf";
+        enviarComAnexo(destinatario, assunto, corpo, pdfBytes, nomeCompleto, "application/pdf");
     }
 
     /**

@@ -28,6 +28,9 @@ public record UsuarioResponse(
         @Schema(description = "Nome descritivo do perfil", example = "Atendente")
         String perfilNome,
 
+        @Schema(description = "ID da oficina vinculada (null para SUPER_ADMIN)", example = "123e4567-e89b-12d3-a456-426614174000")
+        UUID oficinaId,
+
         @Schema(description = "Indica se o usuário está ativo", example = "true")
         Boolean ativo,
 
@@ -44,9 +47,9 @@ public record UsuarioResponse(
     /**
      * Construtor auxiliar que popula automaticamente o nome do perfil.
      */
-    public UsuarioResponse(UUID id, String nome, String email, PerfilUsuario perfil,
+    public UsuarioResponse(UUID id, String nome, String email, PerfilUsuario perfil, UUID oficinaId,
                           Boolean ativo, LocalDateTime ultimoAcesso,
                           LocalDateTime createdAt, LocalDateTime updatedAt) {
-        this(id, nome, email, perfil, perfil.getNome(), ativo, ultimoAcesso, createdAt, updatedAt);
+        this(id, nome, email, perfil, perfil.getNome(), oficinaId, ativo, ultimoAcesso, createdAt, updatedAt);
     }
 }

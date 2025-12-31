@@ -33,12 +33,14 @@ export const ordemServicoKeys = {
 
 /**
  * Hook para listar ordens de serviço com filtros
+ * OTIMIZADO: staleTime aumentado para reduzir refetches desnecessários
  */
 export const useOrdensServico = (filters: OrdemServicoFilters = {}) => {
   return useQuery({
     queryKey: ordemServicoKeys.list(filters),
     queryFn: () => ordemServicoService.findAll(filters),
-    staleTime: 1 * 60 * 1000, // 1 minuto
+    staleTime: 5 * 60 * 1000, // 5 minutos - dados de OS não mudam frequentemente
+    gcTime: 10 * 60 * 1000, // 10 minutos no cache
   });
 };
 

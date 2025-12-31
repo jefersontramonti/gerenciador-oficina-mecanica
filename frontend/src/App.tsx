@@ -56,6 +56,7 @@ const PagamentosPage = lazy(() => import('./features/financeiro/pages/Pagamentos
 const NotasFiscaisListPage = lazy(() => import('./features/financeiro/pages/NotasFiscaisListPage').then(m => ({ default: m.NotasFiscaisListPage })));
 const NotaFiscalFormPage = lazy(() => import('./features/financeiro/pages/NotaFiscalFormPage').then(m => ({ default: m.NotaFiscalFormPage })));
 const NotaFiscalDetailPage = lazy(() => import('./features/financeiro/pages/NotaFiscalDetailPage').then(m => ({ default: m.NotaFiscalDetailPage })));
+const ConfiguracaoGatewayPage = lazy(() => import('./features/financeiro/pages/ConfiguracaoGatewayPage').then(m => ({ default: m.ConfiguracaoGatewayPage })));
 
 // Configurações
 const ConfiguracoesPage = lazy(() => import('./features/configuracoes/pages').then(m => ({ default: m.ConfiguracoesPage })));
@@ -116,7 +117,16 @@ function App() {
                 </ProtectedRoute>
               }
             >
-              <Route index element={<DashboardPage />} />
+              <Route
+                index
+                element={
+                  <ProtectedRoute
+                    requiredRoles={[PerfilUsuario.ADMIN, PerfilUsuario.GERENTE, PerfilUsuario.ATENDENTE, PerfilUsuario.MECANICO]}
+                  >
+                    <DashboardPage />
+                  </ProtectedRoute>
+                }
+              />
 
           {/* Clientes - Acessível por ADMIN, GERENTE, ATENDENTE */}
           <Route path="clientes">
@@ -206,12 +216,14 @@ function App() {
             />
           </Route>
 
-          {/* Ordens de Serviço - Todos podem ver */}
+          {/* Ordens de Serviço - Todos podem ver, ADMIN/GERENTE/ATENDENTE podem criar/editar */}
           <Route path="ordens-servico">
             <Route
               index
               element={
-                <ProtectedRoute>
+                <ProtectedRoute
+                  requiredRoles={[PerfilUsuario.ADMIN, PerfilUsuario.GERENTE, PerfilUsuario.ATENDENTE, PerfilUsuario.MECANICO]}
+                >
                   <OrdemServicoListPage />
                 </ProtectedRoute>
               }
@@ -229,7 +241,9 @@ function App() {
             <Route
               path=":id"
               element={
-                <ProtectedRoute>
+                <ProtectedRoute
+                  requiredRoles={[PerfilUsuario.ADMIN, PerfilUsuario.GERENTE, PerfilUsuario.ATENDENTE, PerfilUsuario.MECANICO]}
+                >
                   <OrdemServicoDetailPage />
                 </ProtectedRoute>
               }
@@ -295,7 +309,9 @@ function App() {
             <Route
               index
               element={
-                <ProtectedRoute>
+                <ProtectedRoute
+                  requiredRoles={[PerfilUsuario.ADMIN, PerfilUsuario.GERENTE, PerfilUsuario.ATENDENTE, PerfilUsuario.MECANICO]}
+                >
                   <PecasListPage />
                 </ProtectedRoute>
               }
@@ -313,7 +329,9 @@ function App() {
             <Route
               path="alertas"
               element={
-                <ProtectedRoute>
+                <ProtectedRoute
+                  requiredRoles={[PerfilUsuario.ADMIN, PerfilUsuario.GERENTE, PerfilUsuario.ATENDENTE, PerfilUsuario.MECANICO]}
+                >
                   <AlertasEstoquePage />
                 </ProtectedRoute>
               }
@@ -321,7 +339,9 @@ function App() {
             <Route
               path="sem-localizacao"
               element={
-                <ProtectedRoute>
+                <ProtectedRoute
+                  requiredRoles={[PerfilUsuario.ADMIN, PerfilUsuario.GERENTE, PerfilUsuario.ATENDENTE, PerfilUsuario.MECANICO]}
+                >
                   <PecasSemLocalizacaoPage />
                 </ProtectedRoute>
               }
@@ -329,7 +349,9 @@ function App() {
             <Route
               path=":id"
               element={
-                <ProtectedRoute>
+                <ProtectedRoute
+                  requiredRoles={[PerfilUsuario.ADMIN, PerfilUsuario.GERENTE, PerfilUsuario.ATENDENTE, PerfilUsuario.MECANICO]}
+                >
                   <PecaDetailPage />
                 </ProtectedRoute>
               }
@@ -350,7 +372,9 @@ function App() {
               <Route
                 index
                 element={
-                  <ProtectedRoute>
+                  <ProtectedRoute
+                    requiredRoles={[PerfilUsuario.ADMIN, PerfilUsuario.GERENTE, PerfilUsuario.ATENDENTE, PerfilUsuario.MECANICO]}
+                  >
                     <LocaisArmazenamentoListPage />
                   </ProtectedRoute>
                 }
@@ -368,7 +392,9 @@ function App() {
               <Route
                 path=":id"
                 element={
-                  <ProtectedRoute>
+                  <ProtectedRoute
+                    requiredRoles={[PerfilUsuario.ADMIN, PerfilUsuario.GERENTE, PerfilUsuario.ATENDENTE, PerfilUsuario.MECANICO]}
+                  >
                     <LocalArmazenamentoDetailPage />
                   </ProtectedRoute>
                 }
@@ -424,7 +450,9 @@ function App() {
               <Route
                 path=":id"
                 element={
-                  <ProtectedRoute>
+                  <ProtectedRoute
+                    requiredRoles={[PerfilUsuario.ADMIN, PerfilUsuario.GERENTE, PerfilUsuario.ATENDENTE, PerfilUsuario.MECANICO]}
+                  >
                     <NotaFiscalDetailPage />
                   </ProtectedRoute>
                 }
@@ -440,13 +468,25 @@ function App() {
                 }
               />
             </Route>
+
+            {/* Configuração de Gateways de Pagamento */}
+            <Route
+              path="gateways"
+              element={
+                <ProtectedRoute requiredRoles={[PerfilUsuario.ADMIN]}>
+                  <ConfiguracaoGatewayPage />
+                </ProtectedRoute>
+              }
+            />
           </Route>
 
-          {/* Configurações */}
+          {/* Configurações - Todos podem acessar suas próprias configurações */}
           <Route
             path="configuracoes"
             element={
-              <ProtectedRoute>
+              <ProtectedRoute
+                requiredRoles={[PerfilUsuario.ADMIN, PerfilUsuario.GERENTE, PerfilUsuario.ATENDENTE, PerfilUsuario.MECANICO]}
+              >
                 <ConfiguracoesPage />
               </ProtectedRoute>
             }

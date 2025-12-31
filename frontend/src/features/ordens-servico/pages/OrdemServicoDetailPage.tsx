@@ -15,6 +15,7 @@ import { canEdit } from '../utils/statusTransitions';
 import { ResumoFinanceiro } from '@/features/financeiro/components/ResumoFinanceiro';
 import { ListaPagamentos } from '@/features/financeiro/components/ListaPagamentos';
 import { PagamentoModal } from '@/features/financeiro/components/PagamentoModal';
+import { BotaoPagarOnline } from '@/features/financeiro/components/BotaoPagarOnline';
 import { useResumoFinanceiro } from '@/features/financeiro/hooks/usePagamentos';
 import { useState } from 'react';
 
@@ -385,6 +386,19 @@ export const OrdemServicoDetailPage = () => {
 
             {/* Resumo Financeiro */}
             <ResumoFinanceiro ordemServicoId={ordemServico.id} />
+
+            {/* Pagamento Online */}
+            {resumoFinanceiro && resumoFinanceiro.totalPendente > 0 && (
+              <div className="mt-6">
+                <h3 className="mb-3 text-sm font-semibold text-gray-900 dark:text-gray-100">Pagamento Online</h3>
+                <BotaoPagarOnline
+                  ordemServicoId={ordemServico.id}
+                  valorPendente={resumoFinanceiro.totalPendente}
+                  emailCliente={ordemServico.cliente?.email}
+                  nomeCliente={ordemServico.cliente?.nome}
+                />
+              </div>
+            )}
 
             {/* Lista de Pagamentos */}
             <div className="mt-6">
