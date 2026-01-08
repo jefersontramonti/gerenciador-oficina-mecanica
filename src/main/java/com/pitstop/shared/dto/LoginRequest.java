@@ -19,5 +19,15 @@ public record LoginRequest(
 
         @Schema(description = "User password", example = "admin123")
         @NotBlank(message = "Senha é obrigatória")
-        String senha
-) {}
+        String senha,
+
+        @Schema(description = "Keep user logged in for 30 days", example = "false")
+        Boolean rememberMe
+) {
+    /**
+     * Returns rememberMe value, defaulting to false if null.
+     */
+    public boolean isRememberMe() {
+        return rememberMe != null && rememberMe;
+    }
+}

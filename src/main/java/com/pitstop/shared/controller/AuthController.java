@@ -106,16 +106,23 @@ public class AuthController {
 
         LoginResponse response = authenticationService.login(request);
 
-        // Create HttpOnly cookie with refresh token (7 days)
-        ResponseCookie cookie = ResponseCookie.from("refreshToken", response.refreshToken())
+        // Cookie duration based on "remember me" option
+        // rememberMe = true: 30 days
+        // rememberMe = false: Session cookie (expires when browser closes)
+        ResponseCookie.ResponseCookieBuilder cookieBuilder = ResponseCookie.from("refreshToken", response.refreshToken())
                 .httpOnly(true)
                 .secure(isSecureRequest(httpRequest))
                 .path("/api/auth")
-                .maxAge(7 * 24 * 60 * 60) // 7 days in seconds
-                .sameSite("Strict")
-                .build();
+                .sameSite("Strict");
 
-        log.info("Login successful - email: {}", request.email());
+        if (request.isRememberMe()) {
+            cookieBuilder.maxAge(30 * 24 * 60 * 60); // 30 days in seconds
+        }
+        // If rememberMe is false, don't set maxAge - cookie will be session-only
+
+        ResponseCookie cookie = cookieBuilder.build();
+
+        log.info("Login successful - email: {}, rememberMe: {}", request.email(), request.isRememberMe());
 
         return ResponseEntity.ok()
                 .header(HttpHeaders.SET_COOKIE, cookie.toString())

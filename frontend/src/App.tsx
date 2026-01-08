@@ -121,7 +121,7 @@ function App() {
                 index
                 element={
                   <ProtectedRoute
-                    requiredRoles={[PerfilUsuario.ADMIN, PerfilUsuario.GERENTE, PerfilUsuario.ATENDENTE, PerfilUsuario.MECANICO]}
+                    requiredRoles={[PerfilUsuario.ADMIN, PerfilUsuario.GERENTE, PerfilUsuario.ATENDENTE]}
                   >
                     <DashboardPage />
                   </ProtectedRoute>
@@ -740,9 +740,12 @@ function PublicRoute({ children }: { children: React.ReactNode }) {
   }
 
   if (isAuthenticated) {
-    // SUPER_ADMIN goes to /admin, others go to /
+    // Redirect based on user role
     if (user?.perfil === PerfilUsuario.SUPER_ADMIN) {
       return <Navigate to="/admin" replace />;
+    }
+    if (user?.perfil === PerfilUsuario.MECANICO) {
+      return <Navigate to="/ordens-servico" replace />;
     }
     return <Navigate to="/" replace />;
   }

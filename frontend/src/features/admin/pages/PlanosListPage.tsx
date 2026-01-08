@@ -22,7 +22,7 @@ import {
   RefreshCw,
   TrendingUp,
 } from 'lucide-react';
-import { usePlanos, useDeletePlano, useTogglePlanoVisibility, usePlanosStatistics } from '../hooks/useSaas';
+import { usePlanos, useDeletePlano, useTogglePlanoVisibility, usePlanosStatistics, useFeatureFlagsByPlano } from '../hooks/useSaas';
 import { formatCurrency } from '@/shared/utils/formatters';
 import { showSuccess, showError } from '@/shared/utils/notifications';
 import { Modal } from '@/shared/components/ui/Modal';
@@ -31,6 +31,7 @@ import type { Plano } from '../types';
 export const PlanosListPage = () => {
   const { data: planos, isLoading, error } = usePlanos();
   const { data: statistics } = usePlanosStatistics();
+  const { data: featuresByPlano } = useFeatureFlagsByPlano();
   const deleteMutation = useDeletePlano();
   const toggleVisibilityMutation = useTogglePlanoVisibility();
 
@@ -291,8 +292,38 @@ export const PlanosListPage = () => {
                 </div>
               </div>
 
-              {/* Features */}
+              {/* Feature Flags Dinâmicas */}
+              {featuresByPlano && featuresByPlano[plano.codigo] && featuresByPlano[plano.codigo].length > 0 && (
+                <div className="mb-4 border-t border-gray-200 pt-4 dark:border-gray-700">
+                  <p className="mb-2 text-xs font-semibold text-gray-500 dark:text-gray-400">
+                    Funcionalidades ({featuresByPlano[plano.codigo].length})
+                  </p>
+                  <div className="max-h-32 space-y-1 overflow-y-auto">
+                    {featuresByPlano[plano.codigo].slice(0, 8).map((feature) => (
+                      <div
+                        key={feature.id}
+                        className="flex items-center gap-1 text-green-600 dark:text-green-400"
+                      >
+                        <Check className="h-3 w-3 flex-shrink-0" />
+                        <span className="truncate text-xs" title={feature.descricao || feature.nome}>
+                          {feature.nome}
+                        </span>
+                      </div>
+                    ))}
+                    {featuresByPlano[plano.codigo].length > 8 && (
+                      <p className="text-xs text-gray-500 dark:text-gray-400">
+                        +{featuresByPlano[plano.codigo].length - 8} mais...
+                      </p>
+                    )}
+                  </div>
+                </div>
+              )}
+
+              {/* Features Fixas do Plano */}
               <div className="mb-4 border-t border-gray-200 pt-4 dark:border-gray-700">
+                <p className="mb-2 text-xs font-semibold text-gray-500 dark:text-gray-400">
+                  Recursos Base
+                </p>
                 <div className="grid grid-cols-2 gap-2 text-sm">
                   {Object.entries(plano.features || {}).map(([key, value]) => (
                     <div

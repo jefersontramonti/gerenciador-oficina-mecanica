@@ -33,7 +33,11 @@ export const ProtectedRoute = ({ children, requiredRoles }: ProtectedRouteProps)
     const hasRequiredRole = user && requiredRoles.includes(user.perfil);
 
     if (!hasRequiredRole) {
-      // Redirect to unauthorized page
+      // MECANICO trying to access restricted pages goes to ordens-servico
+      if (user?.perfil === PerfilUsuario.MECANICO) {
+        return <Navigate to="/ordens-servico" replace />;
+      }
+      // Others go to unauthorized page
       return <Navigate to="/unauthorized" replace />;
     }
   }

@@ -145,6 +145,20 @@ public class UsuarioService {
     }
 
     /**
+     * Lista usuários com filtros opcionais de perfil e status ativo.
+     *
+     * @param perfil Filtro opcional de perfil (pode ser null para todos)
+     * @param ativo Filtro opcional de status ativo (pode ser null para todos)
+     * @param pageable Configuração de paginação e ordenação
+     * @return Página de usuários filtrados
+     */
+    public Page<UsuarioResponse> findAllWithFilters(PerfilUsuario perfil, Boolean ativo, Pageable pageable) {
+        UUID oficinaId = TenantContext.getTenantId();
+        return usuarioRepository.findByOficinaIdWithFilters(oficinaId, perfil, ativo, pageable)
+                .map(usuarioMapper::toResponse);
+    }
+
+    /**
      * Lista usuários por perfil.
      *
      * @param perfil Perfil de acesso

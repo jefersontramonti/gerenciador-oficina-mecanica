@@ -303,6 +303,50 @@ public class FeatureFlagService {
     }
 
     /**
+     * Retorna as features habilitadas agrupadas por plano.
+     * Usado para exibir as funcionalidades de cada plano no painel SaaS.
+     */
+    @Transactional(readOnly = true)
+    public Map<String, List<FeatureFlagDTO>> getFeaturesByPlano() {
+        List<FeatureFlag> allFlags = featureFlagRepository.findAllOrderByCategoriaAndNome();
+
+        Map<String, List<FeatureFlagDTO>> result = new HashMap<>();
+        result.put("ECONOMICO", new java.util.ArrayList<>());
+        result.put("PROFISSIONAL", new java.util.ArrayList<>());
+        result.put("TURBINADO", new java.util.ArrayList<>());
+
+        for (FeatureFlag flag : allFlags) {
+            if (!flag.isAtivo()) continue; // Ignorar flags inativas
+
+            FeatureFlagDTO dto = FeatureFlagDTO.fromEntity(flag);
+
+            // Verificar se está habilitada globalmente (todos os planos)
+            if (Boolean.TRUE.equals(flag.getHabilitadoGlobal())) {
+                result.get("ECONOMICO").add(dto);
+                result.get("PROFISSIONAL").add(dto);
+                result.get("TURBINADO").add(dto);
+                continue;
+            }
+
+            // Verificar por plano específico
+            Map<String, Boolean> planos = flag.getHabilitadoPorPlano();
+            if (planos != null) {
+                if (Boolean.TRUE.equals(planos.get("ECONOMICO"))) {
+                    result.get("ECONOMICO").add(dto);
+                }
+                if (Boolean.TRUE.equals(planos.get("PROFISSIONAL"))) {
+                    result.get("PROFISSIONAL").add(dto);
+                }
+                if (Boolean.TRUE.equals(planos.get("TURBINADO"))) {
+                    result.get("TURBINADO").add(dto);
+                }
+            }
+        }
+
+        return result;
+    }
+
+    /**
      * Retorna estatísticas de uma feature flag.
      */
     @Transactional(readOnly = true)

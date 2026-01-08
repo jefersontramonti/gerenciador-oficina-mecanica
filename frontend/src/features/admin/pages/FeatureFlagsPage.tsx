@@ -30,6 +30,7 @@ import {
   useDeleteFeatureFlag,
   useCreateFeatureFlag,
   useUpdateFeatureFlag,
+  useFeatureFlagStats,
 } from '../hooks/useSaas';
 import {
   type FeatureFlag,
@@ -245,61 +246,80 @@ export const FeatureFlagsPage = () => {
 
       {/* Stats Cards */}
       <div className="mb-6 grid gap-4 sm:grid-cols-4">
-        <div className="rounded-lg bg-white p-4 shadow dark:bg-gray-800">
-          <div className="flex items-center gap-3">
-            <div className="rounded-full bg-blue-100 p-2 dark:bg-blue-900/30">
-              <Flag className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+        {isLoading ? (
+          // Skeletons de loading
+          <>
+            {[1, 2, 3, 4].map((i) => (
+              <div key={i} className="animate-pulse rounded-lg bg-white p-4 shadow dark:bg-gray-800">
+                <div className="flex items-center gap-3">
+                  <div className="h-10 w-10 rounded-full bg-gray-200 dark:bg-gray-700" />
+                  <div className="flex-1">
+                    <div className="mb-2 h-3 w-20 rounded bg-gray-200 dark:bg-gray-700" />
+                    <div className="h-6 w-12 rounded bg-gray-200 dark:bg-gray-700" />
+                  </div>
+                </div>
+              </div>
+            ))}
+          </>
+        ) : (
+          <>
+            <div className="rounded-lg bg-white p-4 shadow dark:bg-gray-800">
+              <div className="flex items-center gap-3">
+                <div className="rounded-full bg-blue-100 p-2 dark:bg-blue-900/30">
+                  <Flag className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+                </div>
+                <div>
+                  <p className="text-sm text-gray-600 dark:text-gray-400">Total Features</p>
+                  <p className="text-xl font-bold text-gray-900 dark:text-white">
+                    {flags?.length || 0}
+                  </p>
+                </div>
+              </div>
             </div>
-            <div>
-              <p className="text-sm text-gray-600 dark:text-gray-400">Total Features</p>
-              <p className="text-xl font-bold text-gray-900 dark:text-white">
-                {flags?.length || 0}
-              </p>
-            </div>
-          </div>
-        </div>
 
-        <div className="rounded-lg bg-white p-4 shadow dark:bg-gray-800">
-          <div className="flex items-center gap-3">
-            <div className="rounded-full bg-green-100 p-2 dark:bg-green-900/30">
-              <Globe className="h-5 w-5 text-green-600 dark:text-green-400" />
+            <div className="rounded-lg bg-white p-4 shadow dark:bg-gray-800">
+              <div className="flex items-center gap-3">
+                <div className="rounded-full bg-green-100 p-2 dark:bg-green-900/30">
+                  <Globe className="h-5 w-5 text-green-600 dark:text-green-400" />
+                </div>
+                <div>
+                  <p className="text-sm text-gray-600 dark:text-gray-400">Habilitadas Globalmente</p>
+                  <p className="text-xl font-bold text-green-600 dark:text-green-400">
+                    {flags?.filter((f) => f.habilitadoGlobal).length || 0}
+                  </p>
+                </div>
+              </div>
             </div>
-            <div>
-              <p className="text-sm text-gray-600 dark:text-gray-400">Habilitadas Globalmente</p>
-              <p className="text-xl font-bold text-green-600 dark:text-green-400">
-                {flags?.filter((f) => f.habilitadoGlobal).length || 0}
-              </p>
-            </div>
-          </div>
-        </div>
 
-        <div className="rounded-lg bg-white p-4 shadow dark:bg-gray-800">
-          <div className="flex items-center gap-3">
-            <div className="rounded-full bg-purple-100 p-2 dark:bg-purple-900/30">
-              <Layers className="h-5 w-5 text-purple-600 dark:text-purple-400" />
+            <div className="rounded-lg bg-white p-4 shadow dark:bg-gray-800">
+              <div className="flex items-center gap-3">
+                <div className="rounded-full bg-purple-100 p-2 dark:bg-purple-900/30">
+                  <Layers className="h-5 w-5 text-purple-600 dark:text-purple-400" />
+                </div>
+                <div>
+                  <p className="text-sm text-gray-600 dark:text-gray-400">Por Plano</p>
+                  <p className="text-xl font-bold text-purple-600 dark:text-purple-400">
+                    {flags?.filter((f) => planosHabilitados(f).length > 0).length || 0}
+                  </p>
+                </div>
+              </div>
             </div>
-            <div>
-              <p className="text-sm text-gray-600 dark:text-gray-400">Por Plano</p>
-              <p className="text-xl font-bold text-purple-600 dark:text-purple-400">
-                {flags?.filter((f) => planosHabilitados(f).length > 0).length || 0}
-              </p>
-            </div>
-          </div>
-        </div>
 
-        <div className="rounded-lg bg-white p-4 shadow dark:bg-gray-800">
-          <div className="flex items-center gap-3">
-            <div className="rounded-full bg-orange-100 p-2 dark:bg-orange-900/30">
-              <Percent className="h-5 w-5 text-orange-600 dark:text-orange-400" />
+            <div className="rounded-lg bg-white p-4 shadow dark:bg-gray-800">
+              <div className="flex items-center gap-3">
+                <div className="rounded-full bg-orange-100 p-2 dark:bg-orange-900/30">
+                  <Percent className="h-5 w-5 text-orange-600 dark:text-orange-400" />
+                </div>
+                <div>
+                  <p className="text-sm text-gray-600 dark:text-gray-400">Em Rollout</p>
+                  <p className="text-xl font-bold text-orange-600 dark:text-orange-400">
+                    {flags?.filter((f) => f.percentualRollout > 0 && f.percentualRollout < 100).length || 0}
+                  </p>
+                </div>
+              </div>
             </div>
-            <div>
-              <p className="text-sm text-gray-600 dark:text-gray-400">Em Rollout</p>
-              <p className="text-xl font-bold text-orange-600 dark:text-orange-400">
-                {flags?.filter((f) => f.percentualRollout > 0 && f.percentualRollout < 100).length || 0}
-              </p>
-            </div>
-          </div>
-        </div>
+          </>
+        )}
       </div>
 
       {/* Flags List */}
@@ -492,6 +512,11 @@ export const FeatureFlagsPage = () => {
                       </div>
                     </div>
 
+                    {/* Estatísticas Dinâmicas */}
+                    <div className="mt-4">
+                      <FeatureFlagStatsCard flagId={flag.id} />
+                    </div>
+
                     <div className="mt-4 border-t border-gray-200 pt-4 dark:border-gray-600">
                       <p className="text-xs text-gray-500 dark:text-gray-400">
                         Criado em {formatDate(flag.createdAt)} | Atualizado em {formatDate(flag.updatedAt)}
@@ -593,6 +618,51 @@ export const FeatureFlagsPage = () => {
   );
 };
 
+// Component para exibir estatísticas dinâmicas
+const FeatureFlagStatsCard = ({ flagId }: { flagId: string }) => {
+  const { data: stats, isLoading } = useFeatureFlagStats(flagId);
+
+  if (isLoading) {
+    return (
+      <div className="animate-pulse">
+        <div className="h-4 w-24 rounded bg-gray-200 dark:bg-gray-600" />
+        <div className="mt-2 h-3 w-32 rounded bg-gray-200 dark:bg-gray-600" />
+      </div>
+    );
+  }
+
+  if (!stats) return null;
+
+  return (
+    <div className="rounded-lg border border-green-200 bg-green-50 p-3 dark:border-green-800 dark:bg-green-900/20">
+      <h4 className="mb-2 flex items-center gap-2 text-sm font-medium text-green-800 dark:text-green-300">
+        <Building2 className="h-4 w-4" />
+        Impacto Calculado
+      </h4>
+      <div className="space-y-1 text-sm text-green-700 dark:text-green-400">
+        <p>
+          <strong>{stats.totalOficinasHabilitadas}</strong> oficina(s) com acesso direto
+        </p>
+        {stats.totalOficinasPorPlano !== undefined && stats.totalOficinasPorPlano > 0 && (
+          <p>
+            <strong>+{stats.totalOficinasPorPlano}</strong> oficina(s) via plano
+          </p>
+        )}
+        {stats.planosHabilitados && stats.planosHabilitados.length > 0 && (
+          <p className="text-xs">
+            Planos: {stats.planosHabilitados.map(p => planoLabels[p as keyof typeof planoLabels] || p).join(', ')}
+          </p>
+        )}
+        {stats.percentualRollout > 0 && (
+          <p className="text-xs">
+            + {stats.percentualRollout}% rollout gradual
+          </p>
+        )}
+      </div>
+    </div>
+  );
+};
+
 // Modal Component
 interface FeatureFlagModalProps {
   flag: FeatureFlag | null;
@@ -601,6 +671,81 @@ interface FeatureFlagModalProps {
   isLoading: boolean;
 }
 
+// Templates rápidos para criação de feature flags
+interface TemplateConfig {
+  categoria: string;
+  habilitadoGlobal: boolean;
+  habilitadoPorPlano: Record<string, boolean>;
+  percentualRollout: number;
+  dataFim?: string;
+}
+
+interface FeatureFlagTemplate {
+  id: string;
+  nome: string;
+  descricao: string;
+  config: TemplateConfig;
+}
+
+const featureFlagTemplates: FeatureFlagTemplate[] = [
+  {
+    id: 'whatsapp_pro',
+    nome: 'WhatsApp para PRO+',
+    descricao: 'Habilitar para planos Profissional e Turbinado',
+    config: {
+      categoria: 'COMUNICACAO',
+      habilitadoGlobal: false,
+      habilitadoPorPlano: { PROFISSIONAL: true, TURBINADO: true, ECONOMICO: false },
+      percentualRollout: 0,
+    },
+  },
+  {
+    id: 'beta_25',
+    nome: 'Beta Test 25%',
+    descricao: 'Rollout gradual para 25% das oficinas',
+    config: {
+      categoria: 'GERAL',
+      habilitadoGlobal: false,
+      habilitadoPorPlano: { ECONOMICO: false, PROFISSIONAL: false, TURBINADO: false },
+      percentualRollout: 25,
+    },
+  },
+  {
+    id: 'premium_only',
+    nome: 'Premium Exclusivo',
+    descricao: 'Apenas para plano Turbinado',
+    config: {
+      categoria: 'PREMIUM',
+      habilitadoGlobal: false,
+      habilitadoPorPlano: { TURBINADO: true, PROFISSIONAL: false, ECONOMICO: false },
+      percentualRollout: 0,
+    },
+  },
+  {
+    id: 'temp_7days',
+    nome: 'Teste Temporário (7 dias)',
+    descricao: 'Feature com validade de 7 dias',
+    config: {
+      categoria: 'GERAL',
+      habilitadoGlobal: true,
+      habilitadoPorPlano: { ECONOMICO: false, PROFISSIONAL: false, TURBINADO: false },
+      percentualRollout: 0,
+      dataFim: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().slice(0, 16),
+    },
+  },
+  {
+    id: 'all_plans',
+    nome: 'Todos os Planos',
+    descricao: 'Habilitar para todos os planos (não global)',
+    config: {
+      categoria: 'OPERACIONAL',
+      habilitadoGlobal: false,
+      habilitadoPorPlano: { ECONOMICO: true, PROFISSIONAL: true, TURBINADO: true },
+      percentualRollout: 0,
+    },
+  },
+];
+
 const FeatureFlagModal = ({ flag, onClose, onSave, isLoading }: FeatureFlagModalProps) => {
   // Helper para formatar data para input datetime-local
   const formatDateForInput = (dateStr?: string) => {
@@ -608,6 +753,8 @@ const FeatureFlagModal = ({ flag, onClose, onSave, isLoading }: FeatureFlagModal
     const date = new Date(dateStr);
     return date.toISOString().slice(0, 16); // Format: YYYY-MM-DDTHH:mm
   };
+
+  const [showTemplates, setShowTemplates] = useState(!flag); // Mostrar templates apenas na criação
 
   const [formData, setFormData] = useState({
     codigo: flag?.codigo || '',
@@ -654,12 +801,60 @@ const FeatureFlagModal = ({ flag, onClose, onSave, isLoading }: FeatureFlagModal
     }));
   };
 
+  const applyTemplate = (template: FeatureFlagTemplate) => {
+    setFormData((prev) => ({
+      ...prev,
+      categoria: template.config.categoria,
+      habilitadoGlobal: template.config.habilitadoGlobal,
+      habilitadoPorPlano: template.config.habilitadoPorPlano,
+      percentualRollout: template.config.percentualRollout,
+      dataInicio: prev.dataInicio,
+      dataFim: template.config.dataFim || prev.dataFim,
+    }));
+    setShowTemplates(false);
+  };
+
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
       <div className="w-full max-w-xl max-h-[90vh] overflow-y-auto rounded-lg bg-white p-6 shadow-xl dark:bg-gray-800">
         <h2 className="mb-4 text-xl font-bold text-gray-900 dark:text-white">
           {flag ? 'Editar Feature Flag' : 'Nova Feature Flag'}
         </h2>
+
+        {/* Templates Rápidos - apenas na criação */}
+        {!flag && (
+          <div className="mb-4">
+            <button
+              type="button"
+              onClick={() => setShowTemplates(!showTemplates)}
+              className="flex items-center gap-2 text-sm text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300"
+            >
+              <Layers className="h-4 w-4" />
+              {showTemplates ? 'Ocultar templates' : 'Usar template rápido'}
+              {showTemplates ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+            </button>
+
+            {showTemplates && (
+              <div className="mt-3 grid grid-cols-1 gap-2 sm:grid-cols-2">
+                {featureFlagTemplates.map((template) => (
+                  <button
+                    key={template.id}
+                    type="button"
+                    onClick={() => applyTemplate(template)}
+                    className="flex flex-col items-start rounded-lg border border-gray-200 p-3 text-left transition-colors hover:border-blue-500 hover:bg-blue-50 dark:border-gray-600 dark:hover:border-blue-400 dark:hover:bg-blue-900/20"
+                  >
+                    <span className="font-medium text-gray-900 dark:text-white">
+                      {template.nome}
+                    </span>
+                    <span className="text-xs text-gray-500 dark:text-gray-400">
+                      {template.descricao}
+                    </span>
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
 
         <form onSubmit={handleSubmit} className="space-y-4">
           {/* Código */}

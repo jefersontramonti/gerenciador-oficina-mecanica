@@ -39,23 +39,16 @@ import { usePecas, useMarcas, useDesativarPeca, useReativarPeca } from '../hooks
 import { StockBadge, UnidadeMedidaBadge, MovimentacaoModal } from '../components';
 import { UnidadeMedida, type Peca, type PecaFilters } from '../types';
 
+const ITEMS_PER_PAGE = 20;
+
 export const PecasListPage = () => {
   const navigate = useNavigate();
 
-  // Filtros
+  // Filtros - aplicados diretamente sem botão
   const [filters, setFilters] = useState<PecaFilters>({
     page: 0,
-    size: 20,
+    size: ITEMS_PER_PAGE,
     sort: ['descricao,asc'],
-  });
-
-  const [localFilters, setLocalFilters] = useState({
-    codigo: '',
-    descricao: '',
-    marca: '',
-    unidadeMedida: '',
-    apenasAtivos: false,
-    apenasEstoqueBaixo: false,
   });
 
   // Queries
@@ -75,39 +68,30 @@ export const PecasListPage = () => {
     peca: null,
   });
 
-  const handleAplicarFiltros = () => {
-    const newFilters: PecaFilters = {
-      page: 0,
-      size: 20,
-      sort: ['descricao,asc'],
-    };
+  const handleSearch = (field: 'codigo' | 'descricao', value: string) => {
+    setFilters((prev) => ({ ...prev, [field]: value || undefined, page: 0 }));
+  };
 
-    if (localFilters.codigo) newFilters.codigo = localFilters.codigo;
-    if (localFilters.descricao) newFilters.descricao = localFilters.descricao;
-    if (localFilters.marca) newFilters.marca = localFilters.marca;
-    if (localFilters.unidadeMedida)
-      newFilters.unidadeMedida = localFilters.unidadeMedida as UnidadeMedida;
-
-    if (localFilters.apenasAtivos) newFilters.ativo = true;
-    if (localFilters.apenasEstoqueBaixo) newFilters.estoqueBaixo = true;
-
-    setFilters(newFilters);
+  const handleFilterChange = (key: keyof PecaFilters, value: any) => {
+    const filterValue = value === '' || value === null ? undefined : value;
+    setFilters((prev) => ({ ...prev, [key]: filterValue, page: 0 }));
   };
 
   const handleLimparFiltros = () => {
-    setLocalFilters({
-      codigo: '',
-      descricao: '',
-      marca: '',
-      unidadeMedida: '',
-      apenasAtivos: false,
-      apenasEstoqueBaixo: false,
-    });
     setFilters({
       page: 0,
-      size: 20,
+      size: ITEMS_PER_PAGE,
       sort: ['descricao,asc'],
     });
+    // Limpar os inputs de texto (eles usam defaultValue)
+    const codigoInput = document.getElementById('filtro-codigo') as HTMLInputElement;
+    const descricaoInput = document.getElementById('filtro-descricao') as HTMLInputElement;
+    if (codigoInput) codigoInput.value = '';
+    if (descricaoInput) descricaoInput.value = '';
+  };
+
+  const handlePageChange = (newPage: number) => {
+    setFilters((prev) => ({ ...prev, page: newPage }));
   };
 
   const handleDesativar = async (id: string) => {
@@ -158,7 +142,7 @@ export const PecasListPage = () => {
 
       {/* Filtros */}
       <div className="mb-6 rounded-lg bg-white dark:bg-gray-800 p-4 shadow">
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-6">
           {/* Código */}
           <div>
             <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
@@ -167,13 +151,12 @@ export const PecasListPage = () => {
             <div className="relative">
               <Search className="absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 text-gray-400" />
               <input
+                id="filtro-codigo"
                 type="text"
                 placeholder="Buscar por código..."
                 className="w-full rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 text-gray-900 dark:text-white py-2 pl-10 pr-4 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
-                value={localFilters.codigo}
-                onChange={(e) =>
-                  setLocalFilters((prev) => ({ ...prev, codigo: e.target.value }))
-                }
+                defaultValue={filters.codigo}
+                onChange={(e) => handleSearch('codigo', e.target.value)}
               />
             </div>
           </div>
@@ -184,13 +167,12 @@ export const PecasListPage = () => {
               Descrição
             </label>
             <input
+              id="filtro-descricao"
               type="text"
               placeholder="Buscar por descrição..."
               className="w-full rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 text-gray-900 dark:text-white px-3 py-2 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
-              value={localFilters.descricao}
-              onChange={(e) =>
-                setLocalFilters((prev) => ({ ...prev, descricao: e.target.value }))
-              }
+              defaultValue={filters.descricao}
+              onChange={(e) => handleSearch('descricao', e.target.value)}
             />
           </div>
 
@@ -201,10 +183,8 @@ export const PecasListPage = () => {
             </label>
             <select
               className="w-full rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 text-gray-900 dark:text-white px-3 py-2 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
-              value={localFilters.marca}
-              onChange={(e) =>
-                setLocalFilters((prev) => ({ ...prev, marca: e.target.value }))
-              }
+              value={filters.marca || ''}
+              onChange={(e) => handleFilterChange('marca', e.target.value)}
             >
               <option value="">Todas as marcas</option>
               {marcas?.map((marca) => (
@@ -218,14 +198,12 @@ export const PecasListPage = () => {
           {/* Unidade de Medida */}
           <div>
             <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
-              Unidade de Medida
+              Unidade
             </label>
             <select
               className="w-full rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 text-gray-900 dark:text-white px-3 py-2 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
-              value={localFilters.unidadeMedida}
-              onChange={(e) =>
-                setLocalFilters((prev) => ({ ...prev, unidadeMedida: e.target.value }))
-              }
+              value={filters.unidadeMedida || ''}
+              onChange={(e) => handleFilterChange('unidadeMedida', e.target.value as UnidadeMedida)}
             >
               <option value="">Todas</option>
               <option value={UnidadeMedida.UNIDADE}>Unidade (UN)</option>
@@ -234,68 +212,71 @@ export const PecasListPage = () => {
               <option value={UnidadeMedida.QUILO}>Quilograma (KG)</option>
             </select>
           </div>
-        </div>
 
-        {/* Checkboxes e botões */}
-        <div className="mt-4 flex flex-wrap items-center gap-6">
-          <div className="flex items-center gap-2">
-            <input
-              type="checkbox"
-              id="apenasAtivos"
-              className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
-              checked={localFilters.apenasAtivos}
-              onChange={(e) => {
-                setLocalFilters((prev) => ({
-                  ...prev,
-                  apenasAtivos: e.target.checked,
-                  apenasEstoqueBaixo: e.target.checked ? false : prev.apenasEstoqueBaixo,
-                }));
-              }}
-            />
-            <label
-              htmlFor="apenasAtivos"
-              className="text-sm text-gray-700 dark:text-gray-300 cursor-pointer"
-            >
-              Apenas ativos
+          {/* Status */}
+          <div>
+            <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
+              Status
             </label>
+            <select
+              className="w-full rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 text-gray-900 dark:text-white px-3 py-2 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+              value={
+                filters.estoqueBaixo === true
+                  ? 'estoqueBaixo'
+                  : filters.ativo === true
+                  ? 'ativos'
+                  : filters.ativo === false
+                  ? 'inativos'
+                  : ''
+              }
+              onChange={(e) => {
+                const value = e.target.value;
+                if (value === 'estoqueBaixo') {
+                  setFilters((prev) => ({
+                    ...prev,
+                    ativo: undefined,
+                    estoqueBaixo: true,
+                    page: 0,
+                  }));
+                } else if (value === 'ativos') {
+                  setFilters((prev) => ({
+                    ...prev,
+                    ativo: true,
+                    estoqueBaixo: undefined,
+                    page: 0,
+                  }));
+                } else if (value === 'inativos') {
+                  setFilters((prev) => ({
+                    ...prev,
+                    ativo: false,
+                    estoqueBaixo: undefined,
+                    page: 0,
+                  }));
+                } else {
+                  setFilters((prev) => ({
+                    ...prev,
+                    ativo: undefined,
+                    estoqueBaixo: undefined,
+                    page: 0,
+                  }));
+                }
+              }}
+            >
+              <option value="">Todos</option>
+              <option value="ativos">Apenas Ativos</option>
+              <option value="inativos">Apenas Inativos</option>
+              <option value="estoqueBaixo">Estoque Baixo</option>
+            </select>
           </div>
 
-          <div className="flex items-center gap-2">
-            <input
-              type="checkbox"
-              id="apenasEstoqueBaixo"
-              className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
-              checked={localFilters.apenasEstoqueBaixo}
-              onChange={(e) => {
-                setLocalFilters((prev) => ({
-                  ...prev,
-                  apenasEstoqueBaixo: e.target.checked,
-                  apenasAtivos: e.target.checked ? false : prev.apenasAtivos,
-                }));
-              }}
-            />
-            <label
-              htmlFor="apenasEstoqueBaixo"
-              className="text-sm text-gray-700 dark:text-gray-300 cursor-pointer"
-            >
-              Apenas estoque baixo
-            </label>
-          </div>
-
-          <div className="flex gap-2 ml-auto">
-            <button
-              onClick={handleAplicarFiltros}
-              className="flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-white hover:bg-blue-700"
-            >
-              <Search className="h-4 w-4" />
-              Aplicar Filtros
-            </button>
+          {/* Limpar Filtros */}
+          <div className="flex items-end">
             <button
               onClick={handleLimparFiltros}
-              className="flex items-center gap-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 px-4 py-2 text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700"
+              className="flex w-full items-center justify-center gap-2 rounded-lg border border-orange-300 dark:border-orange-700 bg-orange-50 dark:bg-orange-900/20 px-4 py-2 text-orange-700 dark:text-orange-400 hover:bg-orange-100 dark:hover:bg-orange-900/30"
             >
               <FilterX className="h-4 w-4" />
-              Limpar
+              Limpar Filtros
             </button>
           </div>
         </div>
@@ -433,19 +414,24 @@ export const PecasListPage = () => {
       {data && data.totalPages > 1 && (
         <div className="mt-4 flex justify-between items-center">
           <p className="text-sm text-gray-600 dark:text-gray-400">
-            Mostrando {data.content.length} de {data.totalElements} peças
+            Mostrando {data.number * data.size + 1} a{' '}
+            {Math.min((data.number + 1) * data.size, data.totalElements)} de {data.totalElements}{' '}
+            peças
           </p>
           <div className="flex gap-2">
             <button
               disabled={data.first}
-              onClick={() => setFilters((prev) => ({ ...prev, page: (prev.page || 0) - 1 }))}
+              onClick={() => handlePageChange((filters.page || 0) - 1)}
               className="rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               Anterior
             </button>
+            <span className="flex items-center px-4 py-2 text-sm text-gray-700 dark:text-gray-300">
+              Página {data.number + 1} de {data.totalPages}
+            </span>
             <button
               disabled={data.last}
-              onClick={() => setFilters((prev) => ({ ...prev, page: (prev.page || 0) + 1 }))}
+              onClick={() => handlePageChange((filters.page || 0) + 1)}
               className="rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               Próxima

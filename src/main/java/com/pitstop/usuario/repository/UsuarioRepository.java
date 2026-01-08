@@ -168,6 +168,24 @@ public interface UsuarioRepository extends JpaRepository<Usuario, UUID> {
     Page<Usuario> findByOficinaId(@Param("oficinaId") UUID oficinaId, Pageable pageable);
 
     /**
+     * Busca usuários de uma oficina com filtros opcionais de perfil e status ativo.
+     *
+     * @param oficinaId ID da oficina (tenant)
+     * @param perfil filtro opcional de perfil (pode ser null)
+     * @param ativo filtro opcional de status ativo (pode ser null)
+     * @param pageable paginação
+     * @return página de usuários filtrados
+     */
+    @Query("SELECT u FROM Usuario u WHERE u.oficina.id = :oficinaId " +
+           "AND (:perfil IS NULL OR u.perfil = :perfil) " +
+           "AND (:ativo IS NULL OR u.ativo = :ativo)")
+    Page<Usuario> findByOficinaIdWithFilters(
+            @Param("oficinaId") UUID oficinaId,
+            @Param("perfil") PerfilUsuario perfil,
+            @Param("ativo") Boolean ativo,
+            Pageable pageable);
+
+    /**
      * Find the first active user with a specific profile in a workshop.
      * Used for impersonation (finding an admin to impersonate).
      *

@@ -7,6 +7,8 @@ import { Link, useParams } from 'react-router-dom';
 import { ArrowLeft, Edit, Car, User, Phone, Mail, FileText, FileDown, DollarSign } from 'lucide-react';
 import { showError } from '@/shared/utils/notifications';
 import { useOrdemServico, useGerarPDF } from '../hooks/useOrdensServico';
+import { useAuth } from '@/features/auth/hooks/useAuth';
+import { PerfilUsuario } from '@/features/auth/types';
 import { StatusBadge } from '../components/StatusBadge';
 import { StatusTimeline } from '../components/StatusTimeline';
 import { ItemOSTable } from '../components/ItemOSTable';
@@ -45,10 +47,14 @@ const formatWhatsAppLink = (phone: string): string => {
 
 export const OrdemServicoDetailPage = () => {
   const { id } = useParams<{ id: string }>();
+  const { user } = useAuth();
   const { data: ordemServico, isLoading, error, refetch } = useOrdemServico(id);
   const { data: resumoFinanceiro } = useResumoFinanceiro(id || '');
   const gerarPDFMutation = useGerarPDF();
   const [mostrarModalPagamento, setMostrarModalPagamento] = useState(false);
+
+  // MECANICO não pode ver seção de pagamentos
+  const canViewPayments = user?.perfil !== PerfilUsuario.MECANICO;
 
   const handleGerarPDF = async () => {
     if (!ordemServico) return;
@@ -371,41 +377,43 @@ export const OrdemServicoDetailPage = () => {
             </div>
           </div>
 
-          {/* Seção: Pagamentos */}
-          <div className="rounded-lg bg-white dark:bg-gray-800 p-6 shadow">
-            <div className="mb-4 flex items-center justify-between">
-              <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100">Pagamentos</h2>
-              <button
-                onClick={() => setMostrarModalPagamento(true)}
-                className="flex items-center gap-2 rounded-lg bg-blue-600 dark:bg-blue-700 px-4 py-2 text-white hover:bg-blue-700 dark:hover:bg-blue-600"
-              >
-                <DollarSign className="h-4 w-4" />
-                Adicionar Pagamento
-              </button>
-            </div>
-
-            {/* Resumo Financeiro */}
-            <ResumoFinanceiro ordemServicoId={ordemServico.id} />
-
-            {/* Pagamento Online */}
-            {resumoFinanceiro && resumoFinanceiro.totalPendente > 0 && (
-              <div className="mt-6">
-                <h3 className="mb-3 text-sm font-semibold text-gray-900 dark:text-gray-100">Pagamento Online</h3>
-                <BotaoPagarOnline
-                  ordemServicoId={ordemServico.id}
-                  valorPendente={resumoFinanceiro.totalPendente}
-                  emailCliente={ordemServico.cliente?.email}
-                  nomeCliente={ordemServico.cliente?.nome}
-                />
+          {/* Seção: Pagamentos (oculto para MECANICO) */}
+          {canViewPayments && (
+            <div className="rounded-lg bg-white dark:bg-gray-800 p-6 shadow">
+              <div className="mb-4 flex items-center justify-between">
+                <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100">Pagamentos</h2>
+                <button
+                  onClick={() => setMostrarModalPagamento(true)}
+                  className="flex items-center gap-2 rounded-lg bg-blue-600 dark:bg-blue-700 px-4 py-2 text-white hover:bg-blue-700 dark:hover:bg-blue-600"
+                >
+                  <DollarSign className="h-4 w-4" />
+                  Adicionar Pagamento
+                </button>
               </div>
-            )}
 
-            {/* Lista de Pagamentos */}
-            <div className="mt-6">
-              <h3 className="mb-4 text-sm font-semibold text-gray-900 dark:text-gray-100">Histórico de Pagamentos</h3>
-              <ListaPagamentos ordemServicoId={ordemServico.id} />
+              {/* Resumo Financeiro */}
+              <ResumoFinanceiro ordemServicoId={ordemServico.id} />
+
+              {/* Pagamento Online */}
+              {resumoFinanceiro && resumoFinanceiro.totalPendente > 0 && (
+                <div className="mt-6">
+                  <h3 className="mb-3 text-sm font-semibold text-gray-900 dark:text-gray-100">Pagamento Online</h3>
+                  <BotaoPagarOnline
+                    ordemServicoId={ordemServico.id}
+                    valorPendente={resumoFinanceiro.totalPendente}
+                    emailCliente={ordemServico.cliente?.email}
+                    nomeCliente={ordemServico.cliente?.nome}
+                  />
+                </div>
+              )}
+
+              {/* Lista de Pagamentos */}
+              <div className="mt-6">
+                <h3 className="mb-4 text-sm font-semibold text-gray-900 dark:text-gray-100">Histórico de Pagamentos</h3>
+                <ListaPagamentos ordemServicoId={ordemServico.id} />
+              </div>
             </div>
-          </div>
+          )}
         </div>
 
         {/* Coluna Lateral (1/3) */}
@@ -427,13 +435,15 @@ export const OrdemServicoDetailPage = () => {
         </div>
       </div>
 
-      {/* Modal de Pagamento */}
-      <PagamentoModal
-        isOpen={mostrarModalPagamento}
-        onClose={() => setMostrarModalPagamento(false)}
-        ordemServicoId={ordemServico.id}
-        valorDefault={ordemServico.valorFinal}
-      />
+      {/* Modal de Pagamento (oculto para MECANICO) */}
+      {canViewPayments && (
+        <PagamentoModal
+          isOpen={mostrarModalPagamento}
+          onClose={() => setMostrarModalPagamento(false)}
+          ordemServicoId={ordemServico.id}
+          valorDefault={ordemServico.valorFinal}
+        />
+      )}
     </div>
   );
 };

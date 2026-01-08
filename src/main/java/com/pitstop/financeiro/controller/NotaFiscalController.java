@@ -47,7 +47,7 @@ public class NotaFiscalController {
      * @return nota fiscal criada
      */
     @PostMapping
-    @PreAuthorize("hasAnyRole('ADMIN', 'GERENTE', 'ATENDENTE')")
+    @PreAuthorize("hasAnyAuthority('ADMIN', 'GERENTE', 'ATENDENTE')")
     @Operation(summary = "Criar nota fiscal", description = "Cria uma nova nota fiscal em modo digitação")
     public ResponseEntity<NotaFiscalResponseDTO> criar(@Valid @RequestBody NotaFiscalRequestDTO dto) {
         NotaFiscalResponseDTO response = notaFiscalService.criar(dto);
@@ -61,7 +61,7 @@ public class NotaFiscalController {
      * @return nota fiscal encontrada
      */
     @GetMapping("/{id}")
-    @PreAuthorize("hasAnyRole('ADMIN', 'GERENTE', 'ATENDENTE', 'MECANICO')")
+    @PreAuthorize("hasAnyAuthority('ADMIN', 'GERENTE', 'ATENDENTE', 'MECANICO')")
     @Operation(summary = "Buscar nota fiscal por ID")
     public ResponseEntity<NotaFiscalResponseDTO> buscarPorId(@PathVariable UUID id) {
         NotaFiscalResponseDTO response = notaFiscalService.buscarPorId(id);
@@ -75,7 +75,7 @@ public class NotaFiscalController {
      * @return página de notas fiscais
      */
     @GetMapping
-    @PreAuthorize("hasAnyRole('ADMIN', 'GERENTE', 'ATENDENTE')")
+    @PreAuthorize("hasAnyAuthority('ADMIN', 'GERENTE', 'ATENDENTE')")
     @Operation(summary = "Listar notas fiscais", description = "Lista todas as notas fiscais com paginação")
     public ResponseEntity<Page<NotaFiscalResumoDTO>> listar(
         @PageableDefault(size = 20, sort = "dataEmissao") Pageable pageable
@@ -91,7 +91,7 @@ public class NotaFiscalController {
      * @return lista de notas fiscais
      */
     @GetMapping("/ordem-servico/{ordemServicoId}")
-    @PreAuthorize("hasAnyRole('ADMIN', 'GERENTE', 'ATENDENTE', 'MECANICO')")
+    @PreAuthorize("hasAnyAuthority('ADMIN', 'GERENTE', 'ATENDENTE', 'MECANICO')")
     @Operation(summary = "Buscar notas fiscais por OS")
     public ResponseEntity<List<NotaFiscalResponseDTO>> buscarPorOrdemServico(
         @PathVariable UUID ordemServicoId
@@ -108,7 +108,7 @@ public class NotaFiscalController {
      * @return página de notas fiscais
      */
     @GetMapping("/status/{status}")
-    @PreAuthorize("hasAnyRole('ADMIN', 'GERENTE', 'ATENDENTE')")
+    @PreAuthorize("hasAnyAuthority('ADMIN', 'GERENTE', 'ATENDENTE')")
     @Operation(summary = "Buscar notas fiscais por status")
     public ResponseEntity<Page<NotaFiscalResumoDTO>> buscarPorStatus(
         @PathVariable StatusNotaFiscal status,
@@ -126,7 +126,7 @@ public class NotaFiscalController {
      * @return nota fiscal encontrada
      */
     @GetMapping("/numero/{numero}/serie/{serie}")
-    @PreAuthorize("hasAnyRole('ADMIN', 'GERENTE', 'ATENDENTE')")
+    @PreAuthorize("hasAnyAuthority('ADMIN', 'GERENTE', 'ATENDENTE')")
     @Operation(summary = "Buscar nota fiscal por número e série")
     public ResponseEntity<NotaFiscalResponseDTO> buscarPorNumeroESerie(
         @PathVariable Long numero,
@@ -143,7 +143,7 @@ public class NotaFiscalController {
      * @return nota fiscal encontrada
      */
     @GetMapping("/chave-acesso/{chaveAcesso}")
-    @PreAuthorize("hasAnyRole('ADMIN', 'GERENTE', 'ATENDENTE')")
+    @PreAuthorize("hasAnyAuthority('ADMIN', 'GERENTE', 'ATENDENTE')")
     @Operation(summary = "Buscar nota fiscal por chave de acesso")
     public ResponseEntity<NotaFiscalResponseDTO> buscarPorChaveAcesso(
         @PathVariable String chaveAcesso
@@ -160,7 +160,7 @@ public class NotaFiscalController {
      * @return nota fiscal atualizada
      */
     @PutMapping("/{id}")
-    @PreAuthorize("hasAnyRole('ADMIN', 'GERENTE', 'ATENDENTE')")
+    @PreAuthorize("hasAnyAuthority('ADMIN', 'GERENTE', 'ATENDENTE')")
     @Operation(summary = "Atualizar nota fiscal", description = "Atualiza uma nota fiscal (apenas em digitação)")
     public ResponseEntity<NotaFiscalResponseDTO> atualizar(
         @PathVariable UUID id,
@@ -177,7 +177,7 @@ public class NotaFiscalController {
      * @return resposta vazia
      */
     @DeleteMapping("/{id}")
-    @PreAuthorize("hasAnyRole('ADMIN', 'GERENTE')")
+    @PreAuthorize("hasAnyAuthority('ADMIN', 'GERENTE')")
     @Operation(summary = "Deletar nota fiscal", description = "Deleta uma nota fiscal (apenas em digitação)")
     public ResponseEntity<Void> deletar(@PathVariable UUID id) {
         notaFiscalService.deletar(id);
@@ -191,7 +191,7 @@ public class NotaFiscalController {
      * @return true se existe
      */
     @GetMapping("/existe/ordem-servico/{ordemServicoId}")
-    @PreAuthorize("hasAnyRole('ADMIN', 'GERENTE', 'ATENDENTE')")
+    @PreAuthorize("hasAnyAuthority('ADMIN', 'GERENTE', 'ATENDENTE')")
     @Operation(summary = "Verificar se existe nota fiscal para OS")
     public ResponseEntity<Boolean> existeNotaFiscalParaOS(@PathVariable UUID ordemServicoId) {
         boolean existe = notaFiscalService.existeNotaFiscalParaOS(ordemServicoId);
@@ -205,7 +205,7 @@ public class NotaFiscalController {
      * @return próximo número disponível
      */
     @GetMapping("/proximo-numero/serie/{serie}")
-    @PreAuthorize("hasAnyRole('ADMIN', 'GERENTE', 'ATENDENTE')")
+    @PreAuthorize("hasAnyAuthority('ADMIN', 'GERENTE', 'ATENDENTE')")
     @Operation(summary = "Buscar próximo número disponível")
     public ResponseEntity<Long> buscarProximoNumero(@PathVariable Integer serie) {
         Long proximoNumero = notaFiscalService.buscarProximoNumero(serie);

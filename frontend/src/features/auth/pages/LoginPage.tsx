@@ -34,6 +34,8 @@ export const LoginPage = () => {
       // Redireciona baseado no perfil do usuário
       if (result.usuario.perfil === 'SUPER_ADMIN') {
         navigate('/admin', { replace: true });
+      } else if (result.usuario.perfil === 'MECANICO') {
+        navigate('/ordens-servico', { replace: true });
       } else {
         navigate('/', { replace: true });
       }

@@ -119,7 +119,7 @@ const navigationItems: NavigationItem[] = [
     name: 'Dashboard',
     href: '/',
     icon: LayoutDashboard,
-    requiredRoles: [PerfilUsuario.ADMIN, PerfilUsuario.GERENTE, PerfilUsuario.ATENDENTE, PerfilUsuario.MECANICO],
+    requiredRoles: [PerfilUsuario.ADMIN, PerfilUsuario.GERENTE, PerfilUsuario.ATENDENTE],
   },
   {
     name: 'Clientes',

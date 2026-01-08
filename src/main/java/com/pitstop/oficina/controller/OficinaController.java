@@ -59,7 +59,7 @@ public class OficinaController {
         @ApiResponse(responseCode = "409", description = "CNPJ já existe")
     })
     @PostMapping
-    @PreAuthorize("hasRole('SUPER_ADMIN')")
+    @PreAuthorize("hasAuthority('SUPER_ADMIN')")
     public ResponseEntity<OficinaResponse> create(@Valid @RequestBody CreateOficinaRequest request) {
         log.info("POST /api/oficinas - Criando nova oficina: {}", request.nome());
 
@@ -82,7 +82,7 @@ public class OficinaController {
         @ApiResponse(responseCode = "404", description = "Oficina não encontrada")
     })
     @GetMapping("/{id}")
-    @PreAuthorize("hasAnyRole('ADMIN', 'GERENTE', 'SUPER_ADMIN')")
+    @PreAuthorize("hasAnyAuthority('ADMIN', 'GERENTE', 'SUPER_ADMIN')")
     public ResponseEntity<OficinaResponse> findById(
         @Parameter(description = "ID da oficina") @PathVariable UUID id
     ) {
@@ -100,7 +100,7 @@ public class OficinaController {
      */
     @Operation(summary = "Buscar oficina por CNPJ")
     @GetMapping("/cnpj/{cnpj}")
-    @PreAuthorize("hasRole('SUPER_ADMIN')")
+    @PreAuthorize("hasAuthority('SUPER_ADMIN')")
     public ResponseEntity<OficinaResponse> findByCnpj(
         @Parameter(description = "CNPJ (14 dígitos)") @PathVariable String cnpj
     ) {
@@ -120,7 +120,7 @@ public class OficinaController {
     @Operation(summary = "Listar todas as oficinas",
         description = "Retorna lista paginada de todas as oficinas (resumo). Acesso restrito ao Super Admin.")
     @GetMapping
-    @PreAuthorize("hasRole('SUPER_ADMIN')")
+    @PreAuthorize("hasAuthority('SUPER_ADMIN')")
     public ResponseEntity<Page<OficinaResumoResponse>> findAll(
         @PageableDefault(size = 20, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable
     ) {
@@ -142,7 +142,7 @@ public class OficinaController {
     @Operation(summary = "Listar oficinas com filtros",
         description = "Busca oficinas com filtros avançados. Todos os filtros são opcionais.")
     @GetMapping("/search")
-    @PreAuthorize("hasRole('SUPER_ADMIN')")
+    @PreAuthorize("hasAuthority('SUPER_ADMIN')")
     public ResponseEntity<Page<OficinaResumoResponse>> search(
         @Parameter(description = "Status da oficina") @RequestParam(required = false) StatusOficina status,
         @Parameter(description = "Plano de assinatura") @RequestParam(required = false) PlanoAssinatura plano,
@@ -164,7 +164,7 @@ public class OficinaController {
      */
     @Operation(summary = "Listar oficinas por status")
     @GetMapping("/status/{status}")
-    @PreAuthorize("hasRole('SUPER_ADMIN')")
+    @PreAuthorize("hasAuthority('SUPER_ADMIN')")
     public ResponseEntity<Page<OficinaResumoResponse>> findByStatus(
         @Parameter(description = "Status") @PathVariable StatusOficina status,
         @PageableDefault(size = 20) Pageable pageable
@@ -184,7 +184,7 @@ public class OficinaController {
     @Operation(summary = "Listar oficinas com vencimento próximo",
         description = "Retorna oficinas cujo plano vence nos próximos 7 dias")
     @GetMapping("/vencimento-proximo")
-    @PreAuthorize("hasRole('SUPER_ADMIN')")
+    @PreAuthorize("hasAuthority('SUPER_ADMIN')")
     public ResponseEntity<List<OficinaResumoResponse>> findVencimentoProximo() {
 
         List<OficinaResumoResponse> response = oficinaService.findVencimentoProximo();
@@ -207,7 +207,7 @@ public class OficinaController {
         @ApiResponse(responseCode = "404", description = "Oficina não encontrada")
     })
     @PutMapping("/{id}")
-    @PreAuthorize("hasAnyRole('ADMIN', 'GERENTE', 'SUPER_ADMIN')")
+    @PreAuthorize("hasAnyAuthority('ADMIN', 'GERENTE', 'SUPER_ADMIN')")
     public ResponseEntity<OficinaResponse> update(
         @PathVariable UUID id,
         @Valid @RequestBody UpdateOficinaRequest request
@@ -234,7 +234,7 @@ public class OficinaController {
         @ApiResponse(responseCode = "400", description = "Oficina já está suspensa")
     })
     @PutMapping("/{id}/suspend")
-    @PreAuthorize("hasRole('SUPER_ADMIN')")
+    @PreAuthorize("hasAuthority('SUPER_ADMIN')")
     public ResponseEntity<Void> suspend(@PathVariable UUID id) {
         log.warn("PUT /api/oficinas/{}/suspend - Suspendendo oficina", id);
 
@@ -252,7 +252,7 @@ public class OficinaController {
     @Operation(summary = "Reativar oficina",
         description = "Reativa oficina suspensa após regularização do pagamento")
     @PutMapping("/{id}/activate")
-    @PreAuthorize("hasRole('SUPER_ADMIN')")
+    @PreAuthorize("hasAuthority('SUPER_ADMIN')")
     public ResponseEntity<Void> activate(@PathVariable UUID id) {
         log.info("PUT /api/oficinas/{}/activate - Reativando oficina", id);
 
@@ -271,7 +271,7 @@ public class OficinaController {
     @Operation(summary = "Cancelar oficina",
         description = "Cancela a assinatura da oficina. Operação irreversível.")
     @DeleteMapping("/{id}")
-    @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_ADMIN')")
+    @PreAuthorize("hasAnyAuthority('ADMIN', 'SUPER_ADMIN')")
     public ResponseEntity<Void> cancel(@PathVariable UUID id) {
         log.warn("DELETE /api/oficinas/{} - Cancelando oficina", id);
 
@@ -294,7 +294,7 @@ public class OficinaController {
         @ApiResponse(responseCode = "400", description = "Novo plano não é superior ao atual")
     })
     @PutMapping("/{id}/upgrade")
-    @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_ADMIN')")
+    @PreAuthorize("hasAnyAuthority('ADMIN', 'SUPER_ADMIN')")
     public ResponseEntity<OficinaResponse> upgradePlan(
         @PathVariable UUID id,
         @Parameter(description = "Novo plano (PROFISSIONAL ou TURBINADO)")
@@ -318,7 +318,7 @@ public class OficinaController {
     @Operation(summary = "Fazer downgrade de plano",
         description = "Agenda downgrade para o próximo ciclo de renovação")
     @PutMapping("/{id}/downgrade")
-    @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_ADMIN')")
+    @PreAuthorize("hasAnyAuthority('ADMIN', 'SUPER_ADMIN')")
     public ResponseEntity<OficinaResponse> downgradePlan(
         @PathVariable UUID id,
         @Parameter(description = "Novo plano (ECONOMICO ou PROFISSIONAL)")
@@ -339,7 +339,7 @@ public class OficinaController {
     @Operation(summary = "Obter métricas SaaS",
         description = "Retorna métricas para dashboard do Super Admin (MRR, total de oficinas ativas, etc)")
     @GetMapping("/metrics")
-    @PreAuthorize("hasRole('SUPER_ADMIN')")
+    @PreAuthorize("hasAuthority('SUPER_ADMIN')")
     public ResponseEntity<MetricsResponse> getMetrics() {
 
         long totalAtivas = oficinaService.countAtivas();

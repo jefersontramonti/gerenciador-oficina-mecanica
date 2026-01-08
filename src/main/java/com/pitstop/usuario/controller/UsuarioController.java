@@ -121,26 +121,30 @@ public class UsuarioController {
     }
 
     /**
-     * Lista todos os usuários com paginação.
+     * Lista todos os usuários com paginação e filtros opcionais.
      *
      * ADMIN e GERENTE podem listar usuários.
      *
+     * @param perfil Filtro opcional de perfil (ADMIN, GERENTE, ATENDENTE, MECANICO)
+     * @param ativo Filtro opcional de status ativo (true/false)
      * @param pageable Configuração de paginação (page, size, sort)
      * @return Página de usuários
      */
     @GetMapping
     @PreAuthorize("hasAnyAuthority('ADMIN', 'GERENTE')")
-    @Operation(summary = "Listar todos os usuários", description = "Retorna lista paginada de usuários")
+    @Operation(summary = "Listar todos os usuários", description = "Retorna lista paginada de usuários com filtros opcionais")
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "Lista retornada com sucesso"),
             @ApiResponse(responseCode = "403", description = "Sem permissão")
     })
     public ResponseEntity<Page<UsuarioResponse>> findAll(
+            @Parameter(description = "Filtrar por perfil") @RequestParam(required = false) PerfilUsuario perfil,
+            @Parameter(description = "Filtrar por status ativo") @RequestParam(required = false) Boolean ativo,
             @PageableDefault(size = 20, sort = "nome") Pageable pageable
     ) {
-        log.debug("Requisição para listar usuários: page={}, size={}",
-                pageable.getPageNumber(), pageable.getPageSize());
-        Page<UsuarioResponse> response = usuarioService.findAll(pageable);
+        log.debug("Requisição para listar usuários: perfil={}, ativo={}, page={}, size={}",
+                perfil, ativo, pageable.getPageNumber(), pageable.getPageSize());
+        Page<UsuarioResponse> response = usuarioService.findAllWithFilters(perfil, ativo, pageable);
         return ResponseEntity.ok(response);
     }
 

@@ -1084,6 +1084,14 @@ export const useFeatureFlagStats = (id?: string) => {
   });
 };
 
+export const useFeatureFlagsByPlano = () => {
+  return useQuery({
+    queryKey: [...featureFlagKeys.all, 'by-plano'] as const,
+    queryFn: () => featureFlagService.getByPlano(),
+    staleTime: 5 * 60 * 1000,
+  });
+};
+
 export const useCreateFeatureFlag = () => {
   const queryClient = useQueryClient();
 

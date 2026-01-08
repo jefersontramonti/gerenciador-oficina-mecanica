@@ -770,4 +770,9 @@ export const featureFlagService = {
     const response = await api.get<FeatureFlagStats>(`/saas/features/${id}/stats`);
     return response.data;
   },
+
+  async getByPlano(): Promise<Record<string, FeatureFlag[]>> {
+    const response = await api.get<Record<string, FeatureFlag[]>>('/saas/features/by-plano');
+    return response.data;
+  },
 };

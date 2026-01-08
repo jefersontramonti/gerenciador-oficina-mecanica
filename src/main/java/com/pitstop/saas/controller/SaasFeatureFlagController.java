@@ -47,6 +47,13 @@ public class SaasFeatureFlagController {
         return ResponseEntity.ok(categorias);
     }
 
+    @GetMapping("/by-plano")
+    public ResponseEntity<Map<String, List<FeatureFlagDTO>>> getFeaturesByPlano() {
+        logger.debug("GET /api/saas/features/by-plano - Listando features por plano");
+        Map<String, List<FeatureFlagDTO>> features = featureFlagService.getFeaturesByPlano();
+        return ResponseEntity.ok(features);
+    }
+
     @GetMapping("/categoria/{categoria}")
     public ResponseEntity<List<FeatureFlagDTO>> findByCategoria(@PathVariable String categoria) {
         logger.debug("GET /api/saas/features/categoria/{} - Listando por categoria", categoria);
