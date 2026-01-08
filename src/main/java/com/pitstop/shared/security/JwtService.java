@@ -40,14 +40,58 @@ import java.util.function.Function;
 @Slf4j
 public class JwtService {
 
-    @Value("${application.jwt.secret}")
-    private String secret;
+    /**
+     * Minimum secret key length in bytes for HS512 (512 bits = 64 bytes).
+     */
+    private static final int MIN_SECRET_LENGTH_BYTES = 64;
 
-    @Value("${application.jwt.access-token-expiration}")
-    private Long accessTokenExpiration;
+    private final String secret;
+    private final Long accessTokenExpiration;
+    private final Long refreshTokenExpiration;
+    private final SecretKey signingKey;
 
-    @Value("${application.jwt.refresh-token-expiration}")
-    private Long refreshTokenExpiration;
+    public JwtService(
+            @Value("${application.jwt.secret}") String secret,
+            @Value("${application.jwt.access-token-expiration}") Long accessTokenExpiration,
+            @Value("${application.jwt.refresh-token-expiration}") Long refreshTokenExpiration
+    ) {
+        this.secret = secret;
+        this.accessTokenExpiration = accessTokenExpiration;
+        this.refreshTokenExpiration = refreshTokenExpiration;
+
+        // Validate and initialize signing key
+        this.signingKey = initializeSigningKey(secret);
+    }
+
+    /**
+     * Initializes and validates the signing key.
+     *
+     * @param secret Base64-encoded secret
+     * @return validated SecretKey
+     * @throws IllegalArgumentException if secret is too short
+     */
+    private SecretKey initializeSigningKey(String secret) {
+        if (secret == null || secret.isBlank()) {
+            throw new IllegalArgumentException("JWT secret não configurado. Configure 'application.jwt.secret' no application.yml");
+        }
+
+        byte[] keyBytes;
+        try {
+            keyBytes = Decoders.BASE64.decode(secret);
+        } catch (Exception e) {
+            throw new IllegalArgumentException("JWT secret deve ser uma string Base64 válida", e);
+        }
+
+        if (keyBytes.length < MIN_SECRET_LENGTH_BYTES) {
+            log.error("JWT secret tem {} bytes, mas HS512 requer mínimo de {} bytes (512 bits)",
+                    keyBytes.length, MIN_SECRET_LENGTH_BYTES);
+            throw new IllegalArgumentException(
+                    "JWT secret muito curto. HS512 requer mínimo de 64 bytes (512 bits). Atual: " + keyBytes.length + " bytes");
+        }
+
+        log.info("JWT secret validado com sucesso ({} bytes)", keyBytes.length);
+        return Keys.hmacShaKeyFor(keyBytes);
+    }
 
     /**
      * Generates an access token for the given user.
@@ -265,14 +309,13 @@ public class JwtService {
     }
 
     /**
-     * Gets the signing key for HMAC SHA-512.
+     * Gets the cached signing key for HMAC SHA-512.
      *
-     * <p>The secret must be Base64-encoded and at least 512 bits (64 bytes) for HS512.
+     * <p>The key is validated and cached during service initialization.
      *
      * @return the secret key for signing/verifying tokens
      */
     private SecretKey getSigningKey() {
-        byte[] keyBytes = Decoders.BASE64.decode(secret);
-        return Keys.hmacShaKeyFor(keyBytes);
+        return signingKey;
     }
 }

@@ -1,0 +1,150 @@
+# Docker Compose para Evolution API v2 (Desenvolvimento Local)
+#
+# USO:
+#   docker-compose -f docker-compose.evolution.yml up -d
+#
+# Acessa:
+#   - Evolution API: http://localhost:8081
+#   - Manager (QR Code): http://localhost:8081/manager
+#
+# API Key padrao: pitstop-evolution-api-key-dev-2024
+
+services:
+  # PostgreSQL para Evolution API (separado do Neon)
+  postgres-evolution:
+    image: postgres:16-alpine
+    container_name: pitstop-postgres-evolution
+    environment:
+      POSTGRES_DB: evolution
+      POSTGRES_USER: evolution
+      POSTGRES_PASSWORD: evolution123
+    volumes:
+      - postgres_evolution_data:/var/lib/postgresql/data
+    ports:
+      - "5433:5432"  # Porta diferente para não conflitar
+    networks:
+      - pitstop-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U evolution -d evolution"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+  # Evolution API v2
+  evolution-api:
+    image: atendai/evolution-api:latest
+    container_name: pitstop-evolution-api
+    depends_on:
+      postgres-evolution:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    environment:
+      # Server
+      - SERVER_TYPE=http
+      - SERVER_PORT=8080
+      - SERVER_URL=http://localhost:8081
+
+      # Authentication
+      - AUTHENTICATION_TYPE=apikey
+      - AUTHENTICATION_API_KEY=pitstop-evolution-api-key-dev-2024
+      - AUTHENTICATION_EXPOSE_IN_FETCH_INSTANCES=true
+
+      # Database
+      - DATABASE_ENABLED=true
+      - DATABASE_PROVIDER=postgresql
+      - DATABASE_CONNECTION_URI=postgresql://evolution:evolution123@postgres-evolution:5432/evolution
+      - DATABASE_CONNECTION_CLIENT_NAME=evolution_pitstop
+      - DATABASE_SAVE_DATA_INSTANCE=true
+      - DATABASE_SAVE_DATA_NEW_MESSAGE=true
+      - DATABASE_SAVE_MESSAGE_UPDATE=true
+      - DATABASE_SAVE_DATA_CONTACTS=true
+      - DATABASE_SAVE_DATA_CHATS=true
+
+      # Redis Cache
+      - CACHE_REDIS_ENABLED=true
+      - CACHE_REDIS_URI=redis://redis:6379
+      - CACHE_REDIS_PREFIX_KEY=evolution
+      - CACHE_REDIS_SAVE_INSTANCES=true
+      - CACHE_LOCAL_ENABLED=false
+
+      # QRCode Config
+      - QRCODE_LIMIT=30
+      - QRCODE_COLOR=#198754
+
+      # WhatsApp Config
+      - CONFIG_SESSION_PHONE_CLIENT=PitStop
+      - CONFIG_SESSION_PHONE_NAME=PitStop Oficina
+
+      # Webhook (sera configurado depois)
+      - WEBHOOK_GLOBAL_ENABLED=false
+
+      # Storage
+      - STORE_MESSAGES=true
+      - STORE_MESSAGE_UP=true
+      - STORE_CONTACTS=true
+      - STORE_CHATS=true
+
+      # Cleanup (7200 = 2 horas)
+      - CLEAN_STORE_CLEANING_INTERVAL=7200
+      - CLEAN_STORE_MESSAGES=true
+      - CLEAN_STORE_MESSAGE_UP=true
+      - CLEAN_STORE_CONTACTS=true
+      - CLEAN_STORE_CHATS=true
+
+      # Logs
+      - LOG_LEVEL=INFO
+      - LOG_COLOR=true
+      - LOG_BAILEYS=error
+
+      # CORS
+      - CORS_ORIGIN=*
+      - CORS_METHODS=GET,POST,PUT,DELETE
+      - CORS_CREDENTIALS=true
+    volumes:
+      - evolution_instances:/evolution/instances
+      - evolution_store:/evolution/store
+    ports:
+      - "8081:8080"
+    networks:
+      - pitstop-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "wget --spider -q http://localhost:8080 || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+
+  # Redis (usa o existente ou cria se nao existir)
+  redis:
+    image: redis:7-alpine
+    container_name: pitstop-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - pitstop-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    command: redis-server --appendonly yes
+    restart: unless-stopped
+
+networks:
+  pitstop-network:
+    driver: bridge
+
+volumes:
+  postgres_evolution_data:
+    driver: local
+  evolution_instances:
+    driver: local
+  evolution_store:
+    driver: local
+  redis_data:
+    driver: local

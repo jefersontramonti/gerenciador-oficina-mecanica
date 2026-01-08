@@ -56,12 +56,24 @@ public class OrdemServicoPDFService {
 
         UUID oficinaId = TenantContext.getTenantId();
 
+        // Valida que o contexto de tenant está definido
+        if (oficinaId == null) {
+            log.error("Tentativa de gerar PDF sem contexto de tenant definido");
+            throw new IllegalStateException("Contexto de tenant não definido. Autenticação inválida.");
+        }
+
         // Busca dados da oficina
         Oficina oficina = oficinaRepository.findById(oficinaId)
                 .orElseThrow(() -> new RuntimeException("Oficina não encontrada"));
 
         OrdemServico os = ordemServicoRepository.findById(osId)
                 .orElseThrow(() -> new OrdemServicoNotFoundException(osId));
+
+        // Valida que a OS pertence à oficina do usuário atual (segurança multi-tenancy)
+        if (!os.getOficina().getId().equals(oficinaId)) {
+            log.warn("Tentativa de acesso não autorizado à OS {} por oficina {}", osId, oficinaId);
+            throw new OrdemServicoNotFoundException(osId); // Retorna 404 para não revelar existência
+        }
 
         Veiculo veiculo = veiculoRepository.findById(os.getVeiculoId())
                 .orElseThrow(() -> new RuntimeException("Veículo não encontrado"));
@@ -323,8 +335,24 @@ public class OrdemServicoPDFService {
         table.addCell(new PdfPCell(new Phrase("Subtotal:", labelFont)));
         table.addCell(new PdfPCell(new Phrase(CURRENCY_FORMATTER.format(os.getValorTotal()), dataFont)));
 
-        table.addCell(new PdfPCell(new Phrase("Desconto:", labelFont)));
-        table.addCell(new PdfPCell(new Phrase(CURRENCY_FORMATTER.format(os.getDescontoValor()), dataFont)));
+        // Calcula desconto total (percentual + valor absoluto)
+        java.math.BigDecimal descontoTotal = java.math.BigDecimal.ZERO;
+        String descontoLabel = "Desconto:";
+        if (os.getDescontoPercentual() != null && os.getDescontoPercentual().compareTo(java.math.BigDecimal.ZERO) > 0) {
+            descontoTotal = os.getValorTotal()
+                .multiply(os.getDescontoPercentual())
+                .divide(new java.math.BigDecimal("100"), 2, java.math.RoundingMode.HALF_UP);
+            descontoLabel = "Desconto (" + os.getDescontoPercentual().stripTrailingZeros().toPlainString() + "%):";
+        }
+        if (os.getDescontoValor() != null && os.getDescontoValor().compareTo(java.math.BigDecimal.ZERO) > 0) {
+            descontoTotal = descontoTotal.add(os.getDescontoValor());
+        }
+
+        if (descontoTotal.compareTo(java.math.BigDecimal.ZERO) > 0) {
+            Font descontoFont = new Font(Font.HELVETICA, 9, Font.NORMAL, new Color(220, 38, 38)); // vermelho
+            table.addCell(new PdfPCell(new Phrase(descontoLabel, labelFont)));
+            table.addCell(new PdfPCell(new Phrase("-" + CURRENCY_FORMATTER.format(descontoTotal), descontoFont)));
+        }
 
         PdfPCell totalLabelCell = new PdfPCell(new Phrase("VALOR FINAL:", totalFont));
         totalLabelCell.setBackgroundColor(new Color(243, 244, 246));

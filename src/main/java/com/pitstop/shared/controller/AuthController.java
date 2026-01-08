@@ -63,6 +63,26 @@ import java.util.UUID;
 @Tag(name = "Autenticação", description = "Endpoints de login, refresh e logout")
 public class AuthController {
 
+    /**
+     * Cookie path for refresh token (only sent to auth endpoints).
+     */
+    private static final String COOKIE_PATH = "/api/auth";
+
+    /**
+     * Cookie max age in seconds (7 days = 604800 seconds).
+     */
+    private static final long COOKIE_MAX_AGE_SECONDS = 7 * 24 * 60 * 60;
+
+    /**
+     * SameSite policy for cookies (Lax for better compatibility).
+     */
+    private static final String COOKIE_SAME_SITE = "Lax";
+
+    /**
+     * Minimum characters to show at start and end of masked email.
+     */
+    private static final int EMAIL_MASK_VISIBLE_CHARS = 2;
+
     private final AuthenticationService authenticationService;
     private final PasswordResetService passwordResetService;
 
@@ -106,23 +126,18 @@ public class AuthController {
 
         LoginResponse response = authenticationService.login(request);
 
-        // Cookie duration based on "remember me" option
-        // rememberMe = true: 30 days
-        // rememberMe = false: Session cookie (expires when browser closes)
-        ResponseCookie.ResponseCookieBuilder cookieBuilder = ResponseCookie.from("refreshToken", response.refreshToken())
+        // Cookie duration: Always 7 days for refresh token persistence
+        // The "rememberMe" option controls localStorage user data, not the refresh token cookie
+        // This ensures users stay logged in even if they didn't check "remember me"
+        ResponseCookie cookie = ResponseCookie.from("refreshToken", response.refreshToken())
                 .httpOnly(true)
                 .secure(isSecureRequest(httpRequest))
-                .path("/api/auth")
-                .sameSite("Strict");
+                .path(COOKIE_PATH)
+                .sameSite(COOKIE_SAME_SITE)
+                .maxAge(COOKIE_MAX_AGE_SECONDS)
+                .build();
 
-        if (request.isRememberMe()) {
-            cookieBuilder.maxAge(30 * 24 * 60 * 60); // 30 days in seconds
-        }
-        // If rememberMe is false, don't set maxAge - cookie will be session-only
-
-        ResponseCookie cookie = cookieBuilder.build();
-
-        log.info("Login successful - email: {}, rememberMe: {}", request.email(), request.isRememberMe());
+        log.info("Login successful - email: {}, rememberMe: {}", maskEmail(request.email()), request.isRememberMe());
 
         return ResponseEntity.ok()
                 .header(HttpHeaders.SET_COOKIE, cookie.toString())
@@ -183,9 +198,9 @@ public class AuthController {
         ResponseCookie cookie = ResponseCookie.from("refreshToken", response.refreshToken())
                 .httpOnly(true)
                 .secure(isSecureRequest(httpRequest))
-                .path("/api/auth")
-                .maxAge(7 * 24 * 60 * 60)
-                .sameSite("Strict")
+                .path(COOKIE_PATH)
+                .sameSite(COOKIE_SAME_SITE)
+                .maxAge(COOKIE_MAX_AGE_SECONDS)
                 .build();
 
         log.info("Token refresh successful");
@@ -234,9 +249,9 @@ public class AuthController {
         ResponseCookie cookie = ResponseCookie.from("refreshToken", "")
                 .httpOnly(true)
                 .secure(isSecureRequest(httpRequest))
-                .path("/api/auth")
+                .path(COOKIE_PATH)
+                .sameSite(COOKIE_SAME_SITE)
                 .maxAge(0) // Expire immediately
-                .sameSite("Strict")
                 .build();
 
         log.info("Logout successful - userId: {}", userId);
@@ -284,16 +299,16 @@ public class AuthController {
 
         LoginResponse response = authenticationService.register(request);
 
-        // Create HttpOnly cookie with refresh token (7 days)
+        // Create HttpOnly cookie with refresh token
         ResponseCookie cookie = ResponseCookie.from("refreshToken", response.refreshToken())
                 .httpOnly(true)
                 .secure(isSecureRequest(httpRequest))
-                .path("/api/auth")
-                .maxAge(7 * 24 * 60 * 60)
-                .sameSite("Strict")
+                .path(COOKIE_PATH)
+                .sameSite(COOKIE_SAME_SITE)
+                .maxAge(COOKIE_MAX_AGE_SECONDS)
                 .build();
 
-        log.info("Registration successful - email: {}", request.email());
+        log.info("Registration successful - email: {}", maskEmail(request.email()));
 
         return ResponseEntity.status(201)
                 .header(HttpHeaders.SET_COOKIE, cookie.toString())
@@ -526,5 +541,33 @@ public class AuthController {
 
         // Fallback to direct connection check
         return request.isSecure();
+    }
+
+    /**
+     * Masks an email address for secure logging.
+     *
+     * <p>Example: "user@example.com" → "us***@***le.com"
+     *
+     * @param email the email to mask
+     * @return masked email
+     */
+    private String maskEmail(String email) {
+        if (email == null || !email.contains("@")) {
+            return "***";
+        }
+
+        String[] parts = email.split("@");
+        String local = parts[0];
+        String domain = parts.length > 1 ? parts[1] : "";
+
+        String maskedLocal = local.length() > EMAIL_MASK_VISIBLE_CHARS
+                ? local.substring(0, EMAIL_MASK_VISIBLE_CHARS) + "***"
+                : "***";
+
+        String maskedDomain = domain.length() > EMAIL_MASK_VISIBLE_CHARS
+                ? "***" + domain.substring(domain.length() - EMAIL_MASK_VISIBLE_CHARS)
+                : "***";
+
+        return maskedLocal + "@" + maskedDomain;
     }
 }

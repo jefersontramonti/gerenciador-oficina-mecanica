@@ -3,6 +3,7 @@ package com.pitstop.config;
 import com.pitstop.shared.security.JwtAuthenticationFilter;
 import com.pitstop.shared.security.tenant.TenantFilter;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -78,6 +79,9 @@ public class SecurityConfig {
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
     private final TenantFilter tenantFilter;
 
+    @Value("${application.cors.allowed-origins:http://localhost:3000,http://localhost:5173}")
+    private String allowedOrigins;
+
     /**
      * Configures the security filter chain.
      *
@@ -93,6 +97,15 @@ public class SecurityConfig {
 
                 // Enable CORS with custom configuration
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
+
+                // Security headers
+                .headers(headers -> headers
+                        .frameOptions(frame -> frame.deny()) // Prevent clickjacking
+                        .contentTypeOptions(content -> {}) // X-Content-Type-Options: nosniff
+                        .xssProtection(xss -> xss.disable()) // Deprecated, CSP is preferred
+                        .contentSecurityPolicy(csp -> csp
+                                .policyDirectives("default-src 'self'; frame-ancestors 'none';"))
+                )
 
                 // Stateless session management (no session cookies)
                 .sessionManagement(session -> session
@@ -148,21 +161,22 @@ public class SecurityConfig {
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
 
-        // Allowed origins (frontend URLs)
-        // In production, add actual frontend domain via environment variable
-        configuration.setAllowedOrigins(List.of(
-                "http://localhost:3000",
-                "http://localhost:5173",
-                "http://localhost:5174"
-        ));
+        // Allowed origins from environment variable (comma-separated)
+        configuration.setAllowedOrigins(List.of(allowedOrigins.split(",")));
 
         // Allowed HTTP methods
         configuration.setAllowedMethods(List.of(
                 "GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"
         ));
 
-        // Allowed headers
-        configuration.setAllowedHeaders(List.of("*"));
+        // Allowed headers (restricted to necessary headers only)
+        configuration.setAllowedHeaders(List.of(
+                "Authorization",
+                "Content-Type",
+                "Accept",
+                "X-Requested-With",
+                "Cache-Control"
+        ));
 
         // Allow credentials (cookies, authorization headers)
         configuration.setAllowCredentials(true);

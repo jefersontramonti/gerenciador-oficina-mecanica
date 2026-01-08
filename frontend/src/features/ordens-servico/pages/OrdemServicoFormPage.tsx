@@ -17,6 +17,7 @@ import type { OrdemServicoFormData } from '../utils/validation';
 import { VeiculoAutocomplete } from '../components/VeiculoAutocomplete';
 import { MecanicoSelect } from '../components/MecanicoSelect';
 import { PecaAutocomplete } from '../components/PecaAutocomplete';
+import { DiagnosticoIA } from '@/features/ia/components';
 
 export const OrdemServicoFormPage = () => {
   const navigate = useNavigate();
@@ -390,6 +391,15 @@ export const OrdemServicoFormPage = () => {
                 <p className="mt-1 text-sm text-red-500 dark:text-red-400">{errors.problemasRelatados.message}</p>
               )}
             </div>
+
+            {/* Diagnóstico por IA */}
+            <DiagnosticoIA
+              veiculoId={watch('veiculoId')}
+              problemasRelatados={watch('problemasRelatados')}
+              onUsarDiagnostico={(diagnostico) => {
+                setValue('diagnostico', diagnostico);
+              }}
+            />
 
             {/* Diagnóstico */}
             <div>

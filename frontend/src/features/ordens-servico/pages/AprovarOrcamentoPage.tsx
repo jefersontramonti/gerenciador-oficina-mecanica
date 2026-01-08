@@ -37,8 +37,8 @@ interface AprovacaoResult {
   valorFinal?: number;
 }
 
-// API URL base (sem /api pois o endpoint público não usa o prefixo padrão)
-const API_BASE_URL = 'http://localhost:8080';
+// API URL base - usa variável de ambiente para funcionar em dev e produção
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080';
 
 export function AprovarOrcamentoPage() {
   const [searchParams] = useSearchParams();
@@ -313,20 +313,20 @@ export function AprovarOrcamentoPage() {
             <div className="space-y-2">
               <div className="flex justify-between">
                 <span className="text-gray-600">Mao de Obra:</span>
-                <span className="font-medium">{formatCurrency(orcamento.valorMaoObra)}</span>
+                <span className="font-medium text-gray-900">{formatCurrency(orcamento.valorMaoObra)}</span>
               </div>
               <div className="flex justify-between">
                 <span className="text-gray-600">Pecas:</span>
-                <span className="font-medium">{formatCurrency(orcamento.valorPecas)}</span>
+                <span className="font-medium text-gray-900">{formatCurrency(orcamento.valorPecas)}</span>
               </div>
               <div className="flex justify-between border-t border-gray-200 pt-2">
                 <span className="text-gray-600">Subtotal:</span>
-                <span className="font-medium">{formatCurrency(orcamento.valorTotal)}</span>
+                <span className="font-medium text-gray-900">{formatCurrency(orcamento.valorTotal)}</span>
               </div>
               {(orcamento.descontoPercentual > 0 || orcamento.descontoValor > 0) && (
-                <div className="flex justify-between text-green-600">
-                  <span>Desconto:</span>
-                  <span className="font-medium">
+                <div className="flex justify-between">
+                  <span className="text-green-700">Desconto:</span>
+                  <span className="font-medium text-green-700">
                     -{formatCurrency(orcamento.descontoValor || (orcamento.valorTotal * orcamento.descontoPercentual / 100))}
                   </span>
                 </div>

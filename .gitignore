@@ -109,3 +109,8 @@ Thumbs.db
 # Keep api-tests.http but ignore private environment variables
 http-client.private.env.json
 .idea/httpRequests/http-client.cookies
+
+# API Keys - NEVER commit
+**/claudekey*
+*.key
+*.secret

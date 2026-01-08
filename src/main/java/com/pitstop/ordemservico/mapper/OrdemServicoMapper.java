@@ -35,8 +35,8 @@ public interface OrdemServicoMapper {
     @Mapping(target = "dataEntrega", ignore = true)
     @Mapping(target = "valorPecas", ignore = true) // Calculado automaticamente
     @Mapping(target = "valorTotal", ignore = true) // Calculado automaticamente
-    @Mapping(target = "descontoPercentual", constant = "0")
-    @Mapping(target = "descontoValor", constant = "0")
+    @Mapping(target = "descontoPercentual", source = "descontoPercentual", defaultExpression = "java(java.math.BigDecimal.ZERO)")
+    @Mapping(target = "descontoValor", source = "descontoValor", defaultExpression = "java(java.math.BigDecimal.ZERO)")
     @Mapping(target = "valorFinal", ignore = true) // Calculado automaticamente
     @Mapping(target = "aprovadoPeloCliente", constant = "false")
     @Mapping(target = "tokenAprovacao", ignore = true) // Gerado automaticamente no service

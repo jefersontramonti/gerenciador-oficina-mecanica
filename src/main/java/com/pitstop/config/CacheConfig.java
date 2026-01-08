@@ -53,6 +53,9 @@ public class CacheConfig {
             .allowIfSubType("com.pitstop")
             .allowIfSubType("java.util")
             .allowIfSubType("java.time")
+            .allowIfSubType("java.lang")
+            .allowIfSubType("java.math")
+            .allowIfBaseType(Object.class)
             .build();
 
         objectMapper.activateDefaultTyping(ptv, ObjectMapper.DefaultTyping.NON_FINAL);

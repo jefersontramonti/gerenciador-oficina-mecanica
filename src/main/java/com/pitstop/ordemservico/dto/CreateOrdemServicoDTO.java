@@ -39,6 +39,15 @@ public record CreateOrdemServicoDTO(
     @DecimalMin(value = "0.00", message = "Valor da mão de obra não pode ser negativo")
     BigDecimal valorMaoObra,
 
+    @Schema(description = "Desconto percentual (0-100%)", example = "10.00")
+    @DecimalMin(value = "0.00", message = "Desconto percentual não pode ser negativo")
+    @DecimalMax(value = "100.00", message = "Desconto percentual não pode ser maior que 100%")
+    BigDecimal descontoPercentual,
+
+    @Schema(description = "Desconto em valor absoluto", example = "50.00")
+    @DecimalMin(value = "0.00", message = "Desconto em valor não pode ser negativo")
+    BigDecimal descontoValor,
+
     @Schema(description = "Diagnóstico técnico", example = "Pastilhas de freio desgastadas")
     @Size(max = 5000, message = "Diagnóstico deve ter no máximo 5000 caracteres")
     String diagnostico,

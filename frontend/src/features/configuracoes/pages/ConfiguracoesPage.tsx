@@ -8,9 +8,10 @@
  * - Operacional: Horarios, especialidades, redes sociais (ADMIN/GERENTE)
  * - Financeiro: Dados bancarios (ADMIN/GERENTE)
  * - Fiscal: Inscricoes, regime tributario (ADMIN/GERENTE)
+ * - IA: Configuracao de IA para diagnosticos (ADMIN/GERENTE)
  */
 
-import { User, Lock, Building2, Wrench, CreditCard, FileText } from 'lucide-react';
+import { User, Lock, Building2, Wrench, CreditCard, FileText, Bot } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/shared/components/ui/tabs';
 import { PerfilForm } from '../components/PerfilForm';
 import { AlterarSenhaForm } from '../components/AlterarSenhaForm';
@@ -18,6 +19,7 @@ import { OficinaBasicoForm } from '../components/OficinaBasicoForm';
 import { OficinaOperacionalForm } from '../components/OficinaOperacionalForm';
 import { OficinaFinanceiroForm } from '../components/OficinaFinanceiroForm';
 import { OficinaFiscalForm } from '../components/OficinaFiscalForm';
+import { ConfiguracaoIAForm } from '@/features/ia/components';
 import { useAuth } from '@/features/auth/hooks/useAuth';
 import { PerfilUsuario } from '@/features/auth/types';
 
@@ -79,6 +81,13 @@ export const ConfiguracoesPage = () => {
                 >
                   <FileText className="h-4 w-4" />
                   Fiscal
+                </TabsTrigger>
+                <TabsTrigger
+                  value="ia"
+                  className="flex items-center gap-2 whitespace-nowrap rounded-none border-b-2 border-transparent px-4 py-3 text-gray-600 data-[state=active]:border-blue-600 data-[state=active]:bg-white data-[state=active]:text-blue-600 dark:text-gray-300 dark:data-[state=active]:bg-gray-800 dark:data-[state=active]:text-blue-400"
+                >
+                  <Bot className="h-4 w-4" />
+                  Inteligencia Artificial
                 </TabsTrigger>
               </>
             )}
@@ -151,6 +160,18 @@ export const ConfiguracoesPage = () => {
                       Inscricoes e regime tributario para emissao de notas fiscais
                     </p>
                     <OficinaFiscalForm />
+                  </div>
+                </TabsContent>
+
+                <TabsContent value="ia" className="mt-0">
+                  <div className="max-w-4xl">
+                    <h2 className="mb-1 text-lg font-semibold text-gray-900 dark:text-white">
+                      Inteligencia Artificial
+                    </h2>
+                    <p className="mb-6 text-sm text-gray-600 dark:text-gray-400">
+                      Configure o diagnostico assistido por IA para suas ordens de servico
+                    </p>
+                    <ConfiguracaoIAForm />
                   </div>
                 </TabsContent>
               </>

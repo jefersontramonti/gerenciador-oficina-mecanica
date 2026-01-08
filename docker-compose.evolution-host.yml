@@ -1,0 +1,131 @@
+# Docker Compose para Evolution API v2 (Modo Host Network)
+#
+# USO:
+#   docker-compose -f docker-compose.evolution-host.yml up -d
+#
+# Acessa:
+#   - Evolution API: http://localhost:8080
+#   - Manager (QR Code): http://localhost:8080/manager
+#
+# API Key padrao: pitstop-evolution-api-key-dev-2024
+
+services:
+  # PostgreSQL para Evolution API
+  postgres-evolution:
+    image: postgres:16-alpine
+    container_name: pitstop-postgres-evolution
+    environment:
+      POSTGRES_DB: evolution
+      POSTGRES_USER: evolution
+      POSTGRES_PASSWORD: evolution123
+    volumes:
+      - postgres_evolution_data:/var/lib/postgresql/data
+    ports:
+      - "5433:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U evolution -d evolution"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+  # Redis
+  redis:
+    image: redis:7-alpine
+    container_name: pitstop-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    command: redis-server --appendonly yes
+    restart: unless-stopped
+
+  # Evolution API v2 com network_mode: host
+  evolution-api:
+    image: atendai/evolution-api:latest
+    container_name: pitstop-evolution-api
+    network_mode: host
+    depends_on:
+      postgres-evolution:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    environment:
+      # Server
+      - SERVER_TYPE=http
+      - SERVER_PORT=8080
+      - SERVER_URL=http://localhost:8080
+
+      # Authentication
+      - AUTHENTICATION_TYPE=apikey
+      - AUTHENTICATION_API_KEY=pitstop-evolution-api-key-dev-2024
+      - AUTHENTICATION_EXPOSE_IN_FETCH_INSTANCES=true
+
+      # Database (localhost porque network_mode: host)
+      - DATABASE_ENABLED=true
+      - DATABASE_PROVIDER=postgresql
+      - DATABASE_CONNECTION_URI=postgresql://evolution:evolution123@localhost:5433/evolution
+      - DATABASE_CONNECTION_CLIENT_NAME=evolution_pitstop
+      - DATABASE_SAVE_DATA_INSTANCE=true
+      - DATABASE_SAVE_DATA_NEW_MESSAGE=true
+      - DATABASE_SAVE_DATA_CONTACTS=true
+      - DATABASE_SAVE_DATA_CHATS=true
+
+      # Redis Cache (localhost porque network_mode: host)
+      - CACHE_REDIS_ENABLED=true
+      - CACHE_REDIS_URI=redis://localhost:6379
+      - CACHE_REDIS_PREFIX_KEY=evolution
+      - CACHE_REDIS_SAVE_INSTANCES=true
+
+      # QRCode Config
+      - QRCODE_LIMIT=30
+      - QRCODE_COLOR=#198754
+
+      # WhatsApp Config
+      - CONFIG_SESSION_PHONE_CLIENT=PitStop
+      - CONFIG_SESSION_PHONE_NAME=PitStop Oficina
+
+      # Webhook
+      - WEBHOOK_GLOBAL_ENABLED=false
+
+      # Storage
+      - STORE_MESSAGES=true
+      - STORE_MESSAGE_UP=true
+      - STORE_CONTACTS=true
+      - STORE_CHATS=true
+
+      # Cleanup
+      - CLEAN_STORE_CLEANING_INTERVAL=7200
+      - CLEAN_STORE_MESSAGES=true
+      - CLEAN_STORE_MESSAGE_UP=true
+      - CLEAN_STORE_CONTACTS=true
+      - CLEAN_STORE_CHATS=true
+
+      # Logs
+      - LOG_LEVEL=ERROR,WARN,INFO,LOG
+      - LOG_COLOR=true
+      - LOG_BAILEYS=error
+
+      # CORS
+      - CORS_ORIGIN=*
+      - CORS_METHODS=GET,POST,PUT,DELETE
+      - CORS_CREDENTIALS=true
+    volumes:
+      - evolution_instances:/evolution/instances
+      - evolution_store:/evolution/store
+    restart: unless-stopped
+
+volumes:
+  postgres_evolution_data:
+    driver: local
+  evolution_instances:
+    driver: local
+  evolution_store:
+    driver: local
+  redis_data:
+    driver: local

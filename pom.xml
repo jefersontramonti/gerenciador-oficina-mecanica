@@ -210,6 +210,13 @@
             <version>2.1.29</version>
         </dependency>
 
+        <!-- Anthropic SDK for AI integration (Claude) -->
+        <dependency>
+            <groupId>com.anthropic</groupId>
+            <artifactId>anthropic-java</artifactId>
+            <version>1.0.0</version>
+        </dependency>
+
         <!-- TestContainers for integration tests -->
         <dependency>
             <groupId>org.testcontainers</groupId>

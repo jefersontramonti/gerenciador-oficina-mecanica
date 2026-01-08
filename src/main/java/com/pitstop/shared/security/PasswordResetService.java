@@ -15,8 +15,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import java.io.UnsupportedEncodingException;
 
+import java.security.SecureRandom;
 import java.time.LocalDateTime;
-import java.util.UUID;
+import java.util.Base64;
 
 /**
  * Service responsible for password reset operations.
@@ -57,6 +58,21 @@ public class PasswordResetService {
     private static final long TOKEN_EXPIRATION_MINUTES = 15;
 
     /**
+     * Secure random generator for token generation.
+     */
+    private static final SecureRandom SECURE_RANDOM = new SecureRandom();
+
+    /**
+     * Token length in bytes (32 bytes = 256 bits).
+     */
+    private static final int TOKEN_LENGTH_BYTES = 32;
+
+    /**
+     * Minimum characters to show at start and end of masked email.
+     */
+    private static final int EMAIL_MASK_VISIBLE_CHARS = 2;
+
+    /**
      * Initiates password reset process by generating and "sending" a reset token.
      *
      * <p><b>Security note:</b> Always returns success to prevent user enumeration.
@@ -66,20 +82,20 @@ public class PasswordResetService {
      */
     @Transactional
     public void forgotPassword(ForgotPasswordRequest request) {
-        log.debug("Password reset requested for email: {}", request.email());
+        log.debug("Password reset requested for email: {}", maskEmail(request.email()));
 
         // Find user by email (but don't reveal if it doesn't exist)
         Usuario usuario = usuarioRepository.findByEmail(request.email())
                 .orElse(null);
 
         if (usuario == null) {
-            log.warn("Password reset requested for non-existent email: {}", request.email());
+            log.warn("Password reset requested for non-existent email: {}", maskEmail(request.email()));
             // Return success to prevent user enumeration
             return;
         }
 
         if (!usuario.isAtivo()) {
-            log.warn("Password reset requested for inactive user: {}", request.email());
+            log.warn("Password reset requested for inactive user: {}", maskEmail(request.email()));
             // Return success to prevent revealing user status
             return;
         }
@@ -87,8 +103,8 @@ public class PasswordResetService {
         // Invalidate any existing tokens for this user
         tokenRepository.deleteByUsuarioId(usuario.getId());
 
-        // Generate new token
-        String token = UUID.randomUUID().toString();
+        // Generate cryptographically secure token
+        String token = generateSecureToken();
         LocalDateTime expiresAt = LocalDateTime.now().plusMinutes(TOKEN_EXPIRATION_MINUTES);
 
         PasswordResetToken resetToken = PasswordResetToken.builder()
@@ -103,9 +119,9 @@ public class PasswordResetService {
         // Send password reset email
         try {
             emailService.sendPasswordResetEmail(usuario.getEmail(), usuario.getNome(), token);
-            log.info("Password reset email sent to: {}", usuario.getEmail());
+            log.info("Password reset email sent to: {}", maskEmail(usuario.getEmail()));
         } catch (MessagingException | UnsupportedEncodingException e) {
-            log.error("Failed to send password reset email to: {}", usuario.getEmail(), e);
+            log.error("Failed to send password reset email to: {}", maskEmail(usuario.getEmail()), e);
             // Note: We don't throw the exception to prevent user enumeration
             // The user will see success message even if email fails to send
         }
@@ -148,7 +164,7 @@ public class PasswordResetService {
         // Invalidate all tokens for this user (security measure)
         tokenRepository.deleteByUsuarioId(usuario.getId());
 
-        log.info("Password reset successful for user: {} (ID: {})", usuario.getEmail(), usuario.getId());
+        log.info("Password reset successful for user: {} (ID: {})", maskEmail(usuario.getEmail()), usuario.getId());
     }
 
     /**
@@ -164,5 +180,46 @@ public class PasswordResetService {
         int deleted = tokenRepository.deleteExpiredTokens(LocalDateTime.now());
         log.info("Deleted {} expired password reset tokens", deleted);
         return deleted;
+    }
+
+    /**
+     * Generates a cryptographically secure token.
+     *
+     * <p>Uses SecureRandom for better security than UUID.randomUUID().
+     *
+     * @return URL-safe Base64-encoded secure token
+     */
+    private String generateSecureToken() {
+        byte[] randomBytes = new byte[TOKEN_LENGTH_BYTES];
+        SECURE_RANDOM.nextBytes(randomBytes);
+        return Base64.getUrlEncoder().withoutPadding().encodeToString(randomBytes);
+    }
+
+    /**
+     * Masks an email address for secure logging.
+     *
+     * <p>Example: "user@example.com" → "us***@***le.com"
+     *
+     * @param email the email to mask
+     * @return masked email
+     */
+    private String maskEmail(String email) {
+        if (email == null || !email.contains("@")) {
+            return "***";
+        }
+
+        String[] parts = email.split("@");
+        String local = parts[0];
+        String domain = parts.length > 1 ? parts[1] : "";
+
+        String maskedLocal = local.length() > EMAIL_MASK_VISIBLE_CHARS
+                ? local.substring(0, EMAIL_MASK_VISIBLE_CHARS) + "***"
+                : "***";
+
+        String maskedDomain = domain.length() > EMAIL_MASK_VISIBLE_CHARS
+                ? "***" + domain.substring(domain.length() - EMAIL_MASK_VISIBLE_CHARS)
+                : "***";
+
+        return maskedLocal + "@" + maskedDomain;
     }
 }
