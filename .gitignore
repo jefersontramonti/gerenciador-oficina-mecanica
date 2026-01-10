@@ -114,3 +114,4 @@ http-client.private.env.json
 **/claudekey*
 *.key
 *.secret
+.env.production
