@@ -114,7 +114,7 @@ export const UsuarioFormPage = () => {
   // Not found (somente em modo edição)
   if (isEditMode && !isLoadingUsuario && !usuario) {
     return (
-      <div className="p-6">
+      <div className="p-4 sm:p-6">
         <div className="rounded-lg border border-red-800 dark:border-red-700 bg-red-900/20 dark:bg-red-900/30 p-4 text-red-400 dark:text-red-300">
           Usuário não encontrado.
         </div>
@@ -123,10 +123,10 @@ export const UsuarioFormPage = () => {
   }
 
   return (
-    <div className="p-6">
+    <div className="p-4 sm:p-6">
       {/* Header */}
-      <div className="mb-6">
-        <div className="mb-4 flex items-center gap-4">
+      <div className="mb-4 sm:mb-6">
+        <div className="mb-4 flex items-center gap-3 sm:gap-4">
           <Link
             to="/usuarios"
             className="rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 p-2 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-600"
@@ -134,25 +134,25 @@ export const UsuarioFormPage = () => {
             <ArrowLeft className="h-5 w-5" />
           </Link>
           <div>
-            <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">
+            <h1 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-gray-100">
               {isEditMode ? 'Editar Usuário' : 'Novo Usuário'}
             </h1>
             <p className="mt-1 text-sm text-gray-600 dark:text-gray-400">
               {isEditMode
                 ? 'Atualize as informações do usuário'
-                : 'Preencha os dados para criar um novo usuário no sistema'}
+                : 'Preencha os dados para criar um novo usuário'}
             </p>
           </div>
         </div>
       </div>
 
       {/* Form */}
-      <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+      <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 sm:space-y-6">
         {/* Card: Informações Básicas */}
-        <div className="rounded-lg bg-white dark:bg-gray-800 p-6 shadow">
+        <div className="rounded-lg bg-white dark:bg-gray-800 p-4 sm:p-6 shadow">
           <h2 className="mb-4 text-lg font-semibold text-gray-900 dark:text-gray-100">Informações Básicas</h2>
 
-          <div className="grid gap-4 md:grid-cols-2">
+          <div className="grid gap-4 grid-cols-1 sm:grid-cols-2">
             {/* Nome */}
             <div>
               <label htmlFor="nome" className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
@@ -244,11 +244,11 @@ export const UsuarioFormPage = () => {
         </div>
 
         {/* Card: Informações sobre Perfis */}
-        <div className="rounded-lg bg-blue-50 dark:bg-blue-900/30 p-6">
+        <div className="rounded-lg bg-blue-50 dark:bg-blue-900/30 p-4 sm:p-6">
           <h3 className="mb-3 text-sm font-semibold text-blue-900 dark:text-blue-300">
             Informações sobre Perfis de Acesso
           </h3>
-          <div className="space-y-2 text-sm text-blue-800 dark:text-blue-200">
+          <div className="space-y-2 text-xs sm:text-sm text-blue-800 dark:text-blue-200">
             <div>
               <strong>Administrador:</strong> Acesso completo ao sistema, incluindo gestão de usuários.
             </div>
@@ -265,17 +265,17 @@ export const UsuarioFormPage = () => {
         </div>
 
         {/* Actions */}
-        <div className="flex items-center justify-end gap-3">
+        <div className="flex flex-col-reverse gap-3 sm:flex-row sm:items-center sm:justify-end">
           <Link
             to="/usuarios"
-            className="rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 px-6 py-2 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-600"
+            className="rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 px-6 py-2 text-center text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-600"
           >
             Cancelar
           </Link>
           <button
             type="submit"
             disabled={isSubmitting || createMutation.isPending || updateMutation.isPending}
-            className="flex items-center gap-2 rounded-lg bg-blue-600 dark:bg-blue-700 px-6 py-2 text-white hover:bg-blue-700 dark:hover:bg-blue-600 disabled:opacity-50"
+            className="flex items-center justify-center gap-2 rounded-lg bg-blue-600 dark:bg-blue-700 px-6 py-2 text-white hover:bg-blue-700 dark:hover:bg-blue-600 disabled:opacity-50"
           >
             <Save className="h-5 w-5" />
             {isSubmitting || createMutation.isPending || updateMutation.isPending
