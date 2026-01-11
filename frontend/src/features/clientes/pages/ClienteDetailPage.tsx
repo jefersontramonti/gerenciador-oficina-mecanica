@@ -67,7 +67,7 @@ export const ClienteDetailPage = () => {
 
   if (error || !cliente) {
     return (
-      <div className="p-6">
+      <div className="p-4 sm:p-6">
         <div className="rounded-lg border border-red-800 dark:border-red-700 bg-red-900/20 dark:bg-red-900/30 p-4 text-red-400 dark:text-red-300">
           Cliente não encontrado
         </div>
@@ -76,18 +76,18 @@ export const ClienteDetailPage = () => {
   }
 
   return (
-    <div className="p-6">
+    <div className="p-4 sm:p-6">
       {/* Header */}
-      <div className="mb-6 flex items-center justify-between">
-        <div className="flex items-center gap-4">
+      <div className="mb-4 sm:mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex items-center gap-3 sm:gap-4">
           <button
             onClick={() => navigate('/clientes')}
             className="rounded-lg p-2 hover:bg-gray-100 dark:hover:bg-gray-700"
           >
             <ArrowLeft className="h-5 w-5 text-gray-900 dark:text-gray-100" />
           </button>
-          <div>
-            <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">{cliente.nome}</h1>
+          <div className="min-w-0 flex-1">
+            <h1 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-gray-100 truncate">{cliente.nome}</h1>
             <p className="mt-1 text-sm text-gray-600 dark:text-gray-400">
               {cliente.tipo === 'PESSOA_FISICA' ? 'Pessoa Física' : 'Pessoa Jurídica'} •{' '}
               {cliente.cpfCnpj}
@@ -98,48 +98,48 @@ export const ClienteDetailPage = () => {
         <div className="flex gap-2">
           <Link
             to={`/clientes/${id}/editar`}
-            className="flex items-center gap-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 px-4 py-2 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-600"
+            className="flex flex-1 sm:flex-none items-center justify-center gap-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 px-3 sm:px-4 py-2 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-600"
           >
-            <Edit className="h-5 w-5" />
-            Editar
+            <Edit className="h-4 w-4 sm:h-5 sm:w-5" />
+            <span className="hidden sm:inline">Editar</span>
           </Link>
           {cliente.ativo ? (
             <button
               onClick={handleDelete}
               disabled={deleteMutation.isPending}
-              className="flex items-center gap-2 rounded-lg border border-red-600 dark:border-red-700 bg-white dark:bg-gray-700 px-4 py-2 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/30 disabled:cursor-not-allowed disabled:opacity-50"
+              className="flex flex-1 sm:flex-none items-center justify-center gap-2 rounded-lg border border-red-600 dark:border-red-700 bg-white dark:bg-gray-700 px-3 sm:px-4 py-2 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/30 disabled:cursor-not-allowed disabled:opacity-50"
             >
-              <Trash2 className="h-5 w-5" />
-              Desativar
+              <Trash2 className="h-4 w-4 sm:h-5 sm:w-5" />
+              <span className="hidden sm:inline">Desativar</span>
             </button>
           ) : (
             <button
               onClick={handleReativar}
               disabled={reativarMutation.isPending}
-              className="flex items-center gap-2 rounded-lg border border-green-600 dark:border-green-700 bg-white dark:bg-gray-700 px-4 py-2 text-green-600 dark:text-green-400 hover:bg-green-50 dark:hover:bg-green-900/30 disabled:cursor-not-allowed disabled:opacity-50"
+              className="flex flex-1 sm:flex-none items-center justify-center gap-2 rounded-lg border border-green-600 dark:border-green-700 bg-white dark:bg-gray-700 px-3 sm:px-4 py-2 text-green-600 dark:text-green-400 hover:bg-green-50 dark:hover:bg-green-900/30 disabled:cursor-not-allowed disabled:opacity-50"
             >
-              <RotateCw className="h-5 w-5" />
-              Reativar
+              <RotateCw className="h-4 w-4 sm:h-5 sm:w-5" />
+              <span className="hidden sm:inline">Reativar</span>
             </button>
           )}
         </div>
       </div>
 
       {/* Content */}
-      <div className="grid gap-6 lg:grid-cols-3">
+      <div className="grid gap-4 sm:gap-6 lg:grid-cols-3">
         {/* Main Info */}
-        <div className="lg:col-span-2 space-y-6">
+        <div className="lg:col-span-2 space-y-4 sm:space-y-6">
           {/* Dados Básicos */}
-          <div className="rounded-lg bg-white dark:bg-gray-800 p-6 shadow">
+          <div className="rounded-lg bg-white dark:bg-gray-800 p-4 sm:p-6 shadow">
             <h2 className="mb-4 text-lg font-semibold text-gray-900 dark:text-gray-100">Dados Básicos</h2>
 
             <div className="space-y-4">
               <div>
                 <label className="text-sm font-medium text-gray-500 dark:text-gray-400">Nome</label>
-                <p className="mt-1 text-gray-900 dark:text-gray-100">{cliente.nome}</p>
+                <p className="mt-1 text-gray-900 dark:text-gray-100 break-words">{cliente.nome}</p>
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <label className="text-sm font-medium text-gray-500 dark:text-gray-400">
                     {cliente.tipo === 'PESSOA_FISICA' ? 'CPF' : 'CNPJ'}
@@ -168,15 +168,15 @@ export const ClienteDetailPage = () => {
                 </div>
               )}
 
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 {cliente.telefone && (
                   <div className="flex items-center gap-2">
-                    <Phone className="h-5 w-5 text-gray-400 dark:text-gray-500" />
+                    <Phone className="h-5 w-5 flex-shrink-0 text-gray-400 dark:text-gray-500" />
                     <a
                       href={formatWhatsAppLink(cliente.telefone)}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 hover:underline"
+                      className="text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 hover:underline truncate"
                       title="Abrir WhatsApp"
                     >
                       {cliente.telefone}
@@ -186,12 +186,12 @@ export const ClienteDetailPage = () => {
 
                 {cliente.celular && (
                   <div className="flex items-center gap-2">
-                    <Phone className="h-5 w-5 text-gray-400 dark:text-gray-500" />
+                    <Phone className="h-5 w-5 flex-shrink-0 text-gray-400 dark:text-gray-500" />
                     <a
                       href={formatWhatsAppLink(cliente.celular)}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 hover:underline"
+                      className="text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 hover:underline truncate"
                       title="Abrir WhatsApp"
                     >
                       {cliente.celular}
@@ -204,7 +204,7 @@ export const ClienteDetailPage = () => {
 
           {/* Endereço */}
           {cliente.endereco && (
-            <div className="rounded-lg bg-white dark:bg-gray-800 p-6 shadow">
+            <div className="rounded-lg bg-white dark:bg-gray-800 p-4 sm:p-6 shadow">
               <h2 className="mb-4 flex items-center gap-2 text-lg font-semibold text-gray-900 dark:text-gray-100">
                 <MapPin className="h-5 w-5" />
                 Endereço
@@ -231,9 +231,9 @@ export const ClienteDetailPage = () => {
         </div>
 
         {/* Sidebar */}
-        <div className="space-y-6">
+        <div className="space-y-4 sm:space-y-6">
           {/* Status */}
-          <div className="rounded-lg bg-white dark:bg-gray-800 p-6 shadow">
+          <div className="rounded-lg bg-white dark:bg-gray-800 p-4 sm:p-6 shadow">
             <h3 className="mb-4 text-sm font-semibold text-gray-700 dark:text-gray-300">Status</h3>
             {cliente.ativo ? (
               <span className="inline-flex rounded-full bg-green-100 dark:bg-green-900/30 px-3 py-1 text-sm font-semibold text-green-800 dark:text-green-400">
@@ -247,7 +247,7 @@ export const ClienteDetailPage = () => {
           </div>
 
           {/* Metadata */}
-          <div className="rounded-lg bg-white dark:bg-gray-800 p-6 shadow">
+          <div className="rounded-lg bg-white dark:bg-gray-800 p-4 sm:p-6 shadow">
             <h3 className="mb-4 text-sm font-semibold text-gray-700 dark:text-gray-300">Informações</h3>
 
             <div className="space-y-3">

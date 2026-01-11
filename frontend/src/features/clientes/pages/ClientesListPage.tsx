@@ -128,7 +128,7 @@ export const ClientesListPage = () => {
 
   if (error) {
     return (
-      <div className="p-6">
+      <div className="p-4 sm:p-6">
         <div className="rounded-lg border border-red-800 dark:border-red-700 bg-red-900/20 dark:bg-red-900/30 p-4 text-red-400 dark:text-red-300">
           Erro ao carregar clientes. Tente novamente.
         </div>
@@ -137,9 +137,9 @@ export const ClientesListPage = () => {
   }
 
   return (
-    <div className="p-6">
+    <div className="p-4 sm:p-6">
       {/* Header */}
-      <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+      <div className="mb-4 sm:mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h1 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white">Clientes</h1>
           <p className="mt-1 text-sm text-gray-600 dark:text-gray-400">
@@ -150,16 +150,16 @@ export const ClientesListPage = () => {
           to="/clientes/novo"
           className="flex items-center justify-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-white hover:bg-blue-700 w-full sm:w-auto"
         >
-          <Plus className="h-5 w-5" />
+          <Plus className="h-4 w-4 sm:h-5 sm:w-5" />
           Novo Cliente
         </Link>
       </div>
 
       {/* Filters */}
-      <div className="mb-6 rounded-lg bg-white dark:bg-gray-800 p-4 shadow">
-        <div className="grid gap-4 md:grid-cols-5">
+      <div className="mb-4 sm:mb-6 rounded-lg bg-white dark:bg-gray-800 p-3 sm:p-4 shadow">
+        <div className="grid gap-3 sm:gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-5">
           {/* Search by name */}
-          <div className="md:col-span-2">
+          <div className="sm:col-span-2 lg:col-span-2">
             <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
               Buscar por nome
             </label>
@@ -223,17 +223,144 @@ export const ClientesListPage = () => {
         </div>
       </div>
 
-      {/* Table */}
-      <DataTable
-        data={data?.content || []}
-        columns={columns}
-        isLoading={isLoading}
-        emptyMessage="Nenhum cliente encontrado"
-        pagination={data}
-        onPageChange={handlePageChange}
-        actions={actions}
-        getRowKey={(cliente) => cliente.id}
-      />
+      {/* Mobile Cards */}
+      <div className="lg:hidden space-y-3">
+        {isLoading ? (
+          <div className="flex items-center justify-center py-12">
+            <div className="h-8 w-8 animate-spin rounded-full border-4 border-blue-600 border-t-transparent"></div>
+          </div>
+        ) : data?.content && data.content.length > 0 ? (
+          <>
+            {data.content.map((cliente) => (
+              <div
+                key={cliente.id}
+                className="rounded-lg bg-white dark:bg-gray-800 p-4 shadow border border-gray-200 dark:border-gray-700"
+              >
+                <div className="flex items-start justify-between mb-3">
+                  <div className="flex-1 min-w-0">
+                    <h3 className="font-medium text-gray-900 dark:text-white truncate">
+                      {cliente.nome}
+                    </h3>
+                    <p className="text-sm text-gray-500 dark:text-gray-400">
+                      {cliente.cpfCnpj}
+                    </p>
+                  </div>
+                  <div className="flex items-center gap-1 ml-2">
+                    <span className={`inline-flex items-center gap-1 rounded-full px-2 py-1 text-xs font-semibold ${
+                      cliente.ativo
+                        ? 'bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-400'
+                        : 'bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-300'
+                    }`}>
+                      {cliente.ativo ? (
+                        <>
+                          <CheckCircle className="h-3 w-3" />
+                          Ativo
+                        </>
+                      ) : (
+                        <>
+                          <XCircle className="h-3 w-3" />
+                          Inativo
+                        </>
+                      )}
+                    </span>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-2 text-sm mb-3">
+                  <div>
+                    <span className="text-gray-500 dark:text-gray-400">Tipo:</span>
+                    <span className="ml-1 text-gray-900 dark:text-white">
+                      {cliente.tipo === 'PESSOA_FISICA' ? 'PF' : 'PJ'}
+                    </span>
+                  </div>
+                  <div>
+                    <span className="text-gray-500 dark:text-gray-400">Contato:</span>
+                    <span className="ml-1 text-gray-900 dark:text-white">
+                      {cliente.celular || cliente.telefone || '-'}
+                    </span>
+                  </div>
+                </div>
+
+                <div className="flex gap-2 pt-3 border-t border-gray-200 dark:border-gray-700">
+                  <button
+                    onClick={() => navigate(`/clientes/${cliente.id}`)}
+                    className="flex-1 flex items-center justify-center gap-1 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 px-3 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700"
+                  >
+                    <Eye className="h-4 w-4" />
+                    Ver
+                  </button>
+                  <button
+                    onClick={() => navigate(`/clientes/${cliente.id}/editar`)}
+                    className="flex-1 flex items-center justify-center gap-1 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 px-3 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700"
+                  >
+                    <Edit className="h-4 w-4" />
+                    Editar
+                  </button>
+                  {cliente.ativo ? (
+                    <button
+                      onClick={() => handleDelete(cliente.id)}
+                      disabled={deleteMutation.isPending}
+                      className="flex items-center justify-center gap-1 rounded-lg border border-orange-300 dark:border-orange-700 bg-orange-50 dark:bg-orange-900/20 px-3 py-2 text-sm font-medium text-orange-700 dark:text-orange-400 hover:bg-orange-100 dark:hover:bg-orange-900/30 disabled:opacity-50"
+                    >
+                      <Ban className="h-4 w-4" />
+                    </button>
+                  ) : (
+                    <button
+                      onClick={() => handleReativar(cliente.id)}
+                      disabled={reativarMutation.isPending}
+                      className="flex items-center justify-center gap-1 rounded-lg border border-green-300 dark:border-green-700 bg-green-50 dark:bg-green-900/20 px-3 py-2 text-sm font-medium text-green-700 dark:text-green-400 hover:bg-green-100 dark:hover:bg-green-900/30 disabled:opacity-50"
+                    >
+                      <RotateCcw className="h-4 w-4" />
+                    </button>
+                  )}
+                </div>
+              </div>
+            ))}
+            {/* Mobile Pagination */}
+            {data && data.totalPages > 1 && (
+              <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between bg-white dark:bg-gray-800 rounded-lg p-4 shadow">
+                <div className="text-sm text-gray-700 dark:text-gray-300 text-center sm:text-left">
+                  Página {data.number + 1} de {data.totalPages} ({data.totalElements} total)
+                </div>
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => handlePageChange(data.number - 1)}
+                    disabled={data.first}
+                    className="flex-1 sm:flex-none rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 disabled:cursor-not-allowed disabled:opacity-50"
+                  >
+                    Anterior
+                  </button>
+                  <button
+                    onClick={() => handlePageChange(data.number + 1)}
+                    disabled={data.last}
+                    className="flex-1 sm:flex-none rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 disabled:cursor-not-allowed disabled:opacity-50"
+                  >
+                    Próxima
+                  </button>
+                </div>
+              </div>
+            )}
+          </>
+        ) : (
+          <div className="rounded-lg bg-white dark:bg-gray-800 p-8 text-center shadow">
+            <p className="text-gray-500 dark:text-gray-400">Nenhum cliente encontrado</p>
+          </div>
+        )}
+      </div>
+
+      {/* Desktop Table */}
+      <div className="hidden lg:block">
+        <DataTable
+          data={data?.content || []}
+          columns={columns}
+          isLoading={isLoading}
+          emptyMessage="Nenhum cliente encontrado"
+          pagination={data}
+          onPageChange={handlePageChange}
+          actions={actions}
+          getRowKey={(cliente) => cliente.id}
+        />
+      </div>
     </div>
   );
 };

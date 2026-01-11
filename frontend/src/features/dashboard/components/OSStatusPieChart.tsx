@@ -3,6 +3,7 @@
  * Usa Apache ECharts via echarts-for-react
  */
 
+import { useState, useEffect } from 'react';
 import ReactECharts from 'echarts-for-react';
 import type { EChartsOption } from 'echarts';
 import { useOSByStatus } from '../hooks/useOSByStatus';
@@ -11,15 +12,22 @@ import { useTheme } from '@/shared/contexts';
 export const OSStatusPieChart = () => {
   const { data, isLoading, error } = useOSByStatus();
   const { theme } = useTheme();
+  const [isMobile, setIsMobile] = useState(window.innerWidth < 640);
+
+  useEffect(() => {
+    const handleResize = () => setIsMobile(window.innerWidth < 640);
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   const isDark = theme === 'dark';
 
   if (isLoading) {
     return (
-      <div className="rounded-lg border border-gray-200 bg-white p-6 shadow-sm dark:border-gray-700 dark:bg-gray-800">
+      <div className="rounded-lg border border-gray-200 bg-white p-4 sm:p-6 shadow-sm dark:border-gray-700 dark:bg-gray-800">
         <div className="animate-pulse">
-          <div className="h-6 w-32 rounded bg-gray-200 dark:bg-gray-700" />
-          <div className="mt-4 h-64 rounded bg-gray-200 dark:bg-gray-700" />
+          <div className="h-5 sm:h-6 w-32 rounded bg-gray-200 dark:bg-gray-700" />
+          <div className="mt-4 h-48 sm:h-64 rounded bg-gray-200 dark:bg-gray-700" />
         </div>
       </div>
     );
@@ -27,7 +35,7 @@ export const OSStatusPieChart = () => {
 
   if (error) {
     return (
-      <div className="rounded-lg border border-red-200 bg-red-50 p-6 text-center text-red-600 dark:border-red-800 dark:bg-red-900/20 dark:text-red-400">
+      <div className="rounded-lg border border-red-200 bg-red-50 p-4 sm:p-6 text-center text-red-600 dark:border-red-800 dark:bg-red-900/20 dark:text-red-400">
         <p className="font-medium">Erro ao carregar gráfico</p>
         <p className="mt-1 text-sm">Tente novamente mais tarde</p>
       </div>
@@ -36,7 +44,7 @@ export const OSStatusPieChart = () => {
 
   if (!data || data.length === 0) {
     return (
-      <div className="rounded-lg border border-gray-200 bg-white p-6 text-center text-gray-500 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-400">
+      <div className="rounded-lg border border-gray-200 bg-white p-4 sm:p-6 text-center text-gray-500 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-400">
         <p>Nenhum dado disponível</p>
       </div>
     );
@@ -51,10 +59,10 @@ export const OSStatusPieChart = () => {
 
   const option: EChartsOption = {
     title: {
-      text: 'Ordens de Serviço por Status',
+      text: 'OS por Status',
       left: 'left',
       textStyle: {
-        fontSize: 16,
+        fontSize: isMobile ? 14 : 16,
         fontWeight: 600,
         color: isDark ? '#f9fafb' : '#1f2937',
       },
@@ -70,23 +78,28 @@ export const OSStatusPieChart = () => {
       },
     },
     legend: {
-      orient: 'vertical',
-      right: 16,
-      top: 'middle',
+      orient: isMobile ? 'horizontal' : 'vertical',
+      right: isMobile ? 'center' : 16,
+      left: isMobile ? 'center' : undefined,
+      top: isMobile ? 'bottom' : 'middle',
+      bottom: isMobile ? 0 : undefined,
       textStyle: {
-        fontSize: 12,
+        fontSize: isMobile ? 10 : 12,
         color: isDark ? '#d1d5db' : '#4b5563',
       },
-      itemGap: 12,
+      itemGap: isMobile ? 8 : 12,
+      itemWidth: isMobile ? 14 : 25,
+      itemHeight: isMobile ? 10 : 14,
     },
     series: [
       {
         name: 'Status',
         type: 'pie',
-        radius: ['40%', '70%'], // Donut chart
+        radius: isMobile ? ['30%', '55%'] : ['40%', '70%'],
+        center: isMobile ? ['50%', '40%'] : ['40%', '50%'],
         avoidLabelOverlap: false,
         itemStyle: {
-          borderRadius: 8,
+          borderRadius: isMobile ? 4 : 8,
           borderColor: isDark ? '#1f2937' : '#fff',
           borderWidth: 2,
         },
@@ -97,7 +110,7 @@ export const OSStatusPieChart = () => {
         emphasis: {
           label: {
             show: true,
-            fontSize: 20,
+            fontSize: isMobile ? 14 : 20,
             fontWeight: 'bold',
           },
           itemStyle: {
@@ -119,10 +132,10 @@ export const OSStatusPieChart = () => {
   };
 
   return (
-    <div className="rounded-lg border border-gray-200 bg-white p-6 shadow-sm dark:border-gray-700 dark:bg-gray-800">
+    <div className="rounded-lg border border-gray-200 bg-white p-4 sm:p-6 shadow-sm dark:border-gray-700 dark:bg-gray-800">
       <ReactECharts
         option={option}
-        style={{ height: '350px', width: '100%' }}
+        style={{ height: isMobile ? '280px' : '350px', width: '100%' }}
         notMerge={true}
         lazyUpdate={true}
         opts={{ renderer: 'canvas' }}

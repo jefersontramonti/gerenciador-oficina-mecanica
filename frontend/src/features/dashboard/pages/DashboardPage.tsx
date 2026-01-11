@@ -46,11 +46,11 @@ export const DashboardPage = () => {
   };
 
   return (
-    <div className="p-6">
+    <div className="p-4 sm:p-6">
       {/* Header */}
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Dashboard</h1>
-        <p className="mt-2 text-gray-600 dark:text-gray-300">
+      <div className="mb-4 sm:mb-8">
+        <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white">Dashboard</h1>
+        <p className="mt-1 sm:mt-2 text-sm sm:text-base text-gray-600 dark:text-gray-300">
           Bem-vindo(a), <span className="font-medium">{user?.nome}</span>!
         </p>
       </div>
@@ -59,7 +59,7 @@ export const DashboardPage = () => {
       <ComunicadoAlert />
 
       {/* Stat Cards - Linha 1 */}
-      <div className="mb-6 grid gap-6 md:grid-cols-2 lg:grid-cols-4">
+      <div className="mb-4 sm:mb-6 grid gap-3 sm:gap-6 grid-cols-2 lg:grid-cols-4">
         <StatCard
           title="Total de Clientes"
           value={stats?.totalClientes ?? 0}
@@ -96,7 +96,7 @@ export const DashboardPage = () => {
 
       {/* Stat Cards - Linha 2 (indicadores extras - apenas ADMIN/GERENTE) */}
       {showExtras && (
-        <div className="mb-8 grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+        <div className="mb-4 sm:mb-8 grid gap-3 sm:gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
           <StatCard
             title="Ticket Médio (Mês)"
             value={extras ? formatCurrency(extras.ticketMedio) : 'R$ 0,00'}
@@ -129,13 +129,13 @@ export const DashboardPage = () => {
       )}
 
       {/* Charts */}
-      <div className="mb-8 grid gap-6 lg:grid-cols-2">
+      <div className="mb-4 sm:mb-8 grid gap-4 sm:gap-6 grid-cols-1 lg:grid-cols-2">
         <OSStatusPieChart />
         <FaturamentoBarChart />
       </div>
 
       {/* Recent Service Orders */}
-      <div className="mb-8">
+      <div className="mb-4 sm:mb-8">
         <RecentOSTable />
       </div>
     </div>

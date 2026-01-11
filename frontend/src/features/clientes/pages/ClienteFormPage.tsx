@@ -103,9 +103,9 @@ export const ClienteFormPage = () => {
   }
 
   return (
-    <div className="p-6">
+    <div className="p-4 sm:p-6">
       {/* Header */}
-      <div className="mb-6 flex items-center gap-4">
+      <div className="mb-4 sm:mb-6 flex items-center gap-3 sm:gap-4">
         <button
           onClick={() => navigate('/clientes')}
           className="rounded-lg p-2 hover:bg-gray-100 dark:hover:bg-gray-700"
@@ -113,7 +113,7 @@ export const ClienteFormPage = () => {
           <ArrowLeft className="h-5 w-5 text-gray-900 dark:text-gray-100" />
         </button>
         <div>
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">
+          <h1 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-gray-100">
             {isEditMode ? 'Editar Cliente' : 'Novo Cliente'}
           </h1>
           <p className="mt-1 text-sm text-gray-600 dark:text-gray-400">
@@ -126,12 +126,12 @@ export const ClienteFormPage = () => {
 
       {/* Form */}
       <form onSubmit={handleSubmit(onSubmit)} className="mx-auto max-w-4xl">
-        <div className="space-y-6">
+        <div className="space-y-4 sm:space-y-6">
           {/* Tipo e Dados Básicos */}
-          <div className="rounded-lg bg-white dark:bg-gray-800 p-6 shadow">
+          <div className="rounded-lg bg-white dark:bg-gray-800 p-4 sm:p-6 shadow">
             <h2 className="mb-4 text-lg font-semibold text-gray-900 dark:text-gray-100">Dados Básicos</h2>
 
-            <div className="grid gap-4 md:grid-cols-2">
+            <div className="grid gap-4 grid-cols-1 sm:grid-cols-2">
               {/* Tipo - Only on create */}
               {!isEditMode && (
                 <div>
@@ -237,12 +237,12 @@ export const ClienteFormPage = () => {
           </div>
 
           {/* Endereço */}
-          <div className="rounded-lg bg-white dark:bg-gray-800 p-6 shadow">
+          <div className="rounded-lg bg-white dark:bg-gray-800 p-4 sm:p-6 shadow">
             <h2 className="mb-4 text-lg font-semibold text-gray-900 dark:text-gray-100">Endereço</h2>
 
-            <div className="grid gap-4 md:grid-cols-4">
+            <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 md:grid-cols-4">
               {/* CEP */}
-              <div className="md:col-span-2">
+              <div className="sm:col-span-1 md:col-span-2">
                 <Controller
                   name="cep"
                   control={control}
@@ -259,7 +259,7 @@ export const ClienteFormPage = () => {
               </div>
 
               {/* Logradouro */}
-              <div className="md:col-span-3">
+              <div className="sm:col-span-2 md:col-span-3">
                 <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
                   Logradouro
                 </label>
@@ -289,7 +289,7 @@ export const ClienteFormPage = () => {
               </div>
 
               {/* Complemento */}
-              <div className="md:col-span-2">
+              <div className="sm:col-span-2 md:col-span-2">
                 <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
                   Complemento
                 </label>
@@ -305,7 +305,7 @@ export const ClienteFormPage = () => {
               </div>
 
               {/* Bairro */}
-              <div className="md:col-span-2">
+              <div className="sm:col-span-1 md:col-span-2">
                 <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">Bairro</label>
                 <input
                   {...register('bairro')}
@@ -319,7 +319,7 @@ export const ClienteFormPage = () => {
               </div>
 
               {/* Cidade */}
-              <div className="md:col-span-2">
+              <div className="sm:col-span-1 md:col-span-2">
                 <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">Cidade</label>
                 <input
                   {...register('cidade')}
@@ -354,18 +354,18 @@ export const ClienteFormPage = () => {
           </div>
 
           {/* Actions */}
-          <div className="flex justify-end gap-4">
+          <div className="flex flex-col-reverse sm:flex-row sm:justify-end gap-3 sm:gap-4">
             <button
               type="button"
               onClick={() => navigate('/clientes')}
-              className="rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 px-6 py-2 font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-600"
+              className="rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 px-6 py-2 font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-600 w-full sm:w-auto"
             >
               Cancelar
             </button>
             <button
               type="submit"
               disabled={createMutation.isPending || updateMutation.isPending}
-              className="flex items-center gap-2 rounded-lg bg-blue-600 dark:bg-blue-700 px-6 py-2 font-medium text-white hover:bg-blue-700 dark:hover:bg-blue-600 disabled:cursor-not-allowed disabled:opacity-50"
+              className="flex items-center justify-center gap-2 rounded-lg bg-blue-600 dark:bg-blue-700 px-6 py-2 font-medium text-white hover:bg-blue-700 dark:hover:bg-blue-600 disabled:cursor-not-allowed disabled:opacity-50 w-full sm:w-auto"
             >
               <Save className="h-5 w-5" />
               {isEditMode ? 'Atualizar' : 'Cadastrar'}

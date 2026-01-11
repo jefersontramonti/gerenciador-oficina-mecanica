@@ -16,12 +16,12 @@ export const RecentOSTable = () => {
   if (isLoading) {
     return (
       <div className="rounded-lg border border-gray-200 bg-white shadow-sm dark:border-gray-700 dark:bg-gray-800">
-        <div className="border-b border-gray-200 bg-gray-50 px-6 py-4 dark:border-gray-700 dark:bg-gray-900">
+        <div className="border-b border-gray-200 bg-gray-50 px-4 sm:px-6 py-3 sm:py-4 dark:border-gray-700 dark:bg-gray-900">
           <div className="h-5 w-48 animate-pulse rounded bg-gray-200 dark:bg-gray-700" />
         </div>
         <div className="divide-y divide-gray-200 dark:divide-gray-700">
           {[1, 2, 3, 4, 5].map((i) => (
-            <div key={i} className="px-6 py-4">
+            <div key={i} className="px-4 sm:px-6 py-3 sm:py-4">
               <div className="flex items-center gap-4">
                 <div className="h-4 w-16 animate-pulse rounded bg-gray-200 dark:bg-gray-700" />
                 <div className="h-4 w-32 animate-pulse rounded bg-gray-200 dark:bg-gray-700" />
@@ -37,7 +37,7 @@ export const RecentOSTable = () => {
 
   if (error) {
     return (
-      <div className="rounded-lg border border-red-200 bg-red-50 p-6 text-center text-red-600 dark:border-red-800 dark:bg-red-900/20 dark:text-red-400">
+      <div className="rounded-lg border border-red-200 bg-red-50 p-4 sm:p-6 text-center text-red-600 dark:border-red-800 dark:bg-red-900/20 dark:text-red-400">
         <p className="font-medium">Erro ao carregar ordens de serviço</p>
         <p className="mt-1 text-sm">Tente novamente mais tarde</p>
       </div>
@@ -46,7 +46,7 @@ export const RecentOSTable = () => {
 
   if (!data || data.length === 0) {
     return (
-      <div className="rounded-lg border border-gray-200 bg-white p-6 text-center text-gray-500 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-400">
+      <div className="rounded-lg border border-gray-200 bg-white p-4 sm:p-6 text-center text-gray-500 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-400">
         <p>Nenhuma ordem de serviço encontrada</p>
       </div>
     );
@@ -72,14 +72,50 @@ export const RecentOSTable = () => {
   return (
     <div className="rounded-lg border border-gray-200 bg-white shadow-sm dark:border-gray-700 dark:bg-gray-800">
       {/* Header */}
-      <div className="border-b border-gray-200 bg-gray-50 px-6 py-4 dark:border-gray-700 dark:bg-gray-900">
-        <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+      <div className="border-b border-gray-200 bg-gray-50 px-4 sm:px-6 py-3 sm:py-4 dark:border-gray-700 dark:bg-gray-900">
+        <h3 className="text-base sm:text-lg font-semibold text-gray-900 dark:text-white">
           Ordens de Serviço Recentes
         </h3>
       </div>
 
-      {/* Table */}
-      <div className="overflow-x-auto">
+      {/* Mobile Cards */}
+      <div className="lg:hidden divide-y divide-gray-200 dark:divide-gray-700">
+        {data.map((os) => (
+          <div key={os.id} className="p-4">
+            <div className="flex items-start justify-between mb-2">
+              <div>
+                <span className="font-medium text-gray-900 dark:text-white">#{os.numero}</span>
+                <p className="text-sm text-gray-600 dark:text-gray-400 truncate max-w-[180px]">
+                  {os.clienteNome}
+                </p>
+              </div>
+              <StatusBadge status={os.status} />
+            </div>
+            <div className="flex items-center justify-between text-sm">
+              <div className="text-gray-600 dark:text-gray-400">
+                <span className="font-medium">{os.veiculoPlaca}</span>
+                <span className="mx-1">•</span>
+                <span>{formatDate(os.dataAbertura).split(' às')[0]}</span>
+              </div>
+              <span className="font-medium text-gray-900 dark:text-white">
+                {formatCurrency(os.valorFinal)}
+              </span>
+            </div>
+            <div className="mt-2 pt-2 border-t border-gray-100 dark:border-gray-700">
+              <Link
+                to={`/ordens-servico/${os.id}`}
+                className="inline-flex items-center gap-1 text-sm text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300"
+              >
+                <span>Ver detalhes</span>
+                <ExternalLink className="h-3 w-3" />
+              </Link>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {/* Desktop Table */}
+      <div className="hidden lg:block overflow-x-auto">
         <table className="w-full divide-y divide-gray-200 dark:divide-gray-700">
           <thead className="bg-gray-50 dark:bg-gray-900">
             <tr>
@@ -147,7 +183,7 @@ export const RecentOSTable = () => {
       </div>
 
       {/* Footer */}
-      <div className="border-t border-gray-200 bg-gray-50 px-6 py-3 dark:border-gray-700 dark:bg-gray-900">
+      <div className="border-t border-gray-200 bg-gray-50 px-4 sm:px-6 py-3 dark:border-gray-700 dark:bg-gray-900">
         <Link
           to="/ordens-servico"
           className="text-sm font-medium text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300"
