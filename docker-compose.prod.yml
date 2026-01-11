@@ -47,10 +47,7 @@ services:
 
   #--- PITSTOP BACKEND ---
   pitstop-backend:
-    build:
-      context: .
-      dockerfile: Dockerfile
-    image: pitstop-backend:latest
+    image: ghcr.io/jefersontramonti/gerenciador-oficina-mecanica/backend:latest
     container_name: pitstop-backend
     restart: unless-stopped
     environment:
@@ -104,14 +101,7 @@ services:
 
   #--- PITSTOP FRONTEND ---
   pitstop-frontend:
-    build:
-      context: ./frontend
-      dockerfile: Dockerfile
-      args:
-        VITE_API_URL: https://${DOMAIN_API}/api
-        VITE_WS_URL: wss://${DOMAIN_API}/ws
-        VITE_API_BASE_URL: https://${DOMAIN_API}
-    image: pitstop-frontend:latest
+    image: ghcr.io/jefersontramonti/gerenciador-oficina-mecanica/frontend:latest
     container_name: pitstop-frontend
     restart: unless-stopped
     ports:
