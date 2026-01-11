@@ -72,8 +72,7 @@ jobs:
             VITE_API_URL=${{ secrets.VITE_API_URL }}
             VITE_WS_URL=${{ secrets.VITE_WS_URL }}
             VITE_API_BASE_URL=${{ secrets.VITE_API_BASE_URL }}
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
+          no-cache: true
 
   deploy:
     name: Deploy to VPS
@@ -224,14 +223,18 @@ jobs:
             echo "=== Login no GitHub Container Registry ==="
             echo "${{ secrets.GH_PAT }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
 
-            echo "=== Pull das novas imagens ==="
-            docker compose -f docker-compose.prod.yml pull
+            echo "=== Pull das novas imagens (forçando) ==="
+            docker compose -f docker-compose.prod.yml pull --ignore-pull-failures
 
-            echo "=== Atualizando containers ==="
-            docker compose -f docker-compose.prod.yml up -d --remove-orphans
+            echo "=== Parando e removendo container frontend para forçar atualização ==="
+            docker compose -f docker-compose.prod.yml stop pitstop-frontend || true
+            docker compose -f docker-compose.prod.yml rm -f pitstop-frontend || true
+
+            echo "=== Atualizando containers (forçando recreate) ==="
+            docker compose -f docker-compose.prod.yml up -d --force-recreate --remove-orphans
 
             echo "=== Limpando imagens antigas ==="
-            docker image prune -f
+            docker image prune -af
 
             echo "=== Status dos containers ==="
             docker compose -f docker-compose.prod.yml ps
