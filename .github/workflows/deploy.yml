@@ -91,14 +91,66 @@ jobs:
           chmod 600 ~/.ssh/id_rsa
           ssh-keyscan -H ${{ secrets.VPS_HOST }} >> ~/.ssh/known_hosts
 
-      - name: Create directory and copy files
+      - name: Create directory structure
         run: |
-          ssh -o StrictHostKeyChecking=no ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }} "mkdir -p /opt/pitstop"
+          ssh -o StrictHostKeyChecking=no ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }} << 'ENDSSH'
+            mkdir -p /opt/pitstop/backups
+            mkdir -p /opt/pitstop/logs
+          ENDSSH
+
+      - name: Backup database before deploy
+        run: |
+          ssh -o StrictHostKeyChecking=no ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }} << 'ENDSSH'
+            cd /opt/pitstop
+
+            # Verifica se o container postgres está rodando
+            if docker ps --format '{{.Names}}' | grep -q pitstop-postgres; then
+              echo "=== Criando backup do banco de dados ==="
+              BACKUP_FILE="/opt/pitstop/backups/pitstop_pre_deploy_$(date +%Y%m%d_%H%M%S).sql.gz"
+              docker exec pitstop-postgres pg_dump -U pitstop pitstop_db 2>/dev/null | gzip > "$BACKUP_FILE"
+
+              if [ -s "$BACKUP_FILE" ]; then
+                echo "Backup criado: $BACKUP_FILE"
+                ls -lh "$BACKUP_FILE"
+              else
+                echo "AVISO: Backup vazio ou falhou (primeira instalacao?)"
+                rm -f "$BACKUP_FILE"
+              fi
+
+              # Mantém apenas os últimos 10 backups
+              cd /opt/pitstop/backups
+              ls -t *.sql.gz 2>/dev/null | tail -n +11 | xargs -r rm -f
+            else
+              echo "Container postgres nao encontrado - primeira instalacao"
+            fi
+          ENDSSH
+
+      - name: Save current image tags for rollback
+        run: |
+          ssh -o StrictHostKeyChecking=no ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }} << 'ENDSSH'
+            cd /opt/pitstop
+
+            # Salva as imagens atuais para possível rollback
+            if docker ps --format '{{.Names}}' | grep -q pitstop-backend; then
+              docker inspect pitstop-backend --format='{{.Config.Image}}' > /opt/pitstop/.last_backend_image 2>/dev/null || true
+            fi
+            if docker ps --format '{{.Names}}' | grep -q pitstop-frontend; then
+              docker inspect pitstop-frontend --format='{{.Config.Image}}' > /opt/pitstop/.last_frontend_image 2>/dev/null || true
+            fi
+          ENDSSH
+
+      - name: Copy docker-compose file
+        run: |
           scp docker-compose.prod.yml ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }}:/opt/pitstop/docker-compose.prod.yml
 
-      - name: Create .env file
+      - name: Create/Update .env file
         run: |
-          ssh -o StrictHostKeyChecking=no ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }} << ENVEOF
+          ssh -o StrictHostKeyChecking=no ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }} << 'ENVEOF'
+            # Backup do .env existente
+            if [ -f /opt/pitstop/.env ]; then
+              cp /opt/pitstop/.env /opt/pitstop/.env.backup
+            fi
+
             cat > /opt/pitstop/.env << 'EOF'
           POSTGRES_PITSTOP_DB=${{ secrets.POSTGRES_PITSTOP_DB }}
           POSTGRES_PITSTOP_USER=${{ secrets.POSTGRES_PITSTOP_USER }}
@@ -112,6 +164,7 @@ jobs:
           APP_BASE_URL=${{ secrets.APP_BASE_URL }}
           CORS_ALLOWED_ORIGINS=${{ secrets.CORS_ALLOWED_ORIGINS }}
           SPRING_PROFILES_ACTIVE=prod
+          APP_COOKIE_DOMAIN=.pitstopai.com.br
           PITSTOP_OFICINA_NOME=${{ secrets.PITSTOP_OFICINA_NOME }}
           PITSTOP_OFICINA_CNPJ=${{ secrets.PITSTOP_OFICINA_CNPJ }}
           PITSTOP_OFICINA_TELEFONE=${{ secrets.PITSTOP_OFICINA_TELEFONE }}
@@ -129,29 +182,159 @@ jobs:
           EOF
           ENVEOF
 
+      - name: Create external volumes if not exist
+        run: |
+          ssh -o StrictHostKeyChecking=no ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }} << 'ENDSSH'
+            echo "=== Verificando volumes externos ==="
+
+            # Cria volume do postgres se não existir
+            if ! docker volume ls --format '{{.Name}}' | grep -q '^pitstop_postgres_data$'; then
+              echo "Criando volume pitstop_postgres_data..."
+              docker volume create pitstop_postgres_data
+            else
+              echo "Volume pitstop_postgres_data já existe"
+            fi
+
+            # Cria volume do redis se não existir
+            if ! docker volume ls --format '{{.Name}}' | grep -q '^pitstop_redis_data$'; then
+              echo "Criando volume pitstop_redis_data..."
+              docker volume create pitstop_redis_data
+            else
+              echo "Volume pitstop_redis_data já existe"
+            fi
+
+            echo "Volumes existentes:"
+            docker volume ls | grep pitstop
+          ENDSSH
+
       - name: Deploy to VPS
         run: |
-          ssh -o StrictHostKeyChecking=no ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }} << ENDSSH
+          ssh -o StrictHostKeyChecking=no ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }} << 'ENDSSH'
             cd /opt/pitstop
 
-            # Login no GitHub Container Registry
+            echo "=== Login no GitHub Container Registry ==="
             echo "${{ secrets.GH_PAT }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
 
-            # Pull das novas imagens
+            echo "=== Pull das novas imagens ==="
             docker compose -f docker-compose.prod.yml pull
 
-            # Restart dos containers
+            echo "=== Atualizando containers ==="
             docker compose -f docker-compose.prod.yml up -d --remove-orphans
 
-            # Limpar imagens antigas
+            echo "=== Limpando imagens antigas ==="
             docker image prune -f
 
-            # Verificar status
+            echo "=== Status dos containers ==="
             docker compose -f docker-compose.prod.yml ps
           ENDSSH
 
-      - name: Health Check
+      - name: Wait for application startup
         run: |
-          echo "Aguardando aplicacao iniciar..."
-          sleep 30
-          curl -f http://${{ secrets.VPS_HOST }}/actuator/health || echo "Health check falhou, mas deploy continuou"
+          echo "Aguardando aplicacao iniciar (90s)..."
+          sleep 90
+
+      - name: Health Check
+        id: health_check
+        run: |
+          echo "=== Verificando saúde da aplicação ==="
+
+          # Verifica backend health via SSH (interno)
+          BACKEND_HEALTH=$(ssh -o StrictHostKeyChecking=no ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }} \
+            "curl -s -o /dev/null -w '%{http_code}' http://127.0.0.1:8080/actuator/health" || echo "000")
+
+          echo "Backend health status: $BACKEND_HEALTH"
+
+          if [ "$BACKEND_HEALTH" != "200" ]; then
+            echo "health_failed=true" >> $GITHUB_OUTPUT
+            echo "ERRO: Backend não está saudável!"
+          else
+            echo "health_failed=false" >> $GITHUB_OUTPUT
+            echo "Backend está saudável!"
+          fi
+
+          # Verifica frontend
+          FRONTEND_HEALTH=$(ssh -o StrictHostKeyChecking=no ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }} \
+            "curl -s -o /dev/null -w '%{http_code}' http://127.0.0.1:3000/" || echo "000")
+
+          echo "Frontend health status: $FRONTEND_HEALTH"
+
+          if [ "$FRONTEND_HEALTH" != "200" ]; then
+            echo "AVISO: Frontend retornou $FRONTEND_HEALTH"
+          else
+            echo "Frontend está saudável!"
+          fi
+
+      - name: Rollback on failure
+        if: steps.health_check.outputs.health_failed == 'true'
+        run: |
+          echo "=== INICIANDO ROLLBACK ==="
+          ssh -o StrictHostKeyChecking=no ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }} << 'ENDSSH'
+            cd /opt/pitstop
+
+            # Verifica se existem imagens anteriores para rollback
+            if [ -f .last_backend_image ] && [ -f .last_frontend_image ]; then
+              LAST_BACKEND=$(cat .last_backend_image)
+              LAST_FRONTEND=$(cat .last_frontend_image)
+
+              echo "Revertendo para:"
+              echo "  Backend: $LAST_BACKEND"
+              echo "  Frontend: $LAST_FRONTEND"
+
+              # Para os containers
+              docker compose -f docker-compose.prod.yml stop pitstop-backend pitstop-frontend
+
+              # Remove os containers
+              docker rm pitstop-backend pitstop-frontend 2>/dev/null || true
+
+              # Inicia com as imagens anteriores
+              docker run -d --name pitstop-backend \
+                --network pitstop-internal-network \
+                --env-file .env \
+                -p 127.0.0.1:8080:8080 \
+                --restart unless-stopped \
+                $LAST_BACKEND
+
+              docker run -d --name pitstop-frontend \
+                --network pitstop-internal-network \
+                -p 127.0.0.1:3000:80 \
+                --restart unless-stopped \
+                $LAST_FRONTEND
+
+              echo "Rollback concluído!"
+            else
+              echo "Nenhuma imagem anterior encontrada para rollback"
+              echo "Verificando logs do backend:"
+              docker logs pitstop-backend --tail 50
+            fi
+          ENDSSH
+
+      - name: Show deployment logs on failure
+        if: failure()
+        run: |
+          echo "=== Logs do Backend ==="
+          ssh -o StrictHostKeyChecking=no ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }} \
+            "docker logs pitstop-backend --tail 100" || true
+
+          echo ""
+          echo "=== Logs do Frontend ==="
+          ssh -o StrictHostKeyChecking=no ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }} \
+            "docker logs pitstop-frontend --tail 50" || true
+
+      - name: Deployment Summary
+        if: always()
+        run: |
+          echo "=========================================="
+          echo "         RESUMO DO DEPLOY"
+          echo "=========================================="
+          ssh -o StrictHostKeyChecking=no ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }} << 'ENDSSH'
+            echo "Containers:"
+            docker ps --format "table {{.Names}}\t{{.Status}}\t{{.Ports}}" | grep pitstop || echo "Nenhum container pitstop encontrado"
+
+            echo ""
+            echo "Volumes:"
+            docker volume ls | grep pitstop || echo "Nenhum volume pitstop encontrado"
+
+            echo ""
+            echo "Backups disponíveis:"
+            ls -lh /opt/pitstop/backups/*.sql.gz 2>/dev/null | tail -5 || echo "Nenhum backup encontrado"
+          ENDSSH

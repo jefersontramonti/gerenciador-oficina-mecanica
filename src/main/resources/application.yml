@@ -205,6 +205,11 @@ app:
   # Backend base URL for webhooks (e.g., Mercado Pago)
   # Override with APP_BASE_URL environment variable in production
   base-url: ${APP_BASE_URL:http://localhost:8080}
+  # Cookie domain for cross-subdomain auth
+  # Set to ".yourdomain.com" to share cookies between subdomains (e.g., app.domain.com and api.domain.com)
+  # Leave empty for same-origin cookies (default for local development)
+  cookie:
+    domain: ${APP_COOKIE_DOMAIN:}
 
 # PitStop Configuration
 pitstop:

@@ -326,6 +326,66 @@ docker compose up -d --build
 3. Configure alertas de monitoramento
 4. Faça backups externos (S3, Google Cloud, etc.)
 
+## CI/CD com GitHub Actions
+
+O deploy é automatizado via GitHub Actions. A cada push na branch `main`:
+
+1. **Build**: Compila backend (Maven) e frontend (Vite)
+2. **Push**: Envia imagens para GitHub Container Registry
+3. **Backup**: Faz backup automático do banco antes de atualizar
+4. **Deploy**: Atualiza containers na VPS
+5. **Health Check**: Verifica se a aplicação está saudável
+6. **Rollback**: Reverte automaticamente em caso de falha
+
+### Secrets Necessários no GitHub
+
+| Secret | Descrição |
+|--------|-----------|
+| `VPS_HOST` | IP ou hostname da VPS |
+| `VPS_USER` | Usuário SSH (geralmente `root`) |
+| `VPS_SSH_KEY` | Chave SSH privada para acesso |
+| `GH_PAT` | Personal Access Token do GitHub |
+| `POSTGRES_PITSTOP_DB` | Nome do banco (ex: `pitstop_db`) |
+| `POSTGRES_PITSTOP_USER` | Usuário do banco (ex: `pitstop`) |
+| `POSTGRES_PITSTOP_PASSWORD` | Senha do PostgreSQL |
+| `REDIS_PASSWORD` | Senha do Redis |
+| `DATABASE_URL` | URL JDBC completa |
+| `DATABASE_USERNAME` | Usuário do banco |
+| `DATABASE_PASSWORD` | Senha do banco |
+| `JWT_SECRET` | Chave secreta JWT (256 bits) |
+| `APP_FRONTEND_URL` | URL do frontend (ex: `https://app.pitstopai.com.br`) |
+| `APP_BASE_URL` | URL base da API (ex: `https://pitstopai.com.br`) |
+| `CORS_ALLOWED_ORIGINS` | URLs permitidas para CORS |
+| `VITE_API_URL` | URL da API para o frontend |
+| `VITE_WS_URL` | URL do WebSocket |
+| `VITE_API_BASE_URL` | URL base para requisições |
+
+### Migração de Volumes (IMPORTANTE)
+
+Se você já tem dados na VPS e está atualizando o docker-compose, execute o script de migração ANTES do próximo deploy:
+
+```bash
+# Na VPS
+cd /opt/pitstop
+curl -O https://raw.githubusercontent.com/seu-usuario/pitstop/main/deploy/migrate-volumes.sh
+chmod +x migrate-volumes.sh
+sudo bash migrate-volumes.sh
+```
+
+Este script:
+- Identifica volumes existentes
+- Cria os novos volumes externos com nomes fixos
+- Copia os dados preservando a integridade
+- Evita perda de dados em deploys futuros
+
+### Proteções Implementadas
+
+1. **Volumes Externos**: Volumes com nomes fixos (`pitstop_postgres_data`, `pitstop_redis_data`) que não são recriados
+2. **Backup Automático**: Backup do banco ANTES de cada deploy
+3. **Health Check**: Verifica se backend está respondendo
+4. **Rollback Automático**: Reverte para versão anterior se health check falhar
+5. **Logs de Falha**: Mostra logs dos containers se deploy falhar
+
 ## Suporte
 
 - Logs: `/opt/pitstop/logs/`

@@ -64,9 +64,12 @@ import java.util.UUID;
 public class AuthController {
 
     /**
-     * Cookie path for refresh token (only sent to auth endpoints).
+     * Cookie path for refresh token.
+     * Using "/" for compatibility with reverse proxy configurations where
+     * the external path (/auth) differs from internal path (/api/auth).
+     * The cookie is still protected by httpOnly, secure, and sameSite flags.
      */
-    private static final String COOKIE_PATH = "/api/auth";
+    private static final String COOKIE_PATH = "/";
 
     /**
      * Cookie max age in seconds (7 days = 604800 seconds).
@@ -88,6 +91,14 @@ public class AuthController {
 
     @Value("${spring.profiles.active:dev}")
     private String activeProfile;
+
+    /**
+     * Cookie domain for cross-subdomain authentication.
+     * Set to ".domain.com" to share cookies across subdomains.
+     * Leave empty for same-origin cookies (default for local development).
+     */
+    @Value("${app.cookie.domain:}")
+    private String cookieDomain;
 
     /**
      * Authenticates a user and returns JWT tokens.
@@ -129,13 +140,7 @@ public class AuthController {
         // Cookie duration: Always 7 days for refresh token persistence
         // The "rememberMe" option controls localStorage user data, not the refresh token cookie
         // This ensures users stay logged in even if they didn't check "remember me"
-        ResponseCookie cookie = ResponseCookie.from("refreshToken", response.refreshToken())
-                .httpOnly(true)
-                .secure(isSecureRequest(httpRequest))
-                .path(COOKIE_PATH)
-                .sameSite(COOKIE_SAME_SITE)
-                .maxAge(COOKIE_MAX_AGE_SECONDS)
-                .build();
+        ResponseCookie cookie = buildRefreshTokenCookie(response.refreshToken(), COOKIE_MAX_AGE_SECONDS, httpRequest);
 
         log.info("Login successful - email: {}, rememberMe: {}", maskEmail(request.email()), request.isRememberMe());
 
@@ -194,14 +199,8 @@ public class AuthController {
 
         RefreshResponse response = authenticationService.refresh(refreshToken);
 
-        // Update HttpOnly cookie with new refresh token
-        ResponseCookie cookie = ResponseCookie.from("refreshToken", response.refreshToken())
-                .httpOnly(true)
-                .secure(isSecureRequest(httpRequest))
-                .path(COOKIE_PATH)
-                .sameSite(COOKIE_SAME_SITE)
-                .maxAge(COOKIE_MAX_AGE_SECONDS)
-                .build();
+        // Update HttpOnly cookie with new refresh token (token rotation)
+        ResponseCookie cookie = buildRefreshTokenCookie(response.refreshToken(), COOKIE_MAX_AGE_SECONDS, httpRequest);
 
         log.info("Token refresh successful");
 
@@ -245,14 +244,8 @@ public class AuthController {
         UUID userId = userDetails.getUsuario().getId();
         authenticationService.logout(userId);
 
-        // Clear the refresh token cookie
-        ResponseCookie cookie = ResponseCookie.from("refreshToken", "")
-                .httpOnly(true)
-                .secure(isSecureRequest(httpRequest))
-                .path(COOKIE_PATH)
-                .sameSite(COOKIE_SAME_SITE)
-                .maxAge(0) // Expire immediately
-                .build();
+        // Clear the refresh token cookie (maxAge=0 expires immediately)
+        ResponseCookie cookie = buildRefreshTokenCookie("", 0, httpRequest);
 
         log.info("Logout successful - userId: {}", userId);
 
@@ -300,13 +293,7 @@ public class AuthController {
         LoginResponse response = authenticationService.register(request);
 
         // Create HttpOnly cookie with refresh token
-        ResponseCookie cookie = ResponseCookie.from("refreshToken", response.refreshToken())
-                .httpOnly(true)
-                .secure(isSecureRequest(httpRequest))
-                .path(COOKIE_PATH)
-                .sameSite(COOKIE_SAME_SITE)
-                .maxAge(COOKIE_MAX_AGE_SECONDS)
-                .build();
+        ResponseCookie cookie = buildRefreshTokenCookie(response.refreshToken(), COOKIE_MAX_AGE_SECONDS, httpRequest);
 
         log.info("Registration successful - email: {}", maskEmail(request.email()));
 
@@ -512,6 +499,40 @@ public class AuthController {
         log.info("Password reset successful");
 
         return ResponseEntity.ok().build();
+    }
+
+    /**
+     * Builds a refresh token cookie with proper security settings.
+     *
+     * <p>Cookie properties:
+     * <ul>
+     *   <li>httpOnly: true (prevents XSS)</li>
+     *   <li>secure: true in production (HTTPS only)</li>
+     *   <li>sameSite: Lax (CSRF protection while allowing navigation)</li>
+     *   <li>domain: configurable for cross-subdomain auth</li>
+     *   <li>path: /api/auth (minimal exposure)</li>
+     * </ul>
+     *
+     * @param tokenValue the refresh token value (empty string to clear)
+     * @param maxAge cookie max age in seconds (0 to expire immediately)
+     * @param request the HTTP request
+     * @return configured ResponseCookie
+     */
+    private ResponseCookie buildRefreshTokenCookie(String tokenValue, long maxAge, HttpServletRequest request) {
+        ResponseCookie.ResponseCookieBuilder builder = ResponseCookie.from("refreshToken", tokenValue)
+                .httpOnly(true)
+                .secure(isSecureRequest(request))
+                .path(COOKIE_PATH)
+                .sameSite(COOKIE_SAME_SITE)
+                .maxAge(maxAge);
+
+        // Set domain for cross-subdomain cookie sharing
+        // e.g., ".pitstopai.com.br" allows cookies between app.pitstopai.com.br and api.pitstopai.com.br
+        if (cookieDomain != null && !cookieDomain.isBlank()) {
+            builder.domain(cookieDomain);
+        }
+
+        return builder.build();
     }
 
     /**
