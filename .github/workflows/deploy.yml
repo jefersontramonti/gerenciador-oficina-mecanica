@@ -223,12 +223,17 @@ jobs:
             echo "=== Login no GitHub Container Registry ==="
             echo "${{ secrets.GH_PAT }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
 
-            echo "=== Pull das novas imagens (forçando) ==="
-            docker compose -f docker-compose.prod.yml pull --ignore-pull-failures
+            echo "=== Parando containers para atualização ==="
+            docker compose -f docker-compose.prod.yml stop pitstop-backend pitstop-frontend || true
+            docker compose -f docker-compose.prod.yml rm -f pitstop-backend pitstop-frontend || true
 
-            echo "=== Parando e removendo container frontend para forçar atualização ==="
-            docker compose -f docker-compose.prod.yml stop pitstop-frontend || true
-            docker compose -f docker-compose.prod.yml rm -f pitstop-frontend || true
+            echo "=== Removendo imagens antigas do frontend e backend ==="
+            docker rmi ghcr.io/rilfranco/pitstop/frontend:latest || true
+            docker rmi ghcr.io/rilfranco/pitstop/backend:latest || true
+
+            echo "=== Pull das novas imagens (forçando download) ==="
+            docker pull ghcr.io/rilfranco/pitstop/frontend:latest
+            docker pull ghcr.io/rilfranco/pitstop/backend:latest
 
             echo "=== Atualizando containers (forçando recreate) ==="
             docker compose -f docker-compose.prod.yml up -d --force-recreate --remove-orphans
