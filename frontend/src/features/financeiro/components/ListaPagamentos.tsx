@@ -97,7 +97,79 @@ export function ListaPagamentos({ ordemServicoId }: ListaPagamentosProps) {
 
   return (
     <>
-      <div className="overflow-hidden rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800">
+      {/* Mobile: Card Layout */}
+      <div className="space-y-3 lg:hidden">
+        {pagamentos.map((pagamento) => (
+          <div
+            key={pagamento.id}
+            className="rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 p-4"
+          >
+            {/* Header: Valor e Status */}
+            <div className="flex items-start justify-between gap-2 mb-3">
+              <div>
+                <div className="text-lg font-bold text-gray-900 dark:text-white">
+                  {formatCurrency(pagamento.valor)}
+                </div>
+                <div className="text-sm text-gray-500 dark:text-gray-400">
+                  {TipoPagamentoLabels[pagamento.tipo]}
+                </div>
+              </div>
+              <span
+                className={`inline-flex rounded-full px-2 py-1 text-xs font-semibold ${getStatusColors(pagamento.status)}`}
+              >
+                {StatusPagamentoLabels[pagamento.status]}
+              </span>
+            </div>
+
+            {/* Info */}
+            <div className="grid grid-cols-2 gap-2 text-sm mb-3 pb-3 border-b border-gray-200 dark:border-gray-700">
+              <div>
+                <span className="text-gray-500 dark:text-gray-400">Parcela: </span>
+                <span className="text-gray-900 dark:text-gray-100">
+                  {pagamento.parcelaAtual}/{pagamento.parcelas}
+                </span>
+              </div>
+              <div>
+                <span className="text-gray-500 dark:text-gray-400">Venc: </span>
+                <span className="text-gray-900 dark:text-gray-100">
+                  {pagamento.dataVencimento
+                    ? format(new Date(pagamento.dataVencimento), 'dd/MM/yyyy', { locale: ptBR })
+                    : '-'}
+                </span>
+              </div>
+            </div>
+
+            {/* Ações */}
+            <div className="flex items-center justify-between">
+              {pagamento.dataPagamento && (
+                <span className="text-xs text-gray-500 dark:text-gray-400">
+                  Pago em {format(new Date(pagamento.dataPagamento), 'dd/MM/yyyy')}
+                </span>
+              )}
+              {pagamento.status === StatusPagamento.PENDENTE && (
+                <div className="flex gap-2 ml-auto">
+                  <button
+                    onClick={() => setConfirmarDialog({ open: true, pagamento })}
+                    className="flex items-center gap-1 rounded-lg bg-green-600 px-3 py-1.5 text-sm text-white hover:bg-green-700"
+                  >
+                    <CheckCircle2 className="h-4 w-4" />
+                    Confirmar
+                  </button>
+                  <button
+                    onClick={() => handleCancelar(pagamento.id)}
+                    className="rounded-lg border border-red-600 p-1.5 text-red-600 hover:bg-red-50 dark:hover:bg-red-900/30"
+                  >
+                    <XCircle className="h-4 w-4" />
+                  </button>
+                </div>
+              )}
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {/* Desktop: Table Layout */}
+      <div className="hidden lg:block overflow-hidden rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800">
         <div className="overflow-x-auto">
           <table className="w-full">
             <thead className="bg-gray-50 dark:bg-gray-900">
