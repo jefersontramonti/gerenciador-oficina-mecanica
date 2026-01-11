@@ -102,46 +102,49 @@ export const OrdemServicoDetailPage = () => {
   }
 
   return (
-    <div className="p-6">
+    <div className="p-4 sm:p-6">
       {/* Header */}
       <div className="mb-6">
-        <div className="mb-4 flex items-center gap-4">
-          <Link
-            to="/ordens-servico"
-            className="rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 p-2 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-600"
-          >
-            <ArrowLeft className="h-5 w-5" />
-          </Link>
-          <div className="flex-1">
-            <div className="flex items-center gap-3">
-              <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">OS #{ordemServico.numero}</h1>
-              <StatusBadge status={ordemServico.status} />
+        <div className="mb-4 flex flex-col gap-4 sm:flex-row sm:items-center">
+          <div className="flex items-center gap-4 flex-1">
+            <Link
+              to="/ordens-servico"
+              className="rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 p-2 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-600 shrink-0"
+            >
+              <ArrowLeft className="h-5 w-5" />
+            </Link>
+            <div className="min-w-0 flex-1">
+              <div className="flex flex-wrap items-center gap-2 sm:gap-3">
+                <h1 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-gray-100">OS #{ordemServico.numero}</h1>
+                <StatusBadge status={ordemServico.status} />
+              </div>
+              <p className="mt-1 text-sm text-gray-600 dark:text-gray-400 hidden sm:block">
+                Detalhes completos da ordem de serviço
+              </p>
             </div>
-            <p className="mt-1 text-sm text-gray-600 dark:text-gray-400">
-              Detalhes completos da ordem de serviço
-            </p>
           </div>
 
           {/* Botões de Ação */}
-          <div className="flex items-center gap-3">
+          <div className="flex flex-wrap items-center gap-2 sm:gap-3">
             {/* Botão Imprimir PDF */}
             <button
               type="button"
               onClick={handleGerarPDF}
               disabled={gerarPDFMutation.isPending}
-              className="flex items-center gap-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 px-4 py-2 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-600 disabled:opacity-50"
+              className="flex items-center gap-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 px-3 py-2 text-sm sm:px-4 sm:text-base text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-600 disabled:opacity-50"
             >
-              <FileDown className="h-5 w-5" />
-              {gerarPDFMutation.isPending ? 'Gerando...' : 'Imprimir PDF'}
+              <FileDown className="h-4 w-4 sm:h-5 sm:w-5" />
+              <span className="hidden xs:inline">{gerarPDFMutation.isPending ? 'Gerando...' : 'Imprimir PDF'}</span>
+              <span className="xs:hidden">{gerarPDFMutation.isPending ? '...' : 'PDF'}</span>
             </button>
 
             {/* Botão Editar */}
             {canEdit(ordemServico.status) && (
               <Link
                 to={`/ordens-servico/${ordemServico.id}/editar`}
-                className="flex items-center gap-2 rounded-lg bg-blue-600 dark:bg-blue-700 px-4 py-2 text-white hover:bg-blue-700 dark:hover:bg-blue-600"
+                className="flex items-center gap-2 rounded-lg bg-blue-600 dark:bg-blue-700 px-3 py-2 text-sm sm:px-4 sm:text-base text-white hover:bg-blue-700 dark:hover:bg-blue-600"
               >
-                <Edit className="h-5 w-5" />
+                <Edit className="h-4 w-4 sm:h-5 sm:w-5" />
                 Editar
               </Link>
             )}

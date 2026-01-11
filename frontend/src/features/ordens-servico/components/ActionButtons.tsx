@@ -236,8 +236,8 @@ export const ActionButtons: React.FC<ActionButtonsProps> = ({ ordemServico, resu
 
       {/* Modal de Cancelamento */}
       {showCancelModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
-          <div className="w-full max-w-md rounded-lg bg-white p-6 shadow-xl dark:bg-gray-800">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+          <div className="w-full max-w-md rounded-lg bg-white p-4 sm:p-6 shadow-xl dark:bg-gray-800">
             <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Cancelar Ordem de Serviço</h3>
             <p className="mt-2 text-sm text-gray-600 dark:text-gray-400">
               Informe o motivo do cancelamento da OS #{ordemServico.numero}:
@@ -251,7 +251,7 @@ export const ActionButtons: React.FC<ActionButtonsProps> = ({ ordemServico, resu
               placeholder="Exemplo: Cliente desistiu do serviço"
             />
 
-            <div className="mt-6 flex justify-end gap-3">
+            <div className="mt-6 flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
               <button
                 type="button"
                 onClick={() => {
@@ -259,15 +259,15 @@ export const ActionButtons: React.FC<ActionButtonsProps> = ({ ordemServico, resu
                   setCancelMotivo('');
                 }}
                 disabled={cancelarMutation.isPending}
-                className="rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-700"
+                className="w-full sm:w-auto rounded-lg border border-gray-300 px-4 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-700"
               >
-                Cancelar
+                Voltar
               </button>
               <button
                 type="button"
                 onClick={handleCancelConfirm}
                 disabled={cancelarMutation.isPending}
-                className="rounded-lg bg-red-600 px-4 py-2 text-sm font-medium text-white hover:bg-red-700 disabled:opacity-50 dark:bg-red-700 dark:hover:bg-red-800"
+                className="w-full sm:w-auto rounded-lg bg-red-600 px-4 py-2.5 text-sm font-medium text-white hover:bg-red-700 disabled:opacity-50 dark:bg-red-700 dark:hover:bg-red-800"
               >
                 {cancelarMutation.isPending ? 'Cancelando...' : 'Confirmar Cancelamento'}
               </button>
@@ -278,8 +278,8 @@ export const ActionButtons: React.FC<ActionButtonsProps> = ({ ordemServico, resu
 
       {/* Modal de Aguardando Peça */}
       {showAguardandoPecaModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
-          <div className="w-full max-w-md rounded-lg bg-white p-6 shadow-xl dark:bg-gray-800">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+          <div className="w-full max-w-md rounded-lg bg-white p-4 sm:p-6 shadow-xl dark:bg-gray-800">
             <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Aguardar Peça</h3>
             <p className="mt-2 text-sm text-gray-600 dark:text-gray-400">
               Informe a peça que está sendo aguardada para a OS #{ordemServico.numero}:
@@ -293,7 +293,7 @@ export const ActionButtons: React.FC<ActionButtonsProps> = ({ ordemServico, resu
               placeholder="Ex: Filtro de óleo Mann W 712/83"
             />
 
-            <div className="mt-6 flex justify-end gap-3">
+            <div className="mt-6 flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
               <button
                 type="button"
                 onClick={() => {
@@ -301,15 +301,15 @@ export const ActionButtons: React.FC<ActionButtonsProps> = ({ ordemServico, resu
                   setDescricaoPeca('');
                 }}
                 disabled={aguardarPecaMutation.isPending}
-                className="rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-700"
+                className="w-full sm:w-auto rounded-lg border border-gray-300 px-4 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-700"
               >
-                Cancelar
+                Voltar
               </button>
               <button
                 type="button"
                 onClick={handleAguardarPecaConfirm}
                 disabled={aguardarPecaMutation.isPending}
-                className="rounded-lg bg-yellow-600 px-4 py-2 text-sm font-medium text-white hover:bg-yellow-700 disabled:opacity-50 dark:bg-yellow-700 dark:hover:bg-yellow-800"
+                className="w-full sm:w-auto rounded-lg bg-yellow-600 px-4 py-2.5 text-sm font-medium text-white hover:bg-yellow-700 disabled:opacity-50 dark:bg-yellow-700 dark:hover:bg-yellow-800"
               >
                 {aguardarPecaMutation.isPending ? 'Salvando...' : 'Confirmar'}
               </button>

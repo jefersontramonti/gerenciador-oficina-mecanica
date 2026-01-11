@@ -303,20 +303,20 @@ export const MovimentacaoModal = ({
           )}
 
           {/* Botões */}
-          <div className="flex gap-3 justify-end pt-4">
-            <Button type="button" variant="outline" onClick={onClose} disabled={isSubmitting}>
+          <div className="flex flex-col-reverse gap-3 sm:flex-row sm:justify-end pt-4">
+            <Button type="button" variant="outline" onClick={onClose} disabled={isSubmitting} className="w-full sm:w-auto">
               Cancelar
             </Button>
             <Button
               type="submit"
               disabled={isSubmitting}
-              className={
+              className={`w-full sm:w-auto ${
                 tipo === 'ENTRADA'
                   ? 'bg-green-600 hover:bg-green-700 dark:bg-green-700 dark:hover:bg-green-600'
                   : tipo === 'SAIDA'
                   ? 'bg-red-600 hover:bg-red-700 dark:bg-red-700 dark:hover:bg-red-600'
                   : 'bg-yellow-600 hover:bg-yellow-700 dark:bg-yellow-700 dark:hover:bg-yellow-600'
-              }
+              }`}
             >
               {isSubmitting ? 'Salvando...' : 'Confirmar'}
             </Button>

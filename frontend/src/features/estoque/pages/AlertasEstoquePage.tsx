@@ -39,7 +39,7 @@ export const AlertasEstoquePage = () => {
   };
 
   return (
-    <div className="p-6">
+    <div className="p-4 sm:p-6">
       {/* Header */}
       <div className="mb-6">
         <button
@@ -50,9 +50,9 @@ export const AlertasEstoquePage = () => {
           Voltar para Estoque
         </button>
         <div className="flex items-center gap-3">
-          <AlertTriangle className="h-8 w-8 text-orange-600 dark:text-orange-400" />
+          <AlertTriangle className="h-6 sm:h-8 w-6 sm:w-8 text-orange-600 dark:text-orange-400 shrink-0" />
           <div>
-            <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
+            <h1 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white">
               Alertas de Estoque
             </h1>
             <p className="mt-1 text-sm text-gray-600 dark:text-gray-400">
@@ -94,7 +94,56 @@ export const AlertasEstoquePage = () => {
             </p>
           </div>
 
-          <div className="rounded-lg bg-white dark:bg-gray-800 shadow overflow-hidden">
+          {/* Mobile: Card Layout */}
+          <div className="space-y-3 lg:hidden">
+            {isLoadingBaixo ? (
+              <div className="flex justify-center items-center py-12">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+              </div>
+            ) : !dataBaixo || dataBaixo.content.length === 0 ? (
+              <div className="rounded-lg bg-white dark:bg-gray-800 p-8 text-center text-gray-500 dark:text-gray-400 shadow">
+                Nenhuma peça com estoque baixo
+              </div>
+            ) : (
+              dataBaixo.content.map((peca) => (
+                <div key={peca.id} className="rounded-lg bg-white dark:bg-gray-800 p-4 shadow">
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <span className="font-mono text-sm font-medium text-gray-900 dark:text-white">{peca.codigo}</span>
+                        <StockBadge quantidadeAtual={peca.quantidadeAtual} quantidadeMinima={peca.quantidadeMinima} />
+                      </div>
+                      <p className="mt-1 text-sm text-gray-700 dark:text-gray-300 truncate">{peca.descricao}</p>
+                    </div>
+                    <button
+                      onClick={() => handleRegistrarEntrada(peca)}
+                      className="inline-flex items-center gap-1 rounded-lg border border-green-600 dark:border-green-500 px-3 py-1.5 text-sm font-medium text-green-600 dark:text-green-400 hover:bg-green-50 dark:hover:bg-green-900/30 shrink-0"
+                    >
+                      <ArrowDownCircle className="h-4 w-4" />
+                      <span className="hidden sm:inline">Entrada</span>
+                    </button>
+                  </div>
+                  <div className="mt-3 grid grid-cols-3 gap-2 text-sm">
+                    <div>
+                      <span className="text-xs text-gray-500 dark:text-gray-400">Atual</span>
+                      <p className="font-medium text-orange-600 dark:text-orange-400">{peca.quantidadeAtual}</p>
+                    </div>
+                    <div>
+                      <span className="text-xs text-gray-500 dark:text-gray-400">Mínimo</span>
+                      <p className="font-medium text-gray-900 dark:text-white">{peca.quantidadeMinima}</p>
+                    </div>
+                    <div>
+                      <span className="text-xs text-gray-500 dark:text-gray-400">Custo</span>
+                      <p className="font-medium text-gray-900 dark:text-white">{formatCurrency(peca.valorCusto)}</p>
+                    </div>
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
+
+          {/* Desktop: Table Layout */}
+          <div className="hidden lg:block rounded-lg bg-white dark:bg-gray-800 shadow overflow-hidden">
             {isLoadingBaixo ? (
               <div className="flex justify-center items-center py-12">
                 <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
@@ -180,23 +229,23 @@ export const AlertasEstoquePage = () => {
 
           {/* Paginação */}
           {dataBaixo && dataBaixo.totalPages > 1 && (
-            <div className="flex justify-between items-center">
-              <p className="text-sm text-gray-600 dark:text-gray-400">
+            <div className="flex flex-col gap-3 sm:flex-row sm:justify-between sm:items-center">
+              <p className="text-sm text-gray-600 dark:text-gray-400 text-center sm:text-left">
                 Mostrando {dataBaixo.content.length} de {dataBaixo.totalElements}{' '}
                 peças
               </p>
-              <div className="flex gap-2">
+              <div className="flex gap-2 justify-center sm:justify-end">
                 <button
                   disabled={dataBaixo.first}
                   onClick={() => setPageBaixo((prev) => prev - 1)}
-                  className="rounded-lg border border-gray-300 dark:border-gray-600 px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="flex-1 sm:flex-none rounded-lg border border-gray-300 dark:border-gray-600 px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   Anterior
                 </button>
                 <button
                   disabled={dataBaixo.last}
                   onClick={() => setPageBaixo((prev) => prev + 1)}
-                  className="rounded-lg border border-gray-300 dark:border-gray-600 px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="flex-1 sm:flex-none rounded-lg border border-gray-300 dark:border-gray-600 px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   Próxima
                 </button>
@@ -215,7 +264,56 @@ export const AlertasEstoquePage = () => {
             </p>
           </div>
 
-          <div className="rounded-lg bg-white dark:bg-gray-800 shadow overflow-hidden">
+          {/* Mobile: Card Layout */}
+          <div className="space-y-3 lg:hidden">
+            {isLoadingZerado ? (
+              <div className="flex justify-center items-center py-12">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+              </div>
+            ) : !dataZerado || dataZerado.content.length === 0 ? (
+              <div className="rounded-lg bg-white dark:bg-gray-800 p-8 text-center text-gray-500 dark:text-gray-400 shadow">
+                Nenhuma peça com estoque zerado
+              </div>
+            ) : (
+              dataZerado.content.map((peca) => (
+                <div key={peca.id} className="rounded-lg bg-red-50/50 dark:bg-red-950/20 border border-red-200 dark:border-red-800 p-4">
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <span className="font-mono text-sm font-medium text-gray-900 dark:text-white">{peca.codigo}</span>
+                        <StockBadge quantidadeAtual={peca.quantidadeAtual} quantidadeMinima={peca.quantidadeMinima} />
+                      </div>
+                      <p className="mt-1 text-sm text-gray-700 dark:text-gray-300 truncate">{peca.descricao}</p>
+                    </div>
+                    <button
+                      onClick={() => handleRegistrarEntrada(peca)}
+                      className="inline-flex items-center gap-1 rounded-lg bg-green-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-green-700 dark:bg-green-700 dark:hover:bg-green-600 shrink-0"
+                    >
+                      <ArrowDownCircle className="h-4 w-4" />
+                      <span className="hidden sm:inline">Urgente</span>
+                    </button>
+                  </div>
+                  <div className="mt-3 grid grid-cols-3 gap-2 text-sm">
+                    <div>
+                      <span className="text-xs text-gray-500 dark:text-gray-400">Atual</span>
+                      <p className="font-medium text-red-600 dark:text-red-400">0</p>
+                    </div>
+                    <div>
+                      <span className="text-xs text-gray-500 dark:text-gray-400">Mínimo</span>
+                      <p className="font-medium text-gray-900 dark:text-white">{peca.quantidadeMinima}</p>
+                    </div>
+                    <div>
+                      <span className="text-xs text-gray-500 dark:text-gray-400">Custo</span>
+                      <p className="font-medium text-gray-900 dark:text-white">{formatCurrency(peca.valorCusto)}</p>
+                    </div>
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
+
+          {/* Desktop: Table Layout */}
+          <div className="hidden lg:block rounded-lg bg-white dark:bg-gray-800 shadow overflow-hidden">
             {isLoadingZerado ? (
               <div className="flex justify-center items-center py-12">
                 <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
@@ -295,23 +393,23 @@ export const AlertasEstoquePage = () => {
 
           {/* Paginação */}
           {dataZerado && dataZerado.totalPages > 1 && (
-            <div className="flex justify-between items-center">
-              <p className="text-sm text-gray-600 dark:text-gray-400">
+            <div className="flex flex-col gap-3 sm:flex-row sm:justify-between sm:items-center">
+              <p className="text-sm text-gray-600 dark:text-gray-400 text-center sm:text-left">
                 Mostrando {dataZerado.content.length} de {dataZerado.totalElements}{' '}
                 peças
               </p>
-              <div className="flex gap-2">
+              <div className="flex gap-2 justify-center sm:justify-end">
                 <button
                   disabled={dataZerado.first}
                   onClick={() => setPageZerado((prev) => prev - 1)}
-                  className="rounded-lg border border-gray-300 dark:border-gray-600 px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="flex-1 sm:flex-none rounded-lg border border-gray-300 dark:border-gray-600 px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   Anterior
                 </button>
                 <button
                   disabled={dataZerado.last}
                   onClick={() => setPageZerado((prev) => prev + 1)}
-                  className="rounded-lg border border-gray-300 dark:border-gray-600 px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="flex-1 sm:flex-none rounded-lg border border-gray-300 dark:border-gray-600 px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   Próxima
                 </button>

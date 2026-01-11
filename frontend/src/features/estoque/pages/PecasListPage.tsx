@@ -282,8 +282,106 @@ export const PecasListPage = () => {
         </div>
       </div>
 
-      {/* Tabela */}
-      <div className="rounded-lg bg-white dark:bg-gray-800 shadow overflow-hidden">
+      {/* Mobile: Card Layout */}
+      <div className="space-y-3 lg:hidden">
+        {isLoading ? (
+          <div className="flex justify-center items-center py-12">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+          </div>
+        ) : !data?.content || data.content.length === 0 ? (
+          <div className="rounded-lg bg-white dark:bg-gray-800 p-8 text-center text-gray-500 dark:text-gray-400 shadow">
+            Nenhuma peça encontrada
+          </div>
+        ) : (
+          data.content.map((peca) => (
+            <div
+              key={peca.id}
+              className={`rounded-lg bg-white dark:bg-gray-800 p-4 shadow ${!peca.ativo ? 'opacity-50' : ''}`}
+            >
+              <div className="flex items-start justify-between gap-3">
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <span className="font-mono text-sm font-medium text-gray-900 dark:text-white">{peca.codigo}</span>
+                    <StockBadge quantidadeAtual={peca.quantidadeAtual} quantidadeMinima={peca.quantidadeMinima} />
+                  </div>
+                  <p className="mt-1 text-sm text-gray-700 dark:text-gray-300 truncate">{peca.descricao}</p>
+                  {peca.marca && <p className="mt-0.5 text-xs text-gray-500 dark:text-gray-400">{peca.marca}</p>}
+                </div>
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="ghost" size="icon" className="shrink-0">
+                      <MoreVertical className="h-4 w-4" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end">
+                    <DropdownMenuItem onClick={() => navigate(`/estoque/${peca.id}`)}>
+                      <Eye className="h-4 w-4 mr-2" />
+                      Ver Detalhes
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => navigate(`/estoque/${peca.id}/editar`)}>
+                      <Edit className="h-4 w-4 mr-2" />
+                      Editar
+                    </DropdownMenuItem>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem onClick={() => handleMovimentar(peca, 'ENTRADA')}>
+                      <ArrowDownCircle className="h-4 w-4 mr-2 text-green-600" />
+                      Entrada
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => handleMovimentar(peca, 'SAIDA')}>
+                      <ArrowUpCircle className="h-4 w-4 mr-2 text-red-600" />
+                      Saída
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => handleMovimentar(peca, 'AJUSTE')}>
+                      <Settings className="h-4 w-4 mr-2 text-yellow-600" />
+                      Ajuste
+                    </DropdownMenuItem>
+                    <DropdownMenuSeparator />
+                    {peca.ativo ? (
+                      <DropdownMenuItem onClick={() => handleDesativar(peca.id)} className="text-red-600">
+                        <PowerOff className="h-4 w-4 mr-2" />
+                        Desativar
+                      </DropdownMenuItem>
+                    ) : (
+                      <DropdownMenuItem onClick={() => handleReativar(peca.id)} className="text-green-600">
+                        <Power className="h-4 w-4 mr-2" />
+                        Reativar
+                      </DropdownMenuItem>
+                    )}
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              </div>
+
+              <div className="mt-3 grid grid-cols-2 gap-3 text-sm">
+                <div>
+                  <span className="text-xs text-gray-500 dark:text-gray-400">Estoque</span>
+                  <p className="font-medium text-gray-900 dark:text-white">
+                    {peca.quantidadeAtual} <span className="text-xs text-gray-500">/ mín: {peca.quantidadeMinima}</span>
+                  </p>
+                </div>
+                <div>
+                  <span className="text-xs text-gray-500 dark:text-gray-400">Unidade</span>
+                  <div className="mt-0.5"><UnidadeMedidaBadge unidade={peca.unidadeMedida} /></div>
+                </div>
+                <div>
+                  <span className="text-xs text-gray-500 dark:text-gray-400">Custo / Venda</span>
+                  <p className="font-medium text-gray-900 dark:text-white">
+                    {formatCurrency(peca.valorCusto)} / {formatCurrency(peca.valorVenda)}
+                  </p>
+                </div>
+                <div>
+                  <span className="text-xs text-gray-500 dark:text-gray-400">Margem</span>
+                  <p className={`font-medium ${peca.margemLucro >= 30 ? 'text-green-600' : peca.margemLucro >= 10 ? 'text-yellow-600' : 'text-red-600'}`}>
+                    {peca.margemLucro.toFixed(1)}%
+                  </p>
+                </div>
+              </div>
+            </div>
+          ))
+        )}
+      </div>
+
+      {/* Desktop: Table Layout */}
+      <div className="hidden lg:block rounded-lg bg-white dark:bg-gray-800 shadow overflow-hidden">
         <Table>
           <TableHeader>
             <TableRow className="bg-gray-50 dark:bg-gray-700">

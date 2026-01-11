@@ -308,21 +308,21 @@ export const OrdemServicoFormPage = () => {
   const isSubmitting = createMutation.isPending || updateMutation.isPending;
 
   return (
-    <div className="p-6">
+    <div className="p-4 sm:p-6">
       {/* Header */}
-      <div className="mb-6 flex items-center gap-4">
+      <div className="mb-6 flex items-start gap-3 sm:gap-4">
         <button
           type="button"
           onClick={() => navigate('/ordens-servico')}
-          className="rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 p-2 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-600"
+          className="rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 p-2 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-600 shrink-0"
         >
           <ArrowLeft className="h-5 w-5" />
         </button>
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">
-            {isEditMode ? 'Editar Ordem de Serviço' : 'Nova Ordem de Serviço'}
+        <div className="min-w-0">
+          <h1 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-gray-100">
+            {isEditMode ? 'Editar OS' : 'Nova OS'}
           </h1>
-          <p className="mt-1 text-sm text-gray-600 dark:text-gray-400">
+          <p className="mt-1 text-sm text-gray-600 dark:text-gray-400 hidden sm:block">
             {isEditMode
               ? 'Atualize os dados da ordem de serviço'
               : 'Preencha os dados para criar uma nova OS'}
@@ -534,7 +534,7 @@ export const OrdemServicoFormPage = () => {
                   </button>
                 </div>
 
-                <div className="grid gap-3 sm:gap-4 grid-cols-2 sm:grid-cols-3 lg:grid-cols-6">
+                <div className="grid gap-3 sm:gap-4 grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-6">
                   {/* Tipo */}
                   <div className="col-span-1">
                     <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">Tipo</label>
@@ -599,7 +599,7 @@ export const OrdemServicoFormPage = () => {
                   )}
 
                   {/* Descrição ou Seleção de Peça */}
-                  <div className={watch(`itens.${index}.tipo`) === TipoItem.PECA ? 'col-span-1' : 'col-span-2 sm:col-span-2 lg:col-span-2'}>
+                  <div className={watch(`itens.${index}.tipo`) === TipoItem.PECA ? 'col-span-1' : 'col-span-1 md:col-span-2 lg:col-span-2'}>
                     {watch(`itens.${index}.tipo`) === TipoItem.PECA && watch(`itens.${index}.origemPeca`) === OrigemPeca.ESTOQUE ? (
                       <Controller
                         name={`itens.${index}.pecaId`}
@@ -849,7 +849,7 @@ export const OrdemServicoFormPage = () => {
                     <p className="text-blue-700 dark:text-blue-300 mt-1">
                       Valor/hora da oficina: <strong>{new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(valorHoraOficina)}</strong>
                     </p>
-                    <div className="mt-2 grid grid-cols-2 gap-4 text-blue-800 dark:text-blue-200">
+                    <div className="mt-2 grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 text-blue-800 dark:text-blue-200">
                       <div>
                         <p className="text-xs text-blue-600 dark:text-blue-400">Estimativa Mínima</p>
                         <p className="font-semibold">
@@ -941,11 +941,11 @@ export const OrdemServicoFormPage = () => {
         </div>
 
         {/* Actions */}
-        <div className="flex justify-end gap-3">
+        <div className="flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
           <button
             type="button"
             onClick={() => navigate('/ordens-servico')}
-            className="rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 px-6 py-2 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-600"
+            className="w-full sm:w-auto rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 px-6 py-2.5 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-600"
             disabled={isSubmitting}
           >
             Cancelar
@@ -953,7 +953,7 @@ export const OrdemServicoFormPage = () => {
           <button
             type="submit"
             disabled={isSubmitting}
-            className="flex items-center gap-2 rounded-lg bg-blue-600 dark:bg-blue-700 px-6 py-2 text-white hover:bg-blue-700 dark:hover:bg-blue-600 disabled:opacity-50"
+            className="w-full sm:w-auto flex items-center justify-center gap-2 rounded-lg bg-blue-600 dark:bg-blue-700 px-6 py-2.5 text-white hover:bg-blue-700 dark:hover:bg-blue-600 disabled:opacity-50"
           >
             <Save className="h-5 w-5" />
             {isSubmitting ? 'Salvando...' : 'Salvar OS'}

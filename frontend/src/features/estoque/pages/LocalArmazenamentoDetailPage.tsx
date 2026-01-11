@@ -36,31 +36,31 @@ export const LocalArmazenamentoDetailPage = () => {
   }
 
   return (
-    <div className="p-6">
+    <div className="p-4 sm:p-6">
       {/* Header */}
-      <div className="mb-6 flex items-center justify-between">
-        <div className="flex items-center gap-4">
+      <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex items-center gap-3 sm:gap-4">
           <button
             onClick={() => navigate('/estoque/locais')}
-            className="rounded-lg p-2 hover:bg-gray-100 dark:hover:bg-gray-700"
+            className="rounded-lg p-2 hover:bg-gray-100 dark:hover:bg-gray-700 shrink-0"
           >
             <ArrowLeft className="h-5 w-5 text-gray-900 dark:text-gray-100" />
           </button>
-          <div>
-            <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">{local.codigo}</h1>
-            <p className="mt-1 text-sm text-gray-600 dark:text-gray-400">
+          <div className="min-w-0">
+            <h1 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-gray-100 truncate">{local.codigo}</h1>
+            <p className="mt-1 text-sm text-gray-600 dark:text-gray-400 truncate">
               {local.descricao}
             </p>
           </div>
         </div>
 
-        <div className="flex gap-2">
+        <div className="flex gap-2 self-end sm:self-auto">
           <button
             onClick={() => navigate(`/estoque/locais/${id}/editar`)}
-            className="flex items-center gap-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 px-4 py-2 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-600"
+            className="flex items-center gap-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 px-3 py-2 sm:px-4 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-600"
           >
-            <Edit className="h-5 w-5" />
-            Editar
+            <Edit className="h-4 w-4 sm:h-5 sm:w-5" />
+            <span className="hidden sm:inline">Editar</span>
           </button>
         </div>
       </div>
@@ -70,11 +70,11 @@ export const LocalArmazenamentoDetailPage = () => {
         {/* Main Info */}
         <div className="lg:col-span-2 space-y-6">
           {/* Informações Básicas */}
-          <div className="rounded-lg bg-white dark:bg-gray-800 p-6 shadow">
+          <div className="rounded-lg bg-white dark:bg-gray-800 p-4 sm:p-6 shadow">
             <h2 className="mb-4 text-lg font-semibold text-gray-900 dark:text-gray-100">Informações Básicas</h2>
 
             <div className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <label className="text-sm font-medium text-gray-500 dark:text-gray-400">Código</label>
                   <p className="mt-1 font-mono text-gray-900 dark:text-gray-100">{local.codigo}</p>
@@ -103,7 +103,7 @@ export const LocalArmazenamentoDetailPage = () => {
           </div>
 
           {/* Hierarquia */}
-          <div className="rounded-lg bg-white dark:bg-gray-800 p-6 shadow">
+          <div className="rounded-lg bg-white dark:bg-gray-800 p-4 sm:p-6 shadow">
             <h2 className="mb-4 text-lg font-semibold text-gray-900 dark:text-gray-100">Hierarquia</h2>
 
             <div className="space-y-4">
@@ -139,14 +139,14 @@ export const LocalArmazenamentoDetailPage = () => {
           </div>
 
           {local.observacoes && (
-            <div className="rounded-lg bg-white dark:bg-gray-800 p-6 shadow">
+            <div className="rounded-lg bg-white dark:bg-gray-800 p-4 sm:p-6 shadow">
               <h2 className="mb-4 text-lg font-semibold text-gray-900 dark:text-gray-100">Observações</h2>
               <p className="whitespace-pre-wrap text-gray-900 dark:text-gray-100">{local.observacoes}</p>
             </div>
           )}
 
           {/* Peças armazenadas */}
-          <div className="rounded-lg bg-white dark:bg-gray-800 p-6 shadow">
+          <div className="rounded-lg bg-white dark:bg-gray-800 p-4 sm:p-6 shadow">
             <h2 className="mb-4 text-lg font-semibold text-gray-900 dark:text-gray-100">
               Peças Armazenadas ({pecasNoLocal.length})
             </h2>
@@ -156,68 +156,119 @@ export const LocalArmazenamentoDetailPage = () => {
                 <div className="text-gray-500 dark:text-gray-400">Carregando peças...</div>
               </div>
             ) : pecasNoLocal.length > 0 ? (
-              <div className="overflow-x-auto">
-                <table className="w-full">
-                  <thead>
-                    <tr className="border-b border-gray-200 dark:border-gray-700 text-left text-sm font-medium text-gray-500 dark:text-gray-400">
-                      <th className="pb-3">Código</th>
-                      <th className="pb-3">Descrição</th>
-                      <th className="pb-3">Marca</th>
-                      <th className="pb-3 text-right">Qtd. Atual</th>
-                      <th className="pb-3 text-right">Qtd. Mínima</th>
-                      <th className="pb-3">Status</th>
-                      <th className="pb-3 text-right">Valor</th>
-                      <th className="pb-3"></th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {pecasNoLocal.map((peca) => {
-                      const status = getStockStatus(peca.quantidadeAtual, peca.quantidadeMinima);
-                      return (
-                        <tr key={peca.id} className="border-b border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors">
-                          <td className="py-3 font-mono text-sm text-gray-900 dark:text-gray-100">{peca.codigo}</td>
-                          <td className="py-3">
-                            <div>
-                              <p className="font-medium text-gray-900 dark:text-gray-100">{peca.descricao}</p>
-                              {peca.aplicacao && (
-                                <p className="text-xs text-gray-500 dark:text-gray-400 truncate max-w-xs">
-                                  {peca.aplicacao}
-                                </p>
-                              )}
+              <>
+                {/* Mobile: Card Layout */}
+                <div className="space-y-3 lg:hidden">
+                  {pecasNoLocal.map((peca) => {
+                    const status = getStockStatus(peca.quantidadeAtual, peca.quantidadeMinima);
+                    return (
+                      <div key={peca.id} className="rounded-lg border border-gray-200 dark:border-gray-700 p-3">
+                        <div className="flex items-start justify-between gap-2">
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center gap-2 flex-wrap">
+                              <span className="font-mono text-sm font-medium text-gray-900 dark:text-gray-100">
+                                {peca.codigo}
+                              </span>
+                              <span
+                                className={`px-2 py-0.5 rounded-full text-xs font-medium ${status.bgColor} ${status.textColor}`}
+                              >
+                                {status.label}
+                              </span>
                             </div>
-                          </td>
-                          <td className="py-3 text-sm text-gray-900 dark:text-gray-100">{peca.marca || '-'}</td>
-                          <td className="py-3 text-right font-medium text-gray-900 dark:text-gray-100">
-                            {peca.quantidadeAtual} {UnidadeMedidaSigla[peca.unidadeMedida]}
-                          </td>
-                          <td className="py-3 text-right text-sm text-gray-500 dark:text-gray-400">
-                            {peca.quantidadeMinima} {UnidadeMedidaSigla[peca.unidadeMedida]}
-                          </td>
-                          <td className="py-3">
-                            <span
-                              className={`px-2 py-1 rounded-full text-xs font-medium ${status.bgColor} ${status.textColor}`}
-                            >
-                              {status.label}
+                            <p className="mt-1 text-sm text-gray-900 dark:text-gray-100 truncate">
+                              {peca.descricao}
+                            </p>
+                          </div>
+                          <Link
+                            to={`/estoque/${peca.id}`}
+                            className="shrink-0 p-1.5 text-blue-600 dark:text-blue-400 hover:bg-gray-100 dark:hover:bg-gray-700 rounded"
+                          >
+                            <ExternalLink className="h-4 w-4" />
+                          </Link>
+                        </div>
+                        <div className="mt-2 grid grid-cols-2 gap-2 text-xs">
+                          <div>
+                            <span className="text-gray-500 dark:text-gray-400">Qtd:</span>
+                            <span className="ml-1 font-medium text-gray-900 dark:text-gray-100">
+                              {peca.quantidadeAtual} {UnidadeMedidaSigla[peca.unidadeMedida]}
                             </span>
-                          </td>
-                          <td className="py-3 text-right font-medium text-gray-900 dark:text-gray-100">
-                            {formatCurrency(peca.valorVenda)}
-                          </td>
-                          <td className="py-3 text-right">
-                            <Link
-                              to={`/estoque/${peca.id}`}
-                              className="inline-flex items-center gap-1 text-sm text-blue-600 dark:text-blue-400 hover:underline"
-                            >
-                              Ver
-                              <ExternalLink className="h-3 w-3" />
-                            </Link>
-                          </td>
-                        </tr>
-                      );
-                    })}
-                  </tbody>
-                </table>
-              </div>
+                          </div>
+                          <div>
+                            <span className="text-gray-500 dark:text-gray-400">Valor:</span>
+                            <span className="ml-1 font-medium text-gray-900 dark:text-gray-100">
+                              {formatCurrency(peca.valorVenda)}
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+
+                {/* Desktop: Table Layout */}
+                <div className="hidden lg:block overflow-x-auto">
+                  <table className="w-full">
+                    <thead>
+                      <tr className="border-b border-gray-200 dark:border-gray-700 text-left text-sm font-medium text-gray-500 dark:text-gray-400">
+                        <th className="pb-3">Código</th>
+                        <th className="pb-3">Descrição</th>
+                        <th className="pb-3">Marca</th>
+                        <th className="pb-3 text-right">Qtd. Atual</th>
+                        <th className="pb-3 text-right">Qtd. Mínima</th>
+                        <th className="pb-3">Status</th>
+                        <th className="pb-3 text-right">Valor</th>
+                        <th className="pb-3"></th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {pecasNoLocal.map((peca) => {
+                        const status = getStockStatus(peca.quantidadeAtual, peca.quantidadeMinima);
+                        return (
+                          <tr key={peca.id} className="border-b border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors">
+                            <td className="py-3 font-mono text-sm text-gray-900 dark:text-gray-100">{peca.codigo}</td>
+                            <td className="py-3">
+                              <div>
+                                <p className="font-medium text-gray-900 dark:text-gray-100">{peca.descricao}</p>
+                                {peca.aplicacao && (
+                                  <p className="text-xs text-gray-500 dark:text-gray-400 truncate max-w-xs">
+                                    {peca.aplicacao}
+                                  </p>
+                                )}
+                              </div>
+                            </td>
+                            <td className="py-3 text-sm text-gray-900 dark:text-gray-100">{peca.marca || '-'}</td>
+                            <td className="py-3 text-right font-medium text-gray-900 dark:text-gray-100">
+                              {peca.quantidadeAtual} {UnidadeMedidaSigla[peca.unidadeMedida]}
+                            </td>
+                            <td className="py-3 text-right text-sm text-gray-500 dark:text-gray-400">
+                              {peca.quantidadeMinima} {UnidadeMedidaSigla[peca.unidadeMedida]}
+                            </td>
+                            <td className="py-3">
+                              <span
+                                className={`px-2 py-1 rounded-full text-xs font-medium ${status.bgColor} ${status.textColor}`}
+                              >
+                                {status.label}
+                              </span>
+                            </td>
+                            <td className="py-3 text-right font-medium text-gray-900 dark:text-gray-100">
+                              {formatCurrency(peca.valorVenda)}
+                            </td>
+                            <td className="py-3 text-right">
+                              <Link
+                                to={`/estoque/${peca.id}`}
+                                className="inline-flex items-center gap-1 text-sm text-blue-600 dark:text-blue-400 hover:underline"
+                              >
+                                Ver
+                                <ExternalLink className="h-3 w-3" />
+                              </Link>
+                            </td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+              </>
             ) : (
               <div className="text-center py-12">
                 <p className="text-gray-500 dark:text-gray-400">Nenhuma peça armazenada neste local</p>
@@ -232,7 +283,7 @@ export const LocalArmazenamentoDetailPage = () => {
         {/* Sidebar */}
         <div className="space-y-6">
           {/* Status */}
-          <div className="rounded-lg bg-white dark:bg-gray-800 p-6 shadow">
+          <div className="rounded-lg bg-white dark:bg-gray-800 p-4 sm:p-6 shadow">
             <h3 className="mb-4 text-sm font-semibold text-gray-700 dark:text-gray-300">Status</h3>
             {local.ativo ? (
               <span className="inline-flex rounded-full bg-green-100 dark:bg-green-900/30 px-3 py-1 text-sm font-semibold text-green-800 dark:text-green-400">
@@ -246,7 +297,7 @@ export const LocalArmazenamentoDetailPage = () => {
           </div>
 
           {/* Metadata */}
-          <div className="rounded-lg bg-white dark:bg-gray-800 p-6 shadow">
+          <div className="rounded-lg bg-white dark:bg-gray-800 p-4 sm:p-6 shadow">
             <h3 className="mb-4 text-sm font-semibold text-gray-700 dark:text-gray-300">Informações</h3>
 
             <div className="space-y-3">
@@ -267,7 +318,7 @@ export const LocalArmazenamentoDetailPage = () => {
 
               <div>
                 <label className="text-xs font-medium text-gray-500 dark:text-gray-400">ID</label>
-                <p className="mt-1 text-xs font-mono text-gray-600 dark:text-gray-400">{local.id}</p>
+                <p className="mt-1 text-xs font-mono text-gray-600 dark:text-gray-400 break-all">{local.id}</p>
               </div>
             </div>
           </div>

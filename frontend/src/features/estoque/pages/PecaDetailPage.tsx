@@ -78,49 +78,49 @@ export const PecaDetailPage = () => {
   const stockStatus = getStockStatus(peca.quantidadeAtual, peca.quantidadeMinima);
 
   return (
-    <div className="p-6">
+    <div className="p-4 sm:p-6">
       {/* Header */}
-      <div className="mb-6 flex items-center justify-between">
-        <div className="flex items-center gap-4">
+      <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex items-center gap-3 sm:gap-4">
           <button
             onClick={() => navigate('/estoque')}
-            className="rounded-lg p-2 hover:bg-gray-100 dark:hover:bg-gray-700"
+            className="rounded-lg p-2 hover:bg-gray-100 dark:hover:bg-gray-700 shrink-0"
           >
             <ArrowLeft className="h-5 w-5 text-gray-900 dark:text-gray-100" />
           </button>
-          <div>
-            <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">{peca.codigo}</h1>
-            <p className="mt-1 text-sm text-gray-600 dark:text-gray-400">
+          <div className="min-w-0">
+            <h1 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-gray-100 truncate">{peca.codigo}</h1>
+            <p className="mt-1 text-sm text-gray-600 dark:text-gray-400 line-clamp-2">
               {peca.descricao}
             </p>
           </div>
         </div>
 
-        <div className="flex gap-2">
+        <div className="flex gap-2 self-end sm:self-auto">
           <button
             onClick={() => navigate(`/estoque/${id}/editar`)}
-            className="flex items-center gap-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 px-4 py-2 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-600"
+            className="flex items-center gap-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 px-3 sm:px-4 py-2 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-600"
           >
             <Edit className="h-5 w-5" />
-            Editar
+            <span className="hidden sm:inline">Editar</span>
           </button>
           {peca.ativo ? (
             <button
               onClick={handleDesativar}
               disabled={desativarPeca.isPending}
-              className="flex items-center gap-2 rounded-lg border border-red-600 dark:border-red-700 bg-white dark:bg-gray-700 px-4 py-2 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/30 disabled:cursor-not-allowed disabled:opacity-50"
+              className="flex items-center gap-2 rounded-lg border border-red-600 dark:border-red-700 bg-white dark:bg-gray-700 px-3 sm:px-4 py-2 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/30 disabled:cursor-not-allowed disabled:opacity-50"
             >
               <PowerOff className="h-5 w-5" />
-              Desativar
+              <span className="hidden sm:inline">Desativar</span>
             </button>
           ) : (
             <button
               onClick={handleReativar}
               disabled={reativarPeca.isPending}
-              className="flex items-center gap-2 rounded-lg border border-green-600 dark:border-green-700 bg-white dark:bg-gray-700 px-4 py-2 text-green-600 dark:text-green-400 hover:bg-green-50 dark:hover:bg-green-900/30 disabled:cursor-not-allowed disabled:opacity-50"
+              className="flex items-center gap-2 rounded-lg border border-green-600 dark:border-green-700 bg-white dark:bg-gray-700 px-3 sm:px-4 py-2 text-green-600 dark:text-green-400 hover:bg-green-50 dark:hover:bg-green-900/30 disabled:cursor-not-allowed disabled:opacity-50"
             >
               <Power className="h-5 w-5" />
-              Reativar
+              <span className="hidden sm:inline">Reativar</span>
             </button>
           )}
         </div>
@@ -131,10 +131,10 @@ export const PecaDetailPage = () => {
         {/* Main Info */}
         <div className="lg:col-span-2 space-y-6">
           {/* Informações Principais */}
-          <div className="rounded-lg bg-white dark:bg-gray-800 p-6 shadow">
+          <div className="rounded-lg bg-white dark:bg-gray-800 p-4 sm:p-6 shadow">
             <h2 className="mb-4 text-lg font-semibold text-gray-900 dark:text-gray-100">Estoque</h2>
 
-            <div className="grid grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
               <div>
                 <label className="text-sm font-medium text-gray-500 dark:text-gray-400">Status</label>
                 <div className="mt-2">
@@ -167,11 +167,11 @@ export const PecaDetailPage = () => {
           </div>
 
           {/* Detalhes da Peça */}
-          <div className="rounded-lg bg-white dark:bg-gray-800 p-6 shadow">
+          <div className="rounded-lg bg-white dark:bg-gray-800 p-4 sm:p-6 shadow">
             <h2 className="mb-4 text-lg font-semibold text-gray-900 dark:text-gray-100">Informações da Peça</h2>
 
             <div className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <label className="text-sm font-medium text-gray-500 dark:text-gray-400">Código (SKU)</label>
                   <p className="mt-1 font-mono text-gray-900 dark:text-gray-100">{peca.codigo}</p>
@@ -221,10 +221,10 @@ export const PecaDetailPage = () => {
           </div>
 
           {/* Precificação */}
-          <div className="rounded-lg bg-white dark:bg-gray-800 p-6 shadow">
+          <div className="rounded-lg bg-white dark:bg-gray-800 p-4 sm:p-6 shadow">
             <h2 className="mb-4 text-lg font-semibold text-gray-900 dark:text-gray-100">Precificação</h2>
 
-            <div className="grid grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
               <div>
                 <label className="text-sm font-medium text-gray-500 dark:text-gray-400">Valor de Custo</label>
                 <p className="mt-1 text-lg font-bold text-gray-900 dark:text-gray-100">{formatCurrency(peca.valorCusto)}</p>
@@ -248,9 +248,9 @@ export const PecaDetailPage = () => {
           </div>
 
           {/* Ações de Movimentação */}
-          <div className="rounded-lg bg-white dark:bg-gray-800 p-6 shadow">
+          <div className="rounded-lg bg-white dark:bg-gray-800 p-4 sm:p-6 shadow">
             <h2 className="mb-4 text-lg font-semibold text-gray-900 dark:text-gray-100">Movimentar Estoque</h2>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
               <button
                 onClick={() => handleMovimentar('ENTRADA')}
                 className="flex flex-col items-center gap-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 px-4 py-6 text-gray-700 dark:text-gray-300 hover:bg-green-50 dark:hover:bg-green-950/30 hover:border-green-300 dark:hover:border-green-700"
@@ -287,7 +287,7 @@ export const PecaDetailPage = () => {
           </div>
 
           {/* Histórico de Movimentações */}
-          <div className="rounded-lg bg-white dark:bg-gray-800 p-6 shadow">
+          <div className="rounded-lg bg-white dark:bg-gray-800 p-4 sm:p-6 shadow">
             <h2 className="mb-4 text-lg font-semibold text-gray-900 dark:text-gray-100">Histórico de Movimentações</h2>
             <MovimentacaoList
               movimentacoes={movimentacoesData?.content || []}
@@ -300,7 +300,7 @@ export const PecaDetailPage = () => {
         {/* Sidebar */}
         <div className="space-y-6">
           {/* Status */}
-          <div className="rounded-lg bg-white dark:bg-gray-800 p-6 shadow">
+          <div className="rounded-lg bg-white dark:bg-gray-800 p-4 sm:p-6 shadow">
             <h3 className="mb-4 text-sm font-semibold text-gray-700 dark:text-gray-300">Status</h3>
             {peca.ativo ? (
               <span className="inline-flex rounded-full bg-green-100 dark:bg-green-900/30 px-3 py-1 text-sm font-semibold text-green-800 dark:text-green-400">
@@ -314,7 +314,7 @@ export const PecaDetailPage = () => {
           </div>
 
           {/* Metadata */}
-          <div className="rounded-lg bg-white dark:bg-gray-800 p-6 shadow">
+          <div className="rounded-lg bg-white dark:bg-gray-800 p-4 sm:p-6 shadow">
             <h3 className="mb-4 text-sm font-semibold text-gray-700 dark:text-gray-300">Informações</h3>
 
             <div className="space-y-3">

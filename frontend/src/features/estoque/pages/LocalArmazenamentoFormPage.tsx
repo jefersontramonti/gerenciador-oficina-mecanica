@@ -139,17 +139,17 @@ export const LocalArmazenamentoFormPage = () => {
   }
 
   return (
-    <div className="p-6">
+    <div className="p-4 sm:p-6">
       {/* Header */}
-      <div className="mb-6 flex items-center gap-4">
+      <div className="mb-6 flex items-start gap-3 sm:gap-4">
         <button
           onClick={() => navigate('/estoque/locais')}
-          className="rounded-lg p-2 hover:bg-gray-100 dark:hover:bg-gray-700"
+          className="rounded-lg p-2 hover:bg-gray-100 dark:hover:bg-gray-700 shrink-0"
         >
           <ArrowLeft className="h-5 w-5 text-gray-900 dark:text-gray-100" />
         </button>
         <div>
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">
+          <h1 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-gray-100">
             {isEditing ? 'Editar Local de Armazenamento' : 'Novo Local de Armazenamento'}
           </h1>
           <p className="mt-1 text-sm text-gray-600 dark:text-gray-400">
@@ -303,17 +303,19 @@ export const LocalArmazenamentoFormPage = () => {
           </div>
 
           {/* Botões de Ação */}
-          <div className="flex items-center justify-end gap-3">
+          <div className="flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
             <Button
               type="button"
               variant="outline"
               onClick={() => navigate('/estoque/locais')}
+              className="w-full sm:w-auto"
             >
               Cancelar
             </Button>
             <Button
               type="submit"
               disabled={createLocal.isPending || updateLocal.isPending}
+              className="w-full sm:w-auto"
             >
               <Save className="h-4 w-4 mr-2" />
               {createLocal.isPending || updateLocal.isPending

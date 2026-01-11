@@ -235,15 +235,15 @@ export function AprovarOrcamentoPage() {
         {/* Card Principal */}
         <div className="rounded-2xl bg-white p-6 shadow-xl">
           {/* Numero da OS */}
-          <div className="mb-6 flex items-center justify-between border-b border-gray-200 pb-4">
+          <div className="mb-6 flex flex-col gap-3 border-b border-gray-200 pb-4 sm:flex-row sm:items-center sm:justify-between">
             <div className="flex items-center gap-3">
-              <FileText className="h-8 w-8 text-blue-600" />
+              <FileText className="h-8 w-8 text-blue-600 shrink-0" />
               <div>
                 <p className="text-sm text-gray-500">Ordem de Servico</p>
-                <p className="text-2xl font-bold text-gray-900">#{orcamento.numero}</p>
+                <p className="text-xl sm:text-2xl font-bold text-gray-900">#{orcamento.numero}</p>
               </div>
             </div>
-            <span className="rounded-full bg-yellow-100 px-4 py-2 text-sm font-medium text-yellow-800">
+            <span className="self-start rounded-full bg-yellow-100 px-4 py-2 text-sm font-medium text-yellow-800 sm:self-auto">
               {orcamento.statusDescricao}
             </span>
           </div>
@@ -287,24 +287,24 @@ export function AprovarOrcamentoPage() {
               <h3 className="mb-3 text-lg font-semibold text-gray-900">Itens do Orcamento</h3>
               <div className="space-y-3">
                 {orcamento.itens.map((item, index) => (
-                  <div key={index} className="flex items-start justify-between border-b border-gray-200 pb-3 last:border-0 last:pb-0">
-                    <div className="flex-1">
-                      <div className="flex items-center gap-2">
-                        <span className={`rounded px-2 py-0.5 text-xs font-medium ${
-                          item.tipo === 'PECA'
-                            ? 'bg-blue-100 text-blue-700'
-                            : 'bg-purple-100 text-purple-700'
-                        }`}>
-                          {item.tipoDescricao}
-                        </span>
-                        <span className="font-medium text-gray-900">{item.descricao}</span>
-                      </div>
-                      <div className="mt-1 text-sm text-gray-500">
-                        {item.quantidade}x {formatCurrency(item.valorUnitario)}
-                      </div>
+                  <div key={index} className="border-b border-gray-200 pb-3 last:border-0 last:pb-0">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <span className={`rounded px-2 py-0.5 text-xs font-medium ${
+                        item.tipo === 'PECA'
+                          ? 'bg-blue-100 text-blue-700'
+                          : 'bg-purple-100 text-purple-700'
+                      }`}>
+                        {item.tipoDescricao}
+                      </span>
+                      <span className="font-medium text-gray-900 break-words">{item.descricao}</span>
                     </div>
-                    <div className="text-right font-medium text-gray-900">
-                      {formatCurrency(item.valorTotal)}
+                    <div className="mt-2 flex items-center justify-between text-sm">
+                      <span className="text-gray-500">
+                        {item.quantidade}x {formatCurrency(item.valorUnitario)}
+                      </span>
+                      <span className="font-medium text-gray-900">
+                        {formatCurrency(item.valorTotal)}
+                      </span>
                     </div>
                   </div>
                 ))}
@@ -383,11 +383,11 @@ export function AprovarOrcamentoPage() {
 
           {/* Botoes de acao */}
           {orcamento.podeAprovar && !showRejeicaoForm && (
-            <div className="mt-6 flex gap-4">
+            <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:gap-4">
               <button
                 onClick={handleAprovar}
                 disabled={submitting}
-                className="flex flex-1 items-center justify-center gap-2 rounded-lg bg-green-600 px-6 py-3 font-medium text-white transition-colors hover:bg-green-700 disabled:opacity-50"
+                className="flex flex-1 items-center justify-center gap-2 rounded-lg bg-green-600 px-6 py-3.5 font-medium text-white transition-colors hover:bg-green-700 disabled:opacity-50"
               >
                 {submitting ? (
                   <Loader2 className="h-5 w-5 animate-spin" />
@@ -399,7 +399,7 @@ export function AprovarOrcamentoPage() {
               <button
                 onClick={() => setShowRejeicaoForm(true)}
                 disabled={submitting}
-                className="flex flex-1 items-center justify-center gap-2 rounded-lg border border-red-600 px-6 py-3 font-medium text-red-600 transition-colors hover:bg-red-50 disabled:opacity-50"
+                className="flex flex-1 items-center justify-center gap-2 rounded-lg border border-red-600 px-6 py-3.5 font-medium text-red-600 transition-colors hover:bg-red-50 disabled:opacity-50"
               >
                 <X className="h-5 w-5" />
                 Rejeitar
@@ -420,11 +420,18 @@ export function AprovarOrcamentoPage() {
                 className="mb-4 w-full rounded-lg border border-red-300 p-3 focus:border-red-500 focus:outline-none focus:ring-2 focus:ring-red-500/20"
                 rows={3}
               />
-              <div className="flex gap-3">
+              <div className="flex flex-col-reverse gap-3 sm:flex-row">
+                <button
+                  onClick={() => setShowRejeicaoForm(false)}
+                  disabled={submitting}
+                  className="flex-1 rounded-lg border border-gray-300 px-4 py-2.5 font-medium text-gray-700 transition-colors hover:bg-gray-50 disabled:opacity-50"
+                >
+                  Cancelar
+                </button>
                 <button
                   onClick={handleRejeitar}
                   disabled={submitting}
-                  className="flex flex-1 items-center justify-center gap-2 rounded-lg bg-red-600 px-4 py-2 font-medium text-white transition-colors hover:bg-red-700 disabled:opacity-50"
+                  className="flex flex-1 items-center justify-center gap-2 rounded-lg bg-red-600 px-4 py-2.5 font-medium text-white transition-colors hover:bg-red-700 disabled:opacity-50"
                 >
                   {submitting ? (
                     <Loader2 className="h-5 w-5 animate-spin" />
@@ -432,13 +439,6 @@ export function AprovarOrcamentoPage() {
                     <X className="h-5 w-5" />
                   )}
                   Confirmar Rejeicao
-                </button>
-                <button
-                  onClick={() => setShowRejeicaoForm(false)}
-                  disabled={submitting}
-                  className="flex-1 rounded-lg border border-gray-300 px-4 py-2 font-medium text-gray-700 transition-colors hover:bg-gray-50 disabled:opacity-50"
-                >
-                  Cancelar
                 </button>
               </div>
             </div>
