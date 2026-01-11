@@ -54,7 +54,7 @@ export const VeiculosListPage = () => {
   }
 
   return (
-    <div className="p-6">
+    <div className="p-4 sm:p-6">
       {/* Header */}
       <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
@@ -74,9 +74,9 @@ export const VeiculosListPage = () => {
 
       {/* Filters */}
       <div className="mb-6 rounded-lg bg-white dark:bg-gray-800 p-4 shadow">
-        <div className="grid gap-4 md:grid-cols-4">
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           {/* Search by placa */}
-          <div className="md:col-span-2">
+          <div className="sm:col-span-2">
             <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
               Buscar por placa
             </label>
@@ -113,7 +113,8 @@ export const VeiculosListPage = () => {
               className="flex w-full items-center justify-center gap-2 rounded-lg border border-orange-300 dark:border-orange-700 bg-orange-50 dark:bg-orange-900/20 px-4 py-2 text-orange-700 dark:text-orange-400 hover:bg-orange-100 dark:hover:bg-orange-900/30"
             >
               <FilterX className="h-4 w-4" />
-              Limpar Filtros
+              <span className="sm:hidden lg:inline">Limpar Filtros</span>
+              <span className="hidden sm:inline lg:hidden">Limpar</span>
             </button>
           </div>
 
@@ -145,8 +146,95 @@ export const VeiculosListPage = () => {
         </div>
       </div>
 
-      {/* Table */}
-      <div className="overflow-hidden rounded-lg bg-white dark:bg-gray-800 shadow">
+      {/* Mobile: Card Layout */}
+      <div className="space-y-3 lg:hidden">
+        {isLoading ? (
+          <div className="rounded-lg bg-white dark:bg-gray-800 p-8 shadow text-center text-gray-500 dark:text-gray-400">
+            Carregando...
+          </div>
+        ) : data?.content.length === 0 ? (
+          <div className="rounded-lg bg-white dark:bg-gray-800 p-8 shadow text-center text-gray-500 dark:text-gray-400">
+            Nenhum veículo encontrado
+          </div>
+        ) : (
+          data?.content.map((veiculo) => (
+            <div
+              key={veiculo.id}
+              className="rounded-lg bg-white dark:bg-gray-800 p-4 shadow"
+            >
+              <div className="flex items-start justify-between gap-3">
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <span className="font-bold text-gray-900 dark:text-white">
+                      {veiculo.placa}
+                    </span>
+                    <span className="text-sm text-gray-500 dark:text-gray-400">
+                      {veiculo.ano}
+                    </span>
+                  </div>
+                  <p className="text-sm text-gray-900 dark:text-white mt-1">
+                    {veiculo.marca} {veiculo.modelo}
+                  </p>
+                  {veiculo.cor && (
+                    <p className="text-xs text-gray-500 dark:text-gray-400">
+                      Cor: {veiculo.cor}
+                    </p>
+                  )}
+                </div>
+                <div className="flex gap-1 shrink-0">
+                  <Link
+                    to={`/veiculos/${veiculo.id}`}
+                    className="rounded p-2 text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20"
+                  >
+                    <Eye className="h-5 w-5" />
+                  </Link>
+                  <Link
+                    to={`/veiculos/${veiculo.id}/editar`}
+                    className="rounded p-2 text-yellow-600 dark:text-yellow-400 hover:bg-yellow-50 dark:hover:bg-yellow-900/20"
+                  >
+                    <Edit className="h-5 w-5" />
+                  </Link>
+                </div>
+              </div>
+
+              {veiculo.cliente && (
+                <div className="mt-3 pt-3 border-t border-gray-200 dark:border-gray-700">
+                  <p className="text-sm font-medium text-gray-900 dark:text-white">
+                    {veiculo.cliente.nome}
+                  </p>
+                  <p className="text-xs text-gray-500 dark:text-gray-400">
+                    {veiculo.cliente.telefone}
+                  </p>
+                </div>
+              )}
+
+              <div className="mt-3 flex items-center justify-between">
+                <span className="text-xs text-gray-500 dark:text-gray-400">
+                  {veiculo.quilometragem?.toLocaleString('pt-BR') || '-'} km
+                </span>
+                <div className="flex gap-2">
+                  <Link
+                    to={`/ordens-servico/novo?veiculoId=${veiculo.id}`}
+                    className="text-xs text-green-600 dark:text-green-400 hover:underline"
+                  >
+                    + Nova OS
+                  </Link>
+                  <button
+                    onClick={() => handleDelete(veiculo.id, veiculo.placa)}
+                    disabled={deleteMutation.isPending}
+                    className="text-xs text-red-600 dark:text-red-400 hover:underline disabled:opacity-50"
+                  >
+                    Remover
+                  </button>
+                </div>
+              </div>
+            </div>
+          ))
+        )}
+      </div>
+
+      {/* Desktop: Table Layout */}
+      <div className="hidden lg:block overflow-hidden rounded-lg bg-white dark:bg-gray-800 shadow">
         <div className="overflow-x-auto">
           <table className="w-full">
             <thead className="bg-gray-50 dark:bg-gray-900">
@@ -257,32 +345,32 @@ export const VeiculosListPage = () => {
             </tbody>
           </table>
         </div>
-
-        {/* Pagination */}
-        {data && data.totalPages > 1 && (
-          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between border-t border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 px-4 sm:px-6 py-3">
-            <div className="text-sm text-gray-700 dark:text-gray-300 text-center sm:text-left">
-              Página {data.number + 1} de {data.totalPages} ({data.totalElements} total)
-            </div>
-            <div className="flex gap-2 justify-center sm:justify-end">
-              <button
-                onClick={() => handlePageChange(filters.page! - 1)}
-                disabled={data.first}
-                className="flex-1 sm:flex-none rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 disabled:cursor-not-allowed disabled:opacity-50"
-              >
-                Anterior
-              </button>
-              <button
-                onClick={() => handlePageChange(filters.page! + 1)}
-                disabled={data.last}
-                className="flex-1 sm:flex-none rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 disabled:cursor-not-allowed disabled:opacity-50"
-              >
-                Próxima
-              </button>
-            </div>
-          </div>
-        )}
       </div>
+
+      {/* Pagination - Both mobile and desktop */}
+      {data && data.totalPages > 1 && (
+        <div className="mt-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between rounded-lg bg-white dark:bg-gray-800 px-4 sm:px-6 py-3 shadow">
+          <div className="text-sm text-gray-700 dark:text-gray-300 text-center sm:text-left">
+            Página {data.number + 1} de {data.totalPages} ({data.totalElements} total)
+          </div>
+          <div className="flex gap-2 justify-center sm:justify-end">
+            <button
+              onClick={() => handlePageChange(filters.page! - 1)}
+              disabled={data.first}
+              className="flex-1 sm:flex-none rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              Anterior
+            </button>
+            <button
+              onClick={() => handlePageChange(filters.page! + 1)}
+              disabled={data.last}
+              className="flex-1 sm:flex-none rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              Próxima
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

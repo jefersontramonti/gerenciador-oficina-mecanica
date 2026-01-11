@@ -365,9 +365,9 @@ export const OrdemServicoFormPage = () => {
         )}
 
         {/* Seção: Veículo e Mecânico */}
-        <div className="rounded-lg bg-white dark:bg-gray-800 p-6 shadow">
+        <div className="rounded-lg bg-white dark:bg-gray-800 p-4 sm:p-6 shadow">
           <h2 className="mb-4 text-lg font-semibold text-gray-900 dark:text-gray-100">Veículo e Mecânico</h2>
-          <div className="grid gap-4 md:grid-cols-2">
+          <div className="grid gap-4 sm:grid-cols-2">
             {/* Veículo - Autocomplete */}
             <Controller
               name="veiculoId"
@@ -405,7 +405,7 @@ export const OrdemServicoFormPage = () => {
         </div>
 
         {/* Seção: Problemas e Diagnóstico */}
-        <div className="rounded-lg bg-white dark:bg-gray-800 p-6 shadow">
+        <div className="rounded-lg bg-white dark:bg-gray-800 p-4 sm:p-6 shadow">
           <h2 className="mb-4 text-lg font-semibold text-gray-900 dark:text-gray-100">
             Problemas e Diagnóstico
           </h2>
@@ -466,9 +466,9 @@ export const OrdemServicoFormPage = () => {
         </div>
 
         {/* Seção: Datas */}
-        <div className="rounded-lg bg-white dark:bg-gray-800 p-6 shadow">
+        <div className="rounded-lg bg-white dark:bg-gray-800 p-4 sm:p-6 shadow">
           <h2 className="mb-4 text-lg font-semibold text-gray-900 dark:text-gray-100">Datas</h2>
-          <div className="grid gap-4 md:grid-cols-2">
+          <div className="grid gap-4 sm:grid-cols-2">
             {/* Data de Abertura */}
             <div>
               <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
@@ -503,7 +503,7 @@ export const OrdemServicoFormPage = () => {
         </div>
 
         {/* Seção: Itens de Serviço */}
-        <div className="rounded-lg bg-white dark:bg-gray-800 p-6 shadow">
+        <div className="rounded-lg bg-white dark:bg-gray-800 p-4 sm:p-6 shadow">
           <div className="mb-4 flex items-center justify-between">
             <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100">Itens de Serviço</h2>
             <button
@@ -714,7 +714,7 @@ export const OrdemServicoFormPage = () => {
         </div>
 
         {/* Seção: Valores Financeiros */}
-        <div className="rounded-lg bg-white dark:bg-gray-800 p-6 shadow">
+        <div className="rounded-lg bg-white dark:bg-gray-800 p-4 sm:p-6 shadow">
           <h2 className="mb-4 text-lg font-semibold text-gray-900 dark:text-gray-100">Valores Financeiros</h2>
           <div className="space-y-4">
             {/* Tipo de Cobrança de Mão de Obra */}
@@ -766,7 +766,7 @@ export const OrdemServicoFormPage = () => {
             </div>
 
             {/* Campos de Mão de Obra */}
-            <div className="grid gap-4 md:grid-cols-2">
+            <div className="grid gap-4 sm:grid-cols-2">
               {tipoCobrancaMaoObra === TipoCobrancaMaoObra.VALOR_FIXO ? (
                 <div>
                   <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
@@ -886,7 +886,7 @@ export const OrdemServicoFormPage = () => {
             </div>
 
             {/* Descontos */}
-            <div className="grid gap-4 md:grid-cols-2">
+            <div className="grid gap-4 sm:grid-cols-2">
               <div>
                 <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
                   Desconto (%)

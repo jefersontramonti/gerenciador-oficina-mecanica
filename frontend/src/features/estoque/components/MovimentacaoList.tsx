@@ -46,6 +46,21 @@ const TipoMovimentacaoBadge = ({ tipo }: { tipo: TipoMovimentacao }) => {
   );
 };
 
+// Função para formatar data com validação
+const formatarData = (dataMovimentacao: string | undefined) => {
+  if (!dataMovimentacao) return '-';
+
+  try {
+    const date = new Date(dataMovimentacao);
+    if (isNaN(date.getTime())) return '-';
+
+    return format(date, 'dd/MM/yyyy HH:mm', { locale: ptBR });
+  } catch (error) {
+    console.error('Erro ao formatar data:', error, dataMovimentacao);
+    return '-';
+  }
+};
+
 export const MovimentacaoList = ({
   movimentacoes,
   isLoading = false,
@@ -68,121 +83,205 @@ export const MovimentacaoList = ({
   }
 
   return (
-    <div className="rounded-md border">
-      <Table>
-        <TableHeader>
-          <TableRow>
-            <TableHead>Data/Hora</TableHead>
-            {showPecaInfo && <TableHead>Peça</TableHead>}
-            <TableHead>Tipo</TableHead>
-            <TableHead className="text-right">Quantidade</TableHead>
-            <TableHead className="text-right">Qtd Anterior</TableHead>
-            <TableHead className="text-right">Qtd Atual</TableHead>
-            <TableHead className="text-right">Valor Unit.</TableHead>
-            <TableHead className="text-right">Valor Total</TableHead>
-            <TableHead>Usuário</TableHead>
-            <TableHead>Motivo</TableHead>
-          </TableRow>
-        </TableHeader>
-        <TableBody>
-          {movimentacoes.map((mov) => {
-            const sinal = getMovimentacaoSinal(mov.tipo);
-            const quantidadeFormatada = `${sinal}${mov.quantidade}`;
+    <>
+      {/* Mobile: Card Layout */}
+      <div className="space-y-3 lg:hidden">
+        {movimentacoes.map((mov) => {
+          const sinal = getMovimentacaoSinal(mov.tipo);
+          const quantidadeFormatada = `${sinal}${mov.quantidade}`;
 
-            // Formata data com validação
-            const formatarData = () => {
-              if (!mov.dataMovimentacao) return '-';
-
-              try {
-                const date = new Date(mov.dataMovimentacao);
-                if (isNaN(date.getTime())) return '-';
-
-                return format(date, 'dd/MM/yyyy HH:mm', { locale: ptBR });
-              } catch (error) {
-                console.error('Erro ao formatar data:', error, mov.dataMovimentacao);
-                return '-';
-              }
-            };
-
-            return (
-              <TableRow key={mov.id}>
-                <TableCell className="whitespace-nowrap">
-                  {formatarData()}
-                </TableCell>
-
-                {showPecaInfo && (
-                  <TableCell>
-                    <div className="flex flex-col">
-                      <span className="font-medium">{mov.peca.codigo}</span>
-                      <span className="text-sm text-muted-foreground">
-                        {mov.peca.descricao}
-                      </span>
-                    </div>
-                  </TableCell>
-                )}
-
-                <TableCell>
+          return (
+            <div
+              key={mov.id}
+              className="rounded-lg border border-gray-200 dark:border-gray-700 p-3"
+            >
+              {/* Header: Data, Tipo e Quantidade */}
+              <div className="flex items-start justify-between gap-2 mb-2">
+                <div className="flex flex-col gap-1">
+                  <span className="text-xs text-gray-500 dark:text-gray-400">
+                    {formatarData(mov.dataMovimentacao)}
+                  </span>
                   <TipoMovimentacaoBadge tipo={mov.tipo} />
-                </TableCell>
-
-                <TableCell className="text-right font-medium">
+                </div>
+                <div className="text-right">
                   <span
-                    className={
+                    className={`text-lg font-bold ${
                       sinal === '+'
                         ? 'text-green-600 dark:text-green-400'
                         : sinal === '-'
                         ? 'text-red-600 dark:text-red-400'
                         : 'text-yellow-600 dark:text-yellow-400'
-                    }
+                    }`}
                   >
                     {quantidadeFormatada}
                   </span>
-                </TableCell>
+                  <p className="text-xs text-gray-500 dark:text-gray-400">
+                    {mov.quantidadeAnterior} → {mov.quantidadeAtual}
+                  </p>
+                </div>
+              </div>
 
-                <TableCell className="text-right text-muted-foreground">
-                  {mov.quantidadeAnterior}
-                </TableCell>
+              {/* Peça info (se showPecaInfo) */}
+              {showPecaInfo && (
+                <div className="mb-2 pb-2 border-b border-gray-200 dark:border-gray-700">
+                  <span className="font-mono text-sm font-medium text-gray-900 dark:text-gray-100">
+                    {mov.peca.codigo}
+                  </span>
+                  <p className="text-sm text-gray-600 dark:text-gray-400 truncate">
+                    {mov.peca.descricao}
+                  </p>
+                </div>
+              )}
 
-                <TableCell className="text-right font-medium">
-                  {mov.quantidadeAtual}
-                </TableCell>
+              {/* Valores e Usuário */}
+              <div className="grid grid-cols-2 gap-2 text-sm">
+                <div>
+                  <span className="text-gray-500 dark:text-gray-400">Valor unit:</span>
+                  <span className="ml-1 font-medium text-gray-900 dark:text-gray-100">
+                    {formatCurrency(mov.valorUnitario)}
+                  </span>
+                </div>
+                <div>
+                  <span className="text-gray-500 dark:text-gray-400">Total:</span>
+                  <span className="ml-1 font-medium text-gray-900 dark:text-gray-100">
+                    {formatCurrency(mov.valorTotal)}
+                  </span>
+                </div>
+              </div>
 
-                <TableCell className="text-right">
-                  {formatCurrency(mov.valorUnitario)}
-                </TableCell>
+              {/* Usuário */}
+              <div className="mt-2 text-sm">
+                <span className="text-gray-500 dark:text-gray-400">Por:</span>
+                <span className="ml-1 text-gray-900 dark:text-gray-100">
+                  {mov.usuario.nome}
+                </span>
+                {mov.numeroOS && (
+                  <span className="ml-2 text-xs text-blue-600 dark:text-blue-400">
+                    OS #{mov.numeroOS}
+                  </span>
+                )}
+              </div>
 
-                <TableCell className="text-right font-medium">
-                  {formatCurrency(mov.valorTotal)}
-                </TableCell>
+              {/* Motivo/Observação */}
+              {(mov.motivo || mov.observacao) && (
+                <div className="mt-2 pt-2 border-t border-gray-200 dark:border-gray-700">
+                  {mov.motivo && (
+                    <p className="text-sm text-gray-900 dark:text-gray-100">{mov.motivo}</p>
+                  )}
+                  {mov.observacao && (
+                    <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                      {mov.observacao}
+                    </p>
+                  )}
+                </div>
+              )}
+            </div>
+          );
+        })}
+      </div>
 
-                <TableCell>
-                  <div className="flex flex-col">
-                    <span className="text-sm">{mov.usuario.nome}</span>
-                    {mov.numeroOS && (
-                      <span className="text-xs text-muted-foreground">
-                        OS #{mov.numeroOS}
-                      </span>
-                    )}
-                  </div>
-                </TableCell>
+      {/* Desktop: Table Layout */}
+      <div className="hidden lg:block rounded-md border">
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>Data/Hora</TableHead>
+              {showPecaInfo && <TableHead>Peça</TableHead>}
+              <TableHead>Tipo</TableHead>
+              <TableHead className="text-right">Quantidade</TableHead>
+              <TableHead className="text-right">Qtd Anterior</TableHead>
+              <TableHead className="text-right">Qtd Atual</TableHead>
+              <TableHead className="text-right">Valor Unit.</TableHead>
+              <TableHead className="text-right">Valor Total</TableHead>
+              <TableHead>Usuário</TableHead>
+              <TableHead>Motivo</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {movimentacoes.map((mov) => {
+              const sinal = getMovimentacaoSinal(mov.tipo);
+              const quantidadeFormatada = `${sinal}${mov.quantidade}`;
 
-                <TableCell className="max-w-xs">
-                  <div className="flex flex-col gap-1">
-                    {mov.motivo && (
-                      <span className="text-sm">{mov.motivo}</span>
-                    )}
-                    {mov.observacao && (
-                      <span className="text-xs text-muted-foreground">
-                        {mov.observacao}
-                      </span>
-                    )}
-                  </div>
-                </TableCell>
-              </TableRow>
-            );
-          })}
-        </TableBody>
-      </Table>
-    </div>
+              return (
+                <TableRow key={mov.id}>
+                  <TableCell className="whitespace-nowrap">
+                    {formatarData(mov.dataMovimentacao)}
+                  </TableCell>
+
+                  {showPecaInfo && (
+                    <TableCell>
+                      <div className="flex flex-col">
+                        <span className="font-medium">{mov.peca.codigo}</span>
+                        <span className="text-sm text-muted-foreground">
+                          {mov.peca.descricao}
+                        </span>
+                      </div>
+                    </TableCell>
+                  )}
+
+                  <TableCell>
+                    <TipoMovimentacaoBadge tipo={mov.tipo} />
+                  </TableCell>
+
+                  <TableCell className="text-right font-medium">
+                    <span
+                      className={
+                        sinal === '+'
+                          ? 'text-green-600 dark:text-green-400'
+                          : sinal === '-'
+                          ? 'text-red-600 dark:text-red-400'
+                          : 'text-yellow-600 dark:text-yellow-400'
+                      }
+                    >
+                      {quantidadeFormatada}
+                    </span>
+                  </TableCell>
+
+                  <TableCell className="text-right text-muted-foreground">
+                    {mov.quantidadeAnterior}
+                  </TableCell>
+
+                  <TableCell className="text-right font-medium">
+                    {mov.quantidadeAtual}
+                  </TableCell>
+
+                  <TableCell className="text-right">
+                    {formatCurrency(mov.valorUnitario)}
+                  </TableCell>
+
+                  <TableCell className="text-right font-medium">
+                    {formatCurrency(mov.valorTotal)}
+                  </TableCell>
+
+                  <TableCell>
+                    <div className="flex flex-col">
+                      <span className="text-sm">{mov.usuario.nome}</span>
+                      {mov.numeroOS && (
+                        <span className="text-xs text-muted-foreground">
+                          OS #{mov.numeroOS}
+                        </span>
+                      )}
+                    </div>
+                  </TableCell>
+
+                  <TableCell className="max-w-xs">
+                    <div className="flex flex-col gap-1">
+                      {mov.motivo && (
+                        <span className="text-sm">{mov.motivo}</span>
+                      )}
+                      {mov.observacao && (
+                        <span className="text-xs text-muted-foreground">
+                          {mov.observacao}
+                        </span>
+                      )}
+                    </div>
+                  </TableCell>
+                </TableRow>
+              );
+            })}
+          </TableBody>
+        </Table>
+      </div>
+    </>
   );
 };

@@ -56,39 +56,39 @@ export const VeiculoDetailPage = () => {
   }
 
   return (
-    <div className="p-6">
+    <div className="p-4 sm:p-6">
       {/* Header */}
-      <div className="mb-6 flex items-center justify-between">
-        <div className="flex items-center gap-4">
+      <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex items-center gap-3 sm:gap-4">
           <button
             onClick={() => navigate('/veiculos')}
-            className="rounded-lg p-2 hover:bg-gray-100 dark:hover:bg-gray-700"
+            className="rounded-lg p-2 hover:bg-gray-100 dark:hover:bg-gray-700 shrink-0"
           >
             <ArrowLeft className="h-5 w-5 text-gray-900 dark:text-gray-100" />
           </button>
-          <div>
-            <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">{veiculo.placa}</h1>
-            <p className="mt-1 text-sm text-gray-600 dark:text-gray-400">
+          <div className="min-w-0">
+            <h1 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-gray-100 truncate">{veiculo.placa}</h1>
+            <p className="mt-1 text-sm text-gray-600 dark:text-gray-400 truncate">
               {veiculo.marca} {veiculo.modelo} • {veiculo.ano}
             </p>
           </div>
         </div>
 
-        <div className="flex gap-2">
+        <div className="flex gap-2 self-end sm:self-auto">
           <Link
             to={`/veiculos/${id}/editar`}
-            className="flex items-center gap-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 px-4 py-2 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-600"
+            className="flex items-center gap-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 px-3 sm:px-4 py-2 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-600"
           >
             <Edit className="h-5 w-5" />
-            Editar
+            <span className="hidden sm:inline">Editar</span>
           </Link>
           <button
             onClick={handleDelete}
             disabled={deleteMutation.isPending}
-            className="flex items-center gap-2 rounded-lg border border-red-600 dark:border-red-700 bg-white dark:bg-gray-700 px-4 py-2 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/30 disabled:cursor-not-allowed disabled:opacity-50"
+            className="flex items-center gap-2 rounded-lg border border-red-600 dark:border-red-700 bg-white dark:bg-gray-700 px-3 sm:px-4 py-2 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/30 disabled:cursor-not-allowed disabled:opacity-50"
           >
             <Trash2 className="h-5 w-5" />
-            Remover
+            <span className="hidden sm:inline">Remover</span>
           </button>
         </div>
       </div>
@@ -98,13 +98,13 @@ export const VeiculoDetailPage = () => {
         {/* Main Info */}
         <div className="lg:col-span-2 space-y-6">
           {/* Dados do Veículo */}
-          <div className="rounded-lg bg-white dark:bg-gray-800 p-6 shadow">
+          <div className="rounded-lg bg-white dark:bg-gray-800 p-4 sm:p-6 shadow">
             <h2 className="mb-4 flex items-center gap-2 text-lg font-semibold text-gray-900 dark:text-gray-100">
               <Car className="h-5 w-5" />
               Dados do Veículo
             </h2>
 
-            <div className="grid gap-4 md:grid-cols-2">
+            <div className="grid gap-4 sm:grid-cols-2">
               <div>
                 <label className="text-sm font-medium text-gray-500 dark:text-gray-400">Placa</label>
                 <p className="mt-1 text-lg font-semibold text-gray-900 dark:text-gray-100">{veiculo.placa}</p>
@@ -140,7 +140,7 @@ export const VeiculoDetailPage = () => {
                 <p className="mt-1 text-gray-900 dark:text-gray-100">{veiculo.cor || '-'}</p>
               </div>
 
-              <div className="md:col-span-2">
+              <div className="sm:col-span-2">
                 <label className="text-sm font-medium text-gray-500 dark:text-gray-400">Quilometragem</label>
                 <p className="mt-1 flex items-center gap-2 text-gray-900 dark:text-gray-100">
                   <Gauge className="h-4 w-4 text-gray-400 dark:text-gray-500" />
@@ -154,7 +154,7 @@ export const VeiculoDetailPage = () => {
 
           {/* Proprietário */}
           {veiculo.cliente && (
-            <div className="rounded-lg bg-white dark:bg-gray-800 p-6 shadow">
+            <div className="rounded-lg bg-white dark:bg-gray-800 p-4 sm:p-6 shadow">
               <h2 className="mb-4 flex items-center gap-2 text-lg font-semibold text-gray-900 dark:text-gray-100">
                 <User className="h-5 w-5" />
                 Proprietário
@@ -201,7 +201,7 @@ export const VeiculoDetailPage = () => {
         {/* Sidebar */}
         <div className="space-y-6">
           {/* Metadata */}
-          <div className="rounded-lg bg-white dark:bg-gray-800 p-6 shadow">
+          <div className="rounded-lg bg-white dark:bg-gray-800 p-4 sm:p-6 shadow">
             <h3 className="mb-4 text-sm font-semibold text-gray-700 dark:text-gray-300">Informações</h3>
 
             <div className="space-y-3">
@@ -217,13 +217,13 @@ export const VeiculoDetailPage = () => {
 
               <div>
                 <label className="text-xs font-medium text-gray-500 dark:text-gray-400">ID</label>
-                <p className="mt-1 text-xs font-mono text-gray-600 dark:text-gray-400">{veiculo.id}</p>
+                <p className="mt-1 text-xs font-mono text-gray-600 dark:text-gray-400 break-all">{veiculo.id}</p>
               </div>
             </div>
           </div>
 
           {/* Ações Rápidas */}
-          <div className="rounded-lg bg-white dark:bg-gray-800 p-6 shadow">
+          <div className="rounded-lg bg-white dark:bg-gray-800 p-4 sm:p-6 shadow">
             <h3 className="mb-4 text-sm font-semibold text-gray-700 dark:text-gray-300">Ações Rápidas</h3>
 
             <div className="space-y-2">

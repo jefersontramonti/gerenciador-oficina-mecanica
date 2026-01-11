@@ -76,7 +76,7 @@ export const OrdemServicoListPage = () => {
 
   if (error) {
     return (
-      <div className="p-6">
+      <div className="p-4 sm:p-6">
         <div className="rounded-lg border border-red-800 bg-red-900/20 p-4 text-red-400">
           Erro ao carregar ordens de serviço. Tente novamente.
         </div>
@@ -85,7 +85,7 @@ export const OrdemServicoListPage = () => {
   }
 
   return (
-    <div className="p-6">
+    <div className="p-4 sm:p-6">
       {/* Header */}
       <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
@@ -105,7 +105,7 @@ export const OrdemServicoListPage = () => {
 
       {/* Filters */}
       <div className="mb-6 rounded-lg bg-white p-4 shadow dark:bg-gray-800">
-        <div className="grid gap-4 md:grid-cols-4">
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           {/* Filter by Status */}
           <div>
             <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">Status</label>
@@ -163,50 +163,120 @@ export const OrdemServicoListPage = () => {
         </div>
       </div>
 
-      {/* Table */}
-      <div className="overflow-hidden rounded-lg bg-white shadow dark:bg-gray-800">
-        <div className="overflow-x-auto">
-          <table className="w-full divide-y divide-gray-200 dark:divide-gray-700">
-            <thead className="bg-gray-50 dark:bg-gray-900">
-              <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-700 dark:text-gray-300">
-                  Número
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-700 dark:text-gray-300">
-                  Veículo / Cliente
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-700 dark:text-gray-300">
-                  Mecânico
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-700 dark:text-gray-300">
-                  Data Abertura
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-700 dark:text-gray-300">
-                  Status
-                </th>
-                <th className="px-6 py-3 text-right text-xs font-medium uppercase tracking-wider text-gray-700 dark:text-gray-300">
-                  Valor Final
-                </th>
-                <th className="px-6 py-3 text-center text-xs font-medium uppercase tracking-wider text-gray-700 dark:text-gray-300">
-                  Ações
-                </th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-200 bg-white dark:divide-gray-700 dark:bg-gray-800">
-              {isLoading ? (
+      {/* Loading State */}
+      {isLoading && (
+        <div className="flex justify-center items-center py-12">
+          <div className="text-gray-500 dark:text-gray-400">Carregando...</div>
+        </div>
+      )}
+
+      {/* Empty State */}
+      {!isLoading && (!data?.content || data.content.length === 0) && (
+        <div className="rounded-lg bg-white dark:bg-gray-800 p-8 shadow text-center">
+          <p className="text-gray-500 dark:text-gray-400">Nenhuma ordem de serviço encontrada</p>
+        </div>
+      )}
+
+      {/* Mobile: Card Layout */}
+      {!isLoading && data?.content && data.content.length > 0 && (
+        <div className="space-y-3 lg:hidden">
+          {data.content.map((os) => (
+            <div
+              key={os.id}
+              className="rounded-lg bg-white dark:bg-gray-800 p-4 shadow"
+            >
+              {/* Header: Número, Status e Valor */}
+              <div className="flex items-start justify-between gap-2 mb-3">
+                <div>
+                  <div className="text-lg font-bold text-gray-900 dark:text-white">
+                    #{os.numero}
+                  </div>
+                  <div className="text-xs text-gray-500 dark:text-gray-400">
+                    {formatDate(os.dataAbertura)}
+                  </div>
+                </div>
+                <div className="text-right">
+                  <div className="text-lg font-bold text-green-600 dark:text-green-400">
+                    {formatCurrency(os.valorFinal)}
+                  </div>
+                  <StatusBadge status={os.status} />
+                </div>
+              </div>
+
+              {/* Veículo e Cliente */}
+              <div className="mb-3 pb-3 border-b border-gray-200 dark:border-gray-700">
+                <div className="text-sm font-medium text-gray-900 dark:text-white">
+                  {os.veiculo?.placa || 'Veículo não informado'}
+                </div>
+                <div className="text-sm text-gray-500 dark:text-gray-400">
+                  {os.cliente?.nome || 'Cliente não informado'}
+                </div>
+              </div>
+
+              {/* Mecânico */}
+              <div className="text-sm mb-3">
+                <span className="text-gray-500 dark:text-gray-400">Mecânico: </span>
+                <span className="text-gray-900 dark:text-white">
+                  {os.mecanico?.nome || 'Não atribuído'}
+                </span>
+              </div>
+
+              {/* Ações */}
+              <div className="flex gap-2">
+                <Link
+                  to={`/ordens-servico/${os.id}`}
+                  className="flex-1 flex items-center justify-center gap-2 rounded-lg border border-blue-600 dark:border-blue-500 px-3 py-2 text-sm font-medium text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/30"
+                >
+                  <Eye className="h-4 w-4" />
+                  Ver
+                </Link>
+                {canEdit(os.status) && (
+                  <Link
+                    to={`/ordens-servico/${os.id}/editar`}
+                    className="flex-1 flex items-center justify-center gap-2 rounded-lg border border-green-600 dark:border-green-500 px-3 py-2 text-sm font-medium text-green-600 dark:text-green-400 hover:bg-green-50 dark:hover:bg-green-900/30"
+                  >
+                    <Edit className="h-4 w-4" />
+                    Editar
+                  </Link>
+                )}
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* Desktop: Table Layout */}
+      {!isLoading && data?.content && data.content.length > 0 && (
+        <div className="hidden lg:block overflow-hidden rounded-lg bg-white shadow dark:bg-gray-800">
+          <div className="overflow-x-auto">
+            <table className="w-full divide-y divide-gray-200 dark:divide-gray-700">
+              <thead className="bg-gray-50 dark:bg-gray-900">
                 <tr>
-                  <td colSpan={7} className="px-6 py-8 text-center text-sm text-gray-500 dark:text-gray-400">
-                    Carregando...
-                  </td>
+                  <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-700 dark:text-gray-300">
+                    Número
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-700 dark:text-gray-300">
+                    Veículo / Cliente
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-700 dark:text-gray-300">
+                    Mecânico
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-700 dark:text-gray-300">
+                    Data Abertura
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-700 dark:text-gray-300">
+                    Status
+                  </th>
+                  <th className="px-6 py-3 text-right text-xs font-medium uppercase tracking-wider text-gray-700 dark:text-gray-300">
+                    Valor Final
+                  </th>
+                  <th className="px-6 py-3 text-center text-xs font-medium uppercase tracking-wider text-gray-700 dark:text-gray-300">
+                    Ações
+                  </th>
                 </tr>
-              ) : !data?.content || data.content.length === 0 ? (
-                <tr>
-                  <td colSpan={7} className="px-6 py-8 text-center text-sm text-gray-500 dark:text-gray-400">
-                    Nenhuma ordem de serviço encontrada
-                  </td>
-                </tr>
-              ) : (
-                data.content.map((os) => (
+              </thead>
+              <tbody className="divide-y divide-gray-200 bg-white dark:divide-gray-700 dark:bg-gray-800">
+                {data.content.map((os) => (
                   <tr key={os.id} className="hover:bg-gray-50 dark:hover:bg-gray-700">
                     {/* Número */}
                     <td className="whitespace-nowrap px-6 py-4">
@@ -267,38 +337,38 @@ export const OrdemServicoListPage = () => {
                       </div>
                     </td>
                   </tr>
-                ))
-              )}
-            </tbody>
-          </table>
-        </div>
-
-        {/* Pagination */}
-        {data && data.totalPages > 1 && (
-          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between border-t border-gray-200 bg-white px-4 sm:px-6 py-4 dark:border-gray-700 dark:bg-gray-800">
-            <div className="text-sm text-gray-700 dark:text-gray-300 text-center sm:text-left">
-              Mostrando <span className="font-medium">{data.content.length}</span> de{' '}
-              <span className="font-medium">{data.totalElements}</span> resultado(s)
-            </div>
-            <div className="flex gap-2 justify-center sm:justify-end">
-              <button
-                onClick={() => handlePageChange(filters.page! - 1)}
-                disabled={data.first}
-                className="flex-1 sm:flex-none rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-700"
-              >
-                Anterior
-              </button>
-              <button
-                onClick={() => handlePageChange(filters.page! + 1)}
-                disabled={data.last}
-                className="flex-1 sm:flex-none rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-700"
-              >
-                Próxima
-              </button>
-            </div>
+                ))}
+              </tbody>
+            </table>
           </div>
-        )}
-      </div>
+        </div>
+      )}
+
+      {/* Pagination */}
+      {data && data.totalPages > 1 && (
+        <div className="mt-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between rounded-lg bg-white dark:bg-gray-800 px-4 sm:px-6 py-4 shadow">
+          <div className="text-sm text-gray-700 dark:text-gray-300 text-center sm:text-left">
+            Mostrando <span className="font-medium">{data.content.length}</span> de{' '}
+            <span className="font-medium">{data.totalElements}</span> resultado(s)
+          </div>
+          <div className="flex gap-2 justify-center sm:justify-end">
+            <button
+              onClick={() => handlePageChange(filters.page! - 1)}
+              disabled={data.first}
+              className="flex-1 sm:flex-none rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-700"
+            >
+              Anterior
+            </button>
+            <button
+              onClick={() => handlePageChange(filters.page! + 1)}
+              disabled={data.last}
+              className="flex-1 sm:flex-none rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-700"
+            >
+              Próxima
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
