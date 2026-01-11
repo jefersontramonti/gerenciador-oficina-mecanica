@@ -19,7 +19,7 @@ services:
     ports:
       - "127.0.0.1:5432:5432"
     networks:
-      - pitstop-network
+      - pitstop-internal
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_PITSTOP_USER} -d ${POSTGRES_PITSTOP_DB}"]
       interval: 10s
@@ -38,7 +38,7 @@ services:
     ports:
       - "127.0.0.1:6379:6379"
     networks:
-      - pitstop-network
+      - pitstop-internal
     healthcheck:
       test: ["CMD", "redis-cli", "-a", "${REDIS_PASSWORD}", "ping"]
       interval: 10s
@@ -80,7 +80,7 @@ services:
     ports:
       - "127.0.0.1:8080:8080"
     networks:
-      - pitstop-network
+      - pitstop-internal
     depends_on:
       postgres-pitstop:
         condition: service_healthy
@@ -107,7 +107,7 @@ services:
     ports:
       - "127.0.0.1:3000:80"
     networks:
-      - pitstop-network
+      - pitstop-internal
     depends_on:
       - pitstop-backend
     healthcheck:
@@ -121,8 +121,9 @@ services:
           memory: 256M
 
 networks:
-  pitstop-network:
+  pitstop-internal:
     driver: bridge
+    name: pitstop-internal-network
 
 volumes:
   postgres_data:
