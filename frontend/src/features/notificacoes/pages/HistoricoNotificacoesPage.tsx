@@ -133,16 +133,16 @@ export function HistoricoNotificacoesPage() {
     <div className="container mx-auto px-4 py-8">
       {/* Header */}
       <div className="mb-6 flex items-center gap-3">
-        <History className="h-8 w-8 text-blue-600 dark:text-blue-400" />
+        <History className="h-6 w-6 sm:h-8 sm:w-8 text-blue-600 dark:text-blue-400" />
         <div>
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Histórico de Notificações</h1>
-          <p className="text-sm text-gray-500 dark:text-gray-400">Visualize todas as notificações enviadas</p>
+          <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-900 dark:text-white">Histórico de Notificações</h1>
+          <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-400">Visualize todas as notificações enviadas</p>
         </div>
       </div>
 
       {/* Filters */}
-      <div className="mb-6 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 p-6 shadow-sm">
-        <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-5">
+      <div className="mb-6 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 p-4 sm:p-6 shadow-sm">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-5">
           {/* Search */}
           <div className="lg:col-span-2">
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
@@ -272,55 +272,125 @@ export function HistoricoNotificacoesPage() {
         )}
       </div>
 
-      {/* Table */}
-      <div className="overflow-hidden rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 shadow-sm">
-        <div className="overflow-x-auto">
-          <table className="w-full divide-y divide-gray-200 dark:divide-gray-700">
-            <thead className="bg-gray-50 dark:bg-gray-900">
-              <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-700 dark:text-gray-300">
-                  Canal
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-700 dark:text-gray-300">
-                  Destinatário
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-700 dark:text-gray-300">
-                  Evento
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-700 dark:text-gray-300">
-                  Status
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-700 dark:text-gray-300">
-                  Data
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-700 dark:text-gray-300">
-                  Ações
-                </th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-200 dark:divide-gray-700 bg-white dark:bg-gray-800">
-              {isLoading ? (
-                <tr>
-                  <td colSpan={6} className="px-6 py-12 text-center">
-                    <div className="flex items-center justify-center">
-                      <div className="h-8 w-8 animate-spin rounded-full border-4 border-gray-200 dark:border-gray-700 border-t-blue-600 dark:border-t-blue-400" />
+      {/* Loading State */}
+      {isLoading && (
+        <div className="flex items-center justify-center py-12">
+          <div className="h-8 w-8 animate-spin rounded-full border-4 border-gray-200 dark:border-gray-700 border-t-blue-600 dark:border-t-blue-400" />
+        </div>
+      )}
+
+      {/* Error State */}
+      {!isLoading && error && (
+        <div className="rounded-xl border border-red-200 dark:border-red-800 bg-red-50 dark:bg-red-900/20 p-4 text-center text-red-600 dark:text-red-400">
+          Erro ao carregar notificações. Tente novamente.
+        </div>
+      )}
+
+      {/* Empty State */}
+      {!isLoading && !error && (!data?.content || data.content.length === 0) && (
+        <div className="rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 p-8 text-center text-gray-500 dark:text-gray-400">
+          Nenhuma notificação encontrada
+        </div>
+      )}
+
+      {/* Mobile: Card Layout */}
+      {!isLoading && !error && data?.content && data.content.length > 0 && (
+        <div className="space-y-3 lg:hidden">
+          {data.content.map((notificacao) => {
+            const TipoIcon = getTipoIcon(notificacao.tipo);
+            const statusConfig = getStatusConfig(notificacao.status);
+            const StatusIcon = statusConfig.icon;
+
+            return (
+              <div
+                key={notificacao.id}
+                className="rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 p-4"
+              >
+                {/* Header: Canal e Status */}
+                <div className="flex items-start justify-between gap-2 mb-3">
+                  <div className="flex items-center gap-2">
+                    <TipoIcon className="h-5 w-5 text-gray-500 dark:text-gray-400" />
+                    <span className="text-sm font-medium text-gray-900 dark:text-white">
+                      {getTipoLabel(notificacao.tipo)}
+                    </span>
+                  </div>
+                  <div
+                    className={`inline-flex items-center gap-1 rounded-full ${statusConfig.bgColor} px-2.5 py-1`}
+                  >
+                    <StatusIcon className={`h-3 w-3 ${statusConfig.color}`} />
+                    <span className={`text-xs font-medium ${statusConfig.color}`}>
+                      {statusConfig.label}
+                    </span>
+                  </div>
+                </div>
+
+                {/* Destinatário */}
+                <div className="mb-2">
+                  {notificacao.nomeDestinatario || notificacao.nomeCliente ? (
+                    <>
+                      <div className="text-sm font-medium text-gray-900 dark:text-white">
+                        {notificacao.nomeDestinatario || notificacao.nomeCliente}
+                      </div>
+                      <div className="font-mono text-xs text-gray-500 dark:text-gray-400">
+                        {notificacao.destinatario}
+                      </div>
+                    </>
+                  ) : (
+                    <div className="font-mono text-sm text-gray-900 dark:text-white">
+                      {notificacao.destinatario}
                     </div>
-                  </td>
-                </tr>
-              ) : error ? (
+                  )}
+                </div>
+
+                {/* Evento e Data */}
+                <div className="flex items-center justify-between text-xs text-gray-500 dark:text-gray-400 mb-3 pb-3 border-b border-gray-200 dark:border-gray-700">
+                  <span>{notificacao.evento?.replace(/_/g, ' ')}</span>
+                  <span>{formatDate(notificacao.dataEnvio || notificacao.createdAt)}</span>
+                </div>
+
+                {/* Ação */}
+                <button
+                  onClick={() => setSelectedNotificacaoId(notificacao.id)}
+                  className="w-full flex items-center justify-center gap-2 rounded-lg border border-blue-600 dark:border-blue-500 px-3 py-2 text-sm font-medium text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/30 transition-colors"
+                >
+                  <Eye className="h-4 w-4" />
+                  Ver Detalhes
+                </button>
+              </div>
+            );
+          })}
+        </div>
+      )}
+
+      {/* Desktop: Table Layout */}
+      {!isLoading && !error && data?.content && data.content.length > 0 && (
+        <div className="hidden lg:block overflow-hidden rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 shadow-sm">
+          <div className="overflow-x-auto">
+            <table className="w-full divide-y divide-gray-200 dark:divide-gray-700">
+              <thead className="bg-gray-50 dark:bg-gray-900">
                 <tr>
-                  <td colSpan={6} className="px-6 py-12 text-center text-red-600 dark:text-red-400">
-                    Erro ao carregar notificações. Tente novamente.
-                  </td>
+                  <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-700 dark:text-gray-300">
+                    Canal
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-700 dark:text-gray-300">
+                    Destinatário
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-700 dark:text-gray-300">
+                    Evento
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-700 dark:text-gray-300">
+                    Status
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-700 dark:text-gray-300">
+                    Data
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-700 dark:text-gray-300">
+                    Ações
+                  </th>
                 </tr>
-              ) : !data?.content || data.content.length === 0 ? (
-                <tr>
-                  <td colSpan={6} className="px-6 py-12 text-center text-gray-500 dark:text-gray-400">
-                    Nenhuma notificação encontrada
-                  </td>
-                </tr>
-              ) : (
-                data.content.map((notificacao) => {
+              </thead>
+              <tbody className="divide-y divide-gray-200 dark:divide-gray-700 bg-white dark:bg-gray-800">
+                {data.content.map((notificacao) => {
                   const TipoIcon = getTipoIcon(notificacao.tipo);
                   const statusConfig = getStatusConfig(notificacao.status);
                   const StatusIcon = statusConfig.icon;
@@ -382,41 +452,42 @@ export function HistoricoNotificacoesPage() {
                       </td>
                     </tr>
                   );
-                })
-              )}
-            </tbody>
-          </table>
-        </div>
-
-        {/* Pagination */}
-        {data && data.totalPages > 1 && (
-          <div className="flex items-center justify-between border-t border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 px-6 py-4">
-            <div className="text-sm text-gray-700 dark:text-gray-300">
-              Mostrando <span className="font-medium">{data.content.length}</span> de{' '}
-              <span className="font-medium">{data.totalElements}</span> notificações
-            </div>
-            <div className="flex gap-2">
-              <button
-                onClick={() => handlePageChange((filters.page || 0) - 1)}
-                disabled={filters.page === 0}
-                className="rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 transition-colors hover:bg-gray-50 dark:hover:bg-gray-600 disabled:cursor-not-allowed disabled:opacity-50"
-              >
-                Anterior
-              </button>
-              <span className="flex items-center px-4 text-sm text-gray-700 dark:text-gray-300">
-                Página {(filters.page || 0) + 1} de {data.totalPages}
-              </span>
-              <button
-                onClick={() => handlePageChange((filters.page || 0) + 1)}
-                disabled={(filters.page || 0) + 1 >= data.totalPages}
-                className="rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 transition-colors hover:bg-gray-50 dark:hover:bg-gray-600 disabled:cursor-not-allowed disabled:opacity-50"
-              >
-                Próxima
-              </button>
-            </div>
+                })}
+              </tbody>
+            </table>
           </div>
-        )}
-      </div>
+
+        </div>
+      )}
+
+      {/* Pagination */}
+      {data && data.totalPages > 1 && (
+        <div className="mt-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 px-4 sm:px-6 py-4">
+          <div className="text-sm text-gray-700 dark:text-gray-300 text-center sm:text-left">
+            Mostrando <span className="font-medium">{data.content.length}</span> de{' '}
+            <span className="font-medium">{data.totalElements}</span> notificações
+          </div>
+          <div className="flex gap-2 justify-center sm:justify-end">
+            <button
+              onClick={() => handlePageChange((filters.page || 0) - 1)}
+              disabled={filters.page === 0}
+              className="flex-1 sm:flex-none rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 transition-colors hover:bg-gray-50 dark:hover:bg-gray-600 disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              Anterior
+            </button>
+            <span className="hidden sm:flex items-center px-4 text-sm text-gray-700 dark:text-gray-300">
+              Página {(filters.page || 0) + 1} de {data.totalPages}
+            </span>
+            <button
+              onClick={() => handlePageChange((filters.page || 0) + 1)}
+              disabled={(filters.page || 0) + 1 >= data.totalPages}
+              className="flex-1 sm:flex-none rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 transition-colors hover:bg-gray-50 dark:hover:bg-gray-600 disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              Próxima
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* Detail Modal */}
       {selectedNotificacaoId && (

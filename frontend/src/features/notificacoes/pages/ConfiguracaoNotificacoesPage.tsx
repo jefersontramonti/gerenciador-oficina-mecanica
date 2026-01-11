@@ -28,10 +28,10 @@ export function ConfiguracaoNotificacoesPage() {
     return (
       <div className="container mx-auto px-4 py-8">
         <div className="mb-6 flex items-center gap-3">
-          <Settings className="h-8 w-8 text-blue-600 dark:text-blue-400" />
+          <Settings className="h-6 w-6 sm:h-8 sm:w-8 text-blue-600 dark:text-blue-400" />
           <div>
             <p className="text-xs text-gray-500 dark:text-gray-400">Configurações</p>
-            <h1 className="text-2xl font-semibold tracking-tight text-gray-900 dark:text-white">
+            <h1 className="text-xl sm:text-2xl font-semibold tracking-tight text-gray-900 dark:text-white">
               Comunicação
             </h1>
           </div>
@@ -47,10 +47,10 @@ export function ConfiguracaoNotificacoesPage() {
     return (
       <div className="container mx-auto px-4 py-8">
         <div className="mb-6 flex items-center gap-3">
-          <Settings className="h-8 w-8 text-blue-600 dark:text-blue-400" />
+          <Settings className="h-6 w-6 sm:h-8 sm:w-8 text-blue-600 dark:text-blue-400" />
           <div>
             <p className="text-xs text-gray-500 dark:text-gray-400">Configurações</p>
-            <h1 className="text-2xl font-semibold tracking-tight text-gray-900 dark:text-white">
+            <h1 className="text-xl sm:text-2xl font-semibold tracking-tight text-gray-900 dark:text-white">
               Comunicação
             </h1>
           </div>
@@ -84,10 +84,10 @@ export function ConfiguracaoNotificacoesPage() {
       {/* Header */}
       <div className="mb-6 flex items-center justify-between gap-4">
         <div className="flex items-center gap-3">
-          <Settings className="h-8 w-8 text-blue-600 dark:text-blue-400" />
+          <Settings className="h-6 w-6 sm:h-8 sm:w-8 text-blue-600 dark:text-blue-400" />
           <div>
             <p className="text-xs text-gray-500 dark:text-gray-400">Configurações</p>
-            <h1 className="text-2xl font-semibold tracking-tight text-gray-900 dark:text-white">
+            <h1 className="text-xl sm:text-2xl font-semibold tracking-tight text-gray-900 dark:text-white">
               Comunicação
             </h1>
           </div>

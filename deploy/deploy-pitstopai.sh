@@ -323,7 +323,7 @@ services:
       context: ./frontend
       dockerfile: Dockerfile
       args:
-        VITE_API_URL: https://${DOMAIN_API}
+        VITE_API_URL: https://${DOMAIN_API}/api
     image: pitstop-frontend:latest
     container_name: pitstop-frontend
     restart: unless-stopped

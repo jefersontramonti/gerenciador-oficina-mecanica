@@ -176,7 +176,7 @@ export function NotificacaoDetailModal({
           </div>
 
           {/* Informações principais */}
-          <div className="grid grid-cols-2 gap-4 rounded-lg bg-gray-50 dark:bg-gray-800/50 p-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 rounded-lg bg-gray-50 dark:bg-gray-800/50 p-4">
             <div>
               <p className="text-sm font-medium text-gray-500 dark:text-gray-400">Destinatário</p>
               <p className="mt-1 font-mono text-sm text-gray-900 dark:text-white">{notificacao.destinatario}</p>
@@ -222,9 +222,9 @@ export function NotificacaoDetailModal({
               </div>
             )}
             {notificacao.idExterno && (
-              <div className="col-span-2">
+              <div className="sm:col-span-2">
                 <p className="text-sm font-medium text-gray-500 dark:text-gray-400">ID Externo (Message ID)</p>
-                <p className="mt-1 font-mono text-sm text-gray-900 dark:text-white">{notificacao.idExterno}</p>
+                <p className="mt-1 font-mono text-xs sm:text-sm text-gray-900 dark:text-white break-all">{notificacao.idExterno}</p>
               </div>
             )}
           </div>
@@ -279,12 +279,18 @@ export function NotificacaoDetailModal({
           )}
 
           {/* Ações */}
-          <div className="flex justify-end gap-3 border-t border-gray-200 dark:border-gray-700 pt-4">
+          <div className="flex flex-col-reverse gap-3 sm:flex-row sm:justify-end border-t border-gray-200 dark:border-gray-700 pt-4">
+            <button
+              onClick={onClose}
+              className="w-full sm:w-auto rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 transition-colors hover:bg-gray-50 dark:hover:bg-gray-600"
+            >
+              Fechar
+            </button>
             {notificacao.status === 'PENDENTE' && (
               <button
                 onClick={handleCancel}
                 disabled={cancelMutation.isPending}
-                className="flex items-center gap-2 rounded-lg border border-red-600 dark:border-red-500 px-4 py-2 text-sm font-medium text-red-600 dark:text-red-400 transition-colors hover:bg-red-50 dark:hover:bg-red-900/20 disabled:cursor-not-allowed disabled:opacity-50"
+                className="w-full sm:w-auto flex items-center justify-center gap-2 rounded-lg border border-red-600 dark:border-red-500 px-4 py-2 text-sm font-medium text-red-600 dark:text-red-400 transition-colors hover:bg-red-50 dark:hover:bg-red-900/20 disabled:cursor-not-allowed disabled:opacity-50"
               >
                 <Ban className="h-4 w-4" />
                 Cancelar
@@ -294,18 +300,12 @@ export function NotificacaoDetailModal({
               <button
                 onClick={handleRetry}
                 disabled={retryMutation.isPending}
-                className="flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-50"
+                className="w-full sm:w-auto flex items-center justify-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-50"
               >
                 <RotateCcw className="h-4 w-4" />
                 Reenviar
               </button>
             )}
-            <button
-              onClick={onClose}
-              className="rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 transition-colors hover:bg-gray-50 dark:hover:bg-gray-600"
-            >
-              Fechar
-            </button>
           </div>
         </div>
       ) : (

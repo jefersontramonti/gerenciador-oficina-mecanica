@@ -7,10 +7,10 @@ import { FileText, Wrench, ExternalLink } from 'lucide-react';
 
 export function NotasFiscaisListPage() {
   return (
-    <div className="p-6">
+    <div className="p-4 sm:p-6">
       {/* Header */}
       <div className="mb-6">
-        <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
+        <h1 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white">
           Notas Fiscais
         </h1>
         <p className="mt-1 text-sm text-gray-600 dark:text-gray-400">
@@ -20,7 +20,7 @@ export function NotasFiscaisListPage() {
 
       {/* Mensagem de Em Desenvolvimento */}
       <div className="mx-auto max-w-2xl">
-        <div className="rounded-lg border-2 border-dashed border-amber-300 bg-amber-50 p-8 text-center dark:border-amber-700 dark:bg-amber-900/20">
+        <div className="rounded-lg border-2 border-dashed border-amber-300 bg-amber-50 p-4 sm:p-8 text-center dark:border-amber-700 dark:bg-amber-900/20">
           <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-amber-100 dark:bg-amber-800">
             <Wrench className="h-8 w-8 text-amber-600 dark:text-amber-400" />
           </div>

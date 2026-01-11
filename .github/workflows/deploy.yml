@@ -150,6 +150,8 @@ jobs:
           POSTGRES_PITSTOP_DB=${{ secrets.POSTGRES_PITSTOP_DB }}
           POSTGRES_PITSTOP_USER=${{ secrets.POSTGRES_PITSTOP_USER }}
           POSTGRES_PITSTOP_PASSWORD=${{ secrets.POSTGRES_PITSTOP_PASSWORD }}
+          REDIS_HOST=redis
+          REDIS_PORT=6379
           REDIS_PASSWORD=${{ secrets.REDIS_PASSWORD }}
           DATABASE_URL=${{ secrets.DATABASE_URL }}
           DATABASE_USERNAME=${{ secrets.DATABASE_USERNAME }}

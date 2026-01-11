@@ -122,18 +122,18 @@ export function ConfiguracaoGatewayPage() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="p-4 sm:p-6 space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Gateways de Pagamento</h1>
+          <h1 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white">Gateways de Pagamento</h1>
           <p className="text-sm text-gray-600 dark:text-gray-400">
             Configure os gateways para receber pagamentos online
           </p>
         </div>
         <button
           onClick={() => handleOpenForm()}
-          className="flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-white hover:bg-blue-700"
+          className="flex items-center justify-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-white hover:bg-blue-700 w-full sm:w-auto"
         >
           <CreditCard className="h-4 w-4" />
           Adicionar Gateway
@@ -142,13 +142,14 @@ export function ConfiguracaoGatewayPage() {
 
       {/* Lista de Gateways */}
       {gateways && gateways.length > 0 ? (
-        <div className="grid gap-4 md:grid-cols-2">
+        <div className="grid gap-4 lg:grid-cols-2">
           {gateways.map((gateway) => (
             <div
               key={gateway.id}
-              className="rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 p-6"
+              className="rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 p-4 sm:p-6"
             >
-              <div className="flex items-start justify-between">
+              {/* Header do Card */}
+              <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
                 <div className="flex items-center gap-3">
                   {getStatusIcon(gateway)}
                   <div>
@@ -160,7 +161,7 @@ export function ConfiguracaoGatewayPage() {
                     </p>
                   </div>
                 </div>
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-2 self-start">
                   {gateway.padrao && (
                     <span className="rounded bg-blue-100 dark:bg-blue-900/30 px-2 py-1 text-xs font-medium text-blue-800 dark:text-blue-400">
                       Padrão
@@ -178,6 +179,7 @@ export function ConfiguracaoGatewayPage() {
                 </div>
               </div>
 
+              {/* Info */}
               <div className="mt-4 space-y-2 text-sm">
                 <div className="flex justify-between">
                   <span className="text-gray-500 dark:text-gray-400">Status:</span>
@@ -199,10 +201,11 @@ export function ConfiguracaoGatewayPage() {
                 )}
               </div>
 
-              <div className="mt-4 flex gap-2">
+              {/* Ações - Layout responsivo */}
+              <div className="mt-4 flex flex-wrap gap-2">
                 <button
                   onClick={() => handleOpenForm(gateway)}
-                  className="flex-1 rounded-lg border border-gray-300 dark:border-gray-600 px-3 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700"
+                  className="flex-1 min-w-[100px] rounded-lg border border-gray-300 dark:border-gray-600 px-3 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700"
                 >
                   Configurar
                 </button>
@@ -210,10 +213,10 @@ export function ConfiguracaoGatewayPage() {
                   <button
                     onClick={() => handleValidar(gateway.id)}
                     disabled={validarMutation.isPending}
-                    className="flex items-center gap-1 rounded-lg border border-blue-600 dark:border-blue-500 px-3 py-2 text-sm font-medium text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 disabled:opacity-50"
+                    className="flex items-center justify-center gap-1 rounded-lg border border-blue-600 dark:border-blue-500 px-3 py-2 text-sm font-medium text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 disabled:opacity-50"
                   >
                     <Shield className="h-4 w-4" />
-                    Validar
+                    <span className="hidden sm:inline">Validar</span>
                   </button>
                 )}
                 <button
@@ -230,6 +233,7 @@ export function ConfiguracaoGatewayPage() {
                 <button
                   onClick={() => handleRemover(gateway.id)}
                   className="rounded-lg p-2 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20"
+                  title="Remover"
                 >
                   <Trash2 className="h-4 w-4" />
                 </button>
@@ -257,8 +261,8 @@ export function ConfiguracaoGatewayPage() {
 
       {/* Modal de Configuração */}
       {showForm && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-          <div className="w-full max-w-lg max-h-[90vh] overflow-y-auto rounded-lg bg-white dark:bg-gray-800 p-6 shadow-xl">
+        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/50 p-0 sm:p-4">
+          <div className="w-full sm:max-w-lg max-h-[95vh] sm:max-h-[90vh] overflow-y-auto rounded-t-2xl sm:rounded-lg bg-white dark:bg-gray-800 p-4 sm:p-6 shadow-xl">
             <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
               {editingGateway ? 'Configurar Gateway' : 'Novo Gateway'}
             </h2>
@@ -451,20 +455,20 @@ export function ConfiguracaoGatewayPage() {
               </div>
             </div>
 
-            <div className="mt-6 flex justify-end gap-3">
+            <div className="mt-6 flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
               <button
                 onClick={() => {
                   setShowForm(false);
                   setEditingGateway(null);
                 }}
-                className="rounded-lg border border-gray-300 dark:border-gray-600 px-4 py-2 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700"
+                className="w-full sm:w-auto rounded-lg border border-gray-300 dark:border-gray-600 px-4 py-2.5 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700"
               >
                 Cancelar
               </button>
               <button
                 onClick={handleSave}
                 disabled={criarMutation.isPending || atualizarMutation.isPending}
-                className="rounded-lg bg-blue-600 px-4 py-2 text-white hover:bg-blue-700 disabled:opacity-50"
+                className="w-full sm:w-auto rounded-lg bg-blue-600 px-4 py-2.5 text-white hover:bg-blue-700 disabled:opacity-50"
               >
                 {criarMutation.isPending || atualizarMutation.isPending ? 'Salvando...' : 'Salvar'}
               </button>
