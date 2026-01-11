@@ -262,12 +262,16 @@ export function ConfiguracaoGatewayPage() {
       {/* Modal de Configuração */}
       {showForm && (
         <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/50 p-0 sm:p-4">
-          <div className="w-full sm:max-w-lg max-h-[95vh] sm:max-h-[90vh] overflow-y-auto rounded-t-2xl sm:rounded-lg bg-white dark:bg-gray-800 p-4 sm:p-6 shadow-xl">
-            <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
-              {editingGateway ? 'Configurar Gateway' : 'Novo Gateway'}
-            </h2>
+          <div className="w-full sm:max-w-lg max-h-[90vh] overflow-y-auto rounded-t-2xl sm:rounded-lg bg-white dark:bg-gray-800 shadow-xl">
+            {/* Header fixo do modal */}
+            <div className="sticky top-0 z-10 bg-white dark:bg-gray-800 px-4 sm:px-6 pt-4 sm:pt-6 pb-2 border-b border-gray-200 dark:border-gray-700">
+              <div className="mx-auto mb-2 h-1 w-12 rounded-full bg-gray-300 dark:bg-gray-600 sm:hidden" />
+              <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
+                {editingGateway ? 'Configurar Gateway' : 'Novo Gateway'}
+              </h2>
+            </div>
 
-            <div className="mt-4 space-y-4">
+            <div className="px-4 sm:px-6 py-4 space-y-4">
               {/* Alerta informativo */}
               {formData.ambiente === AmbienteGateway.PRODUCAO && (
                 <div className="rounded-lg bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 p-4">
@@ -455,23 +459,26 @@ export function ConfiguracaoGatewayPage() {
               </div>
             </div>
 
-            <div className="mt-6 flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
-              <button
-                onClick={() => {
-                  setShowForm(false);
-                  setEditingGateway(null);
-                }}
-                className="w-full sm:w-auto rounded-lg border border-gray-300 dark:border-gray-600 px-4 py-2.5 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700"
-              >
-                Cancelar
-              </button>
-              <button
-                onClick={handleSave}
-                disabled={criarMutation.isPending || atualizarMutation.isPending}
-                className="w-full sm:w-auto rounded-lg bg-blue-600 px-4 py-2.5 text-white hover:bg-blue-700 disabled:opacity-50"
-              >
-                {criarMutation.isPending || atualizarMutation.isPending ? 'Salvando...' : 'Salvar'}
-              </button>
+            {/* Footer fixo do modal */}
+            <div className="sticky bottom-0 bg-white dark:bg-gray-800 px-4 sm:px-6 py-4 border-t border-gray-200 dark:border-gray-700">
+              <div className="flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
+                <button
+                  onClick={() => {
+                    setShowForm(false);
+                    setEditingGateway(null);
+                  }}
+                  className="w-full sm:w-auto rounded-lg border border-gray-300 dark:border-gray-600 px-4 py-2.5 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700"
+                >
+                  Cancelar
+                </button>
+                <button
+                  onClick={handleSave}
+                  disabled={criarMutation.isPending || atualizarMutation.isPending}
+                  className="w-full sm:w-auto rounded-lg bg-blue-600 px-4 py-2.5 text-white hover:bg-blue-700 disabled:opacity-50"
+                >
+                  {criarMutation.isPending || atualizarMutation.isPending ? 'Salvando...' : 'Salvar'}
+                </button>
+              </div>
             </div>
           </div>
         </div>
