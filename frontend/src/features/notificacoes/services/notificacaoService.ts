@@ -139,21 +139,43 @@ export const notificacaoService = {
   },
 
   /**
-   * Connect WhatsApp instance (not implemented yet - placeholder)
+   * Create WhatsApp instance automatically
    */
-  async connectWhatsApp(): Promise<WhatsAppStatus> {
-    // Evolution API needs to be configured manually
-    // This just returns current status
-    const response = await api.get<WhatsAppStatus>('/notificacoes/configuracao/whatsapp/status');
+  async createWhatsAppInstance(): Promise<{ sucesso: boolean; instanceName?: string; qrCode?: string; mensagem: string }> {
+    const response = await api.post<{ sucesso: boolean; instanceName?: string; qrCode?: string; mensagem: string }>(
+      '/notificacoes/configuracao/whatsapp/criar-instancia'
+    );
     return response.data;
   },
 
   /**
-   * Disconnect WhatsApp instance (not implemented yet - placeholder)
+   * Delete WhatsApp instance
    */
-  async disconnectWhatsApp(): Promise<void> {
-    // Evolution API disconnect not implemented yet
-    console.warn('Disconnect WhatsApp not implemented');
+  async deleteWhatsAppInstance(): Promise<{ sucesso: boolean; mensagem: string }> {
+    const response = await api.delete<{ sucesso: boolean; mensagem: string }>(
+      '/notificacoes/configuracao/whatsapp/instancia'
+    );
+    return response.data;
+  },
+
+  /**
+   * Disconnect WhatsApp instance (logout)
+   */
+  async disconnectWhatsApp(): Promise<{ sucesso: boolean; mensagem: string }> {
+    const response = await api.post<{ sucesso: boolean; mensagem: string }>(
+      '/notificacoes/configuracao/whatsapp/desconectar'
+    );
+    return response.data;
+  },
+
+  /**
+   * Reconnect WhatsApp instance (restart)
+   */
+  async reconnectWhatsApp(): Promise<{ sucesso: boolean; mensagem: string }> {
+    const response = await api.post<{ sucesso: boolean; mensagem: string }>(
+      '/notificacoes/configuracao/whatsapp/reconectar'
+    );
+    return response.data;
   },
 
   /**

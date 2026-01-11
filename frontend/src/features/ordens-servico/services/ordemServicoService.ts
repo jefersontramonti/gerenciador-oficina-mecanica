@@ -10,10 +10,13 @@ import type {
   CreateOrdemServicoRequest,
   UpdateOrdemServicoRequest,
   CancelarOrdemServicoRequest,
+  AguardarPecaRequest,
+  FinalizarOSRequest,
   OrdemServicoFilters,
   DashboardContagem,
   DashboardFaturamento,
   DashboardTicketMedio,
+  HistoricoStatusOS,
 } from '../types';
 
 export const ordemServicoService = {
@@ -110,11 +113,37 @@ export const ordemServicoService = {
   },
 
   /**
+   * Colocar OS em aguardando peça (transição EM_ANDAMENTO → AGUARDANDO_PECA)
+   */
+  async aguardarPeca(id: string, data: AguardarPecaRequest): Promise<void> {
+    await api.patch(`/ordens-servico/${id}/aguardar-peca`, data);
+  },
+
+  /**
+   * Retomar execução após receber peça (transição AGUARDANDO_PECA → EM_ANDAMENTO)
+   */
+  async retomar(id: string): Promise<void> {
+    await api.patch(`/ordens-servico/${id}/retomar`);
+  },
+
+  /**
    * Finalizar serviços (transição EM_ANDAMENTO → FINALIZADO)
+   * Para modelo VALOR_FIXO - sem corpo de requisição
    * Baixa estoque de peças
    */
   async finalizar(id: string): Promise<void> {
     await api.patch(`/ordens-servico/${id}/finalizar`);
+  },
+
+  /**
+   * Finalizar serviços com horas trabalhadas (modelo POR_HORA)
+   * Transição EM_ANDAMENTO → FINALIZADO
+   * Calcula mão de obra baseada nas horas trabalhadas
+   * Baixa estoque de peças
+   */
+  async finalizarComHoras(id: string, data: FinalizarOSRequest): Promise<OrdemServico> {
+    const response = await api.post<OrdemServico>(`/ordens-servico/${id}/finalizar`, data);
+    return response.data;
   },
 
   /**
@@ -179,6 +208,14 @@ export const ordemServicoService = {
     const response = await api.post(`/ordens-servico/${id}/gerar-pdf`, null, {
       responseType: 'blob',
     });
+    return response.data;
+  },
+
+  /**
+   * Buscar histórico de mudanças de status de uma OS
+   */
+  async getHistoricoStatus(id: string): Promise<HistoricoStatusOS[]> {
+    const response = await api.get<HistoricoStatusOS[]>(`/ordens-servico/${id}/historico-status`);
     return response.data;
   },
 };

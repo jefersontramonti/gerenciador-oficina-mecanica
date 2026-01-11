@@ -61,6 +61,9 @@ const ConfiguracaoGatewayPage = lazy(() => import('./features/financeiro/pages/C
 // Configurações
 const ConfiguracoesPage = lazy(() => import('./features/configuracoes/pages').then(m => ({ default: m.ConfiguracoesPage })));
 
+// Meu Plano (oficinas)
+const MeuPlanoPage = lazy(() => import('./features/plano/pages').then(m => ({ default: m.MeuPlanoPage })));
+
 // Notificações
 const ConfiguracaoNotificacoesPage = lazy(() => import('./features/notificacoes/pages/ConfiguracaoNotificacoesPage').then(m => ({ default: m.ConfiguracaoNotificacoesPage })));
 const HistoricoNotificacoesPage = lazy(() => import('./features/notificacoes/pages/HistoricoNotificacoesPage').then(m => ({ default: m.HistoricoNotificacoesPage })));
@@ -488,6 +491,18 @@ function App() {
                 requiredRoles={[PerfilUsuario.ADMIN, PerfilUsuario.GERENTE, PerfilUsuario.ATENDENTE, PerfilUsuario.MECANICO]}
               >
                 <ConfiguracoesPage />
+              </ProtectedRoute>
+            }
+          />
+
+          {/* Meu Plano - Oficinas podem ver seu plano e features */}
+          <Route
+            path="meu-plano"
+            element={
+              <ProtectedRoute
+                requiredRoles={[PerfilUsuario.ADMIN, PerfilUsuario.GERENTE, PerfilUsuario.ATENDENTE, PerfilUsuario.MECANICO]}
+              >
+                <MeuPlanoPage />
               </ProtectedRoute>
             }
           />

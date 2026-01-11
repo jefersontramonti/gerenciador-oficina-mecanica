@@ -160,13 +160,13 @@ export const useUpdateConfiguracao = () => {
 };
 
 /**
- * Hook to connect WhatsApp instance
+ * Hook to reconnect WhatsApp instance
  */
 export const useConnectWhatsApp = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: () => notificacaoService.connectWhatsApp(),
+    mutationFn: () => notificacaoService.reconnectWhatsApp(),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: notificacaoKeys.whatsappStatus() });
       queryClient.invalidateQueries({
@@ -177,7 +177,37 @@ export const useConnectWhatsApp = () => {
 };
 
 /**
- * Hook to disconnect WhatsApp instance
+ * Hook to create WhatsApp instance automatically
+ */
+export const useCreateWhatsAppInstance = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: () => notificacaoService.createWhatsAppInstance(),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: notificacaoKeys.whatsappStatus() });
+      queryClient.invalidateQueries({ queryKey: notificacaoKeys.configuracoes() });
+    },
+  });
+};
+
+/**
+ * Hook to delete WhatsApp instance
+ */
+export const useDeleteWhatsAppInstance = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: () => notificacaoService.deleteWhatsAppInstance(),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: notificacaoKeys.whatsappStatus() });
+      queryClient.invalidateQueries({ queryKey: notificacaoKeys.configuracoes() });
+    },
+  });
+};
+
+/**
+ * Hook to disconnect WhatsApp instance (logout)
  */
 export const useDisconnectWhatsApp = () => {
   const queryClient = useQueryClient();
@@ -189,6 +219,20 @@ export const useDisconnectWhatsApp = () => {
       queryClient.invalidateQueries({
         queryKey: notificacaoKeys.configuracao('WHATSAPP'),
       });
+    },
+  });
+};
+
+/**
+ * Hook to reconnect WhatsApp instance (restart)
+ */
+export const useReconnectWhatsApp = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: () => notificacaoService.reconnectWhatsApp(),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: notificacaoKeys.whatsappStatus() });
     },
   });
 };

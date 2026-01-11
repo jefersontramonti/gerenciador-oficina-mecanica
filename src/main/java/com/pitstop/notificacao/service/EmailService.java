@@ -1,6 +1,13 @@
 package com.pitstop.notificacao.service;
 
+import com.pitstop.notificacao.domain.ConfiguracaoNotificacao;
+import com.pitstop.notificacao.domain.EventoNotificacao;
+import com.pitstop.notificacao.domain.HistoricoNotificacao;
+import com.pitstop.notificacao.domain.TipoNotificacao;
 import com.pitstop.notificacao.dto.NotificacaoRequest;
+import com.pitstop.notificacao.repository.ConfiguracaoNotificacaoRepository;
+import com.pitstop.notificacao.repository.HistoricoNotificacaoRepository;
+import com.pitstop.shared.security.tenant.TenantContext;
 import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
 import lombok.RequiredArgsConstructor;
@@ -11,10 +18,13 @@ import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.thymeleaf.TemplateEngine;
 import org.thymeleaf.context.Context;
 
 import java.io.UnsupportedEncodingException;
+import java.util.Map;
+import java.util.UUID;
 
 /**
  * Serviço para envio de emails.
@@ -34,6 +44,8 @@ public class EmailService {
     private final JavaMailSender mailSender;
     private final TemplateEngine templateEngine;
     private final TemplateService templateService;
+    private final HistoricoNotificacaoRepository historicoRepository;
+    private final ConfiguracaoNotificacaoRepository configuracaoRepository;
 
     @Value("${spring.mail.username:noreply@pitstop.com}")
     private String fromEmail;
@@ -55,6 +67,203 @@ public class EmailService {
         } else {
             enviarSimples(request);
         }
+    }
+
+    /**
+     * Envia email com rastreamento de historico.
+     *
+     * @param destinatario Email do destinatario
+     * @param nomeDestinatario Nome do destinatario
+     * @param assunto Assunto do email
+     * @param mensagem Corpo do email
+     * @param evento Evento que disparou a notificacao
+     * @param variaveis Variaveis do template
+     * @param ordemServicoId ID da OS relacionada (opcional)
+     * @param clienteId ID do cliente (opcional)
+     * @param usuarioId ID do usuario que disparou (null = automatico)
+     * @return Historico da notificacao
+     */
+    @Transactional
+    public HistoricoNotificacao enviarComHistorico(
+        String destinatario,
+        String nomeDestinatario,
+        String assunto,
+        String mensagem,
+        EventoNotificacao evento,
+        Map<String, Object> variaveis,
+        UUID ordemServicoId,
+        UUID clienteId,
+        UUID usuarioId
+    ) {
+        UUID oficinaId = TenantContext.getTenantId();
+
+        // Cria registro de historico
+        HistoricoNotificacao historico = HistoricoNotificacao.criar(
+            oficinaId,
+            evento,
+            TipoNotificacao.EMAIL,
+            destinatario,
+            nomeDestinatario,
+            assunto,
+            mensagem,
+            variaveis,
+            null, // templateId
+            ordemServicoId,
+            clienteId,
+            usuarioId
+        );
+
+        // Busca configuracao para verificar modo simulacao
+        ConfiguracaoNotificacao config = configuracaoRepository
+            .findByOficinaIdAndAtivoTrue(oficinaId)
+            .orElse(null);
+
+        // Verifica horario comercial se configuracao existe
+        if (config != null && !config.podeEnviarAgora()) {
+            java.time.LocalDateTime proximoHorario = calcularProximoHorario(config);
+            historico.agendar(proximoHorario);
+            historico.setMotivoAgendamento("Fora do horario comercial configurado");
+            log.info("Email agendado para {}", proximoHorario);
+            return historicoRepository.save(historico);
+        }
+
+        // Modo simulacao
+        if (config != null && config.getModoSimulacao()) {
+            log.info("[SIMULACAO] Email para {}: {}", destinatario, assunto);
+            historico.marcarComoEnviado("SIMULADO-" + UUID.randomUUID());
+            return historicoRepository.save(historico);
+        }
+
+        // Envia o email
+        try {
+            boolean isHtml = contemHtml(mensagem);
+
+            if (isHtml) {
+                MimeMessage mimeMessage = mailSender.createMimeMessage();
+                MimeMessageHelper helper = new MimeMessageHelper(mimeMessage, true, "UTF-8");
+                helper.setFrom(String.format("%s <%s>", fromName, fromEmail));
+                helper.setTo(destinatario);
+                helper.setSubject(assunto);
+                helper.setText(wrapInHtmlLayout(mensagem), true);
+                mailSender.send(mimeMessage);
+            } else {
+                SimpleMailMessage message = new SimpleMailMessage();
+                message.setFrom(String.format("%s <%s>", fromName, fromEmail));
+                message.setTo(destinatario);
+                message.setSubject(assunto);
+                message.setText(mensagem);
+                mailSender.send(message);
+            }
+
+            historico.marcarComoEnviado("email-sent-" + System.currentTimeMillis());
+            log.info("Email enviado para {} (evento: {})", destinatario, evento);
+
+        } catch (Exception e) {
+            log.error("Erro ao enviar email para {}: {}", destinatario, e.getMessage(), e);
+            String erroMsg = e.getMessage() != null ? e.getMessage() : "Erro ao enviar email";
+            historico.marcarComoFalha(erroMsg, "MAIL_ERROR");
+        }
+
+        return historicoRepository.save(historico);
+    }
+
+    /**
+     * Envia email com PDF anexo e rastreamento de historico.
+     */
+    @Transactional
+    public HistoricoNotificacao enviarComPdfEHistorico(
+        String destinatario,
+        String nomeDestinatario,
+        String assunto,
+        String corpo,
+        byte[] pdfBytes,
+        String nomePdf,
+        EventoNotificacao evento,
+        Map<String, Object> variaveis,
+        UUID ordemServicoId,
+        UUID clienteId,
+        UUID usuarioId
+    ) {
+        UUID oficinaId = TenantContext.getTenantId();
+
+        // Cria registro de historico
+        HistoricoNotificacao historico = HistoricoNotificacao.criar(
+            oficinaId,
+            evento,
+            TipoNotificacao.EMAIL,
+            destinatario,
+            nomeDestinatario,
+            assunto,
+            corpo + " [Anexo: " + nomePdf + "]",
+            variaveis,
+            null,
+            ordemServicoId,
+            clienteId,
+            usuarioId
+        );
+
+        // Busca configuracao
+        ConfiguracaoNotificacao config = configuracaoRepository
+            .findByOficinaIdAndAtivoTrue(oficinaId)
+            .orElse(null);
+
+        // Modo simulacao
+        if (config != null && config.getModoSimulacao()) {
+            log.info("[SIMULACAO] Email com PDF para {}: {} (anexo: {})", destinatario, assunto, nomePdf);
+            historico.marcarComoEnviado("SIMULADO-PDF-" + UUID.randomUUID());
+            return historicoRepository.save(historico);
+        }
+
+        // Envia o email com anexo
+        try {
+            String nomeCompleto = nomePdf.endsWith(".pdf") ? nomePdf : nomePdf + ".pdf";
+
+            MimeMessage mimeMessage = mailSender.createMimeMessage();
+            MimeMessageHelper helper = new MimeMessageHelper(mimeMessage, true, "UTF-8");
+
+            helper.setFrom(String.format("%s <%s>", fromName, fromEmail));
+            helper.setTo(destinatario);
+            helper.setSubject(assunto);
+
+            boolean isHtml = contemHtml(corpo);
+            if (isHtml) {
+                helper.setText(wrapInHtmlLayout(corpo), true);
+            } else {
+                helper.setText(corpo, false);
+            }
+
+            helper.addAttachment(nomeCompleto, new ByteArrayResource(pdfBytes), "application/pdf");
+
+            mailSender.send(mimeMessage);
+
+            historico.marcarComoEnviado("email-pdf-sent-" + System.currentTimeMillis());
+            log.info("Email com PDF enviado para {} (evento: {}, anexo: {})", destinatario, evento, nomePdf);
+
+        } catch (Exception e) {
+            log.error("Erro ao enviar email com PDF para {}: {}", destinatario, e.getMessage(), e);
+            String erroMsg = e.getMessage() != null ? e.getMessage() : "Erro ao enviar email com PDF";
+            historico.marcarComoFalha(erroMsg, "MAIL_PDF_ERROR");
+        }
+
+        return historicoRepository.save(historico);
+    }
+
+    /**
+     * Calcula proximo horario permitido para envio.
+     */
+    private java.time.LocalDateTime calcularProximoHorario(ConfiguracaoNotificacao config) {
+        java.time.LocalDateTime agora = java.time.LocalDateTime.now();
+        java.time.LocalTime horarioInicio = config.getHorarioInicio();
+
+        if (horarioInicio != null && agora.toLocalTime().isBefore(horarioInicio)) {
+            return agora.toLocalDate().atTime(horarioInicio);
+        }
+
+        java.time.LocalDate proximoDia = agora.toLocalDate().plusDays(1);
+        if (horarioInicio != null) {
+            return proximoDia.atTime(horarioInicio);
+        }
+        return proximoDia.atStartOfDay();
     }
 
     /**

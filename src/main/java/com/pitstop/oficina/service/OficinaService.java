@@ -24,6 +24,11 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.pitstop.shared.security.tenant.TenantContext;
+import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
@@ -86,17 +91,68 @@ public class OficinaService {
     /**
      * Busca oficina por ID.
      *
+     * <p><b>SECURITY:</b> Validates tenant access to prevent cross-tenant data leaks.</p>
+     * <ul>
+     *   <li>SUPER_ADMIN: Can access any oficina</li>
+     *   <li>ADMIN/GERENTE/others: Can only access their own oficina</li>
+     * </ul>
+     *
      * @param id ID da oficina
      * @return Oficina encontrada
      * @throws OficinaNotFoundException se não encontrada
+     * @throws AccessDeniedException se tentar acessar oficina de outro tenant
      */
     @Cacheable(value = "oficinas", key = "#id")
     public OficinaResponse findById(UUID id) {
+        // SECURITY: Validate tenant access
+        validateTenantAccess(id);
 
         Oficina oficina = oficinaRepository.findById(id)
             .orElseThrow(() -> new OficinaNotFoundException(id));
 
         return oficinaMapper.toResponse(oficina);
+    }
+
+    /**
+     * Validates that the current user can access the specified oficina.
+     *
+     * <p><b>Multi-tenancy security check:</b></p>
+     * <ul>
+     *   <li>SUPER_ADMIN can access any oficina (cross-tenant access)</li>
+     *   <li>Other roles can only access their own oficina (TenantContext)</li>
+     * </ul>
+     *
+     * @param oficinaId The oficina ID being accessed
+     * @throws AccessDeniedException if access is not allowed
+     */
+    private void validateTenantAccess(UUID oficinaId) {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+
+        // If not authenticated, skip validation (will fail at controller level)
+        if (auth == null || !auth.isAuthenticated()) {
+            return;
+        }
+
+        // SUPER_ADMIN can access any oficina
+        boolean isSuperAdmin = auth.getAuthorities().stream()
+            .anyMatch(a -> a.getAuthority().equals("SUPER_ADMIN"));
+
+        if (isSuperAdmin) {
+            log.debug("SUPER_ADMIN accessing oficina: {}", oficinaId);
+            return;
+        }
+
+        // Other roles: must be accessing their own oficina
+        if (TenantContext.isSet()) {
+            UUID currentTenantId = TenantContext.getTenantId();
+            if (!oficinaId.equals(currentTenantId)) {
+                log.warn("SECURITY: Cross-tenant access attempt. User tenant: {}, Requested oficina: {}",
+                    currentTenantId, oficinaId);
+                throw new AccessDeniedException(
+                    "Você só pode acessar dados da sua própria oficina"
+                );
+            }
+        }
     }
 
     /**

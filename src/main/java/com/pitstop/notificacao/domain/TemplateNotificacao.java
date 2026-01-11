@@ -70,6 +70,11 @@ public enum TemplateNotificacao {
     OS_APPROVED("os-approved", "Orçamento aprovado - OS #{{numeroOS}}"),
 
     /**
+     * OS rejeitada pelo cliente.
+     */
+    OS_REJECTED("os-rejected", "Orçamento rejeitado - OS #{{numeroOS}}"),
+
+    /**
      * OS em andamento - serviço iniciado.
      */
     OS_IN_PROGRESS("os-in-progress", "Serviço iniciado - OS #{{numeroOS}}"),

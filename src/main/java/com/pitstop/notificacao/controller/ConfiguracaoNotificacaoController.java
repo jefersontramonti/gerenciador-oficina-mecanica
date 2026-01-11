@@ -188,6 +188,67 @@ public class ConfiguracaoNotificacaoController {
         return ResponseEntity.ok(Map.of("qrcode", qrCode));
     }
 
+    /**
+     * Cria instancia automaticamente na Evolution API.
+     * POST /api/notificacoes/configuracao/whatsapp/criar-instancia
+     */
+    @PostMapping("/whatsapp/criar-instancia")
+    @PreAuthorize("hasAnyAuthority('ADMIN', 'GERENTE')")
+    @Operation(summary = "Criar instancia WhatsApp", description = "Cria automaticamente uma instancia na Evolution API")
+    public ResponseEntity<CriarInstanciaResponse> criarInstanciaWhatsApp() {
+        log.info("POST /api/notificacoes/configuracao/whatsapp/criar-instancia");
+        var resultado = service.criarInstanciaAutomatica();
+        return ResponseEntity.ok(resultado);
+    }
+
+    /**
+     * Deleta instancia na Evolution API e limpa configuracoes.
+     * DELETE /api/notificacoes/configuracao/whatsapp/instancia
+     */
+    @DeleteMapping("/whatsapp/instancia")
+    @PreAuthorize("hasAnyAuthority('ADMIN', 'GERENTE')")
+    @Operation(summary = "Deletar instancia WhatsApp", description = "Remove instancia da Evolution API e limpa configuracoes")
+    public ResponseEntity<Map<String, Object>> deletarInstanciaWhatsApp() {
+        log.info("DELETE /api/notificacoes/configuracao/whatsapp/instancia");
+        boolean sucesso = service.deletarInstancia();
+        return ResponseEntity.ok(Map.of(
+            "sucesso", sucesso,
+            "mensagem", sucesso ? "Instancia removida com sucesso" : "Erro ao remover instancia"
+        ));
+    }
+
+    /**
+     * Desconecta instancia na Evolution API (logout).
+     * POST /api/notificacoes/configuracao/whatsapp/desconectar
+     */
+    @PostMapping("/whatsapp/desconectar")
+    @PreAuthorize("hasAnyAuthority('ADMIN', 'GERENTE')")
+    @Operation(summary = "Desconectar WhatsApp", description = "Faz logout do WhatsApp na instancia")
+    public ResponseEntity<Map<String, Object>> desconectarWhatsApp() {
+        log.info("POST /api/notificacoes/configuracao/whatsapp/desconectar");
+        boolean sucesso = service.desconectarInstancia();
+        return ResponseEntity.ok(Map.of(
+            "sucesso", sucesso,
+            "mensagem", sucesso ? "WhatsApp desconectado com sucesso" : "Erro ao desconectar"
+        ));
+    }
+
+    /**
+     * Reconecta/reinicia instancia na Evolution API.
+     * POST /api/notificacoes/configuracao/whatsapp/reconectar
+     */
+    @PostMapping("/whatsapp/reconectar")
+    @PreAuthorize("hasAnyAuthority('ADMIN', 'GERENTE')")
+    @Operation(summary = "Reconectar WhatsApp", description = "Reinicia a instancia para reconectar")
+    public ResponseEntity<Map<String, Object>> reconectarWhatsApp() {
+        log.info("POST /api/notificacoes/configuracao/whatsapp/reconectar");
+        boolean sucesso = service.reconectarInstancia();
+        return ResponseEntity.ok(Map.of(
+            "sucesso", sucesso,
+            "mensagem", sucesso ? "Reconexao iniciada. Escaneie o QR Code novamente." : "Erro ao reconectar"
+        ));
+    }
+
     // ===== TELEGRAM =====
 
     /**
@@ -422,4 +483,19 @@ public class ConfiguracaoNotificacaoController {
         boolean sucesso,
         String mensagem
     ) {}
+
+    public record CriarInstanciaResponse(
+        boolean sucesso,
+        String instanceName,
+        String qrCode,
+        String mensagem
+    ) {
+        public static CriarInstanciaResponse sucesso(String instanceName, String qrCode) {
+            return new CriarInstanciaResponse(true, instanceName, qrCode, "Instancia criada com sucesso");
+        }
+
+        public static CriarInstanciaResponse falha(String mensagem) {
+            return new CriarInstanciaResponse(false, null, null, mensagem);
+        }
+    }
 }

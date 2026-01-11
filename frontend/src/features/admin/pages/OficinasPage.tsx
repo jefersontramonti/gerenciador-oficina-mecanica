@@ -135,9 +135,9 @@ export const OficinasPage = () => {
   return (
     <div className="p-6">
       {/* Header */}
-      <div className="mb-6 flex items-center justify-between">
+      <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
+          <h1 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white">
             Oficinas
           </h1>
           <p className="mt-1 text-sm text-gray-600 dark:text-gray-400">
@@ -146,7 +146,7 @@ export const OficinasPage = () => {
         </div>
         <Link
           to="/admin/oficinas/nova"
-          className="flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-white transition-colors hover:bg-blue-700"
+          className="flex items-center justify-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-white transition-colors hover:bg-blue-700 w-full sm:w-auto"
         >
           <Plus className="h-5 w-5" />
           Nova Oficina

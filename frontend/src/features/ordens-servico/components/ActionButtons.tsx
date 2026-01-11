@@ -5,7 +5,7 @@
 
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { CheckCircle, Play, XCircle, TruckIcon, Edit, AlertCircle } from 'lucide-react';
+import { CheckCircle, Play, XCircle, TruckIcon, Edit, AlertCircle, Clock, PlayCircle } from 'lucide-react';
 import { showError, showSuccess, showWarning } from '@/shared/utils/notifications';
 import { useAuth } from '@/features/auth/hooks/useAuth';
 import type { OrdemServico } from '../types';
@@ -14,10 +14,13 @@ import { getAvailableActions, getConfirmationMessage, type ActionType } from '..
 import {
   useAprovarOrdemServico,
   useIniciarOrdemServico,
+  useAguardarPecaOrdemServico,
+  useRetomarOrdemServico,
   useFinalizarOrdemServico,
   useEntregarOrdemServico,
   useCancelarOrdemServico,
 } from '../hooks/useOrdensServico';
+import { FinalizarOSModal } from './FinalizarOSModal';
 
 interface ActionButtonsProps {
   ordemServico: OrdemServico;
@@ -29,11 +32,16 @@ export const ActionButtons: React.FC<ActionButtonsProps> = ({ ordemServico, resu
   const navigate = useNavigate();
   const { user } = useAuth();
   const [showCancelModal, setShowCancelModal] = useState(false);
+  const [showFinalizarModal, setShowFinalizarModal] = useState(false);
+  const [showAguardandoPecaModal, setShowAguardandoPecaModal] = useState(false);
   const [cancelMotivo, setCancelMotivo] = useState('');
+  const [descricaoPeca, setDescricaoPeca] = useState('');
 
   // Mutations
   const aprovarMutation = useAprovarOrdemServico();
   const iniciarMutation = useIniciarOrdemServico();
+  const aguardarPecaMutation = useAguardarPecaOrdemServico();
+  const retomarMutation = useRetomarOrdemServico();
   const finalizarMutation = useFinalizarOrdemServico();
   const entregarMutation = useEntregarOrdemServico();
   const cancelarMutation = useCancelarOrdemServico();
@@ -66,6 +74,18 @@ export const ActionButtons: React.FC<ActionButtonsProps> = ({ ordemServico, resu
       return;
     }
 
+    // Ação de finalizar (mostrar modal para suportar modelo hibrido)
+    if (action === 'finalizar') {
+      setShowFinalizarModal(true);
+      return;
+    }
+
+    // Ação de aguardar peça (mostrar modal para informar a peça)
+    if (action === 'aguardarPeca') {
+      setShowAguardandoPecaModal(true);
+      return;
+    }
+
     // Confirmar ação
     if (confirmMessage && !window.confirm(confirmMessage)) {
       return;
@@ -82,8 +102,8 @@ export const ActionButtons: React.FC<ActionButtonsProps> = ({ ordemServico, resu
         case 'iniciar':
           await iniciarMutation.mutateAsync(ordemServico.id);
           break;
-        case 'finalizar':
-          await finalizarMutation.mutateAsync(ordemServico.id);
+        case 'retomar':
+          await retomarMutation.mutateAsync(ordemServico.id);
           break;
         case 'entregar':
           await entregarMutation.mutateAsync(ordemServico.id);
@@ -95,6 +115,29 @@ export const ActionButtons: React.FC<ActionButtonsProps> = ({ ordemServico, resu
     } catch (error: any) {
       const errorMessage =
         error.response?.data?.message || error.message || 'Erro ao realizar ação';
+      showError(`Erro: ${errorMessage}`);
+    }
+  };
+
+  const handleAguardarPecaConfirm = async () => {
+    if (!descricaoPeca.trim()) {
+      showWarning('Informe a descrição da peça aguardada');
+      return;
+    }
+
+    try {
+      await aguardarPecaMutation.mutateAsync({
+        id: ordemServico.id,
+        data: { descricaoPeca },
+      });
+
+      showSuccess('OS em aguardando peça!');
+      setShowAguardandoPecaModal(false);
+      setDescricaoPeca('');
+      onActionComplete?.();
+    } catch (error: any) {
+      const errorMessage =
+        error.response?.data?.message || error.message || 'Erro ao atualizar status';
       showError(`Erro: ${errorMessage}`);
     }
   };
@@ -136,6 +179,8 @@ export const ActionButtons: React.FC<ActionButtonsProps> = ({ ordemServico, resu
     const icons: Record<ActionType, React.ReactNode> = {
       aprovar: <CheckCircle className="h-4 w-4" />,
       iniciar: <Play className="h-4 w-4" />,
+      aguardarPeca: <Clock className="h-4 w-4" />,
+      retomar: <PlayCircle className="h-4 w-4" />,
       finalizar: <CheckCircle className="h-4 w-4" />,
       entregar: <TruckIcon className="h-4 w-4" />,
       cancelar: <XCircle className="h-4 w-4" />,
@@ -147,6 +192,8 @@ export const ActionButtons: React.FC<ActionButtonsProps> = ({ ordemServico, resu
   const isLoading =
     aprovarMutation.isPending ||
     iniciarMutation.isPending ||
+    aguardarPecaMutation.isPending ||
+    retomarMutation.isPending ||
     finalizarMutation.isPending ||
     entregarMutation.isPending ||
     cancelarMutation.isPending;
@@ -228,6 +275,59 @@ export const ActionButtons: React.FC<ActionButtonsProps> = ({ ordemServico, resu
           </div>
         </div>
       )}
+
+      {/* Modal de Aguardando Peça */}
+      {showAguardandoPecaModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+          <div className="w-full max-w-md rounded-lg bg-white p-6 shadow-xl dark:bg-gray-800">
+            <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Aguardar Peça</h3>
+            <p className="mt-2 text-sm text-gray-600 dark:text-gray-400">
+              Informe a peça que está sendo aguardada para a OS #{ordemServico.numero}:
+            </p>
+
+            <textarea
+              value={descricaoPeca}
+              onChange={(e) => setDescricaoPeca(e.target.value)}
+              className="mt-4 w-full rounded-lg border border-gray-300 px-3 py-2 focus:border-yellow-500 focus:outline-none focus:ring-2 focus:ring-yellow-500/20 dark:border-gray-600 dark:bg-gray-900 dark:text-white dark:focus:border-yellow-400"
+              rows={3}
+              placeholder="Ex: Filtro de óleo Mann W 712/83"
+            />
+
+            <div className="mt-6 flex justify-end gap-3">
+              <button
+                type="button"
+                onClick={() => {
+                  setShowAguardandoPecaModal(false);
+                  setDescricaoPeca('');
+                }}
+                disabled={aguardarPecaMutation.isPending}
+                className="rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-700"
+              >
+                Cancelar
+              </button>
+              <button
+                type="button"
+                onClick={handleAguardarPecaConfirm}
+                disabled={aguardarPecaMutation.isPending}
+                className="rounded-lg bg-yellow-600 px-4 py-2 text-sm font-medium text-white hover:bg-yellow-700 disabled:opacity-50 dark:bg-yellow-700 dark:hover:bg-yellow-800"
+              >
+                {aguardarPecaMutation.isPending ? 'Salvando...' : 'Confirmar'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal de Finalização (suporta VALOR_FIXO e POR_HORA) */}
+      <FinalizarOSModal
+        os={ordemServico}
+        isOpen={showFinalizarModal}
+        onClose={() => setShowFinalizarModal(false)}
+        onSuccess={() => {
+          showSuccess(`OS #${ordemServico.numero} finalizada com sucesso!`);
+          onActionComplete?.();
+        }}
+      />
     </>
   );
 };

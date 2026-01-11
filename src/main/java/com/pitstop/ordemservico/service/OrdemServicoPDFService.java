@@ -325,6 +325,49 @@ public class OrdemServicoPDFService {
         Font labelFont = new Font(Font.HELVETICA, 9, Font.BOLD);
         Font dataFont = new Font(Font.HELVETICA, 9, Font.NORMAL);
         Font totalFont = new Font(Font.HELVETICA, 10, Font.BOLD);
+        Font infoFont = new Font(Font.HELVETICA, 8, Font.ITALIC, new Color(37, 99, 235));
+
+        // Verifica se é cobrança por hora
+        boolean isPorHora = os.getTipoCobrancaMaoObra() != null &&
+            os.getTipoCobrancaMaoObra() == com.pitstop.ordemservico.domain.TipoCobrancaMaoObra.POR_HORA;
+
+        if (isPorHora) {
+            // Cabeçalho indicando cobrança por hora
+            PdfPCell headerCell = new PdfPCell(new Phrase("Mão de Obra (Por Hora)", labelFont));
+            headerCell.setColspan(2);
+            headerCell.setBackgroundColor(new Color(219, 234, 254)); // azul claro
+            headerCell.setPadding(5);
+            table.addCell(headerCell);
+
+            // Valor/hora
+            if (os.getValorHoraSnapshot() != null) {
+                table.addCell(new PdfPCell(new Phrase("Valor/Hora:", dataFont)));
+                table.addCell(new PdfPCell(new Phrase(CURRENCY_FORMATTER.format(os.getValorHoraSnapshot()), dataFont)));
+            }
+
+            // Tempo estimado
+            if (os.getTempoEstimadoHoras() != null) {
+                table.addCell(new PdfPCell(new Phrase("Tempo Estimado:", dataFont)));
+                table.addCell(new PdfPCell(new Phrase(os.getTempoEstimadoHoras() + "h", dataFont)));
+            }
+
+            // Limite aprovado
+            if (os.getLimiteHorasAprovado() != null) {
+                table.addCell(new PdfPCell(new Phrase("Limite Aprovado:", dataFont)));
+                String limiteStr = os.getLimiteHorasAprovado() + "h";
+                if (os.getValorHoraSnapshot() != null) {
+                    limiteStr += " (máx. " + CURRENCY_FORMATTER.format(
+                        os.getLimiteHorasAprovado().multiply(os.getValorHoraSnapshot())) + ")";
+                }
+                table.addCell(new PdfPCell(new Phrase(limiteStr, dataFont)));
+            }
+
+            // Horas trabalhadas (se já finalizada)
+            if (os.getHorasTrabalhadas() != null) {
+                table.addCell(new PdfPCell(new Phrase("Horas Trabalhadas:", labelFont)));
+                table.addCell(new PdfPCell(new Phrase(os.getHorasTrabalhadas() + "h", labelFont)));
+            }
+        }
 
         table.addCell(new PdfPCell(new Phrase("Mão de Obra:", labelFont)));
         table.addCell(new PdfPCell(new Phrase(CURRENCY_FORMATTER.format(os.getValorMaoObra()), dataFont)));

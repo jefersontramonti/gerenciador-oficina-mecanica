@@ -14,6 +14,7 @@ import {
   AlertTriangle,
   Info,
 } from 'lucide-react';
+import { showSuccess, showError } from '@/shared/utils/notifications';
 import { useOficina, useUpdateOficinaFiscal, useCurrentOficinaId } from '../hooks/useOficina';
 import { oficinaFiscalSchema, type OficinaFiscalFormData } from '../utils/validation';
 import {
@@ -56,14 +57,20 @@ export const OficinaFiscalForm = () => {
   const onSubmit = async (data: OficinaFiscalFormData) => {
     if (!oficinaId) return;
 
-    await updateMutation.mutateAsync({
-      id: oficinaId,
-      data: {
-        inscricaoEstadual: data.inscricaoEstadual || undefined,
-        inscricaoMunicipal: data.inscricaoMunicipal || undefined,
-        regimeTributario: data.regimeTributario,
-      },
-    });
+    try {
+      await updateMutation.mutateAsync({
+        id: oficinaId,
+        data: {
+          inscricaoEstadual: data.inscricaoEstadual || undefined,
+          inscricaoMunicipal: data.inscricaoMunicipal || undefined,
+          regimeTributario: data.regimeTributario,
+        },
+      });
+      showSuccess('Dados fiscais salvos com sucesso!');
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : 'Erro ao salvar os dados fiscais';
+      showError(errorMessage);
+    }
   };
 
   if (isLoading) {

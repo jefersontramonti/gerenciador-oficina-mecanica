@@ -20,8 +20,8 @@ import type { AuditFilters } from '../types';
 export const AuditPage = () => {
   const [searchParams] = useSearchParams();
   const [filters, setFilters] = useState<AuditFilters>({
-    action: searchParams.get('action') || undefined,
-    entity: searchParams.get('entity') || undefined,
+    acao: searchParams.get('acao') || undefined,
+    entidade: searchParams.get('entidade') || undefined,
     page: 0,
     size: 50,
   });
@@ -46,7 +46,7 @@ export const AuditPage = () => {
     }
   };
 
-  const getActionBadge = (action: string) => {
+  const getActionBadge = (acao: string) => {
     const actionColors: Record<string, string> = {
       CRIAR: 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400',
       EDITAR: 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400',
@@ -59,12 +59,12 @@ export const AuditPage = () => {
       REGISTRAR_PAGAMENTO: 'bg-cyan-100 text-cyan-800 dark:bg-cyan-900/30 dark:text-cyan-400',
     };
 
-    const color = Object.entries(actionColors).find(([key]) => action.includes(key))?.[1]
+    const color = Object.entries(actionColors).find(([key]) => acao.includes(key))?.[1]
       || 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300';
 
     return (
       <span className={`inline-flex rounded-full px-2.5 py-0.5 text-xs font-medium ${color}`}>
-        {action.replace(/_/g, ' ')}
+        {acao.replace(/_/g, ' ')}
       </span>
     );
   };
@@ -108,8 +108,8 @@ export const AuditPage = () => {
           <div className="relative">
             <Activity className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
             <select
-              value={filters.action || ''}
-              onChange={(e) => setFilters(prev => ({ ...prev, action: e.target.value || undefined, page: 0 }))}
+              value={filters.acao || ''}
+              onChange={(e) => setFilters(prev => ({ ...prev, acao: e.target.value || undefined, page: 0 }))}
               className="w-full appearance-none rounded-lg border border-gray-300 bg-white py-2 pl-10 pr-8 text-gray-900 focus:border-blue-500 focus:outline-none dark:border-gray-600 dark:bg-gray-700 dark:text-white"
             >
               <option value="">Todas as ações</option>
@@ -129,14 +129,16 @@ export const AuditPage = () => {
           <div className="relative">
             <Building2 className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
             <select
-              value={filters.entity || ''}
-              onChange={(e) => setFilters(prev => ({ ...prev, entity: e.target.value || undefined, page: 0 }))}
+              value={filters.entidade || ''}
+              onChange={(e) => setFilters(prev => ({ ...prev, entidade: e.target.value || undefined, page: 0 }))}
               className="w-full appearance-none rounded-lg border border-gray-300 bg-white py-2 pl-10 pr-8 text-gray-900 focus:border-blue-500 focus:outline-none dark:border-gray-600 dark:bg-gray-700 dark:text-white"
             >
               <option value="">Todas as entidades</option>
               <option value="Oficina">Oficina</option>
               <option value="Usuario">Usuário</option>
               <option value="Pagamento">Pagamento</option>
+              <option value="Plano">Plano</option>
+              <option value="Fatura">Fatura</option>
             </select>
           </div>
 
@@ -212,17 +214,17 @@ export const AuditPage = () => {
                 data.content.map((log) => (
                   <tr key={log.id} className="hover:bg-gray-50 dark:hover:bg-gray-700/50">
                     <td className="whitespace-nowrap px-6 py-4 text-sm text-gray-500 dark:text-gray-400">
-                      {formatDateTime(log.createdAt)}
+                      {formatDateTime(log.timestamp)}
                     </td>
                     <td className="whitespace-nowrap px-6 py-4">
-                      {getActionBadge(log.action)}
+                      {getActionBadge(log.acao)}
                     </td>
                     <td className="whitespace-nowrap px-6 py-4">
                       <div>
-                        <p className="font-medium text-gray-900 dark:text-white">{log.entity}</p>
-                        {log.entityId && (
+                        <p className="font-medium text-gray-900 dark:text-white">{log.entidade}</p>
+                        {log.entidadeId && (
                           <p className="text-xs text-gray-500 dark:text-gray-400">
-                            ID: {log.entityId.substring(0, 8)}...
+                            ID: {log.entidadeId.substring(0, 8)}...
                           </p>
                         )}
                       </div>
@@ -233,12 +235,12 @@ export const AuditPage = () => {
                           <User className="h-4 w-4 text-gray-600 dark:text-gray-400" />
                         </div>
                         <span className="text-sm text-gray-900 dark:text-white">
-                          {log.userEmail || 'Sistema'}
+                          {log.usuarioEmail || 'Sistema'}
                         </span>
                       </div>
                     </td>
                     <td className="max-w-xs truncate px-6 py-4 text-sm text-gray-500 dark:text-gray-400">
-                      {log.details || '-'}
+                      {log.detalhes || '-'}
                     </td>
                     <td className="whitespace-nowrap px-6 py-4 text-sm text-gray-500 dark:text-gray-400">
                       {log.ipAddress || '-'}

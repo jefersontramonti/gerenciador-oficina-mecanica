@@ -60,7 +60,7 @@ public class TelegramApiClient {
     }
 
     /**
-     * Envia mensagem com botoes inline.
+     * Envia mensagem com botoes inline para o chat configurado.
      *
      * @param config Configuracao do Telegram
      * @param mensagem Texto da mensagem
@@ -72,10 +72,28 @@ public class TelegramApiClient {
         String mensagem,
         List<List<TelegramButton>> botoes
     ) {
+        return enviarComBotoes(config, config.chatId(), mensagem, botoes);
+    }
+
+    /**
+     * Envia mensagem com botoes inline para um chat especifico.
+     *
+     * @param config Configuracao do Telegram
+     * @param chatId ID do chat destino
+     * @param mensagem Texto da mensagem
+     * @param botoes Lista de botoes (cada lista interna e uma linha)
+     * @return Resultado do envio
+     */
+    public TelegramSendResult enviarComBotoes(
+        TelegramConfig config,
+        String chatId,
+        String mensagem,
+        List<List<TelegramButton>> botoes
+    ) {
         String url = config.getApiUrl("sendMessage");
 
         Map<String, Object> body = new HashMap<>();
-        body.put("chat_id", config.chatId());
+        body.put("chat_id", chatId);
         body.put("text", mensagem);
         body.put("parse_mode", "Markdown");
 

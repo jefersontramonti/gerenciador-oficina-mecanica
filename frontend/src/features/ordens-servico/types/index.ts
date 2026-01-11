@@ -29,6 +29,27 @@ export const TipoItem = {
 export type TipoItem = typeof TipoItem[keyof typeof TipoItem];
 
 /**
+ * Enum de tipo de cobrança de mão de obra
+ */
+export const TipoCobrancaMaoObra = {
+  VALOR_FIXO: 'VALOR_FIXO',
+  POR_HORA: 'POR_HORA',
+} as const;
+
+export type TipoCobrancaMaoObra = typeof TipoCobrancaMaoObra[keyof typeof TipoCobrancaMaoObra];
+
+/**
+ * Enum de origem da peça
+ */
+export const OrigemPeca = {
+  ESTOQUE: 'ESTOQUE',
+  AVULSA: 'AVULSA',
+  CLIENTE: 'CLIENTE',
+} as const;
+
+export type OrigemPeca = typeof OrigemPeca[keyof typeof OrigemPeca];
+
+/**
  * Cliente resumido (retornado nas respostas de OS)
  */
 export interface ClienteResumo {
@@ -68,6 +89,7 @@ export interface MecanicoResumo {
 export interface ItemOS {
   id?: string;
   tipo: TipoItem;
+  origemPeca?: OrigemPeca;
   pecaId?: string;
   descricao: string;
   quantidade: number;
@@ -95,7 +117,13 @@ export interface OrdemServico {
   problemasRelatados: string;
   diagnostico?: string;
   observacoes?: string;
+  // Modelo híbrido de mão de obra
+  tipoCobrancaMaoObra: TipoCobrancaMaoObra;
   valorMaoObra: number;
+  tempoEstimadoHoras?: number;
+  limiteHorasAprovado?: number;
+  horasTrabalhadas?: number;
+  valorHoraSnapshot?: number;
   valorPecas: number;
   valorTotal: number;
   descontoPercentual: number;
@@ -112,6 +140,7 @@ export interface OrdemServico {
  */
 export interface CreateItemOSRequest {
   tipo: TipoItem;
+  origemPeca?: OrigemPeca;
   pecaId?: string;
   descricao: string;
   quantidade: number;
@@ -129,7 +158,11 @@ export interface CreateOrdemServicoRequest {
   diagnostico?: string;
   observacoes?: string;
   dataPrevisao?: string;
-  valorMaoObra: number;
+  // Modelo híbrido de mão de obra
+  tipoCobrancaMaoObra: TipoCobrancaMaoObra;
+  valorMaoObra?: number; // Obrigatório se VALOR_FIXO
+  tempoEstimadoHoras?: number; // Obrigatório se POR_HORA
+  limiteHorasAprovado?: number; // Obrigatório se POR_HORA
   descontoPercentual?: number;
   descontoValor?: number;
   itens: CreateItemOSRequest[];
@@ -157,6 +190,21 @@ export interface UpdateOrdemServicoRequest {
  */
 export interface CancelarOrdemServicoRequest {
   motivo: string;
+}
+
+/**
+ * Request para aguardar peça
+ */
+export interface AguardarPecaRequest {
+  descricaoPeca: string;
+}
+
+/**
+ * Request para finalizar OS (modelo POR_HORA)
+ */
+export interface FinalizarOSRequest {
+  horasTrabalhadas: number;
+  observacoesFinais?: string;
 }
 
 /**
@@ -212,6 +260,21 @@ export interface DashboardFaturamento {
  */
 export interface DashboardTicketMedio {
   ticketMedio: number;
+}
+
+/**
+ * Histórico de mudança de status da OS
+ */
+export interface HistoricoStatusOS {
+  id: string;
+  statusAnterior: StatusOS | null;
+  statusAnteriorLabel: string | null;
+  statusNovo: StatusOS;
+  statusNovoLabel: string;
+  usuarioId: string | null;
+  usuarioNome: string | null;
+  observacao: string | null;
+  dataAlteracao: string | number[];
 }
 
 /**

@@ -46,6 +46,10 @@ public interface OrdemServicoMapper {
     @Mapping(target = "updatedAt", ignore = true)
     @Mapping(target = "oficina", ignore = true) // Auto-populado via @PrePersist JPA hook
     @Mapping(target = "itens", ignore = true) // Adicionados manualmente no service usando adicionarItem()
+    // Campos do modelo híbrido de mão de obra - setados no service
+    @Mapping(target = "tipoCobrancaMaoObra", ignore = true) // Setado no service
+    @Mapping(target = "horasTrabalhadas", ignore = true) // Setado na finalização
+    @Mapping(target = "valorHoraSnapshot", ignore = true) // Setado no service para POR_HORA
     OrdemServico toEntity(CreateOrdemServicoDTO dto);
 
     /**
@@ -75,6 +79,12 @@ public interface OrdemServicoMapper {
     @Mapping(target = "createdAt", ignore = true)
     @Mapping(target = "updatedAt", ignore = true)
     @Mapping(target = "oficina", ignore = true) // Auto-populado via @PrePersist JPA hook
+    // Campos do modelo híbrido - não alteráveis via update
+    @Mapping(target = "tipoCobrancaMaoObra", ignore = true)
+    @Mapping(target = "tempoEstimadoHoras", ignore = true)
+    @Mapping(target = "limiteHorasAprovado", ignore = true)
+    @Mapping(target = "horasTrabalhadas", ignore = true)
+    @Mapping(target = "valorHoraSnapshot", ignore = true)
     @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
     void updateEntityFromDto(UpdateOrdemServicoDTO dto, @MappingTarget OrdemServico ordemServico);
 

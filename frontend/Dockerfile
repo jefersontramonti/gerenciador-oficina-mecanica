@@ -3,9 +3,19 @@ FROM node:20-alpine AS build
 
 WORKDIR /app
 
+# Build arguments para Vite (valores default para desenvolvimento local)
+ARG VITE_API_URL=http://localhost:8080/api
+ARG VITE_WS_URL=ws://localhost:8080/ws
+ARG VITE_API_BASE_URL=http://localhost:8080
+
+# Tornar disponíveis para o build do Vite
+ENV VITE_API_URL=$VITE_API_URL
+ENV VITE_WS_URL=$VITE_WS_URL
+ENV VITE_API_BASE_URL=$VITE_API_BASE_URL
+
 # Copiar package files para cache de dependências
 COPY package.json package-lock.json ./
-RUN npm ci --only=production
+RUN npm ci
 
 # Copiar código e buildar
 COPY . .

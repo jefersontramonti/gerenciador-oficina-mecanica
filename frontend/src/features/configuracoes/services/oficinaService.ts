@@ -70,7 +70,7 @@ export const oficinaService = {
   },
 
   /**
-   * Update operational info (horarios, capacidade, especialidades, redes sociais)
+   * Update operational info (horarios, capacidade, especialidades, redes sociais, valorHora)
    *
    * Convenience method for the "Operacional" tab.
    *
@@ -83,6 +83,7 @@ export const oficinaService = {
     data: {
       informacoesOperacionais?: InformacoesOperacionais;
       redesSociais?: RedesSociais;
+      valorHora?: number;
     }
   ): Promise<Oficina> {
     return this.update(id, data);

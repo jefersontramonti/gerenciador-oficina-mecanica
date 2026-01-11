@@ -229,6 +229,13 @@ export const oficinaOperacionalSchema = z.object({
     .max(1000, 'Observacoes devem ter no maximo 1000 caracteres')
     .optional()
     .or(z.literal('')),
+  // Valor/hora de mao de obra
+  valorHora: z
+    .number()
+    .min(0, 'Valor/hora deve ser maior ou igual a 0')
+    .max(10000, 'Valor/hora deve ser no maximo R$ 10.000')
+    .optional()
+    .or(z.nan()),
   // Redes Sociais
   website: z
     .string()

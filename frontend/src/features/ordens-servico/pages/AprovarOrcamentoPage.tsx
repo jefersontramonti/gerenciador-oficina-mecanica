@@ -18,7 +18,12 @@ interface OrcamentoData {
   statusDescricao: string;
   problemasRelatados: string;
   diagnostico: string;
+  // Modelo híbrido de mão de obra
+  tipoCobrancaMaoObra: 'VALOR_FIXO' | 'POR_HORA';
   valorMaoObra: number;
+  tempoEstimadoHoras?: number;
+  limiteHorasAprovado?: number;
+  valorHoraSnapshot?: number;
   valorPecas: number;
   valorTotal: number;
   descontoPercentual: number;
@@ -311,10 +316,46 @@ export function AprovarOrcamentoPage() {
           <div className="mt-6 rounded-lg bg-gray-50 p-4">
             <h3 className="mb-3 text-lg font-semibold text-gray-900">Resumo</h3>
             <div className="space-y-2">
-              <div className="flex justify-between">
-                <span className="text-gray-600">Mao de Obra:</span>
-                <span className="font-medium text-gray-900">{formatCurrency(orcamento.valorMaoObra)}</span>
-              </div>
+              {/* Mão de obra - Modelo Híbrido */}
+              {orcamento.tipoCobrancaMaoObra === 'POR_HORA' ? (
+                <div className="rounded-lg bg-blue-50 border border-blue-200 p-3 mb-3">
+                  <div className="flex items-center gap-2 mb-2">
+                    <Clock className="h-4 w-4 text-blue-600" />
+                    <span className="text-sm font-medium text-blue-900">Mao de Obra por Hora</span>
+                  </div>
+                  <div className="text-sm text-blue-800 space-y-1">
+                    <div className="flex justify-between">
+                      <span>Valor/hora:</span>
+                      <span className="font-medium">{formatCurrency(orcamento.valorHoraSnapshot || 0)}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span>Tempo estimado:</span>
+                      <span className="font-medium">{orcamento.tempoEstimadoHoras}h</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span>Estimativa:</span>
+                      <span className="font-medium">
+                        {formatCurrency((orcamento.tempoEstimadoHoras || 0) * (orcamento.valorHoraSnapshot || 0))}
+                      </span>
+                    </div>
+                  </div>
+                  <div className="mt-3 pt-3 border-t border-blue-200">
+                    <div className="bg-orange-50 border border-orange-200 rounded p-2">
+                      <p className="text-xs font-medium text-orange-800">
+                        Limite que voce esta aprovando:
+                      </p>
+                      <p className="text-sm font-bold text-orange-900">
+                        Ate {orcamento.limiteHorasAprovado}h = {formatCurrency((orcamento.limiteHorasAprovado || 0) * (orcamento.valorHoraSnapshot || 0))}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              ) : (
+                <div className="flex justify-between">
+                  <span className="text-gray-600">Mao de Obra:</span>
+                  <span className="font-medium text-gray-900">{formatCurrency(orcamento.valorMaoObra)}</span>
+                </div>
+              )}
               <div className="flex justify-between">
                 <span className="text-gray-600">Pecas:</span>
                 <span className="font-medium text-gray-900">{formatCurrency(orcamento.valorPecas)}</span>

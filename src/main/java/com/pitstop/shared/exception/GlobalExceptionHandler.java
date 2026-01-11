@@ -4,6 +4,7 @@ import com.pitstop.usuario.exception.*;
 import com.pitstop.cliente.exception.*;
 import com.pitstop.ordemservico.exception.*;
 import com.pitstop.estoque.exception.*;
+import com.pitstop.shared.security.tenant.TenantNotSetException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ProblemDetail;
@@ -495,6 +496,42 @@ public class GlobalExceptionHandler {
         return problemDetail;
     }
 
+    // ========== EXCEÇÕES DE MULTI-TENANCY ==========
+
+    /**
+     * Trata exceção quando o contexto de tenant não está definido.
+     * HTTP 403 - Forbidden
+     *
+     * <p>Isso acontece quando:</p>
+     * <ul>
+     *   <li>SUPER_ADMIN tenta acessar endpoints que requerem tenant</li>
+     *   <li>Erro de configuração no TenantFilter</li>
+     *   <li>Endpoints públicos tentando acessar dados de tenant</li>
+     * </ul>
+     *
+     * <p>Retorna 403 ao invés de 500 para indicar que é um problema de autorização,
+     * não um erro interno do servidor.</p>
+     */
+    @ExceptionHandler(TenantNotSetException.class)
+    public ProblemDetail handleTenantNotSetException(
+            TenantNotSetException ex,
+            WebRequest request
+    ) {
+        log.error("Contexto de tenant não definido: {}", ex.getMessage());
+
+        ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(
+                HttpStatus.FORBIDDEN,
+                "Contexto de oficina não definido. " +
+                "Se você é SUPER_ADMIN, use os endpoints /api/saas/* para gerenciar oficinas."
+        );
+        problemDetail.setTitle("Contexto de Oficina Não Definido");
+        problemDetail.setType(URI.create("https://pitstop.com/errors/tenant-not-set"));
+        problemDetail.setProperty("timestamp", Instant.now());
+        problemDetail.setProperty("hint", "SUPER_ADMIN deve usar /api/saas/* para operações cross-tenant");
+
+        return problemDetail;
+    }
+
     // ========== EXCEÇÕES GENÉRICAS ==========
 
     /**
@@ -721,6 +758,35 @@ public class GlobalExceptionHandler {
         problemDetail.setTitle("Pagamento Pendente");
         problemDetail.setType(URI.create("https://pitstop.com/errors/ordem-servico-nao-paga"));
         problemDetail.setProperty("timestamp", Instant.now());
+
+        return problemDetail;
+    }
+
+    /**
+     * Trata exceção quando horas trabalhadas excedem o limite aprovado pelo cliente.
+     * HTTP 400 - Bad Request
+     */
+    @ExceptionHandler(LimiteHorasExcedidoException.class)
+    public ProblemDetail handleLimiteHorasExcedidoException(
+            LimiteHorasExcedidoException ex,
+            WebRequest request
+    ) {
+        log.warn("Limite de horas excedido: {}", ex.getMessage());
+
+        ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(
+                HttpStatus.BAD_REQUEST,
+                ex.getMessage()
+        );
+        problemDetail.setTitle("Limite de Horas Excedido");
+        problemDetail.setType(URI.create("https://pitstop.com/errors/limite-horas-excedido"));
+        problemDetail.setProperty("timestamp", Instant.now());
+
+        if (ex.getHorasTrabalhadas() != null) {
+            problemDetail.setProperty("horasTrabalhadas", ex.getHorasTrabalhadas());
+        }
+        if (ex.getLimiteAprovado() != null) {
+            problemDetail.setProperty("limiteAprovado", ex.getLimiteAprovado());
+        }
 
         return problemDetail;
     }

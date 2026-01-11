@@ -197,53 +197,31 @@ public class AuthenticationService {
     /**
      * Registers a new user in the system.
      *
-     * <p>New users are automatically created with ATENDENTE profile and active status.
-     * The password is hashed using BCrypt before storage.
+     * <p><b>SECURITY NOTE:</b> This method is DISABLED for public registration.
+     * User registration must be done through one of these secure methods:</p>
+     * <ul>
+     *   <li>POST /api/public/oficinas/register - Creates oficina + admin user (SaaS onboarding)</li>
+     *   <li>POST /api/usuarios - Admin creates users within their oficina (authenticated)</li>
+     * </ul>
+     *
+     * <p>The reason this is disabled: public registration without oficina context
+     * would create orphan users without tenant association, breaking multi-tenancy
+     * and causing JWT generation to fail (NullPointerException on oficina.getId()).</p>
      *
      * @param request registration request containing name, email, and password
-     * @return login response with access token, refresh token, and user data
-     * @throws EmailAlreadyExistsException if email is already registered
+     * @return never returns - always throws exception
+     * @throws UnsupportedOperationException always - public registration is disabled
+     * @deprecated Use /api/public/oficinas/register for SaaS onboarding or /api/usuarios for user creation
      */
+    @Deprecated
     @Transactional
     public LoginResponse register(RegisterRequest request) {
-        log.debug("Registration attempt for email: {}", request.email());
+        log.warn("SECURITY: Attempt to use disabled public registration endpoint for email: {}", request.email());
 
-        // 1. Verify email is not already in use
-        if (usuarioRepository.findByEmail(request.email()).isPresent()) {
-            log.warn("Registration failed: email already exists - {}", request.email());
-            throw new EmailAlreadyExistsException(request.email());
-        }
-
-        // 2. Create new user entity
-        Usuario newUsuario = Usuario.builder()
-                .nome(request.nome())
-                .email(request.email())
-                .senha(passwordEncoder.encode(request.senha())) // BCrypt hash
-                .perfil(PerfilUsuario.ATENDENTE) // Default profile for self-registration
-                .ativo(true)
-                .build();
-
-        // 3. Save to database
-        Usuario savedUsuario = usuarioRepository.save(newUsuario);
-
-        log.info("User registered successfully: {} (ID: {})", savedUsuario.getEmail(), savedUsuario.getId());
-
-        // 4. Generate JWT tokens for immediate login
-        String accessToken = jwtService.generateAccessToken(savedUsuario);
-        String refreshToken = jwtService.generateRefreshToken(savedUsuario);
-
-        // 5. Store refresh token in Redis
-        refreshTokenService.storeRefreshToken(savedUsuario.getId(), refreshToken);
-
-        // 6. Update last access timestamp
-        savedUsuario.atualizarUltimoAcesso();
-        usuarioRepository.save(savedUsuario);
-
-        // 7. Return response with tokens and user data
-        return new LoginResponse(
-                accessToken,
-                refreshToken,
-                usuarioMapper.toResponse(savedUsuario)
+        throw new UnsupportedOperationException(
+            "Registro público desabilitado por segurança. " +
+            "Use /api/public/oficinas/register para criar uma nova oficina ou " +
+            "solicite ao administrador da oficina que crie seu usuário."
         );
     }
 

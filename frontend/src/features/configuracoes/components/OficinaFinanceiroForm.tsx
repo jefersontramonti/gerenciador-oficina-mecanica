@@ -13,6 +13,7 @@ import {
   Save,
   User,
 } from 'lucide-react';
+import { showSuccess, showError } from '@/shared/utils/notifications';
 import { useOficina, useUpdateOficinaFinanceiro, useCurrentOficinaId } from '../hooks/useOficina';
 import { oficinaFinanceiroSchema, type OficinaFinanceiroFormData } from '../utils/validation';
 import { InputMask } from '@/shared/components/forms/InputMask';
@@ -79,21 +80,27 @@ export const OficinaFinanceiroForm = () => {
   const onSubmit = async (data: OficinaFinanceiroFormData) => {
     if (!oficinaId) return;
 
-    await updateMutation.mutateAsync({
-      id: oficinaId,
-      data: {
-        dadosBancarios: {
-          banco: data.banco || undefined,
-          agencia: data.agencia || undefined,
-          conta: data.conta || undefined,
-          tipoConta: data.tipoConta,
-          titularConta: data.titularConta || undefined,
-          cpfCnpjTitular: data.cpfCnpjTitular || undefined,
-          chavePix: data.chavePix || undefined,
-          tipoChavePix: data.tipoChavePix,
+    try {
+      await updateMutation.mutateAsync({
+        id: oficinaId,
+        data: {
+          dadosBancarios: {
+            banco: data.banco || undefined,
+            agencia: data.agencia || undefined,
+            conta: data.conta || undefined,
+            tipoConta: data.tipoConta,
+            titularConta: data.titularConta || undefined,
+            cpfCnpjTitular: data.cpfCnpjTitular || undefined,
+            chavePix: data.chavePix || undefined,
+            tipoChavePix: data.tipoChavePix,
+          },
         },
-      },
-    });
+      });
+      showSuccess('Dados financeiros salvos com sucesso!');
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : 'Erro ao salvar os dados financeiros';
+      showError(errorMessage);
+    }
   };
 
   if (isLoading) {

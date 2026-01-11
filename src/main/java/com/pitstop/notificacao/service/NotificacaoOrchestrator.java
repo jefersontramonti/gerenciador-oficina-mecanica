@@ -209,18 +209,35 @@ public class NotificacaoOrchestrator {
                 String assunto = templateService.processarAssunto(template, variaveis);
                 String corpo = templateService.processarCorpo(template, variaveis);
 
-                // Se tem PDF, envia com anexo
+                // Se tem PDF, envia com anexo e historico
                 if (pdfBytes != null && evento == EventoNotificacao.OS_ENTREGUE) {
-                    emailService.enviarComPdf(destinatarioEmail, assunto, corpo, pdfBytes, pdfFileName);
+                    emailService.enviarComPdfEHistorico(
+                        destinatarioEmail,
+                        nomeDestinatario,
+                        assunto,
+                        corpo,
+                        pdfBytes,
+                        pdfFileName,
+                        evento,
+                        variaveis,
+                        ordemServicoId,
+                        clienteId,
+                        null // automatico
+                    );
                     log.info("Email com PDF enviado para {} (evento: {})", destinatarioEmail, evento);
                 } else {
-                    var request = com.pitstop.notificacao.dto.NotificacaoRequest.builder()
-                        .tipo(TipoNotificacao.EMAIL)
-                        .destinatario(destinatarioEmail)
-                        .assunto(assunto)
-                        .mensagem(corpo)
-                        .build();
-                    emailService.enviar(request);
+                    // Envia com historico
+                    emailService.enviarComHistorico(
+                        destinatarioEmail,
+                        nomeDestinatario,
+                        assunto,
+                        corpo,
+                        evento,
+                        variaveis,
+                        ordemServicoId,
+                        clienteId,
+                        null // automatico
+                    );
                     log.info("Email enviado para {} (evento: {})", destinatarioEmail, evento);
                 }
             } catch (Exception e) {
@@ -425,20 +442,32 @@ public class NotificacaoOrchestrator {
     ) {
         String assunto = renderizarAssunto(request.evento(), request.variaveis(), oficinaId);
 
-        var emailRequest = com.pitstop.notificacao.dto.NotificacaoRequest.builder()
-            .tipo(TipoNotificacao.EMAIL)
-            .destinatario(request.destinatario())
-            .assunto(assunto)
-            .mensagem(corpo)
-            .build();
-        emailService.enviar(emailRequest);
-
-        // Nota: emailService nao retorna ID ainda, precisaria refatorar
-        return EnviarNotificacaoResponse.ResultadoCanal.sucesso(
-            TipoNotificacao.EMAIL,
-            UUID.randomUUID(), // Placeholder
-            "email-sent"
+        // Envia com historico para rastreamento
+        HistoricoNotificacao historico = emailService.enviarComHistorico(
+            request.destinatario(),
+            request.nomeDestinatario(),
+            assunto,
+            corpo,
+            request.evento(),
+            request.variaveis(),
+            request.ordemServicoId(),
+            request.clienteId(),
+            request.usuarioId()
         );
+
+        if (historico.getStatus() == StatusNotificacao.ENVIADO) {
+            return EnviarNotificacaoResponse.ResultadoCanal.sucesso(
+                TipoNotificacao.EMAIL,
+                historico.getId(),
+                historico.getIdExterno()
+            );
+        } else {
+            return EnviarNotificacaoResponse.ResultadoCanal.falha(
+                TipoNotificacao.EMAIL,
+                historico.getId(),
+                historico.getErroMensagem()
+            );
+        }
     }
 
     private EnviarNotificacaoResponse.ResultadoCanal enviarWhatsApp(

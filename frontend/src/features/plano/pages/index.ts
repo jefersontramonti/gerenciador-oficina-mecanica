@@ -1,0 +1,1 @@
+export { MeuPlanoPage } from './MeuPlanoPage';

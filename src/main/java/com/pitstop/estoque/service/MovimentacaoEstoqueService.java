@@ -9,6 +9,7 @@ import com.pitstop.estoque.exception.PecaNotFoundException;
 import com.pitstop.estoque.repository.MovimentacaoEstoqueRepository;
 import com.pitstop.estoque.repository.PecaRepository;
 import com.pitstop.ordemservico.domain.ItemOS;
+import com.pitstop.ordemservico.domain.OrigemPeca;
 import com.pitstop.ordemservico.domain.TipoItem;
 import com.pitstop.shared.security.tenant.TenantContext;
 import lombok.RequiredArgsConstructor;
@@ -270,17 +271,34 @@ public class MovimentacaoEstoqueService {
 
         UUID oficinaId = TenantContext.getTenantId();
 
-        // Filtra apenas itens do tipo PECA com pecaId preenchido
+        // Filtra apenas itens do tipo PECA com origem ESTOQUE (peças do inventário)
+        // Peças AVULSA e CLIENTE não afetam o estoque da oficina
         List<ItemOS> itensPeca = itens.stream()
-                .filter(item -> item.getTipo() == TipoItem.PECA && item.getPecaId() != null)
+                .filter(item -> item.getTipo() == TipoItem.PECA)
+                .filter(item -> item.getOrigemPeca() == OrigemPeca.ESTOQUE)
+                .filter(item -> item.getPecaId() != null)
                 .toList();
 
         if (itensPeca.isEmpty()) {
-            log.info("OS {} não possui itens de peça com estoque controlado", ordemServicoId);
+            log.info("OS {} não possui itens de peça do ESTOQUE para baixar", ordemServicoId);
             return List.of();
         }
 
-        log.info("Processando {} itens de peça para baixa de estoque", itensPeca.size());
+        // Conta peças por origem para log informativo
+        long totalPecas = itens.stream()
+                .filter(item -> item.getTipo() == TipoItem.PECA)
+                .count();
+        long pecasAvulsas = itens.stream()
+                .filter(item -> item.getTipo() == TipoItem.PECA)
+                .filter(item -> item.getOrigemPeca() == OrigemPeca.AVULSA)
+                .count();
+        long pecasCliente = itens.stream()
+                .filter(item -> item.getTipo() == TipoItem.PECA)
+                .filter(item -> item.getOrigemPeca() == OrigemPeca.CLIENTE)
+                .count();
+
+        log.info("OS {}: {} peças do ESTOQUE para baixar (total: {} peças, {} avulsas, {} do cliente)",
+                ordemServicoId, itensPeca.size(), totalPecas, pecasAvulsas, pecasCliente);
 
         // FASE 1: Valida estoque de TODAS as peças ANTES de baixar
         for (ItemOS item : itensPeca) {

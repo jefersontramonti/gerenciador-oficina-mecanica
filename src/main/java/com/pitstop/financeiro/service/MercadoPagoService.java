@@ -48,7 +48,7 @@ public class MercadoPagoService {
     @Value("${app.base-url:http://localhost:8080}")
     private String baseUrl;
 
-    @Value("${app.frontend-url:http://localhost:5173}")
+    @Value("${app.frontend.url:http://localhost:5173}")
     private String frontendUrl;
 
     /**
@@ -336,13 +336,35 @@ public class MercadoPagoService {
 
     /**
      * Cria o pagamento local quando o pagamento online é aprovado.
+     * Usa verificação no banco para evitar duplicação em caso de chamadas concorrentes.
      */
-    private void criarPagamentoLocal(PagamentoOnline po, Payment payment) {
+    private synchronized void criarPagamentoLocal(PagamentoOnline po, Payment payment) {
         log.info("Criando pagamento local para pagamento online {}", po.getId());
 
         try {
+            // Recarregar o pagamento online para verificar se já foi processado (evita race condition)
+            PagamentoOnline poAtualizado = pagamentoOnlineRepository.findById(po.getId()).orElse(po);
+            if (poAtualizado.getPagamentoId() != null) {
+                log.info("Pagamento local já existe para pagamento online {} - ID: {}", po.getId(), poAtualizado.getPagamentoId());
+                return; // Pagamento já foi criado por outra thread/requisição
+            }
+
             // Garantir que o TenantContext está definido com a oficina do pagamento online
             UUID oficinaId = po.getOficina() != null ? po.getOficina().getId() : null;
+
+            // Verificar também se já existe um pagamento para esta OS com o mesmo ID externo do MP
+            String observacaoEsperada = "Pagamento online via Mercado Pago - ID: " + payment.getId();
+            if (oficinaId != null) {
+                boolean pagamentoJaExiste = pagamentoRepository.findByOficinaIdAndOrdemServicoId(oficinaId, po.getOrdemServicoId())
+                    .stream()
+                    .anyMatch(p -> p.getObservacao() != null && p.getObservacao().contains("ID: " + payment.getId()));
+
+                if (pagamentoJaExiste) {
+                    log.warn("Pagamento com ID MP {} já existe para OS {} - ignorando duplicação",
+                        payment.getId(), po.getOrdemServicoId());
+                    return;
+                }
+            }
             if (oficinaId != null && !TenantContext.isSet()) {
                 TenantContext.setTenantId(oficinaId);
             }
@@ -364,7 +386,7 @@ public class MercadoPagoService {
                 .dataPagamento(po.getDataAprovacao() != null
                     ? po.getDataAprovacao().toLocalDate()
                     : java.time.LocalDate.now())
-                .observacao("Pagamento online via Mercado Pago - ID: " + payment.getId())
+                .observacao(observacaoEsperada)
                 .build();
 
             // Definir oficina explicitamente

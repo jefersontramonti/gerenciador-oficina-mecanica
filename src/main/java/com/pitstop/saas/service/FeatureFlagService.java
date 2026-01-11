@@ -347,6 +347,152 @@ public class FeatureFlagService {
     }
 
     /**
+     * Retorna informações completas do plano da oficina para a página "Meu Plano".
+     * Inclui plano atual, features habilitadas, e features do próximo plano.
+     */
+    @Transactional(readOnly = true)
+    public MeuPlanoDTO getMeuPlano(UUID oficinaId) {
+        Oficina oficina = oficinaRepository.findById(oficinaId)
+                .orElseThrow(() -> new ResourceNotFoundException("Oficina não encontrada"));
+
+        PlanoAssinatura planoAtual = oficina.getPlano();
+        List<FeatureFlag> allFlags = featureFlagRepository.findAllOrderByCategoriaAndNome();
+
+        // Construir lista de features habilitadas
+        List<MeuPlanoDTO.FeatureInfo> featuresHabilitadas = new ArrayList<>();
+        List<MeuPlanoDTO.FeatureInfo> featuresProximoPlano = new ArrayList<>();
+
+        // Determinar próximo plano
+        PlanoAssinatura proximoPlano = getProximoPlano(planoAtual);
+
+        for (FeatureFlag flag : allFlags) {
+            if (!flag.isAtivo()) continue;
+
+            boolean habilitada = isEnabled(flag.getCodigo(), oficinaId);
+            String disponivelNoPlano = null;
+
+            if (!habilitada && proximoPlano != null) {
+                // Verificar se está disponível no próximo plano
+                if (Boolean.TRUE.equals(flag.getHabilitadoGlobal()) ||
+                    flag.isHabilitadoParaPlano(proximoPlano.name())) {
+                    disponivelNoPlano = proximoPlano.getNome();
+                }
+            }
+
+            MeuPlanoDTO.FeatureInfo featureInfo = new MeuPlanoDTO.FeatureInfo(
+                flag.getCodigo(),
+                flag.getNome(),
+                flag.getDescricao(),
+                flag.getCategoria(),
+                habilitada,
+                disponivelNoPlano
+            );
+
+            if (habilitada) {
+                featuresHabilitadas.add(featureInfo);
+            } else if (disponivelNoPlano != null) {
+                featuresProximoPlano.add(featureInfo);
+            }
+        }
+
+        // Calcular dias restantes do trial
+        Integer diasRestantesTrial = null;
+        if (oficina.getStatus() == com.pitstop.oficina.domain.StatusOficina.TRIAL &&
+            oficina.getDataVencimentoPlano() != null) {
+            long dias = java.time.temporal.ChronoUnit.DAYS.between(
+                java.time.LocalDate.now(), oficina.getDataVencimentoPlano());
+            diasRestantesTrial = (int) Math.max(0, dias);
+        }
+
+        // Info do plano atual
+        MeuPlanoDTO.PlanoInfo planoInfo = new MeuPlanoDTO.PlanoInfo(
+            planoAtual.name(),
+            planoAtual.getNome(),
+            getPlanoDescricao(planoAtual),
+            oficina.getValorMensalidade(),
+            oficina.getStatus(),
+            oficina.getDataVencimentoPlano(),
+            diasRestantesTrial,
+            planoAtual.getMaxUsuarios(),
+            planoAtual.getMaxOrdensServico(),
+            planoAtual.getMaxClientes(),
+            planoAtual.isUsuariosIlimitados(),
+            planoAtual.isEmiteNotaFiscal(),
+            planoAtual.isWhatsappAutomatizado(),
+            planoAtual.isManutencaoPreventiva(),
+            planoAtual.isAnexoImagensDocumentos()
+        );
+
+        // Info do próximo plano (se existir)
+        MeuPlanoDTO.PlanoInfo proximoPlanoInfo = null;
+        if (proximoPlano != null) {
+            proximoPlanoInfo = buildPlanoInfo(proximoPlano, null, null, null);
+        }
+
+        // Todos os planos disponíveis para comparação
+        List<MeuPlanoDTO.PlanoInfo> todosPlanos = new ArrayList<>();
+        for (PlanoAssinatura p : PlanoAssinatura.values()) {
+            boolean isPlanoAtual = p == planoAtual;
+            todosPlanos.add(buildPlanoInfo(
+                p,
+                isPlanoAtual ? oficina.getStatus() : null,
+                isPlanoAtual ? oficina.getDataVencimentoPlano() : null,
+                isPlanoAtual ? diasRestantesTrial : null
+            ));
+        }
+
+        return new MeuPlanoDTO(
+            planoInfo,
+            todosPlanos,
+            featuresHabilitadas,
+            proximoPlanoInfo,
+            featuresProximoPlano,
+            featuresHabilitadas.size(),
+            (int) allFlags.stream().filter(FeatureFlag::isAtivo).count()
+        );
+    }
+
+    private MeuPlanoDTO.PlanoInfo buildPlanoInfo(
+            PlanoAssinatura plano,
+            com.pitstop.oficina.domain.StatusOficina status,
+            java.time.LocalDate dataVencimento,
+            Integer diasRestantesTrial) {
+        return new MeuPlanoDTO.PlanoInfo(
+            plano.name(),
+            plano.getNome(),
+            getPlanoDescricao(plano),
+            plano.getValorMensal(),
+            status,
+            dataVencimento,
+            diasRestantesTrial,
+            plano.getMaxUsuarios(),
+            plano.getMaxOrdensServico(),
+            plano.getMaxClientes(),
+            plano.isUsuariosIlimitados(),
+            plano.isEmiteNotaFiscal(),
+            plano.isWhatsappAutomatizado(),
+            plano.isManutencaoPreventiva(),
+            plano.isAnexoImagensDocumentos()
+        );
+    }
+
+    private PlanoAssinatura getProximoPlano(PlanoAssinatura planoAtual) {
+        return switch (planoAtual) {
+            case ECONOMICO -> PlanoAssinatura.PROFISSIONAL;
+            case PROFISSIONAL -> PlanoAssinatura.TURBINADO;
+            case TURBINADO -> null; // Já está no plano máximo
+        };
+    }
+
+    private String getPlanoDescricao(PlanoAssinatura plano) {
+        return switch (plano) {
+            case ECONOMICO -> "Ideal para oficinas iniciantes. Funcionalidades essenciais para gerenciar seu negócio.";
+            case PROFISSIONAL -> "Para oficinas em crescimento. Recursos avançados e integrações.";
+            case TURBINADO -> "Solução completa para oficinas estabelecidas. Todos os recursos disponíveis.";
+        };
+    }
+
+    /**
      * Retorna estatísticas de uma feature flag.
      */
     @Transactional(readOnly = true)

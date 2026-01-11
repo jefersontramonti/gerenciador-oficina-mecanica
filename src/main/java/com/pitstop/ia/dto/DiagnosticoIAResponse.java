@@ -11,8 +11,8 @@ public record DiagnosticoIAResponse(
         List<CausaPossivel> causasPossiveis,
         List<String> acoesRecomendadas,
         List<PecaProvavel> pecasProvaveis,
-        String estimativaTempoReparo,
-        FaixaCusto custoEstimado,
+        String estimativaTempo,
+        FaixaCusto faixaCusto,
         MetadadosDiagnostico metadados
 ) {
     /**
@@ -29,7 +29,7 @@ public record DiagnosticoIAResponse(
      */
     public record PecaProvavel(
             String nome,
-            String codigo,
+            String codigoReferencia,
             Urgencia urgencia,
             BigDecimal custoEstimado
     ) {}
@@ -48,7 +48,7 @@ public record DiagnosticoIAResponse(
      */
     public record MetadadosDiagnostico(
             Origem origem,
-            String modeloUsado,
+            String modeloUtilizado,
             Integer tokensConsumidos,
             BigDecimal custoEstimado,
             Long tempoProcessamentoMs

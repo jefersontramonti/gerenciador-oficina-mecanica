@@ -84,7 +84,7 @@ export const STATUS_LABELS: Record<StatusOS, string> = {
 /**
  * Ações disponíveis por status
  */
-export type ActionType = 'aprovar' | 'iniciar' | 'finalizar' | 'entregar' | 'cancelar' | 'editar';
+export type ActionType = 'aprovar' | 'iniciar' | 'aguardarPeca' | 'retomar' | 'finalizar' | 'entregar' | 'cancelar' | 'editar';
 
 export interface ActionConfig {
   type: ActionType;
@@ -144,12 +144,31 @@ export const getAvailableActions = (
     });
   }
 
-  // Iniciar (APROVADO → EM_ANDAMENTO)
+  // Iniciar (APROVADO → EM_ANDAMENTO) ou Retomar (AGUARDANDO_PECA → EM_ANDAMENTO)
   if (canTransitionTo(currentStatus, StatusOS.EM_ANDAMENTO)) {
+    if (currentStatus === StatusOS.AGUARDANDO_PECA) {
+      actions.push({
+        type: 'retomar',
+        label: 'Retomar Serviço',
+        variant: 'primary',
+        requiredRoles: ['ADMIN', 'GERENTE', 'MECANICO'],
+      });
+    } else {
+      actions.push({
+        type: 'iniciar',
+        label: 'Iniciar Serviço',
+        variant: 'primary',
+        requiredRoles: ['ADMIN', 'GERENTE', 'MECANICO'],
+      });
+    }
+  }
+
+  // Aguardar Peça (EM_ANDAMENTO → AGUARDANDO_PECA)
+  if (canTransitionTo(currentStatus, StatusOS.AGUARDANDO_PECA)) {
     actions.push({
-      type: 'iniciar',
-      label: 'Iniciar Serviço',
-      variant: 'primary',
+      type: 'aguardarPeca',
+      label: 'Aguardar Peça',
+      variant: 'warning',
       requiredRoles: ['ADMIN', 'GERENTE', 'MECANICO'],
     });
   }
@@ -240,6 +259,8 @@ export const getConfirmationMessage = (action: ActionType): string => {
   const messages: Record<ActionType, string> = {
     aprovar: 'Tem certeza que deseja aprovar este orçamento?',
     iniciar: 'Tem certeza que deseja iniciar este serviço?',
+    aguardarPeca: '', // Modal vai pedir descrição da peça
+    retomar: 'Tem certeza que deseja retomar a execução do serviço?',
     finalizar:
       'Tem certeza que deseja finalizar este serviço? Esta ação irá baixar as peças do estoque.',
     entregar:

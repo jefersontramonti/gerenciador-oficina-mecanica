@@ -166,6 +166,14 @@ public class Oficina extends AuditableEntity {
     @Column(name = "taxa_desconto_maxima", precision = 5, scale = 2)
     private BigDecimal taxaDescontoMaxima;
 
+    /**
+     * Valor por hora de mão de obra da oficina.
+     * Usado no modelo de cobrança POR_HORA das ordens de serviço.
+     * Valor padrão de R$ 80,00 é definido no banco de dados (DEFAULT 80.00).
+     */
+    @Column(name = "valor_hora", precision = 10, scale = 2)
+    private BigDecimal valorHora;
+
     // =====================================
     // PLANO E BILLING
     // =====================================

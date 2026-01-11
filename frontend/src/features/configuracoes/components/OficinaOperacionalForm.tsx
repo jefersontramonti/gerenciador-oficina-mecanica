@@ -13,7 +13,9 @@ import {
   Loader2,
   Save,
   CalendarDays,
+  DollarSign,
 } from 'lucide-react';
+import { showSuccess, showError } from '@/shared/utils/notifications';
 import { useOficina, useUpdateOficinaOperacional, useCurrentOficinaId } from '../hooks/useOficina';
 import { oficinaOperacionalSchema, type OficinaOperacionalFormData } from '../utils/validation';
 import {
@@ -51,6 +53,7 @@ export const OficinaOperacionalForm = () => {
       aceitaAgendamentoOnline: false,
       tempoMedioAtendimento: undefined,
       observacoes: '',
+      valorHora: undefined,
       website: '',
       facebook: '',
       instagram: '',
@@ -83,6 +86,7 @@ export const OficinaOperacionalForm = () => {
         aceitaAgendamentoOnline: info?.aceitaAgendamentoOnline || false,
         tempoMedioAtendimento: info?.tempoMedioAtendimento,
         observacoes: info?.observacoes || '',
+        valorHora: oficina.valorHora,
         website: redes?.website || '',
         facebook: redes?.facebook || '',
         instagram: redes?.instagram || '',
@@ -121,33 +125,47 @@ export const OficinaOperacionalForm = () => {
   const onSubmit = async (data: OficinaOperacionalFormData) => {
     if (!oficinaId) return;
 
-    await updateMutation.mutateAsync({
-      id: oficinaId,
-      data: {
-        informacoesOperacionais: {
-          horarioAbertura: data.horarioAbertura || undefined,
-          horarioFechamento: data.horarioFechamento || undefined,
-          diasFuncionamento: data.diasFuncionamento,
-          capacidadeAtendimento: data.capacidadeAtendimento,
-          quantidadeElevadores: data.quantidadeElevadores,
-          especialidades: data.especialidades,
-          marcasAtendidas: data.marcasAtendidas,
-          servicosOferecidos: data.servicosOferecidos,
-          aceitaAgendamentoOnline: data.aceitaAgendamentoOnline,
-          tempoMedioAtendimento: data.tempoMedioAtendimento,
-          observacoes: data.observacoes || undefined,
+    // Helper to convert NaN to undefined
+    const safeNumber = (val: number | undefined | null): number | undefined => {
+      if (val === undefined || val === null) return undefined;
+      if (typeof val === 'number' && isNaN(val)) return undefined;
+      return val;
+    };
+
+    try {
+      await updateMutation.mutateAsync({
+        id: oficinaId,
+        data: {
+          informacoesOperacionais: {
+            horarioAbertura: data.horarioAbertura || undefined,
+            horarioFechamento: data.horarioFechamento || undefined,
+            diasFuncionamento: data.diasFuncionamento,
+            capacidadeAtendimento: safeNumber(data.capacidadeAtendimento),
+            quantidadeElevadores: safeNumber(data.quantidadeElevadores),
+            especialidades: data.especialidades,
+            marcasAtendidas: data.marcasAtendidas,
+            servicosOferecidos: data.servicosOferecidos,
+            aceitaAgendamentoOnline: data.aceitaAgendamentoOnline,
+            tempoMedioAtendimento: safeNumber(data.tempoMedioAtendimento),
+            observacoes: data.observacoes || undefined,
+          },
+          redesSociais: {
+            website: data.website || undefined,
+            facebook: data.facebook || undefined,
+            instagram: data.instagram || undefined,
+            youtube: data.youtube || undefined,
+            linkedin: data.linkedin || undefined,
+            twitter: data.twitter || undefined,
+            tiktok: data.tiktok || undefined,
+          },
+          valorHora: safeNumber(data.valorHora),
         },
-        redesSociais: {
-          website: data.website || undefined,
-          facebook: data.facebook || undefined,
-          instagram: data.instagram || undefined,
-          youtube: data.youtube || undefined,
-          linkedin: data.linkedin || undefined,
-          twitter: data.twitter || undefined,
-          tiktok: data.tiktok || undefined,
-        },
-      },
-    });
+      });
+      showSuccess('Informacoes operacionais salvas com sucesso!');
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : 'Erro ao salvar as alteracoes';
+      showError(errorMessage);
+    }
   };
 
   if (isLoading) {
@@ -239,6 +257,46 @@ export const OficinaOperacionalForm = () => {
               </button>
             ))}
           </div>
+        </div>
+      </div>
+
+      {/* Valor/Hora de Mao de Obra */}
+      <div className="space-y-4">
+        <h3 className="flex items-center gap-2 text-lg font-medium text-gray-900 dark:text-white">
+          <DollarSign className="h-5 w-5" />
+          Mao de Obra
+        </h3>
+
+        <div className="max-w-xs">
+          <label
+            htmlFor="valorHora"
+            className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300"
+          >
+            Valor/Hora (R$)
+          </label>
+          <div className="relative">
+            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500">
+              R$
+            </span>
+            <input
+              id="valorHora"
+              type="number"
+              min="0"
+              max="10000"
+              step="0.01"
+              placeholder="80.00"
+              className="w-full rounded-lg border border-gray-300 py-2 pl-10 pr-3 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 dark:border-gray-600 dark:bg-gray-900 dark:text-white"
+              {...register('valorHora', { valueAsNumber: true })}
+            />
+          </div>
+          <p className="mt-1 text-xs text-gray-500">
+            Valor cobrado por hora de mao de obra. Usado no modelo de cobranca por hora.
+          </p>
+          {errors.valorHora && (
+            <p className="mt-1 text-sm text-red-600 dark:text-red-400">
+              {errors.valorHora.message}
+            </p>
+          )}
         </div>
       </div>
 

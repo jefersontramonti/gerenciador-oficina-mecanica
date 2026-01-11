@@ -93,12 +93,22 @@ public class ItemOS implements Serializable {
 
     /**
      * Identificador da peça (FK para tabela pecas).
-     * Obrigatório se tipo = PECA, nullable se tipo = SERVICO.
-     *
-     * <p>Nota: A FK no banco será criada quando a tabela pecas for implementada.</p>
+     * Obrigatório se tipo = PECA e origemPeca = ESTOQUE.
+     * Nullable para SERVICO ou peças avulsas/cliente.
      */
     @Column(name = "peca_id")
     private UUID pecaId;
+
+    /**
+     * Origem da peça (ESTOQUE, AVULSA, CLIENTE).
+     * Obrigatório para itens do tipo PECA.
+     * - ESTOQUE: Peça do inventário, gera baixa automática
+     * - AVULSA: Peça comprada externamente, sem controle de estoque
+     * - CLIENTE: Peça fornecida pelo cliente, sem controle de estoque
+     */
+    @Enumerated(EnumType.STRING)
+    @Column(name = "origem_peca", length = 20)
+    private OrigemPeca origemPeca;
 
     /**
      * Descrição do item (nome da peça ou serviço).
@@ -180,14 +190,77 @@ public class ItemOS implements Serializable {
     }
 
     /**
-     * Valida se o item de tipo PECA possui pecaId preenchido.
+     * Valida regras de negócio para itens de peça conforme a origem.
      *
-     * @throws IllegalStateException se tipo = PECA e pecaId for nulo
+     * <p>Regras:</p>
+     * <ul>
+     *   <li>PECA + ESTOQUE: pecaId obrigatório</li>
+     *   <li>PECA + AVULSA/CLIENTE: descrição detalhada obrigatória (mín 10 chars)</li>
+     * </ul>
+     *
+     * @throws IllegalStateException se regras não forem atendidas
      */
     public void validarPecaObrigatoria() {
-        if (this.tipo == TipoItem.PECA && this.pecaId == null) {
-            throw new IllegalStateException("Item do tipo PECA deve ter pecaId informado");
+        if (this.tipo != TipoItem.PECA) {
+            return; // Não é peça, nada a validar
         }
+
+        // Para peças, origemPeca deve ser definida
+        if (this.origemPeca == null) {
+            throw new IllegalStateException("Item do tipo PECA deve ter origemPeca informada (ESTOQUE, AVULSA ou CLIENTE)");
+        }
+
+        // Peça do estoque requer pecaId
+        if (this.origemPeca == OrigemPeca.ESTOQUE && this.pecaId == null) {
+            throw new IllegalStateException("Peça do ESTOQUE deve ter pecaId informado");
+        }
+
+        // Peça avulsa/cliente requer descrição detalhada
+        if (this.origemPeca.isExterna()) {
+            if (this.descricao == null || this.descricao.trim().length() < 10) {
+                throw new IllegalStateException(
+                    "Peça " + this.origemPeca.getDisplayName() + " requer descrição detalhada (mínimo 10 caracteres)"
+                );
+            }
+        }
+    }
+
+    // ===== MÉTODOS HELPER PARA ORIGEM DA PEÇA =====
+
+    /**
+     * Verifica se este item é uma peça do estoque (gera baixa automática).
+     *
+     * @return true se tipo=PECA e origemPeca=ESTOQUE
+     */
+    public boolean isPecaDoEstoque() {
+        return this.tipo == TipoItem.PECA && this.origemPeca == OrigemPeca.ESTOQUE;
+    }
+
+    /**
+     * Verifica se este item é uma peça avulsa (comprada externamente).
+     *
+     * @return true se tipo=PECA e origemPeca=AVULSA
+     */
+    public boolean isPecaAvulsa() {
+        return this.tipo == TipoItem.PECA && this.origemPeca == OrigemPeca.AVULSA;
+    }
+
+    /**
+     * Verifica se este item é uma peça fornecida pelo cliente.
+     *
+     * @return true se tipo=PECA e origemPeca=CLIENTE
+     */
+    public boolean isPecaCliente() {
+        return this.tipo == TipoItem.PECA && this.origemPeca == OrigemPeca.CLIENTE;
+    }
+
+    /**
+     * Verifica se este item deve gerar movimentação de estoque.
+     *
+     * @return true se tipo=PECA, origemPeca=ESTOQUE e pecaId preenchido
+     */
+    public boolean deveGerarMovimentacaoEstoque() {
+        return isPecaDoEstoque() && this.pecaId != null;
     }
 
     /**

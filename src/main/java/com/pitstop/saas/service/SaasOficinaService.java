@@ -130,10 +130,17 @@ public class SaasOficinaService {
         Long totalOrdensServico = countByOficina("ordem_servico", id);
         Long totalClientes = countByOficina("clientes", id);
 
+        // Extract contact info
+        String email = oficina.getContato() != null ? oficina.getContato().getEmail() : null;
+        String telefone = oficina.getContato() != null ? oficina.getContato().getTelefoneCelular() : null;
+
         return new OficinaResumoDTO(
             oficina.getId(),
             oficina.getNomeFantasia(),
+            oficina.getRazaoSocial(),
             oficina.getCnpjCpf(),
+            email,
+            telefone,
             oficina.getStatus(),
             oficina.getPlano(),
             oficina.getValorMensalidade(),
@@ -490,6 +497,7 @@ public class SaasOficinaService {
             oficina.getCnpjCpf(),
             oficina.getContato() != null ? oficina.getContato().getEmail() : null,
             oficina.getContato() != null ? oficina.getContato().getTelefoneCelular() : null,
+            oficina.getNomeResponsavel(),
             oficina.getStatus(),
             oficina.getPlano(),
             oficina.getValorMensalidade(),

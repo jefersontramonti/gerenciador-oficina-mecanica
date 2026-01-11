@@ -57,6 +57,7 @@ spring:
     redis:
       host: ${REDIS_HOST:localhost}
       port: ${REDIS_PORT:6379}
+      password: ${REDIS_PASSWORD:}
       timeout: 2000ms
       lettuce:
         pool:
@@ -77,6 +78,25 @@ spring:
     user:
       name: ${SPRING_SECURITY_USER_NAME:admin}
       password: ${SPRING_SECURITY_USER_PASSWORD:admin}
+
+  # Email Configuration (SMTP)
+  mail:
+    host: ${MAIL_HOST:smtp.gmail.com}
+    port: ${MAIL_PORT:587}
+    username: ${MAIL_USERNAME:}
+    password: ${MAIL_PASSWORD:}
+    from-name: ${MAIL_FROM_NAME:PitStop}
+    properties:
+      mail:
+        smtp:
+          auth: ${MAIL_SMTP_AUTH:true}
+          ssl:
+            enable: ${MAIL_SMTP_SSL_ENABLE:false}
+          starttls:
+            enable: ${MAIL_SMTP_STARTTLS_ENABLE:true}
+          connectiontimeout: 10000
+          timeout: 10000
+          writetimeout: 10000
 
   # Jackson Configuration (JSON serialization)
   jackson:
@@ -176,6 +196,16 @@ application:
     allowed-headers: Authorization,Content-Type,Accept,X-Requested-With,Cache-Control
     allow-credentials: true
 
+# App Configuration (URLs, integrations)
+app:
+  # Frontend URL for generating links (e.g., quote approval links)
+  # Override with APP_FRONTEND_URL environment variable in production
+  frontend:
+    url: ${APP_FRONTEND_URL:http://localhost:5173}
+  # Backend base URL for webhooks (e.g., Mercado Pago)
+  # Override with APP_BASE_URL environment variable in production
+  base-url: ${APP_BASE_URL:http://localhost:8080}
+
 # PitStop Configuration
 pitstop:
   oficina:
@@ -184,3 +214,29 @@ pitstop:
     endereco: ${PITSTOP_OFICINA_ENDERECO:Rua Exemplo, 123 - São Paulo/SP - CEP 01234-567}
     telefone: ${PITSTOP_OFICINA_TELEFONE:(11) 98765-4321}
     email: ${PITSTOP_OFICINA_EMAIL:contato@pitstop.com.br}
+  evolution:
+    api-url: ${EVOLUTION_API_URL:https://whatsapp.pitstopai.com.br}
+    global-api-key: ${EVOLUTION_API_KEY:}
+
+# Mercado Pago Configuration
+mercadopago:
+  # Webhook secret for signature validation
+  # Get this from: Mercado Pago > Integrações > Webhooks > Configurar
+  # Leave empty in development to skip signature validation
+  webhook:
+    secret: ${MERCADOPAGO_WEBHOOK_SECRET:}
+
+# Rate Limiting Configuration
+ratelimit:
+  # Orcamento (quote approval) - public endpoint
+  orcamento:
+    max-requests: ${RATELIMIT_ORCAMENTO_MAX:20}
+    window-seconds: ${RATELIMIT_ORCAMENTO_WINDOW:3600}
+  # Webhook - external integrations
+  webhook:
+    max-requests: ${RATELIMIT_WEBHOOK_MAX:1000}
+    window-seconds: ${RATELIMIT_WEBHOOK_WINDOW:3600}
+  # Password reset
+  password-reset:
+    max-requests: ${RATELIMIT_PASSWORD_RESET_MAX:5}
+    window-seconds: ${RATELIMIT_PASSWORD_RESET_WINDOW:3600}

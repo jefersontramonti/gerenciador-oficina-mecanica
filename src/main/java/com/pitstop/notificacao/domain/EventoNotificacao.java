@@ -52,6 +52,19 @@ public enum EventoNotificacao {
         TemplateNotificacao.OS_APPROVED
     ),
 
+    OS_REJEITADA(
+        "OS Rejeitada",
+        "Notifica que orçamento foi rejeitado pelo cliente",
+        Map.of(
+            "numeroOS", "Número da OS",
+            "nomeCliente", "Nome do cliente",
+            "motivoRejeicao", "Motivo da rejeição",
+            "dataRejeicao", "Data da rejeição",
+            "nomeOficina", "Nome da oficina"
+        ),
+        TemplateNotificacao.OS_REJECTED
+    ),
+
     OS_EM_ANDAMENTO(
         "OS Em Andamento",
         "Notifica cliente que serviço iniciou",

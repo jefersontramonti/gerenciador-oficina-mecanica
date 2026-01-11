@@ -13,6 +13,7 @@ import {
   Loader2,
   Save,
 } from 'lucide-react';
+import { showSuccess, showError } from '@/shared/utils/notifications';
 import { useOficina, useUpdateOficinaBasico, useCurrentOficinaId } from '../hooks/useOficina';
 import { oficinaBasicoSchema, type OficinaBasicoFormData } from '../utils/validation';
 import { InputMask } from '@/shared/components/forms/InputMask';
@@ -74,28 +75,34 @@ export const OficinaBasicoForm = () => {
   const onSubmit = async (data: OficinaBasicoFormData) => {
     if (!oficinaId) return;
 
-    await updateMutation.mutateAsync({
-      id: oficinaId,
-      data: {
-        nome: data.nome,
-        nomeFantasia: data.nomeFantasia || undefined,
-        tipoPessoa: data.tipoPessoa,
-        contato: {
-          email: data.email || undefined,
-          telefone: data.telefone || undefined,
-          celular: data.celular || undefined,
+    try {
+      await updateMutation.mutateAsync({
+        id: oficinaId,
+        data: {
+          nome: data.nome,
+          nomeFantasia: data.nomeFantasia || undefined,
+          tipoPessoa: data.tipoPessoa,
+          contato: {
+            email: data.email || undefined,
+            telefone: data.telefone || undefined,
+            celular: data.celular || undefined,
+          },
+          endereco: {
+            cep: data.cep || undefined,
+            logradouro: data.logradouro || undefined,
+            numero: data.numero || undefined,
+            complemento: data.complemento || undefined,
+            bairro: data.bairro || undefined,
+            cidade: data.cidade || undefined,
+            estado: data.estado || undefined,
+          },
         },
-        endereco: {
-          cep: data.cep || undefined,
-          logradouro: data.logradouro || undefined,
-          numero: data.numero || undefined,
-          complemento: data.complemento || undefined,
-          bairro: data.bairro || undefined,
-          cidade: data.cidade || undefined,
-          estado: data.estado || undefined,
-        },
-      },
-    });
+      });
+      showSuccess('Dados basicos salvos com sucesso!');
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : 'Erro ao salvar os dados';
+      showError(errorMessage);
+    }
   };
 
   if (isLoading) {

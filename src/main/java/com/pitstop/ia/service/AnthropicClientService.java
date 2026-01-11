@@ -362,10 +362,53 @@ public class AnthropicClientService {
         }
     }
 
-    private BigDecimal calcularCusto(String modelo, int tokens) {
-        // Preços aproximados por 1M tokens (2024)
-        double precoPorMilhao = modelo.contains("haiku") ? 0.25 : 3.0;
-        return BigDecimal.valueOf(tokens * precoPorMilhao / 1_000_000);
+    /**
+     * Calcula custo estimado baseado nos preços reais da API Anthropic (Janeiro 2025).
+     *
+     * Preços por 1M tokens:
+     * - Claude 3.5 Haiku:  Input $1.00, Output $5.00
+     * - Claude 3.5 Sonnet: Input $3.00, Output $15.00
+     * - Claude Opus 4:     Input $15.00, Output $75.00
+     *
+     * @param modelo Nome do modelo usado
+     * @param tokensInput Tokens de entrada (prompt)
+     * @param tokensOutput Tokens de saída (resposta)
+     * @return Custo em USD
+     */
+    private BigDecimal calcularCusto(String modelo, int tokensInput, int tokensOutput) {
+        double inputPorMilhao;
+        double outputPorMilhao;
+
+        String modeloLower = modelo.toLowerCase();
+
+        if (modeloLower.contains("opus")) {
+            // Claude Opus 4
+            inputPorMilhao = 15.00;
+            outputPorMilhao = 75.00;
+        } else if (modeloLower.contains("sonnet")) {
+            // Claude 3.5 Sonnet
+            inputPorMilhao = 3.00;
+            outputPorMilhao = 15.00;
+        } else {
+            // Claude 3.5 Haiku (default)
+            inputPorMilhao = 1.00;
+            outputPorMilhao = 5.00;
+        }
+
+        double custoInput = tokensInput * inputPorMilhao / 1_000_000;
+        double custoOutput = tokensOutput * outputPorMilhao / 1_000_000;
+
+        return BigDecimal.valueOf(custoInput + custoOutput);
+    }
+
+    /**
+     * Calcula custo estimado (versão simplificada com estimativa 60/40 input/output).
+     */
+    private BigDecimal calcularCusto(String modelo, int tokensTotal) {
+        // Estimativa: 60% input, 40% output (típico para diagnósticos)
+        int tokensInput = (int) (tokensTotal * 0.6);
+        int tokensOutput = (int) (tokensTotal * 0.4);
+        return calcularCusto(modelo, tokensInput, tokensOutput);
     }
 
     private String truncar(String texto, int max) {

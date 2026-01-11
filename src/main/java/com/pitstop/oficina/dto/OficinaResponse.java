@@ -30,6 +30,7 @@ import java.util.UUID;
  * @param redesSociais Redes sociais
  * @param dadosBancarios Dados bancários
  * @param logoUrl URL da logo
+ * @param valorHora Valor/hora de mão de obra
  * @param createdAt Data de criação do registro
  * @param updatedAt Data da última atualização
  *
@@ -57,6 +58,7 @@ public record OficinaResponse(
     InformacoesOperacionais informacoesOperacionais,
     RedesSociais redesSociais,
     DadosBancarios dadosBancarios,
-    String logoUrl
+    String logoUrl,
+    BigDecimal valorHora
 ) {
 }

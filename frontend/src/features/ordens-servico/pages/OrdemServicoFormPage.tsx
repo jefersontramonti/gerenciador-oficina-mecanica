@@ -5,14 +5,15 @@
 
 import { useEffect } from 'react';
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
-import { useForm, useFieldArray, Controller } from 'react-hook-form';
+import { useForm, useFieldArray, Controller, type Resolver } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { ArrowLeft, Save, Plus, Trash2, Package, AlertCircle } from 'lucide-react';
+import { ArrowLeft, Save, Plus, Trash2, Package, AlertCircle, Clock, DollarSign } from 'lucide-react';
 import { showError } from '@/shared/utils/notifications';
 import { useOrdemServico, useCreateOrdemServico, useUpdateOrdemServico } from '../hooks/useOrdensServico';
+import { useOficina } from '@/features/configuracoes/hooks/useOficina';
 import { ordemServicoFormSchema } from '../utils/validation';
 import { canEdit } from '../utils/statusTransitions';
-import { TipoItem } from '../types';
+import { TipoItem, TipoCobrancaMaoObra, OrigemPeca } from '../types';
 import type { OrdemServicoFormData } from '../utils/validation';
 import { VeiculoAutocomplete } from '../components/VeiculoAutocomplete';
 import { MecanicoSelect } from '../components/MecanicoSelect';
@@ -29,6 +30,7 @@ export const OrdemServicoFormPage = () => {
   const isEditMode = !!actualId;
 
   const { data: ordemServico, isLoading: loadingOS } = useOrdemServico(actualId);
+  const { data: oficina } = useOficina();
   const createMutation = useCreateOrdemServico();
   const updateMutation = useUpdateOrdemServico();
 
@@ -39,17 +41,21 @@ export const OrdemServicoFormPage = () => {
     watch,
     setValue,
     formState: { errors },
-  } = useForm({
-    resolver: zodResolver(ordemServicoFormSchema),
+  } = useForm<OrdemServicoFormData>({
+    resolver: zodResolver(ordemServicoFormSchema) as Resolver<OrdemServicoFormData>,
     defaultValues: {
-      veiculoId: undefined,
-      usuarioId: undefined,
+      veiculoId: undefined as unknown as string,
+      usuarioId: undefined as unknown as string,
       problemasRelatados: '',
       dataAbertura: new Date().toISOString().split('T')[0],
       diagnostico: '',
       observacoes: '',
       dataPrevisao: '',
+      // Modelo híbrido de mão de obra
+      tipoCobrancaMaoObra: TipoCobrancaMaoObra.VALOR_FIXO,
       valorMaoObra: 0,
+      tempoEstimadoHoras: undefined,
+      limiteHorasAprovado: undefined,
       valorPecas: 0,
       valorTotal: 0,
       descontoPercentual: 0,
@@ -86,9 +92,15 @@ export const OrdemServicoFormPage = () => {
   // Watch para cálculos automáticos - observa todo o formulário
   const formValues = watch();
   const itens = formValues.itens || [];
-  const valorMaoObra = formValues.valorMaoObra || 0;
-  const descontoPercentual = formValues.descontoPercentual || 0;
-  const descontoValor = formValues.descontoValor || 0;
+  const tipoCobrancaMaoObra = formValues.tipoCobrancaMaoObra || TipoCobrancaMaoObra.VALOR_FIXO;
+  const valorMaoObra = Number(formValues.valorMaoObra) || 0;
+  const tempoEstimadoHoras = Number(formValues.tempoEstimadoHoras) || 0;
+  const limiteHorasAprovado = Number(formValues.limiteHorasAprovado) || 0;
+  const descontoPercentual = Number(formValues.descontoPercentual) || 0;
+  const descontoValor = Number(formValues.descontoValor) || 0;
+
+  // Valor/hora da oficina (busca da configuração da oficina)
+  const valorHoraOficina = oficina?.valorHora ?? 80; // Default 80 se não configurado
 
   // Cálculos automáticos de valores
   useEffect(() => {
@@ -96,7 +108,7 @@ export const OrdemServicoFormPage = () => {
     const valorPecas = itens
       .filter((item) => item.tipo === TipoItem.PECA)
       .reduce((sum, item) => {
-        const valorItem = (item.quantidade || 0) * (item.valorUnitario || 0) - (item.desconto || 0);
+        const valorItem = (Number(item.quantidade) || 0) * (Number(item.valorUnitario) || 0) - (Number(item.desconto) || 0);
         return sum + valorItem;
       }, 0);
 
@@ -104,12 +116,21 @@ export const OrdemServicoFormPage = () => {
     const valorServicos = itens
       .filter((item) => item.tipo === TipoItem.SERVICO)
       .reduce((sum, item) => {
-        const valorItem = (item.quantidade || 0) * (item.valorUnitario || 0) - (item.desconto || 0);
+        const valorItem = (Number(item.quantidade) || 0) * (Number(item.valorUnitario) || 0) - (Number(item.desconto) || 0);
         return sum + valorItem;
       }, 0);
 
+    // Calcular valor da mão de obra (baseado no modelo)
+    let valorMaoObraCalculado = 0;
+    if (tipoCobrancaMaoObra === TipoCobrancaMaoObra.VALOR_FIXO) {
+      valorMaoObraCalculado = valorMaoObra;
+    } else {
+      // POR_HORA: usar tempo estimado para exibição no orçamento
+      valorMaoObraCalculado = tempoEstimadoHoras * valorHoraOficina;
+    }
+
     // Calcular valor total (mão de obra + peças + serviços)
-    const valorTotal = valorMaoObra + valorPecas + valorServicos;
+    const valorTotal = valorMaoObraCalculado + valorPecas + valorServicos;
 
     // Calcular desconto (prioriza percentual)
     const desconto = descontoPercentual > 0
@@ -134,13 +155,13 @@ export const OrdemServicoFormPage = () => {
     if (descontoPercentual > 0 && descontoValor > 0) {
       setValue('descontoValor', 0, { shouldValidate: false });
     }
-  }, [formValues, setValue]);
+  }, [formValues, setValue, tipoCobrancaMaoObra, tempoEstimadoHoras, valorHoraOficina]);
 
   // Calcular valorTotal de cada item
   useEffect(() => {
     itens.forEach((item, index) => {
       const valorItem =
-        (item.quantidade || 0) * (item.valorUnitario || 0) - (item.desconto || 0);
+        (Number(item.quantidade) || 0) * (Number(item.valorUnitario) || 0) - (Number(item.desconto) || 0);
       const valorCalculado = Math.max(0, valorItem);
 
       if (item.valorTotal !== valorCalculado) {
@@ -180,7 +201,15 @@ export const OrdemServicoFormPage = () => {
       setValue('problemasRelatados', ordemServico.problemasRelatados);
       setValue('diagnostico', ordemServico.diagnostico || '');
       setValue('observacoes', ordemServico.observacoes || '');
+      // Modelo híbrido de mão de obra
+      setValue('tipoCobrancaMaoObra', ordemServico.tipoCobrancaMaoObra || TipoCobrancaMaoObra.VALOR_FIXO);
       setValue('valorMaoObra', ordemServico.valorMaoObra);
+      if (ordemServico.tempoEstimadoHoras) {
+        setValue('tempoEstimadoHoras', ordemServico.tempoEstimadoHoras);
+      }
+      if (ordemServico.limiteHorasAprovado) {
+        setValue('limiteHorasAprovado', ordemServico.limiteHorasAprovado);
+      }
       setValue('descontoPercentual', ordemServico.descontoPercentual);
       setValue('descontoValor', ordemServico.descontoValor);
 
@@ -222,11 +251,16 @@ export const OrdemServicoFormPage = () => {
         diagnostico: data.diagnostico || undefined,
         observacoes: data.observacoes || undefined,
         dataPrevisao: data.dataPrevisao || undefined,
-        valorMaoObra: data.valorMaoObra,
+        // Modelo híbrido de mão de obra
+        tipoCobrancaMaoObra: data.tipoCobrancaMaoObra,
+        valorMaoObra: data.tipoCobrancaMaoObra === TipoCobrancaMaoObra.VALOR_FIXO ? data.valorMaoObra : undefined,
+        tempoEstimadoHoras: data.tipoCobrancaMaoObra === TipoCobrancaMaoObra.POR_HORA ? data.tempoEstimadoHoras : undefined,
+        limiteHorasAprovado: data.tipoCobrancaMaoObra === TipoCobrancaMaoObra.POR_HORA ? data.limiteHorasAprovado : undefined,
         descontoPercentual: data.descontoPercentual || 0,
         descontoValor: data.descontoValor || 0,
         itens: data.itens.map((item) => ({
           tipo: item.tipo,
+          origemPeca: item.tipo === TipoItem.PECA ? (item.origemPeca || OrigemPeca.ESTOQUE) : undefined,
           pecaId: item.pecaId || undefined,
           descricao: item.descricao,
           quantidade: item.quantidade,
@@ -500,12 +534,23 @@ export const OrdemServicoFormPage = () => {
                   </button>
                 </div>
 
-                <div className="grid gap-4 md:grid-cols-6">
+                <div className="grid gap-3 sm:gap-4 grid-cols-2 sm:grid-cols-3 lg:grid-cols-6">
                   {/* Tipo */}
-                  <div className="md:col-span-1">
+                  <div className="col-span-1">
                     <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">Tipo</label>
                     <select
                       {...register(`itens.${index}.tipo`)}
+                      onChange={(e) => {
+                        setValue(`itens.${index}.tipo`, e.target.value as TipoItem);
+                        // Limpar campos relacionados ao mudar tipo
+                        if (e.target.value === TipoItem.SERVICO) {
+                          setValue(`itens.${index}.origemPeca`, undefined);
+                          setValue(`itens.${index}.pecaId`, undefined);
+                        } else {
+                          // Default para ESTOQUE quando muda para PECA
+                          setValue(`itens.${index}.origemPeca`, OrigemPeca.ESTOQUE);
+                        }
+                      }}
                       className="w-full rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 px-3 py-2 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
                     >
                       <option value={TipoItem.SERVICO}>Serviço</option>
@@ -513,9 +558,49 @@ export const OrdemServicoFormPage = () => {
                     </select>
                   </div>
 
+                  {/* Origem da Peça (apenas se tipo = PECA) */}
+                  {watch(`itens.${index}.tipo`) === TipoItem.PECA && (
+                    <div className="col-span-1">
+                      <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">Origem</label>
+                      <select
+                        {...register(`itens.${index}.origemPeca`)}
+                        onChange={(e) => {
+                          const novaOrigem = e.target.value as OrigemPeca;
+                          setValue(`itens.${index}.origemPeca`, novaOrigem, { shouldValidate: true });
+                          // Limpar pecaId se não for do estoque
+                          if (novaOrigem !== OrigemPeca.ESTOQUE) {
+                            setValue(`itens.${index}.pecaId`, undefined);
+                            setValue(`itens.${index}.descricao`, '');
+                            setValue(`itens.${index}.valorUnitario`, 0);
+                          }
+                          // Se for do cliente, zerar valor
+                          if (novaOrigem === OrigemPeca.CLIENTE) {
+                            setValue(`itens.${index}.valorUnitario`, 0);
+                          }
+                        }}
+                        className={`w-full rounded-lg border ${errors.itens?.[index]?.origemPeca ? 'border-red-500 dark:border-red-400' : 'border-gray-300 dark:border-gray-600'} bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 px-3 py-2 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20`}
+                      >
+                        <option value={OrigemPeca.ESTOQUE}>Estoque</option>
+                        <option value={OrigemPeca.AVULSA}>Avulsa</option>
+                        <option value={OrigemPeca.CLIENTE}>Cliente</option>
+                      </select>
+                      {errors.itens?.[index]?.origemPeca ? (
+                        <p className="mt-1 text-sm text-red-500 dark:text-red-400">
+                          {errors.itens[index]?.origemPeca?.message}
+                        </p>
+                      ) : (
+                        <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                          {watch(`itens.${index}.origemPeca`) === OrigemPeca.ESTOQUE && 'Do inventário'}
+                          {watch(`itens.${index}.origemPeca`) === OrigemPeca.AVULSA && 'Compra externa'}
+                          {watch(`itens.${index}.origemPeca`) === OrigemPeca.CLIENTE && 'Cliente trouxe'}
+                        </p>
+                      )}
+                    </div>
+                  )}
+
                   {/* Descrição ou Seleção de Peça */}
-                  <div className="md:col-span-2">
-                    {watch(`itens.${index}.tipo`) === TipoItem.PECA ? (
+                  <div className={watch(`itens.${index}.tipo`) === TipoItem.PECA ? 'col-span-1' : 'col-span-2 sm:col-span-2 lg:col-span-2'}>
+                    {watch(`itens.${index}.tipo`) === TipoItem.PECA && watch(`itens.${index}.origemPeca`) === OrigemPeca.ESTOQUE ? (
                       <Controller
                         name={`itens.${index}.pecaId`}
                         control={control}
@@ -534,6 +619,27 @@ export const OrdemServicoFormPage = () => {
                           />
                         )}
                       />
+                    ) : watch(`itens.${index}.tipo`) === TipoItem.PECA ? (
+                      <>
+                        <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                          Descrição da Peça <span className="text-red-500">*</span>
+                        </label>
+                        <input
+                          type="text"
+                          {...register(`itens.${index}.descricao`)}
+                          className={`w-full rounded-lg border ${errors.itens?.[index]?.descricao ? 'border-red-500 dark:border-red-400' : 'border-gray-300 dark:border-gray-600'} bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 px-3 py-2 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20`}
+                          placeholder="Descreva a peça (mín. 10 caracteres)"
+                        />
+                        {errors.itens?.[index]?.descricao ? (
+                          <p className="mt-1 text-sm text-red-500 dark:text-red-400">
+                            {errors.itens[index]?.descricao?.message}
+                          </p>
+                        ) : (
+                          <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                            Mínimo 10 caracteres para peças avulsas/cliente
+                          </p>
+                        )}
+                      </>
                     ) : (
                       <>
                         <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
@@ -555,7 +661,7 @@ export const OrdemServicoFormPage = () => {
                   </div>
 
                   {/* Quantidade */}
-                  <div className="md:col-span-1">
+                  <div className="col-span-1">
                     <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">Qtd.</label>
                     <input
                       type="number"
@@ -566,7 +672,7 @@ export const OrdemServicoFormPage = () => {
                   </div>
 
                   {/* Valor Unitário */}
-                  <div className="md:col-span-1">
+                  <div className="col-span-1">
                     <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
                       Valor Unit.
                     </label>
@@ -580,7 +686,7 @@ export const OrdemServicoFormPage = () => {
                   </div>
 
                   {/* Desconto */}
-                  <div className="md:col-span-1">
+                  <div className="col-span-1">
                     <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
                       Desconto
                     </label>
@@ -611,23 +717,109 @@ export const OrdemServicoFormPage = () => {
         <div className="rounded-lg bg-white dark:bg-gray-800 p-6 shadow">
           <h2 className="mb-4 text-lg font-semibold text-gray-900 dark:text-gray-100">Valores Financeiros</h2>
           <div className="space-y-4">
-            {/* Valor Mão de Obra */}
-            <div className="grid gap-4 md:grid-cols-2">
-              <div>
-                <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
-                  Valor Mão de Obra (R$)
+            {/* Tipo de Cobrança de Mão de Obra */}
+            <div>
+              <label className="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                Tipo de Cobrança de Mão de Obra
+              </label>
+              <div className="flex flex-col gap-3 sm:flex-row sm:gap-4">
+                <label className={`flex cursor-pointer items-center gap-3 rounded-lg border-2 p-3 sm:p-4 transition-colors ${
+                  tipoCobrancaMaoObra === TipoCobrancaMaoObra.VALOR_FIXO
+                    ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20'
+                    : 'border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 hover:border-gray-400 dark:hover:border-gray-500'
+                }`}>
+                  <input
+                    type="radio"
+                    {...register('tipoCobrancaMaoObra')}
+                    value={TipoCobrancaMaoObra.VALOR_FIXO}
+                    className="h-4 w-4 text-blue-600"
+                  />
+                  <div className="flex items-center gap-2">
+                    <DollarSign className="h-5 w-5 text-gray-600 dark:text-gray-400" />
+                    <div>
+                      <p className="font-medium text-gray-900 dark:text-gray-100">Valor Fixo</p>
+                      <p className="text-xs text-gray-500 dark:text-gray-400">Mão de obra com valor definido</p>
+                    </div>
+                  </div>
                 </label>
-                <input
-                  type="number"
-                  step="0.01"
-                  {...register('valorMaoObra', { valueAsNumber: true })}
-                  className="w-full rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 px-3 py-2 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
-                  min="0"
-                />
-                {errors.valorMaoObra && (
-                  <p className="mt-1 text-sm text-red-500 dark:text-red-400">{errors.valorMaoObra.message}</p>
-                )}
+
+                <label className={`flex cursor-pointer items-center gap-3 rounded-lg border-2 p-3 sm:p-4 transition-colors ${
+                  tipoCobrancaMaoObra === TipoCobrancaMaoObra.POR_HORA
+                    ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20'
+                    : 'border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 hover:border-gray-400 dark:hover:border-gray-500'
+                }`}>
+                  <input
+                    type="radio"
+                    {...register('tipoCobrancaMaoObra')}
+                    value={TipoCobrancaMaoObra.POR_HORA}
+                    className="h-4 w-4 text-blue-600"
+                  />
+                  <div className="flex items-center gap-2">
+                    <Clock className="h-5 w-5 text-gray-600 dark:text-gray-400" />
+                    <div>
+                      <p className="font-medium text-gray-900 dark:text-gray-100">Por Hora</p>
+                      <p className="text-xs text-gray-500 dark:text-gray-400">Calculado por horas trabalhadas</p>
+                    </div>
+                  </div>
+                </label>
               </div>
+            </div>
+
+            {/* Campos de Mão de Obra */}
+            <div className="grid gap-4 md:grid-cols-2">
+              {tipoCobrancaMaoObra === TipoCobrancaMaoObra.VALOR_FIXO ? (
+                <div>
+                  <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                    Valor Mão de Obra (R$) <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    type="number"
+                    step="0.01"
+                    {...register('valorMaoObra', { valueAsNumber: true })}
+                    className="w-full rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 px-3 py-2 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+                    min="0"
+                  />
+                  {errors.valorMaoObra && (
+                    <p className="mt-1 text-sm text-red-500 dark:text-red-400">{errors.valorMaoObra.message}</p>
+                  )}
+                </div>
+              ) : (
+                <>
+                  <div>
+                    <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                      Tempo Estimado (horas) <span className="text-red-500">*</span>
+                    </label>
+                    <input
+                      type="number"
+                      step="0.5"
+                      {...register('tempoEstimadoHoras', { valueAsNumber: true })}
+                      className="w-full rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 px-3 py-2 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+                      min="0.5"
+                      max="100"
+                    />
+                    {errors.tempoEstimadoHoras && (
+                      <p className="mt-1 text-sm text-red-500 dark:text-red-400">{errors.tempoEstimadoHoras.message}</p>
+                    )}
+                  </div>
+
+                  <div>
+                    <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                      Limite de Horas Aprovado <span className="text-red-500">*</span>
+                    </label>
+                    <input
+                      type="number"
+                      step="0.5"
+                      {...register('limiteHorasAprovado', { valueAsNumber: true })}
+                      className="w-full rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 px-3 py-2 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+                      min="0.5"
+                      max="100"
+                    />
+                    {errors.limiteHorasAprovado && (
+                      <p className="mt-1 text-sm text-red-500 dark:text-red-400">{errors.limiteHorasAprovado.message}</p>
+                    )}
+                  </div>
+                </>
+              )}
 
               {/* Valor Peças (calculado) */}
               <div>
@@ -639,13 +831,42 @@ export const OrdemServicoFormPage = () => {
                   value={new Intl.NumberFormat('pt-BR', {
                     style: 'currency',
                     currency: 'BRL',
-                  }).format(watch('valorPecas') || 0)}
+                  }).format(Number(watch('valorPecas')) || 0)}
                   disabled
                   className="w-full rounded-lg border border-gray-300 dark:border-gray-600 bg-gray-100 dark:bg-gray-600 text-gray-900 dark:text-gray-100 px-3 py-2"
                 />
                 <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">Calculado automaticamente</p>
               </div>
             </div>
+
+            {/* Info box para POR_HORA */}
+            {tipoCobrancaMaoObra === TipoCobrancaMaoObra.POR_HORA && (
+              <div className="rounded-lg bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 p-4">
+                <div className="flex items-start gap-3">
+                  <Clock className="h-5 w-5 text-blue-600 dark:text-blue-400 mt-0.5" />
+                  <div className="text-sm">
+                    <p className="font-medium text-blue-900 dark:text-blue-100">Cobrança por Hora</p>
+                    <p className="text-blue-700 dark:text-blue-300 mt-1">
+                      Valor/hora da oficina: <strong>{new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(valorHoraOficina)}</strong>
+                    </p>
+                    <div className="mt-2 grid grid-cols-2 gap-4 text-blue-800 dark:text-blue-200">
+                      <div>
+                        <p className="text-xs text-blue-600 dark:text-blue-400">Estimativa Mínima</p>
+                        <p className="font-semibold">
+                          {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(tempoEstimadoHoras * valorHoraOficina)}
+                        </p>
+                      </div>
+                      <div>
+                        <p className="text-xs text-blue-600 dark:text-blue-400">Limite Aprovado (máx)</p>
+                        <p className="font-semibold">
+                          {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(limiteHorasAprovado * valorHoraOficina)}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
 
             {/* Valor Total (calculado) */}
             <div>
@@ -657,7 +878,7 @@ export const OrdemServicoFormPage = () => {
                 value={new Intl.NumberFormat('pt-BR', {
                   style: 'currency',
                   currency: 'BRL',
-                }).format(watch('valorTotal') || 0)}
+                }).format(Number(watch('valorTotal')) || 0)}
                 disabled
                 className="w-full rounded-lg border border-gray-300 dark:border-gray-600 bg-gray-100 dark:bg-gray-600 text-gray-900 dark:text-gray-100 px-3 py-2 font-medium"
               />
@@ -710,7 +931,7 @@ export const OrdemServicoFormPage = () => {
                 value={new Intl.NumberFormat('pt-BR', {
                   style: 'currency',
                   currency: 'BRL',
-                }).format(watch('valorFinal') || 0)}
+                }).format(Number(watch('valorFinal')) || 0)}
                 disabled
                 className="w-full rounded-lg border-2 border-green-500 dark:border-green-700 bg-green-50 dark:bg-green-900/30 px-3 py-2 text-lg font-bold text-green-900 dark:text-green-400"
               />

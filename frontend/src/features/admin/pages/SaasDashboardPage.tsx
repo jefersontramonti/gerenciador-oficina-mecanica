@@ -78,9 +78,9 @@ export const SaasDashboardPage = () => {
   return (
     <div className="p-6">
       {/* Header */}
-      <div className="mb-6 flex items-center justify-between">
+      <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
+          <h1 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white">
             Painel SaaS
           </h1>
           <p className="mt-1 text-sm text-gray-600 dark:text-gray-400">
@@ -91,7 +91,7 @@ export const SaasDashboardPage = () => {
           <button
             onClick={() => handleRunJob('refresh-stats')}
             disabled={runJobMutation.isPending}
-            className="flex items-center gap-2 rounded-lg border border-gray-300 bg-white px-4 py-2 text-gray-700 hover:bg-gray-50 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700"
+            className="flex items-center justify-center gap-2 rounded-lg border border-gray-300 bg-white px-4 py-2 text-gray-700 hover:bg-gray-50 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700 w-full sm:w-auto"
           >
             <RefreshCw className={`h-4 w-4 ${runJobMutation.isPending ? 'animate-spin' : ''}`} />
             Atualizar

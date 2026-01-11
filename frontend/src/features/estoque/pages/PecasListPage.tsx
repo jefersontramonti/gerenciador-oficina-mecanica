@@ -115,24 +115,24 @@ export const PecasListPage = () => {
   return (
     <div className="p-6">
       {/* Header */}
-      <div className="mb-6 flex items-center justify-between">
+      <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Estoque</h1>
+          <h1 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white">Estoque</h1>
           <p className="mt-1 text-sm text-gray-600 dark:text-gray-400">
             {data?.totalElements || 0} peça(s) cadastrada(s)
           </p>
         </div>
-        <div className="flex gap-2">
+        <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
           <Link
             to="/estoque/alertas"
-            className="flex items-center gap-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 px-4 py-2 text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700"
+            className="flex items-center justify-center gap-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 px-4 py-2 text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700"
           >
             <AlertTriangle className="h-5 w-5" />
             Alertas
           </Link>
           <Link
             to="/estoque/novo"
-            className="flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-white hover:bg-blue-700"
+            className="flex items-center justify-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-white hover:bg-blue-700"
           >
             <Plus className="h-5 w-5" />
             Nova Peça
@@ -412,27 +412,27 @@ export const PecasListPage = () => {
 
       {/* Paginação */}
       {data && data.totalPages > 1 && (
-        <div className="mt-4 flex justify-between items-center">
-          <p className="text-sm text-gray-600 dark:text-gray-400">
+        <div className="mt-4 flex flex-col gap-3 sm:flex-row sm:justify-between sm:items-center">
+          <p className="text-sm text-gray-600 dark:text-gray-400 text-center sm:text-left">
             Mostrando {data.number * data.size + 1} a{' '}
             {Math.min((data.number + 1) * data.size, data.totalElements)} de {data.totalElements}{' '}
             peças
           </p>
-          <div className="flex gap-2">
+          <div className="flex gap-2 justify-center sm:justify-end">
             <button
               disabled={data.first}
               onClick={() => handlePageChange((filters.page || 0) - 1)}
-              className="rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="flex-1 sm:flex-none rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               Anterior
             </button>
-            <span className="flex items-center px-4 py-2 text-sm text-gray-700 dark:text-gray-300">
+            <span className="hidden sm:flex items-center px-4 py-2 text-sm text-gray-700 dark:text-gray-300">
               Página {data.number + 1} de {data.totalPages}
             </span>
             <button
               disabled={data.last}
               onClick={() => handlePageChange((filters.page || 0) + 1)}
-              className="rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="flex-1 sm:flex-none rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               Próxima
             </button>

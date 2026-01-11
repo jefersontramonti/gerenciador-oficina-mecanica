@@ -516,6 +516,111 @@ export const ConfiguracaoIAForm = () => {
         </div>
       )}
 
+      {/* Tabela de Preços */}
+      <div className="rounded-lg border border-gray-200 bg-white p-6 dark:border-gray-700 dark:bg-gray-800">
+        <div className="mb-4 flex items-center">
+          <svg className="h-5 w-5 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+          <h3 className="ml-2 text-lg font-semibold text-gray-900 dark:text-white">
+            Tabela de Preços - API Anthropic (Janeiro 2025)
+          </h3>
+        </div>
+
+        <div className="overflow-x-auto">
+          <table className="w-full text-sm">
+            <thead>
+              <tr className="border-b border-gray-200 dark:border-gray-700">
+                <th className="px-3 py-2 text-left font-medium text-gray-700 dark:text-gray-300">Modelo</th>
+                <th className="px-3 py-2 text-right font-medium text-gray-700 dark:text-gray-300">Input/1M</th>
+                <th className="px-3 py-2 text-right font-medium text-gray-700 dark:text-gray-300">Output/1M</th>
+                <th className="px-3 py-2 text-right font-medium text-gray-700 dark:text-gray-300">Uso Típico*</th>
+                <th className="px-3 py-2 text-left font-medium text-gray-700 dark:text-gray-300">Recomendação</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
+              <tr className="bg-green-50 dark:bg-green-900/20">
+                <td className="px-3 py-3">
+                  <span className="font-medium text-gray-900 dark:text-white">Claude 3.5 Haiku</span>
+                  <span className="ml-2 rounded bg-green-100 px-2 py-0.5 text-xs text-green-700 dark:bg-green-800 dark:text-green-300">
+                    Padrão
+                  </span>
+                </td>
+                <td className="px-3 py-3 text-right font-mono text-gray-700 dark:text-gray-300">$1.00</td>
+                <td className="px-3 py-3 text-right font-mono text-gray-700 dark:text-gray-300">$5.00</td>
+                <td className="px-3 py-3 text-right">
+                  <span className="font-mono text-green-600 dark:text-green-400">~$0.02</span>
+                  <span className="ml-1 text-gray-500">(R$ 0,12)</span>
+                </td>
+                <td className="px-3 py-3 text-green-600 dark:text-green-400">Diagnósticos simples</td>
+              </tr>
+              <tr>
+                <td className="px-3 py-3">
+                  <span className="font-medium text-gray-900 dark:text-white">Claude 3.5 Sonnet</span>
+                  <span className="ml-2 rounded bg-blue-100 px-2 py-0.5 text-xs text-blue-700 dark:bg-blue-800 dark:text-blue-300">
+                    Avançado
+                  </span>
+                </td>
+                <td className="px-3 py-3 text-right font-mono text-gray-700 dark:text-gray-300">$3.00</td>
+                <td className="px-3 py-3 text-right font-mono text-gray-700 dark:text-gray-300">$15.00</td>
+                <td className="px-3 py-3 text-right">
+                  <span className="font-mono text-blue-600 dark:text-blue-400">~$0.06</span>
+                  <span className="ml-1 text-gray-500">(R$ 0,35)</span>
+                </td>
+                <td className="px-3 py-3 text-blue-600 dark:text-blue-400">Problemas complexos</td>
+              </tr>
+              <tr className="bg-purple-50 dark:bg-purple-900/20">
+                <td className="px-3 py-3">
+                  <span className="font-medium text-gray-900 dark:text-white">Claude Opus 4</span>
+                  <span className="ml-2 rounded bg-purple-100 px-2 py-0.5 text-xs text-purple-700 dark:bg-purple-800 dark:text-purple-300">
+                    Premium
+                  </span>
+                </td>
+                <td className="px-3 py-3 text-right font-mono text-gray-700 dark:text-gray-300">$15.00</td>
+                <td className="px-3 py-3 text-right font-mono text-gray-700 dark:text-gray-300">$75.00</td>
+                <td className="px-3 py-3 text-right">
+                  <span className="font-mono text-purple-600 dark:text-purple-400">~$0.30</span>
+                  <span className="ml-1 text-gray-500">(R$ 1,75)</span>
+                </td>
+                <td className="px-3 py-3 text-purple-600 dark:text-purple-400">Casos críticos</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div className="mt-4 rounded-lg bg-gray-50 p-3 dark:bg-gray-700">
+          <p className="text-xs text-gray-600 dark:text-gray-400">
+            <strong>*Uso típico:</strong> Conversa de 10 mensagens (~5.000 tokens input + ~3.000 tokens output).
+            Valores em R$ com câmbio aproximado de $1 = R$ 5,80.
+          </p>
+          <p className="mt-2 text-xs text-gray-600 dark:text-gray-400">
+            <strong>Context Window:</strong> Todos os modelos suportam até 200K tokens (~150K palavras).
+            1 token ≈ 4 caracteres em português.
+          </p>
+        </div>
+
+        <div className="mt-4 grid grid-cols-1 gap-3 md:grid-cols-3">
+          <div className="rounded-lg border border-green-200 bg-green-50 p-3 dark:border-green-800 dark:bg-green-900/20">
+            <p className="text-sm font-medium text-green-700 dark:text-green-300">Com Roteamento Inteligente</p>
+            <p className="mt-1 text-xs text-green-600 dark:text-green-400">
+              Haiku para problemas simples (70%), Sonnet apenas quando necessário. Economia média de 60%.
+            </p>
+          </div>
+          <div className="rounded-lg border border-blue-200 bg-blue-50 p-3 dark:border-blue-800 dark:bg-blue-900/20">
+            <p className="text-sm font-medium text-blue-700 dark:text-blue-300">Com Cache Habilitado</p>
+            <p className="mt-1 text-xs text-blue-600 dark:text-blue-400">
+              Problemas similares reutilizam diagnósticos. Economia de 100% em cache hits.
+            </p>
+          </div>
+          <div className="rounded-lg border border-purple-200 bg-purple-50 p-3 dark:border-purple-800 dark:bg-purple-900/20">
+            <p className="text-sm font-medium text-purple-700 dark:text-purple-300">Com Pré-validação</p>
+            <p className="mt-1 text-xs text-purple-600 dark:text-purple-400">
+              Templates locais para problemas comuns. Custo zero para matches.
+            </p>
+          </div>
+        </div>
+      </div>
+
       {/* Info Section */}
       <div className="rounded-lg border border-blue-200 bg-blue-50 p-4 dark:border-blue-800 dark:bg-blue-900/20">
         <div className="flex items-start">

@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Orçamento Rejeitado</title>
+</head>
+<body>
+    <th:block th:fragment="content">
+        <h1>Orçamento Rejeitado</h1>
+
+        <p>Prezado(a) Equipe,</p>
+
+        <p>Informamos que o cliente rejeitou o orçamento da Ordem de Serviço abaixo:</p>
+
+        <div class="highlight alert-danger">
+            <p><strong>OS #<span th:text="${numeroOS}">123</span></strong></p>
+            <p><strong>Cliente:</strong> <span th:text="${nomeCliente}">João Silva</span></p>
+            <p><strong>Data:</strong> <span th:text="${dataRejeicao}">01/01/2024 às 10:00</span></p>
+        </div>
+
+        <div class="highlight" th:if="${motivoRejeicao != null and !motivoRejeicao.isEmpty()}">
+            <p><strong>Motivo informado pelo cliente:</strong></p>
+            <p th:text="${motivoRejeicao}">Motivo da rejeição</p>
+        </div>
+
+        <p>A ordem de serviço foi automaticamente cancelada no sistema.</p>
+
+        <p>
+            Recomendamos entrar em contato com o cliente para entender melhor
+            as razões da recusa e, se possível, apresentar alternativas que
+            possam atender às suas necessidades.
+        </p>
+
+        <p>Atenciosamente,</p>
+        <p><strong th:text="${nomeOficina}">Oficina</strong></p>
+    </th:block>
+</body>
+</html>

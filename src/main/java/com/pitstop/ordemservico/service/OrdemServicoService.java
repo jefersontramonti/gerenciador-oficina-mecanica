@@ -3,13 +3,22 @@ package com.pitstop.ordemservico.service;
 import com.pitstop.cliente.domain.Cliente;
 import com.pitstop.cliente.exception.ClienteNotFoundException;
 import com.pitstop.cliente.repository.ClienteRepository;
+import com.pitstop.ordemservico.domain.HistoricoStatusOS;
 import com.pitstop.ordemservico.domain.ItemOS;
 import com.pitstop.ordemservico.domain.OrdemServico;
+import com.pitstop.ordemservico.domain.OrigemPeca;
 import com.pitstop.ordemservico.domain.StatusOS;
+import com.pitstop.ordemservico.domain.TipoCobrancaMaoObra;
+import com.pitstop.ordemservico.domain.TipoItem;
 import com.pitstop.ordemservico.dto.*;
+import com.pitstop.estoque.domain.Peca;
+import com.pitstop.estoque.exception.PecaNotFoundException;
+import com.pitstop.estoque.exception.EstoqueInsuficienteException;
+import com.pitstop.estoque.repository.PecaRepository;
 import com.pitstop.ordemservico.exception.*;
 import com.pitstop.ordemservico.mapper.ItemOSMapper;
 import com.pitstop.ordemservico.mapper.OrdemServicoMapper;
+import com.pitstop.ordemservico.repository.HistoricoStatusOSRepository;
 import com.pitstop.ordemservico.repository.OrdemServicoRepository;
 import com.pitstop.usuario.domain.Usuario;
 import com.pitstop.usuario.exception.UsuarioNotFoundException;
@@ -23,7 +32,10 @@ import com.pitstop.notificacao.service.NotificacaoEventPublisher;
 import com.pitstop.oficina.domain.Oficina;
 import com.pitstop.oficina.repository.OficinaRepository;
 import com.pitstop.shared.security.tenant.TenantContext;
+import com.pitstop.shared.security.CustomUserDetails;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
@@ -63,15 +75,19 @@ import java.util.stream.Collectors;
 public class OrdemServicoService {
 
     private final OrdemServicoRepository repository;
+    private final HistoricoStatusOSRepository historicoStatusRepository;
     private final VeiculoRepository veiculoRepository;
     private final UsuarioRepository usuarioRepository;
     private final ClienteRepository clienteRepository;
     private final OficinaRepository oficinaRepository;
+    private final PecaRepository pecaRepository;
     private final OrdemServicoMapper mapper;
     private final ItemOSMapper itemMapper;
     private final ApplicationEventPublisher applicationEventPublisher;
     private final com.pitstop.financeiro.service.PagamentoService pagamentoService;
     private final NotificacaoEventPublisher notificacaoEventPublisher;
+    private final OrdemServicoPDFService pdfService;
+    private final com.pitstop.notificacao.service.EmailService emailService;
 
     // ===== CREATE =====
 
@@ -105,14 +121,43 @@ public class OrdemServicoService {
         Long numero = repository.getNextNumero();
         os.setNumero(numero);
 
+        // Configura tipo de cobrança de mão de obra
+        os.setTipoCobrancaMaoObra(dto.tipoCobrancaMaoObra());
+
+        if (dto.tipoCobrancaMaoObra() == TipoCobrancaMaoObra.VALOR_FIXO) {
+            // VALOR_FIXO: valorMaoObra já vem definido no DTO
+            os.setValorMaoObra(dto.valorMaoObra() != null ? dto.valorMaoObra() : BigDecimal.ZERO);
+            log.debug("OS #{} configurada com VALOR_FIXO: R$ {}", numero, os.getValorMaoObra());
+        } else {
+            // POR_HORA: configura estimativas e captura valor/hora da oficina
+            os.setTempoEstimadoHoras(dto.tempoEstimadoHoras());
+            os.setLimiteHorasAprovado(dto.limiteHorasAprovado());
+            os.setValorMaoObra(BigDecimal.ZERO); // Será calculado na finalização
+
+            // Captura valor/hora atual da oficina (snapshot)
+            Oficina oficina = oficinaRepository.findById(oficinaId)
+                .orElseThrow(() -> new IllegalStateException("Oficina não encontrada: " + oficinaId));
+            os.setValorHoraSnapshot(oficina.getValorHora());
+
+            log.debug("OS #{} configurada com POR_HORA: estimativa {}h, limite {}h, R$ {}/h",
+                numero, dto.tempoEstimadoHoras(), dto.limiteHorasAprovado(), oficina.getValorHora());
+        }
+
         // Adiciona itens (se houver)
         if (dto.itens() != null && !dto.itens().isEmpty()) {
-            dto.itens().forEach(itemDto -> {
+            for (CreateItemOSDTO itemDto : dto.itens()) {
                 ItemOS item = itemMapper.toEntity(itemDto);
+
+                // Processa origem da peça (se for item do tipo PECA)
+                if (item.getTipo() == TipoItem.PECA && itemDto.origemPeca() != null) {
+                    item.setOrigemPeca(itemDto.origemPeca());
+                    processarOrigemPeca(item, oficinaId);
+                }
+
                 // Calcula o valorTotal do item antes de adicionar
                 item.setValorTotal(item.calcularValorTotal());
                 os.adicionarItem(item);
-            });
+            }
         }
 
         // Gera token de aprovação
@@ -131,6 +176,9 @@ public class OrdemServicoService {
 
         log.info("OS #{} criada com sucesso - ID: {}, valorPecas={}, valorTotal={}, valorFinal={}",
             saved.getNumero(), saved.getId(), saved.getValorPecas(), saved.getValorTotal(), saved.getValorFinal());
+
+        // Registra histórico de criação
+        registrarHistoricoStatus(saved, null, StatusOS.ORCAMENTO, "Ordem de serviço criada");
 
         // Busca cliente para notificacao
         Cliente cliente = clienteRepository.findByOficinaIdAndId(oficinaId, veiculo.getClienteId())
@@ -311,7 +359,12 @@ public class OrdemServicoService {
             problemasRelatados,
             diagnostico,
             observacoes,
+            null, // tipoCobrancaMaoObra - não retornamos na listagem básica
             valorMaoObra,
+            null, // tempoEstimadoHoras - não retornamos na listagem
+            null, // limiteHorasAprovado - não retornamos na listagem
+            null, // horasTrabalhadas - não retornamos na listagem
+            null, // valorHoraSnapshot - não retornamos na listagem
             valorPecas,
             valorTotal,
             descontoPercentual,
@@ -406,9 +459,14 @@ public class OrdemServicoService {
             .orElseThrow(() -> new OrdemServicoNotFoundException(id));
 
         try {
+            StatusOS statusAnterior = os.getStatus();
             os.aprovar(Boolean.TRUE.equals(aprovadoPeloCliente));
             repository.save(os);
             log.info("OS #{} aprovada com sucesso", os.getNumero());
+
+            // Registra histórico
+            registrarHistoricoStatus(os, statusAnterior, StatusOS.APROVADO,
+                Boolean.TRUE.equals(aprovadoPeloCliente) ? "Orçamento aprovado pelo cliente" : "Orçamento aprovado");
 
             // Publica evento de notificacao (assincrono)
             publicarNotificacaoAprovada(os, oficinaId);
@@ -434,9 +492,13 @@ public class OrdemServicoService {
             .orElseThrow(() -> new OrdemServicoNotFoundException(id));
 
         try {
+            StatusOS statusAnterior = os.getStatus();
             os.iniciar();
             repository.save(os);
             log.info("OS #{} iniciada com sucesso", os.getNumero());
+
+            // Registra histórico
+            registrarHistoricoStatus(os, statusAnterior, StatusOS.EM_ANDAMENTO, "Execução do serviço iniciada");
 
             // Publica evento de notificacao (assincrono)
             publicarNotificacaoEmAndamento(os, oficinaId);
@@ -446,7 +508,166 @@ public class OrdemServicoService {
     }
 
     /**
-     * Finaliza OS (EM_ANDAMENTO/AGUARDANDO_PECA → FINALIZADO).
+     * Coloca OS em aguardando peça.
+     *
+     * <p>Transição: EM_ANDAMENTO → AGUARDANDO_PECA</p>
+     *
+     * @param id ID da OS
+     * @param descricaoPeca descrição da peça aguardada
+     * @throws OrdemServicoNotFoundException se não encontrada
+     * @throws TransicaoStatusInvalidaException se transição inválida
+     */
+    @Transactional
+    @CacheEvict(value = {"ordemServico", "osCountByStatus"}, allEntries = true)
+    public void aguardarPeca(UUID id, String descricaoPeca) {
+        log.info("Colocando OS ID: {} em aguardando peça: {}", id, descricaoPeca);
+
+        UUID oficinaId = TenantContext.getTenantId();
+        OrdemServico os = repository.findByOficinaIdAndId(oficinaId, id)
+            .orElseThrow(() -> new OrdemServicoNotFoundException(id));
+
+        try {
+            StatusOS statusAnterior = os.getStatus();
+            os.aguardarPeca(descricaoPeca);
+            repository.save(os);
+            log.info("OS #{} em aguardando peça", os.getNumero());
+
+            // Registra histórico
+            registrarHistoricoStatus(os, statusAnterior, StatusOS.AGUARDANDO_PECA,
+                "Aguardando peça: " + descricaoPeca);
+        } catch (IllegalStateException e) {
+            throw new TransicaoStatusInvalidaException(e.getMessage());
+        }
+    }
+
+    /**
+     * Retoma execução de OS que estava aguardando peça.
+     *
+     * <p>Transição: AGUARDANDO_PECA → EM_ANDAMENTO</p>
+     *
+     * @param id ID da OS
+     * @throws OrdemServicoNotFoundException se não encontrada
+     * @throws TransicaoStatusInvalidaException se transição inválida
+     */
+    @Transactional
+    @CacheEvict(value = {"ordemServico", "osCountByStatus"}, allEntries = true)
+    public void retomarExecucao(UUID id) {
+        log.info("Retomando execução da OS ID: {}", id);
+
+        UUID oficinaId = TenantContext.getTenantId();
+        OrdemServico os = repository.findByOficinaIdAndId(oficinaId, id)
+            .orElseThrow(() -> new OrdemServicoNotFoundException(id));
+
+        try {
+            StatusOS statusAnterior = os.getStatus();
+            os.retomarExecucao();
+            repository.save(os);
+            log.info("OS #{} execução retomada", os.getNumero());
+
+            // Registra histórico
+            registrarHistoricoStatus(os, statusAnterior, StatusOS.EM_ANDAMENTO, "Peça recebida - Execução retomada");
+
+            // Publica evento de notificacao (assincrono)
+            publicarNotificacaoEmAndamento(os, oficinaId);
+        } catch (IllegalStateException e) {
+            throw new TransicaoStatusInvalidaException(e.getMessage());
+        }
+    }
+
+    /**
+     * Finaliza OS com informações de horas trabalhadas (modelo POR_HORA).
+     *
+     * <p>Este método deve ser usado quando a OS utiliza cobrança POR_HORA,
+     * pois permite informar as horas efetivamente trabalhadas.</p>
+     *
+     * @param id ID da OS
+     * @param dto dados de finalização (horas trabalhadas, observações)
+     * @return DTO de resposta com OS finalizada
+     * @throws OrdemServicoNotFoundException se não encontrada
+     * @throws TransicaoStatusInvalidaException se transição inválida
+     * @throws LimiteHorasExcedidoException se horas trabalhadas excedem limite aprovado
+     * @throws com.pitstop.estoque.exception.EstoqueInsuficienteException se estoque insuficiente
+     */
+    @Transactional
+    @CacheEvict(value = {"ordemServico", "osCountByStatus"}, allEntries = true)
+    public OrdemServicoResponseDTO finalizar(UUID id, FinalizarOSDTO dto) {
+        log.info("Finalizando OS ID: {} com {} horas trabalhadas", id, dto.horasTrabalhadas());
+
+        UUID oficinaId = TenantContext.getTenantId();
+        OrdemServico os = repository.findByOficinaIdAndId(oficinaId, id)
+            .orElseThrow(() -> new OrdemServicoNotFoundException(id));
+
+        // Captura status antes da mudança
+        StatusOS statusAnterior = os.getStatus();
+
+        // Valida status
+        if (statusAnterior != StatusOS.EM_ANDAMENTO && statusAnterior != StatusOS.AGUARDANDO_PECA) {
+            throw new TransicaoStatusInvalidaException(
+                "Apenas OS em andamento ou aguardando peça pode ser finalizada. Status atual: " + statusAnterior);
+        }
+
+        // Se cobrança por hora, valida e calcula mão de obra
+        if (os.getTipoCobrancaMaoObra() == TipoCobrancaMaoObra.POR_HORA) {
+            BigDecimal horas = dto.horasTrabalhadas();
+
+            // Valida limite aprovado pelo cliente
+            if (horas.compareTo(os.getLimiteHorasAprovado()) > 0) {
+                throw new LimiteHorasExcedidoException(horas, os.getLimiteHorasAprovado());
+            }
+
+            os.setHorasTrabalhadas(horas);
+            // valorMaoObra será recalculado em recalcularValores()
+
+            log.info("OS #{}: {} horas trabalhadas (limite: {}h) × R$ {}/h",
+                os.getNumero(), horas, os.getLimiteHorasAprovado(), os.getValorHoraSnapshot());
+        }
+
+        // Adiciona observações finais (se informadas)
+        if (dto.observacoesFinais() != null && !dto.observacoesFinais().isBlank()) {
+            String obsAtual = os.getObservacoes() != null ? os.getObservacoes() + "\n\n" : "";
+            os.setObservacoes(obsAtual + "[Finalização] " + dto.observacoesFinais());
+        }
+
+        // Recalcula valores (agora com horas trabalhadas definidas)
+        os.recalcularValores();
+
+        try {
+            os.finalizar();
+
+            // Dispara evento para baixa automática de estoque (síncrono - mesma transação)
+            OrdemServicoFinalizadaEvent event = new OrdemServicoFinalizadaEvent(
+                this,
+                os.getId(),
+                os.getNumero(),
+                os.getUsuarioId(),
+                os.getItens()
+            );
+            applicationEventPublisher.publishEvent(event);
+            log.debug("Evento OrdemServicoFinalizadaEvent publicado para OS #{}", os.getNumero());
+
+            OrdemServico saved = repository.save(os);
+
+            log.info("OS #{} finalizada com sucesso - Mão de obra: R$ {}, Total: R$ {}",
+                saved.getNumero(), saved.getValorMaoObra(), saved.getValorFinal());
+
+            // Registra histórico
+            String obsHistorico = dto.horasTrabalhadas() != null
+                ? String.format("Serviço finalizado - %.1f horas trabalhadas", dto.horasTrabalhadas())
+                : "Serviço finalizado";
+            registrarHistoricoStatus(saved, statusAnterior, StatusOS.FINALIZADO, obsHistorico);
+
+            // Publica evento de notificacao (assincrono)
+            publicarNotificacaoFinalizada(saved, oficinaId);
+
+            return montarResponse(saved);
+        } catch (IllegalStateException e) {
+            throw new TransicaoStatusInvalidaException(e.getMessage());
+        }
+        // Nota: EstoqueInsuficienteException será propagada causando rollback automático
+    }
+
+    /**
+     * Finaliza OS sem informar horas (modelo VALOR_FIXO).
      * Neste ponto ocorre a baixa automática de peças do estoque via evento.
      *
      * @param id ID da OS
@@ -464,6 +685,7 @@ public class OrdemServicoService {
             .orElseThrow(() -> new OrdemServicoNotFoundException(id));
 
         try {
+            StatusOS statusAnterior = os.getStatus();
             os.finalizar();
 
             // Dispara evento para baixa automática de estoque (síncrono - mesma transação)
@@ -479,6 +701,9 @@ public class OrdemServicoService {
 
             repository.save(os);
             log.info("OS #{} finalizada com sucesso", os.getNumero());
+
+            // Registra histórico
+            registrarHistoricoStatus(os, statusAnterior, StatusOS.FINALIZADO, "Serviço finalizado");
 
             // Publica evento de notificacao (assincrono)
             publicarNotificacaoFinalizada(os, oficinaId);
@@ -513,9 +738,13 @@ public class OrdemServicoService {
                 throw new OrdemServicoNaoPagaException(os.getNumero());
             }
 
+            StatusOS statusAnterior = os.getStatus();
             os.entregar();
             repository.save(os);
             log.info("OS #{} entregue com sucesso", os.getNumero());
+
+            // Registra histórico
+            registrarHistoricoStatus(os, statusAnterior, StatusOS.ENTREGUE, "Veículo entregue ao cliente");
 
             // Publica evento de notificacao (assincrono)
             publicarNotificacaoEntregue(os, oficinaId);
@@ -563,6 +792,10 @@ public class OrdemServicoService {
 
             repository.save(os);
             log.info("OS #{} cancelada com sucesso", os.getNumero());
+
+            // Registra histórico
+            registrarHistoricoStatus(os, statusAnterior, StatusOS.CANCELADO,
+                "Cancelamento: " + dto.motivo());
         } catch (IllegalStateException e) {
             throw new TransicaoStatusInvalidaException(e.getMessage());
         }
@@ -695,7 +928,12 @@ public class OrdemServicoService {
             response.problemasRelatados(),
             response.diagnostico(),
             response.observacoes(),
+            response.tipoCobrancaMaoObra(),
             response.valorMaoObra(),
+            response.tempoEstimadoHoras(),
+            response.limiteHorasAprovado(),
+            response.horasTrabalhadas(),
+            response.valorHoraSnapshot(),
             response.valorPecas(),
             response.valorTotal(),
             response.descontoPercentual(),
@@ -784,7 +1022,7 @@ public class OrdemServicoService {
     }
 
     /**
-     * Publica notificação de OS finalizada.
+     * Publica notificação de OS finalizada e envia PDF por email.
      */
     private void publicarNotificacaoFinalizada(OrdemServico os, UUID oficinaId) {
         try {
@@ -818,8 +1056,92 @@ public class OrdemServicoService {
                 servicosRealizados,
                 nomeOficina
             );
+
+            // Envia PDF por email para o cliente (se tiver email)
+            enviarPdfFinalizacaoPorEmail(os, cliente, veiculo, nomeOficina);
+
         } catch (Exception e) {
             log.warn("Falha ao publicar notificacao de OS finalizada: {}", e.getMessage());
+        }
+    }
+
+    /**
+     * Gera e envia PDF da OS finalizada para o email do cliente.
+     *
+     * @param os ordem de serviço finalizada
+     * @param cliente cliente da OS
+     * @param veiculo veículo da OS
+     * @param nomeOficina nome da oficina
+     */
+    private void enviarPdfFinalizacaoPorEmail(OrdemServico os, Cliente cliente, Veiculo veiculo, String nomeOficina) {
+        if (cliente.getEmail() == null || cliente.getEmail().isBlank()) {
+            log.debug("Cliente {} não possui email. PDF não será enviado.", cliente.getNome());
+            return;
+        }
+
+        try {
+            // Gera PDF da OS
+            byte[] pdfBytes = pdfService.gerarPDF(os.getId());
+
+            // Monta assunto e corpo do email
+            String assunto = String.format("OS #%d Finalizada - %s", os.getNumero(), nomeOficina);
+
+            String corpo = String.format("""
+                <h2>Serviço Concluído!</h2>
+
+                <p>Prezado(a) <strong>%s</strong>,</p>
+
+                <p>Informamos que o serviço do seu veículo <strong>%s %s</strong> (placa %s) foi concluído com sucesso.</p>
+
+                <div style="background-color: #f0f9ff; padding: 15px; border-radius: 8px; margin: 20px 0;">
+                    <p><strong>Resumo:</strong></p>
+                    <p>OS: #%d</p>
+                    <p>Veículo: %s %s - %s</p>
+                    <p>Valor Final: <strong>R$ %s</strong></p>
+                </div>
+
+                <p>Em anexo você encontra a <strong>Ordem de Serviço</strong> completa com todos os detalhes do serviço realizado.</p>
+
+                <p>Por favor, entre em contato conosco para agendar a retirada do veículo e efetuar o pagamento.</p>
+
+                <p>Agradecemos a preferência!</p>
+
+                <p>Atenciosamente,<br/>
+                <strong>%s</strong></p>
+                """,
+                cliente.getNome(),
+                veiculo.getMarca(),
+                veiculo.getModelo(),
+                veiculo.getPlacaFormatada(),
+                os.getNumero(),
+                veiculo.getMarca(),
+                veiculo.getModelo(),
+                veiculo.getPlacaFormatada(),
+                java.text.NumberFormat.getCurrencyInstance(new java.util.Locale("pt", "BR")).format(os.getValorFinal()),
+                nomeOficina
+            );
+
+            // Nome do arquivo PDF
+            String nomePdf = String.format("OS_%d_%s.pdf",
+                os.getNumero(),
+                veiculo.getPlacaFormatada().replace("-", "").replace(" ", "")
+            );
+
+            // Envia email com PDF anexo
+            emailService.enviarComPdf(
+                cliente.getEmail(),
+                assunto,
+                corpo,
+                pdfBytes,
+                nomePdf
+            );
+
+            log.info("PDF da OS #{} enviado por email para {}", os.getNumero(), cliente.getEmail());
+
+        } catch (Exception e) {
+            // Log do erro mas não interrompe o fluxo (email é secundário)
+            log.warn("Falha ao enviar PDF da OS #{} por email para {}: {}",
+                os.getNumero(), cliente.getEmail(), e.getMessage());
         }
     }
 
@@ -852,6 +1174,119 @@ public class OrdemServicoService {
             );
         } catch (Exception e) {
             log.warn("Falha ao publicar notificacao de OS entregue: {}", e.getMessage());
+        }
+    }
+
+    // ===== MÉTODOS AUXILIARES DE PROCESSAMENTO DE ITENS =====
+
+    /**
+     * Processa origem da peça, validando estoque quando aplicável.
+     *
+     * <p>Para peças do ESTOQUE, valida se a peça existe e se há quantidade suficiente.
+     * Para peças AVULSA e CLIENTE, apenas registra log informativo.</p>
+     *
+     * @param item item da OS sendo processado
+     * @param oficinaId ID da oficina atual
+     * @throws PecaNotFoundException se peça do estoque não existir
+     * @throws EstoqueInsuficienteException se não houver quantidade suficiente
+     */
+    private void processarOrigemPeca(ItemOS item, UUID oficinaId) {
+        if (item.getOrigemPeca() == OrigemPeca.ESTOQUE) {
+            // Peça do estoque - valida existência e disponibilidade
+            if (item.getPecaId() == null) {
+                throw new IllegalStateException("Peça do estoque requer pecaId");
+            }
+
+            Peca peca = pecaRepository.findByOficinaIdAndId(oficinaId, item.getPecaId())
+                .orElseThrow(() -> new PecaNotFoundException(item.getPecaId()));
+
+            // Verifica disponibilidade (baixa real ocorre na finalização)
+            if (peca.getQuantidadeAtual() < item.getQuantidade()) {
+                throw new EstoqueInsuficienteException(
+                    peca.getId(),
+                    peca.getCodigo(),
+                    peca.getDescricao(),
+                    item.getQuantidade(),
+                    peca.getQuantidadeAtual()
+                );
+            }
+
+            log.debug("Peça do ESTOQUE: {} ({} unidades) - Estoque disponível: {}",
+                peca.getDescricao(), item.getQuantidade(), peca.getQuantidadeAtual());
+
+        } else if (item.getOrigemPeca() == OrigemPeca.AVULSA) {
+            // Peça comprada externamente - não afeta estoque
+            log.debug("Peça AVULSA adicionada: {} ({} unidades) - R$ {}",
+                item.getDescricao(), item.getQuantidade(), item.getValorUnitario());
+
+        } else if (item.getOrigemPeca() == OrigemPeca.CLIENTE) {
+            // Peça fornecida pelo cliente - não afeta estoque
+            log.debug("Peça do CLIENTE adicionada: {} ({} unidades)",
+                item.getDescricao(), item.getQuantidade());
+        }
+    }
+
+    // ===== HISTÓRICO DE STATUS =====
+
+    /**
+     * Busca o histórico de mudanças de status de uma OS.
+     *
+     * @param ordemServicoId ID da OS
+     * @return lista de histórico de status em ordem cronológica
+     */
+    public List<HistoricoStatusOSDTO> buscarHistoricoStatus(UUID ordemServicoId) {
+        UUID oficinaId = TenantContext.getTenantId();
+
+        // Verifica se a OS existe
+        repository.findByOficinaIdAndId(oficinaId, ordemServicoId)
+            .orElseThrow(() -> new OrdemServicoNotFoundException(ordemServicoId));
+
+        return historicoStatusRepository.findByOrdemServicoId(oficinaId, ordemServicoId)
+            .stream()
+            .map(HistoricoStatusOSDTO::fromEntity)
+            .toList();
+    }
+
+    /**
+     * Registra uma mudança de status no histórico.
+     *
+     * @param os Ordem de Serviço
+     * @param statusAnterior Status antes da mudança (null se for criação)
+     * @param statusNovo Novo status
+     * @param observacao Observação opcional (ex: motivo de cancelamento)
+     */
+    private void registrarHistoricoStatus(OrdemServico os, StatusOS statusAnterior, StatusOS statusNovo, String observacao) {
+        try {
+            // Obtém usuário atual do contexto de segurança
+            UUID usuarioId = null;
+            String usuarioNome = "Sistema";
+
+            Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+            if (auth != null && auth.getPrincipal() instanceof CustomUserDetails userDetails) {
+                usuarioId = userDetails.getUserId();
+                usuarioNome = userDetails.getUsuario().getNome();
+            }
+
+            HistoricoStatusOS historico = HistoricoStatusOS.builder()
+                .oficina(os.getOficina())
+                .ordemServico(os)
+                .statusAnterior(statusAnterior)
+                .statusNovo(statusNovo)
+                .usuarioId(usuarioId)
+                .usuarioNome(usuarioNome)
+                .observacao(observacao)
+                .build();
+
+            historicoStatusRepository.save(historico);
+
+            log.debug("Histórico de status registrado para OS #{}: {} → {}",
+                os.getNumero(),
+                statusAnterior != null ? statusAnterior : "CRIAÇÃO",
+                statusNovo);
+
+        } catch (Exception e) {
+            // Log do erro mas não interrompe o fluxo principal
+            log.warn("Falha ao registrar histórico de status para OS #{}: {}", os.getNumero(), e.getMessage());
         }
     }
 }

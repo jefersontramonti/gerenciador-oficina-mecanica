@@ -1,5 +1,6 @@
 package com.pitstop.ordemservico.dto;
 
+import com.pitstop.ordemservico.domain.OrigemPeca;
 import com.pitstop.ordemservico.domain.TipoItem;
 import io.swagger.v3.oas.annotations.media.Schema;
 
@@ -22,7 +23,10 @@ public record ItemOSResponseDTO(
     @Schema(description = "Tipo do item", example = "PECA")
     TipoItem tipo,
 
-    @Schema(description = "ID da peça (se aplicável)", example = "123e4567-e89b-12d3-a456-426614174000")
+    @Schema(description = "Origem da peça (ESTOQUE, AVULSA, CLIENTE)", example = "ESTOQUE")
+    OrigemPeca origemPeca,
+
+    @Schema(description = "ID da peça (se origemPeca = ESTOQUE)", example = "123e4567-e89b-12d3-a456-426614174000")
     UUID pecaId,
 
     @Schema(description = "Descrição do item", example = "Óleo de motor 5W30")

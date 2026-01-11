@@ -162,6 +162,38 @@ public class OrdemServicoEvent extends ApplicationEvent {
     }
 
     /**
+     * Cria evento de OS rejeitada.
+     */
+    public static OrdemServicoEvent osRejeitada(
+        Object source,
+        UUID oficinaId,
+        UUID ordemServicoId,
+        Long numeroOS,
+        UUID clienteId,
+        String nomeCliente,
+        String emailCliente,
+        String telefoneCliente,
+        String motivoRejeicao,
+        String nomeOficina
+    ) {
+        return new OrdemServicoEvent(
+            source,
+            EventoNotificacao.OS_REJEITADA,
+            oficinaId,
+            ordemServicoId,
+            numeroOS,
+            clienteId,
+            nomeCliente,
+            emailCliente,
+            telefoneCliente,
+            null, null, null,
+            nomeOficina
+        )
+        .comDadoExtra("motivoRejeicao", motivoRejeicao != null ? motivoRejeicao : "Não informado")
+        .comDadoExtra("dataRejeicao", LocalDateTime.now().format(DATETIME_FORMAT_BR));
+    }
+
+    /**
      * Cria evento de OS em andamento.
      */
     public static OrdemServicoEvent osEmAndamento(

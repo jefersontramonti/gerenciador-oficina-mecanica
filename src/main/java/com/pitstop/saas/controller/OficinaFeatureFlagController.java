@@ -1,5 +1,6 @@
 package com.pitstop.saas.controller;
 
+import com.pitstop.saas.dto.MeuPlanoDTO;
 import com.pitstop.saas.dto.OficinaFeatureFlagsDTO;
 import com.pitstop.saas.service.FeatureFlagService;
 import com.pitstop.shared.security.CustomUserDetails;
@@ -29,6 +30,33 @@ public class OficinaFeatureFlagController {
 
     public OficinaFeatureFlagController(FeatureFlagService featureFlagService) {
         this.featureFlagService = featureFlagService;
+    }
+
+    /**
+     * Retorna informações completas do plano da oficina.
+     * Inclui plano atual, features habilitadas, e features do próximo plano.
+     *
+     * GET /api/features/meu-plano
+     */
+    @GetMapping("/meu-plano")
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<MeuPlanoDTO> getMeuPlano(
+            @AuthenticationPrincipal CustomUserDetails userDetails) {
+
+        UUID oficinaId = TenantContext.getTenantIdOrNull();
+
+        if (oficinaId == null) {
+            // SUPER_ADMIN não tem oficina
+            if (userDetails.getUsuario().getPerfil().name().equals("SUPER_ADMIN")) {
+                logger.debug("SUPER_ADMIN acessando meu-plano - não aplicável");
+                return ResponseEntity.noContent().build();
+            }
+            return ResponseEntity.badRequest().build();
+        }
+
+        logger.debug("GET /api/features/meu-plano - Oficina: {}", oficinaId);
+        MeuPlanoDTO meuPlano = featureFlagService.getMeuPlano(oficinaId);
+        return ResponseEntity.ok(meuPlano);
     }
 
     /**

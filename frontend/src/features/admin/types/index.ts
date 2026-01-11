@@ -276,22 +276,21 @@ export interface PagamentoFilters {
 
 export interface AuditLog {
   id: string;
-  action: string;
-  entity: string;
-  entityId?: string;
-  userId?: string;
-  userEmail?: string;
-  oficinaId?: string;
-  oficinaNome?: string;
-  details?: string;
+  acao: string;
+  entidade: string;
+  entidadeId?: string;
+  usuarioEmail?: string;
+  detalhes?: string;
   ipAddress?: string;
-  createdAt: string;
+  userAgent?: string;
+  timestamp: string;
 }
 
 export interface AuditFilters {
-  action?: string;
-  entity?: string;
-  userId?: string;
+  acao?: string;
+  entidade?: string;
+  usuarioEmail?: string;
+  ipAddress?: string;
   dataInicio?: string;
   dataFim?: string;
   page?: number;

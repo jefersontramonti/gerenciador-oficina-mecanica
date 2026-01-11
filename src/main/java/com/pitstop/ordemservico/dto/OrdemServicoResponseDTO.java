@@ -1,6 +1,7 @@
 package com.pitstop.ordemservico.dto;
 
 import com.pitstop.ordemservico.domain.StatusOS;
+import com.pitstop.ordemservico.domain.TipoCobrancaMaoObra;
 import io.swagger.v3.oas.annotations.media.Schema;
 
 import java.math.BigDecimal;
@@ -58,8 +59,27 @@ public record OrdemServicoResponseDTO(
     @Schema(description = "Observações gerais", example = "Cliente solicitou urgência")
     String observacoes,
 
-    @Schema(description = "Valor da mão de obra", example = "150.00")
+    // ===== MODELO DE COBRANÇA DE MÃO DE OBRA =====
+
+    @Schema(description = "Tipo de cobrança de mão de obra", example = "VALOR_FIXO")
+    TipoCobrancaMaoObra tipoCobrancaMaoObra,
+
+    @Schema(description = "Valor da mão de obra (fixo ou calculado)", example = "150.00")
     BigDecimal valorMaoObra,
+
+    @Schema(description = "Tempo estimado em horas (se POR_HORA)", example = "3.5")
+    BigDecimal tempoEstimadoHoras,
+
+    @Schema(description = "Limite de horas aprovado pelo cliente (se POR_HORA)", example = "5.0")
+    BigDecimal limiteHorasAprovado,
+
+    @Schema(description = "Horas efetivamente trabalhadas (se POR_HORA)", example = "4.0")
+    BigDecimal horasTrabalhadas,
+
+    @Schema(description = "Valor/hora capturado no momento da criação (se POR_HORA)", example = "80.00")
+    BigDecimal valorHoraSnapshot,
+
+    // ===== VALORES =====
 
     @Schema(description = "Valor total das peças", example = "250.00")
     BigDecimal valorPecas,

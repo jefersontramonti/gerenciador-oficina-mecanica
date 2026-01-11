@@ -4,16 +4,18 @@
  */
 
 import { Link, useParams } from 'react-router-dom';
-import { ArrowLeft, Edit, Car, User, Phone, Mail, FileText, FileDown, DollarSign } from 'lucide-react';
+import { ArrowLeft, Edit, Car, User, Phone, Mail, FileText, FileDown, DollarSign, Clock, Timer } from 'lucide-react';
 import { showError } from '@/shared/utils/notifications';
 import { useOrdemServico, useGerarPDF } from '../hooks/useOrdensServico';
 import { useAuth } from '@/features/auth/hooks/useAuth';
 import { PerfilUsuario } from '@/features/auth/types';
 import { StatusBadge } from '../components/StatusBadge';
 import { StatusTimeline } from '../components/StatusTimeline';
+import { OSTimeline } from '../components/OSTimeline';
 import { ItemOSTable } from '../components/ItemOSTable';
 import { ActionButtons } from '../components/ActionButtons';
 import { canEdit } from '../utils/statusTransitions';
+import { TipoCobrancaMaoObra, StatusOS } from '../types';
 import { ResumoFinanceiro } from '@/features/financeiro/components/ResumoFinanceiro';
 import { ListaPagamentos } from '@/features/financeiro/components/ListaPagamentos';
 import { PagamentoModal } from '@/features/financeiro/components/PagamentoModal';
@@ -314,6 +316,64 @@ export const OrdemServicoDetailPage = () => {
           <div className="rounded-lg bg-white dark:bg-gray-800 p-6 shadow">
             <h2 className="mb-4 text-lg font-semibold text-gray-900 dark:text-gray-100">Valores Financeiros</h2>
             <div className="space-y-3">
+              {/* Modelo de Cobrança de Mão de Obra */}
+              {ordemServico.tipoCobrancaMaoObra === TipoCobrancaMaoObra.POR_HORA ? (
+                <div className="mb-4 rounded-lg border border-blue-200 dark:border-blue-800 bg-blue-50 dark:bg-blue-900/20 p-4">
+                  <div className="flex items-center gap-2 mb-3">
+                    <Clock className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+                    <span className="font-medium text-blue-800 dark:text-blue-200">
+                      Cobrança por Hora
+                    </span>
+                  </div>
+                  <div className="grid gap-3 sm:grid-cols-2">
+                    <div>
+                      <span className="text-xs text-blue-600 dark:text-blue-400">Valor/Hora:</span>
+                      <p className="font-medium text-blue-900 dark:text-blue-100">
+                        {formatCurrency(ordemServico.valorHoraSnapshot || 0)}
+                      </p>
+                    </div>
+                    <div>
+                      <span className="text-xs text-blue-600 dark:text-blue-400">Tempo Estimado:</span>
+                      <p className="font-medium text-blue-900 dark:text-blue-100">
+                        {ordemServico.tempoEstimadoHoras || 0}h
+                      </p>
+                    </div>
+                    <div>
+                      <span className="text-xs text-blue-600 dark:text-blue-400">Limite Aprovado:</span>
+                      <p className="font-medium text-blue-900 dark:text-blue-100">
+                        {ordemServico.limiteHorasAprovado || 0}h
+                        <span className="text-xs ml-1 text-blue-600 dark:text-blue-400">
+                          (máx. {formatCurrency((ordemServico.limiteHorasAprovado || 0) * (ordemServico.valorHoraSnapshot || 0))})
+                        </span>
+                      </p>
+                    </div>
+                    {ordemServico.horasTrabalhadas !== undefined && ordemServico.horasTrabalhadas !== null && (
+                      <div>
+                        <span className="text-xs text-blue-600 dark:text-blue-400">Horas Trabalhadas:</span>
+                        <p className="font-medium text-blue-900 dark:text-blue-100">
+                          <Timer className="inline h-4 w-4 mr-1" />
+                          {ordemServico.horasTrabalhadas}h
+                          <span className="text-xs ml-1 text-blue-600 dark:text-blue-400">
+                            = {formatCurrency(ordemServico.horasTrabalhadas * (ordemServico.valorHoraSnapshot || 0))}
+                          </span>
+                        </p>
+                      </div>
+                    )}
+                  </div>
+                  {/* Aviso se ainda não foi finalizada */}
+                  {(ordemServico.status === StatusOS.EM_ANDAMENTO || ordemServico.status === StatusOS.APROVADO) && (
+                    <p className="mt-3 text-xs text-blue-600 dark:text-blue-400 italic">
+                      * O valor final da mão de obra será calculado ao finalizar a OS com base nas horas trabalhadas.
+                    </p>
+                  )}
+                </div>
+              ) : (
+                <div className="mb-2 flex items-center gap-2 text-xs text-gray-500 dark:text-gray-400">
+                  <DollarSign className="h-4 w-4" />
+                  <span>Cobrança: Valor Fixo</span>
+                </div>
+              )}
+
               <div className="flex justify-between border-b border-gray-200 dark:border-gray-700 pb-2">
                 <span className="text-gray-600 dark:text-gray-400">Mão de Obra:</span>
                 <span className="font-medium text-gray-900 dark:text-gray-100">
@@ -418,10 +478,13 @@ export const OrdemServicoDetailPage = () => {
 
         {/* Coluna Lateral (1/3) */}
         <div className="space-y-6">
-          {/* Seção: Timeline de Status */}
+          {/* Seção: Timeline de Datas */}
           <div className="rounded-lg bg-white dark:bg-gray-800 p-6 shadow">
             <StatusTimeline ordemServico={ordemServico} />
           </div>
+
+          {/* Seção: Histórico de Mudanças de Status */}
+          <OSTimeline osId={ordemServico.id} />
 
           {/* Seção: Ações */}
           <div className="rounded-lg bg-white dark:bg-gray-800 p-6 shadow">

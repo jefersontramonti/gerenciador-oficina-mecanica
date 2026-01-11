@@ -236,7 +236,178 @@ public class EvolutionApiClient {
         }
     }
 
+    /**
+     * Cria uma nova instancia na Evolution API.
+     *
+     * @param apiUrl URL base da Evolution API
+     * @param globalApiKey API Key global para criar instancias
+     * @param instanceName Nome da instancia a criar
+     * @return Resultado da criacao com token da instancia
+     */
+    public EvolutionCreateInstanceResult criarInstancia(
+        String apiUrl,
+        String globalApiKey,
+        String instanceName
+    ) {
+        String url = buildUrlSimple(apiUrl, "/instance/create");
+
+        try {
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.APPLICATION_JSON);
+            headers.set("apikey", globalApiKey);
+
+            Map<String, Object> body = Map.of(
+                "instanceName", instanceName,
+                "qrcode", true,
+                "integration", "WHATSAPP-BAILEYS"
+            );
+
+            String jsonBody = objectMapper.writeValueAsString(body);
+            log.info("Criando instancia Evolution API: {}", instanceName);
+
+            ResponseEntity<String> response = restTemplate.exchange(
+                url,
+                HttpMethod.POST,
+                new HttpEntity<>(jsonBody, headers),
+                String.class
+            );
+
+            if (response.getStatusCode().is2xxSuccessful() && response.getBody() != null) {
+                JsonNode json = objectMapper.readTree(response.getBody());
+
+                String token = json.path("hash").asText(null);
+                if (token == null) {
+                    token = json.path("instance").path("apikey").asText(null);
+                }
+                if (token == null) {
+                    token = json.path("apikey").asText(null);
+                }
+
+                String qrCode = json.path("qrcode").path("base64").asText(null);
+
+                log.info("Instancia criada com sucesso: {}", instanceName);
+                return EvolutionCreateInstanceResult.sucesso(instanceName, token, qrCode);
+            }
+
+            return EvolutionCreateInstanceResult.falha("Resposta inesperada da API");
+
+        } catch (HttpClientErrorException e) {
+            log.error("Erro HTTP ao criar instancia: {} - {}", e.getStatusCode(), e.getResponseBodyAsString());
+            String mensagem = extrairMensagemErro(e.getResponseBodyAsString());
+            return EvolutionCreateInstanceResult.falha(mensagem);
+        } catch (Exception e) {
+            log.error("Erro ao criar instancia", e);
+            return EvolutionCreateInstanceResult.falha(e.getMessage());
+        }
+    }
+
+    /**
+     * Deleta uma instancia na Evolution API.
+     *
+     * @param config Configuracao da Evolution API
+     * @return true se deletou com sucesso
+     */
+    public boolean deletarInstancia(EvolutionConfig config) {
+        String url = buildUrl(config, "/instance/delete/" + config.instanceName());
+
+        try {
+            HttpHeaders headers = new HttpHeaders();
+            headers.set("apikey", config.apiToken());
+
+            ResponseEntity<String> response = restTemplate.exchange(
+                url,
+                HttpMethod.DELETE,
+                new HttpEntity<>(headers),
+                String.class
+            );
+
+            if (response.getStatusCode().is2xxSuccessful()) {
+                log.info("Instancia deletada com sucesso: {}", config.instanceName());
+                return true;
+            }
+
+            return false;
+
+        } catch (Exception e) {
+            log.error("Erro ao deletar instancia: {}", config.instanceName(), e);
+            return false;
+        }
+    }
+
+    /**
+     * Desconecta/logout de uma instancia na Evolution API.
+     *
+     * @param config Configuracao da Evolution API
+     * @return true se desconectou com sucesso
+     */
+    public boolean desconectarInstancia(EvolutionConfig config) {
+        String url = buildUrl(config, "/instance/logout/" + config.instanceName());
+
+        try {
+            HttpHeaders headers = new HttpHeaders();
+            headers.set("apikey", config.apiToken());
+
+            ResponseEntity<String> response = restTemplate.exchange(
+                url,
+                HttpMethod.DELETE,
+                new HttpEntity<>(headers),
+                String.class
+            );
+
+            if (response.getStatusCode().is2xxSuccessful()) {
+                log.info("Instancia desconectada com sucesso: {}", config.instanceName());
+                return true;
+            }
+
+            return false;
+
+        } catch (Exception e) {
+            log.error("Erro ao desconectar instancia: {}", config.instanceName(), e);
+            return false;
+        }
+    }
+
+    /**
+     * Reinicia uma instancia na Evolution API.
+     *
+     * @param config Configuracao da Evolution API
+     * @return true se reiniciou com sucesso
+     */
+    public boolean reiniciarInstancia(EvolutionConfig config) {
+        String url = buildUrl(config, "/instance/restart/" + config.instanceName());
+
+        try {
+            HttpHeaders headers = new HttpHeaders();
+            headers.set("apikey", config.apiToken());
+
+            ResponseEntity<String> response = restTemplate.exchange(
+                url,
+                HttpMethod.PUT,
+                new HttpEntity<>(headers),
+                String.class
+            );
+
+            if (response.getStatusCode().is2xxSuccessful()) {
+                log.info("Instancia reiniciada com sucesso: {}", config.instanceName());
+                return true;
+            }
+
+            return false;
+
+        } catch (Exception e) {
+            log.error("Erro ao reiniciar instancia: {}", config.instanceName(), e);
+            return false;
+        }
+    }
+
     // ===== METODOS AUXILIARES =====
+
+    private String buildUrlSimple(String apiUrl, String path) {
+        String baseUrl = apiUrl.endsWith("/")
+            ? apiUrl.substring(0, apiUrl.length() - 1)
+            : apiUrl;
+        return baseUrl + path;
+    }
 
     private EvolutionSendResult enviar(String url, String apiToken, Map<String, Object> body) {
         try {

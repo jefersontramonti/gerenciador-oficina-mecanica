@@ -130,24 +130,7 @@ public class SaasDashboardService {
 
         return oficinaRepository.findByStatusAndDataVencimentoPlanoBetween(
             StatusOficina.TRIAL, hoje, limite, pageable
-        ).map(oficina -> {
-            long diasRestantes = ChronoUnit.DAYS.between(hoje, oficina.getDataVencimentoPlano());
-
-            return new OficinaResumoDTO(
-                oficina.getId(),
-                oficina.getNomeFantasia(),
-                oficina.getCnpjCpf(),
-                oficina.getStatus(),
-                oficina.getPlano(),
-                oficina.getValorMensalidade(),
-                oficina.getDataVencimentoPlano(),
-                (int) diasRestantes,
-                countUsuarios(oficina.getId()),
-                countOrdensServico(oficina.getId()),
-                countClientes(oficina.getId()),
-                oficina.getCreatedAt()
-            );
-        });
+        ).map(oficina -> toResumoDTO(oficina, (int) ChronoUnit.DAYS.between(hoje, oficina.getDataVencimentoPlano())));
     }
 
     /**
@@ -167,21 +150,7 @@ public class SaasDashboardService {
                 if (oficina.getStatus() == StatusOficina.TRIAL && oficina.getDataVencimentoPlano() != null) {
                     diasRestantes = (int) ChronoUnit.DAYS.between(hoje, oficina.getDataVencimentoPlano());
                 }
-
-                return new OficinaResumoDTO(
-                    oficina.getId(),
-                    oficina.getNomeFantasia(),
-                    oficina.getCnpjCpf(),
-                    oficina.getStatus(),
-                    oficina.getPlano(),
-                    oficina.getValorMensalidade(),
-                    oficina.getDataVencimentoPlano(),
-                    diasRestantes,
-                    countUsuarios(oficina.getId()),
-                    countOrdensServico(oficina.getId()),
-                    countClientes(oficina.getId()),
-                    oficina.getCreatedAt()
-                );
+                return toResumoDTO(oficina, diasRestantes);
             });
     }
 
@@ -203,22 +172,34 @@ public class SaasDashboardService {
                 if (status == StatusOficina.TRIAL && oficina.getDataVencimentoPlano() != null) {
                     diasRestantes = (int) ChronoUnit.DAYS.between(hoje, oficina.getDataVencimentoPlano());
                 }
-
-                return new OficinaResumoDTO(
-                    oficina.getId(),
-                    oficina.getNomeFantasia(),
-                    oficina.getCnpjCpf(),
-                    oficina.getStatus(),
-                    oficina.getPlano(),
-                    oficina.getValorMensalidade(),
-                    oficina.getDataVencimentoPlano(),
-                    diasRestantes,
-                    countUsuarios(oficina.getId()),
-                    countOrdensServico(oficina.getId()),
-                    countClientes(oficina.getId()),
-                    oficina.getCreatedAt()
-                );
+                return toResumoDTO(oficina, diasRestantes);
             });
+    }
+
+    /**
+     * Converts Oficina entity to OficinaResumoDTO.
+     */
+    private OficinaResumoDTO toResumoDTO(Oficina oficina, Integer diasRestantes) {
+        String email = oficina.getContato() != null ? oficina.getContato().getEmail() : null;
+        String telefone = oficina.getContato() != null ? oficina.getContato().getTelefoneCelular() : null;
+
+        return new OficinaResumoDTO(
+            oficina.getId(),
+            oficina.getNomeFantasia(),
+            oficina.getRazaoSocial(),
+            oficina.getCnpjCpf(),
+            email,
+            telefone,
+            oficina.getStatus(),
+            oficina.getPlano(),
+            oficina.getValorMensalidade(),
+            oficina.getDataVencimentoPlano(),
+            diasRestantes,
+            countUsuarios(oficina.getId()),
+            countOrdensServico(oficina.getId()),
+            countClientes(oficina.getId()),
+            oficina.getCreatedAt()
+        );
     }
 
     // Helper methods for counting related entities

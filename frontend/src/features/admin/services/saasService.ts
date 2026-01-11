@@ -206,9 +206,10 @@ export const auditService = {
   async findAll(filters: AuditFilters = {}): Promise<PaginatedResponse<AuditLog>> {
     const params = new URLSearchParams();
 
-    if (filters.action) params.append('action', filters.action);
-    if (filters.entity) params.append('entity', filters.entity);
-    if (filters.userId) params.append('userId', filters.userId);
+    if (filters.acao) params.append('acao', filters.acao);
+    if (filters.entidade) params.append('entidade', filters.entidade);
+    if (filters.usuarioEmail) params.append('usuarioEmail', filters.usuarioEmail);
+    if (filters.ipAddress) params.append('ipAddress', filters.ipAddress);
     if (filters.dataInicio) params.append('dataInicio', filters.dataInicio);
     if (filters.dataFim) params.append('dataFim', filters.dataFim);
     if (filters.page !== undefined) params.append('page', String(filters.page));
@@ -223,8 +224,10 @@ export const auditService = {
   async exportCsv(filters: AuditFilters = {}): Promise<Blob> {
     const params = new URLSearchParams();
 
-    if (filters.action) params.append('action', filters.action);
-    if (filters.entity) params.append('entity', filters.entity);
+    if (filters.acao) params.append('acao', filters.acao);
+    if (filters.entidade) params.append('entidade', filters.entidade);
+    if (filters.usuarioEmail) params.append('usuarioEmail', filters.usuarioEmail);
+    if (filters.ipAddress) params.append('ipAddress', filters.ipAddress);
     if (filters.dataInicio) params.append('dataInicio', filters.dataInicio);
     if (filters.dataFim) params.append('dataFim', filters.dataFim);
 
@@ -237,8 +240,10 @@ export const auditService = {
   async count(filters: AuditFilters = {}): Promise<number> {
     const params = new URLSearchParams();
 
-    if (filters.action) params.append('action', filters.action);
-    if (filters.entity) params.append('entity', filters.entity);
+    if (filters.acao) params.append('acao', filters.acao);
+    if (filters.entidade) params.append('entidade', filters.entidade);
+    if (filters.usuarioEmail) params.append('usuarioEmail', filters.usuarioEmail);
+    if (filters.ipAddress) params.append('ipAddress', filters.ipAddress);
     if (filters.dataInicio) params.append('dataInicio', filters.dataInicio);
     if (filters.dataFim) params.append('dataFim', filters.dataFim);
 

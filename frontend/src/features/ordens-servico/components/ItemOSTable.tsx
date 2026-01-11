@@ -3,8 +3,8 @@
  * Exibe peças e serviços com suporte para modo leitura e edição
  */
 
-import { Wrench, Package, Trash2, Edit } from 'lucide-react';
-import { TipoItem, type ItemOS } from '../types';
+import { Wrench, Package, Trash2, Edit, Warehouse, ShoppingBag, UserCheck } from 'lucide-react';
+import { TipoItem, OrigemPeca, type ItemOS } from '../types';
 
 interface ItemOSTableProps {
   items: ItemOS[];
@@ -21,6 +21,47 @@ const formatCurrency = (value: number): string => {
     style: 'currency',
     currency: 'BRL',
   }).format(value);
+};
+
+/**
+ * Configuração de exibição para cada origem de peça
+ */
+const origemPecaConfig: Record<OrigemPeca, { label: string; icon: React.ReactNode; className: string }> = {
+  [OrigemPeca.ESTOQUE]: {
+    label: 'Estoque',
+    icon: <Warehouse className="h-3 w-3" />,
+    className: 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400',
+  },
+  [OrigemPeca.AVULSA]: {
+    label: 'Avulsa',
+    icon: <ShoppingBag className="h-3 w-3" />,
+    className: 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400',
+  },
+  [OrigemPeca.CLIENTE]: {
+    label: 'Cliente',
+    icon: <UserCheck className="h-3 w-3" />,
+    className: 'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400',
+  },
+};
+
+/**
+ * Renderiza badge de origem da peça
+ */
+const OrigemPecaBadge: React.FC<{ origem?: OrigemPeca }> = ({ origem }) => {
+  if (!origem) return null;
+
+  const config = origemPecaConfig[origem];
+  if (!config) return null;
+
+  return (
+    <span
+      className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-medium ${config.className}`}
+      title={`Origem: ${config.label}`}
+    >
+      {config.icon}
+      {config.label}
+    </span>
+  );
 };
 
 export const ItemOSTable: React.FC<ItemOSTableProps> = ({
@@ -88,7 +129,12 @@ export const ItemOSTable: React.FC<ItemOSTableProps> = ({
 
                 {/* Descrição */}
                 <td className="px-4 py-3">
-                  <p className="text-sm text-gray-900 dark:text-white">{item.descricao}</p>
+                  <div className="flex flex-col gap-1">
+                    <p className="text-sm text-gray-900 dark:text-white">{item.descricao}</p>
+                    {item.tipo === TipoItem.PECA && item.origemPeca && (
+                      <OrigemPecaBadge origem={item.origemPeca} />
+                    )}
+                  </div>
                 </td>
 
                 {/* Quantidade */}

@@ -6,6 +6,7 @@ import com.pitstop.notificacao.domain.HistoricoNotificacao;
 import com.pitstop.notificacao.domain.StatusNotificacao;
 import com.pitstop.notificacao.domain.TipoNotificacao;
 import com.pitstop.notificacao.integration.telegram.TelegramApiClient;
+import com.pitstop.notificacao.integration.telegram.TelegramApiClient.TelegramButton;
 import com.pitstop.notificacao.integration.telegram.TelegramConfig;
 import com.pitstop.notificacao.integration.telegram.TelegramSendResult;
 import com.pitstop.notificacao.repository.ConfiguracaoNotificacaoRepository;
@@ -17,6 +18,7 @@ import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
@@ -128,7 +130,34 @@ public class TelegramService {
         }
 
         try {
-            TelegramSendResult result = telegramApiClient.enviarTexto(telegramConfig, targetChatId, mensagem);
+            TelegramSendResult result;
+
+            // Verifica se ha link de aprovacao nas variaveis para usar botao inline
+            String linkAprovacao = extrairLinkAprovacao(variaveis);
+            if (linkAprovacao != null && !linkAprovacao.isBlank()) {
+                // Telegram requer HTTPS para botoes de URL inline
+                // Em desenvolvimento com HTTP, enviamos o link como texto
+                boolean usarBotaoInline = linkAprovacao.startsWith("https://");
+
+                if (usarBotaoInline) {
+                    // Remove o link do texto (sera mostrado no botao)
+                    String mensagemSemLink = removerLinkDoTexto(mensagem, linkAprovacao);
+
+                    // Cria botao inline para aprovar
+                    List<List<TelegramButton>> botoes = List.of(
+                        List.of(TelegramButton.url("Aprovar Orcamento", linkAprovacao))
+                    );
+
+                    result = telegramApiClient.enviarComBotoes(telegramConfig, targetChatId, mensagemSemLink, botoes);
+                    log.info("Telegram enviado com botao de aprovacao para chat {}", targetChatId);
+                } else {
+                    // HTTP URL - envia como texto simples (desenvolvimento)
+                    log.info("Link de aprovacao nao e HTTPS, enviando como texto: {}", linkAprovacao);
+                    result = telegramApiClient.enviarTexto(telegramConfig, targetChatId, mensagem);
+                }
+            } else {
+                result = telegramApiClient.enviarTexto(telegramConfig, targetChatId, mensagem);
+            }
 
             if (result.sucesso()) {
                 historico.marcarComoEnviado(result.messageId());
@@ -141,6 +170,7 @@ public class TelegramService {
                 if (result.respostaJson() != null) {
                     historico.setRespostaApi(Map.of("error", result.respostaJson()));
                 }
+                log.error("Falha ao enviar Telegram para {}: {} (codigo: {})", targetChatId, erroMsg, result.erroCodigo());
             }
         } catch (Exception e) {
             log.error("Erro ao enviar Telegram: {}", e.getMessage(), e);
@@ -617,5 +647,54 @@ public class TelegramService {
         }
 
         return "Fora do horario comercial configurado. Desative 'Aplicar horario comercial' nas configuracoes para enviar agora.";
+    }
+
+    /**
+     * Extrai o link de aprovacao das variaveis.
+     *
+     * @param variaveis Mapa de variaveis do template
+     * @return URL do link de aprovacao ou null
+     */
+    private String extrairLinkAprovacao(Map<String, Object> variaveis) {
+        if (variaveis == null) {
+            return null;
+        }
+
+        Object link = variaveis.get("linkAprovacao");
+        if (link != null && link instanceof String linkStr && !linkStr.isBlank()) {
+            return linkStr;
+        }
+
+        return null;
+    }
+
+    /**
+     * Remove o link de aprovacao do texto da mensagem.
+     * O link sera mostrado como botao inline ao inves de texto.
+     *
+     * @param mensagem Mensagem original
+     * @param linkAprovacao Link a ser removido
+     * @return Mensagem sem o link
+     */
+    private String removerLinkDoTexto(String mensagem, String linkAprovacao) {
+        if (mensagem == null || linkAprovacao == null) {
+            return mensagem;
+        }
+
+        // Remove o link e qualquer texto "Link: " ou similar antes dele
+        String resultado = mensagem
+            .replace("Link: " + linkAprovacao, "")
+            .replace("link: " + linkAprovacao, "")
+            .replace(linkAprovacao, "")
+            .replaceAll("\\n\\n+", "\n\n") // Remove linhas vazias duplicadas
+            .trim();
+
+        // Adiciona instrucao sobre o botao
+        if (!resultado.endsWith("\n")) {
+            resultado += "\n";
+        }
+        resultado += "\nClique no botao abaixo para aprovar:";
+
+        return resultado;
     }
 }

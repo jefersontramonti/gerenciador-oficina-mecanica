@@ -188,6 +188,12 @@ const navigationItems: NavigationItem[] = [
     requiredRoles: [PerfilUsuario.ADMIN, PerfilUsuario.GERENTE, PerfilUsuario.ATENDENTE, PerfilUsuario.MECANICO],
   },
   {
+    name: 'Meu Plano',
+    href: '/meu-plano',
+    icon: Crown,
+    requiredRoles: [PerfilUsuario.ADMIN, PerfilUsuario.GERENTE, PerfilUsuario.ATENDENTE, PerfilUsuario.MECANICO],
+  },
+  {
     name: 'Configurações',
     href: '/configuracoes',
     icon: Settings,

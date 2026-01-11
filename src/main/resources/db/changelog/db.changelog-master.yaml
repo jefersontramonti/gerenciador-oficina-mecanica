@@ -158,3 +158,18 @@ databaseChangeLog:
   - include:
       file: db/changelog/migrations/V054__create_configuracao_ia_table.sql
       relativeToChangelogFile: false
+  - include:
+      file: db/changelog/migrations/V055__add_valor_hora_to_oficinas.sql
+      relativeToChangelogFile: false
+  - include:
+      file: db/changelog/migrations/V056__add_modelo_cobranca_mao_obra_os.sql
+      relativeToChangelogFile: false
+  - include:
+      file: db/changelog/migrations/V057__add_origem_peca_item_os.sql
+      relativeToChangelogFile: false
+  - include:
+      file: db/changelog/migrations/V058__create_historico_status_os_table.sql
+      relativeToChangelogFile: false
+  - include:
+      file: db/changelog/migrations/V059__update_peca_obrigatoria_constraint.sql
+      relativeToChangelogFile: false

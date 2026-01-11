@@ -198,6 +198,9 @@ export interface Oficina {
   // Outros
   logoUrl?: string;
 
+  // Configuracoes de mao de obra
+  valorHora?: number;
+
   // Timestamps
   createdAt?: string;
   updatedAt?: string;
@@ -239,6 +242,9 @@ export interface UpdateOficinaRequest {
 
   // Logo
   logoUrl?: string;
+
+  // Configuracoes de mao de obra
+  valorHora?: number;
 }
 
 // ===== FORM DATA TYPES =====
@@ -287,6 +293,8 @@ export interface OficinaOperacionalFormData {
   linkedin?: string;
   twitter?: string;
   tiktok?: string;
+  // Valor/hora de mao de obra
+  valorHora?: number;
 }
 
 /**

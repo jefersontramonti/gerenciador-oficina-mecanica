@@ -9,6 +9,8 @@ import type {
   CreateOrdemServicoRequest,
   UpdateOrdemServicoRequest,
   CancelarOrdemServicoRequest,
+  FinalizarOSRequest,
+  AguardarPecaRequest,
 } from '../types';
 
 /**
@@ -26,6 +28,7 @@ export const ordemServicoKeys = {
     'historico',
     veiculoId,
   ] as const,
+  historicoStatus: (id: string) => [...ordemServicoKeys.all, 'historico-status', id] as const,
   dashboardContagem: () => [...ordemServicoKeys.all, 'dashboard', 'contagem'] as const,
   dashboardFaturamento: (dataInicio: string, dataFim: string) =>
     [...ordemServicoKeys.all, 'dashboard', 'faturamento', dataInicio, dataFim] as const,
@@ -207,7 +210,50 @@ export const useIniciarOrdemServico = () => {
 };
 
 /**
- * Hook para finalizar ordem de serviço
+ * Hook para colocar ordem de serviço em aguardando peça
+ */
+export const useAguardarPecaOrdemServico = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({ id, data }: { id: string; data: AguardarPecaRequest }) =>
+      ordemServicoService.aguardarPeca(id, data),
+    onSuccess: (_, { id }) => {
+      // Invalidar a OS específica
+      queryClient.invalidateQueries({ queryKey: ordemServicoKeys.detail(id) });
+
+      // Invalidar listas
+      queryClient.invalidateQueries({ queryKey: ordemServicoKeys.lists() });
+
+      // Invalidar dashboard
+      queryClient.invalidateQueries({ queryKey: ordemServicoKeys.dashboardContagem() });
+    },
+  });
+};
+
+/**
+ * Hook para retomar execução de ordem de serviço (após receber peça)
+ */
+export const useRetomarOrdemServico = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (id: string) => ordemServicoService.retomar(id),
+    onSuccess: (_, id) => {
+      // Invalidar a OS específica
+      queryClient.invalidateQueries({ queryKey: ordemServicoKeys.detail(id) });
+
+      // Invalidar listas
+      queryClient.invalidateQueries({ queryKey: ordemServicoKeys.lists() });
+
+      // Invalidar dashboard
+      queryClient.invalidateQueries({ queryKey: ordemServicoKeys.dashboardContagem() });
+    },
+  });
+};
+
+/**
+ * Hook para finalizar ordem de serviço (modelo VALOR_FIXO)
  */
 export const useFinalizarOrdemServico = () => {
   const queryClient = useQueryClient();
@@ -217,6 +263,29 @@ export const useFinalizarOrdemServico = () => {
     onSuccess: (_, id) => {
       // Invalidar a OS específica
       queryClient.invalidateQueries({ queryKey: ordemServicoKeys.detail(id) });
+
+      // Invalidar listas
+      queryClient.invalidateQueries({ queryKey: ordemServicoKeys.lists() });
+
+      // Invalidar dashboard
+      queryClient.invalidateQueries({ queryKey: ordemServicoKeys.dashboardContagem() });
+      queryClient.invalidateQueries({ queryKey: ordemServicoKeys.all }); // Faturamento pode ter mudado
+    },
+  });
+};
+
+/**
+ * Hook para finalizar ordem de serviço com horas trabalhadas (modelo POR_HORA)
+ */
+export const useFinalizarComHoras = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({ id, data }: { id: string; data: FinalizarOSRequest }) =>
+      ordemServicoService.finalizarComHoras(id, data),
+    onSuccess: (updatedOS) => {
+      // Invalidar a OS específica
+      queryClient.invalidateQueries({ queryKey: ordemServicoKeys.detail(updatedOS.id) });
 
       // Invalidar listas
       queryClient.invalidateQueries({ queryKey: ordemServicoKeys.lists() });
@@ -278,5 +347,17 @@ export const useCancelarOrdemServico = () => {
 export const useGerarPDF = () => {
   return useMutation({
     mutationFn: (id: string) => ordemServicoService.gerarPDF(id),
+  });
+};
+
+/**
+ * Hook para buscar histórico de status de uma OS
+ */
+export const useHistoricoStatus = (id?: string) => {
+  return useQuery({
+    queryKey: ordemServicoKeys.historicoStatus(id || ''),
+    queryFn: () => ordemServicoService.getHistoricoStatus(id!),
+    enabled: !!id,
+    staleTime: 2 * 60 * 1000, // 2 minutos
   });
 };

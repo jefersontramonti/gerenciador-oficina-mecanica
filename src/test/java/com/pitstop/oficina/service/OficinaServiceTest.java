@@ -320,7 +320,8 @@ class OficinaServiceTest {
             null,
             null,
             null,
-            null
+            null,
+            new BigDecimal("80.00") // valorHora
         );
     }
 }

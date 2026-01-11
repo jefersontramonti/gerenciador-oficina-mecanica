@@ -147,13 +147,13 @@ public class DashboardService {
         );
 
         Map<StatusOS, String> statusColors = Map.of(
-                StatusOS.ORCAMENTO, "#3b82f6",
-                StatusOS.APROVADO, "#10b981",
-                StatusOS.EM_ANDAMENTO, "#f59e0b",
-                StatusOS.AGUARDANDO_PECA, "#f97316",
-                StatusOS.FINALIZADO, "#059669",
-                StatusOS.ENTREGUE, "#10b981",
-                StatusOS.CANCELADO, "#ef4444"
+                StatusOS.ORCAMENTO, "#3b82f6",      // Azul
+                StatusOS.APROVADO, "#8b5cf6",       // Roxo
+                StatusOS.EM_ANDAMENTO, "#f59e0b",   // Laranja/Amarelo
+                StatusOS.AGUARDANDO_PECA, "#ec4899", // Rosa/Pink
+                StatusOS.FINALIZADO, "#10b981",     // Verde
+                StatusOS.ENTREGUE, "#06b6d4",       // Ciano/Azul claro
+                StatusOS.CANCELADO, "#ef4444"       // Vermelho
         );
 
         for (Object[] row : resultados) {

@@ -130,6 +130,7 @@ public class TemplateService {
             case OS_WAITING_PART -> criarCorpoOSAguardandoPeca(tipoNotificacao);
             case OS_COMPLETED -> criarCorpoOSFinalizada(tipoNotificacao);
             case OS_DELIVERED -> criarCorpoOSEntregue(tipoNotificacao);
+            case OS_REJECTED -> criarCorpoOSRejeitada(tipoNotificacao);
             case PAYMENT_PENDING -> criarCorpoPagamentoPendente(tipoNotificacao);
             case REMINDER_PICKUP -> criarCorpoLembreteRetirada(tipoNotificacao);
             case REMINDER_MAINTENANCE -> criarCorpoLembreteRevisao(tipoNotificacao);
@@ -449,6 +450,32 @@ public class TemplateService {
             Confirmamos a entrega do seu veiculo ({veiculoPlaca}).
 
             Obrigado pela preferencia! 🚗
+
+            {nomeOficina}
+            """;
+    }
+
+    private String criarCorpoOSRejeitada(TipoNotificacao tipo) {
+        if (tipo == TipoNotificacao.EMAIL) {
+            return """
+                <h1>Orcamento Rejeitado - OS #{numeroOS}</h1>
+                <p>Prezado(a) Equipe,</p>
+                <p>Informamos que o cliente <strong>{nomeCliente}</strong> rejeitou o orcamento da OS #{numeroOS}.</p>
+                <p><strong>Data:</strong> {dataRejeicao}</p>
+                <p><strong>Motivo informado:</strong> {motivoRejeicao}</p>
+                <p>A ordem de servico foi automaticamente cancelada no sistema.</p>
+                <p>Atenciosamente,<br/>{nomeOficina}</p>
+                """;
+        }
+        return """
+            ❌ *Orcamento Rejeitado - OS #{numeroOS}*
+
+            O cliente {nomeCliente} rejeitou o orcamento.
+
+            📅 Data: {dataRejeicao}
+            💬 Motivo: {motivoRejeicao}
+
+            A OS foi cancelada automaticamente.
 
             {nomeOficina}
             """;

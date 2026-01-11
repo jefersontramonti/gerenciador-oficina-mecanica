@@ -1,15 +1,19 @@
 package com.pitstop.notificacao.service;
 
+import com.pitstop.notificacao.controller.ConfiguracaoNotificacaoController.CriarInstanciaResponse;
 import com.pitstop.notificacao.domain.ConfiguracaoNotificacao;
 import com.pitstop.notificacao.domain.EventoNotificacao;
 import com.pitstop.notificacao.domain.TipoNotificacao;
 import com.pitstop.notificacao.dto.ConfiguracaoNotificacaoDTO;
 import com.pitstop.notificacao.dto.ConfiguracaoNotificacaoRequest;
+import com.pitstop.notificacao.integration.evolution.EvolutionApiClient;
+import com.pitstop.notificacao.integration.evolution.EvolutionConfig;
 import com.pitstop.notificacao.integration.evolution.EvolutionInstanceStatus;
 import com.pitstop.notificacao.repository.ConfiguracaoNotificacaoRepository;
 import com.pitstop.shared.security.tenant.TenantContext;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -23,12 +27,30 @@ import java.util.UUID;
  */
 @Service
 @Slf4j
-@RequiredArgsConstructor
 public class ConfiguracaoNotificacaoService {
 
     private final ConfiguracaoNotificacaoRepository repository;
     private final WhatsAppService whatsAppService;
     private final TelegramService telegramService;
+    private final EvolutionApiClient evolutionApiClient;
+
+    @Value("${pitstop.evolution.api-url:https://whatsapp.pitstopai.com.br}")
+    private String evolutionApiUrl;
+
+    @Value("${pitstop.evolution.global-api-key:}")
+    private String evolutionGlobalApiKey;
+
+    public ConfiguracaoNotificacaoService(
+        ConfiguracaoNotificacaoRepository repository,
+        WhatsAppService whatsAppService,
+        TelegramService telegramService,
+        EvolutionApiClient evolutionApiClient
+    ) {
+        this.repository = repository;
+        this.whatsAppService = whatsAppService;
+        this.telegramService = telegramService;
+        this.evolutionApiClient = evolutionApiClient;
+    }
 
     /**
      * Obtem a configuracao da oficina atual.
@@ -299,6 +321,158 @@ public class ConfiguracaoNotificacaoService {
         log.info("SMTP proprio removido para oficina: {}", oficinaId);
 
         return ConfiguracaoNotificacaoDTO.fromEntity(config);
+    }
+
+    // ===== GERENCIAMENTO DE INSTANCIA WHATSAPP =====
+
+    /**
+     * Cria uma instancia automaticamente na Evolution API.
+     * Gera o nome da instancia baseado no ID da oficina.
+     *
+     * @return Resultado da criacao com QR Code
+     */
+    @Transactional
+    public CriarInstanciaResponse criarInstanciaAutomatica() {
+        UUID oficinaId = TenantContext.getTenantId();
+        ConfiguracaoNotificacao config = getOrCreateConfig(oficinaId);
+
+        // Verificar se ja tem instancia configurada
+        if (config.getEvolutionInstanceName() != null && !config.getEvolutionInstanceName().isBlank()) {
+            log.warn("Oficina {} ja possui instancia configurada: {}", oficinaId, config.getEvolutionInstanceName());
+            return CriarInstanciaResponse.falha("Ja existe uma instancia configurada. Delete-a primeiro para criar uma nova.");
+        }
+
+        // Verificar se a API global esta configurada
+        if (evolutionGlobalApiKey == null || evolutionGlobalApiKey.isBlank()) {
+            log.error("API Key global da Evolution nao configurada");
+            return CriarInstanciaResponse.falha("Evolution API nao configurada no servidor. Contate o administrador.");
+        }
+
+        // Gerar nome unico da instancia
+        String instanceName = "pitstop_" + oficinaId.toString().substring(0, 8);
+
+        log.info("Criando instancia Evolution para oficina {}: {}", oficinaId, instanceName);
+
+        // Chamar Evolution API para criar instancia
+        var resultado = evolutionApiClient.criarInstancia(evolutionApiUrl, evolutionGlobalApiKey, instanceName);
+
+        if (!resultado.sucesso()) {
+            log.error("Falha ao criar instancia para oficina {}: {}", oficinaId, resultado.erroMensagem());
+            return CriarInstanciaResponse.falha(resultado.erroMensagem());
+        }
+
+        // Salvar configuracao
+        config.setEvolutionApiUrl(evolutionApiUrl);
+        config.setEvolutionApiToken(resultado.instanceToken());
+        config.setEvolutionInstanceName(resultado.instanceName());
+        config = repository.save(config);
+
+        log.info("Instancia criada com sucesso para oficina {}: {}", oficinaId, instanceName);
+
+        return CriarInstanciaResponse.sucesso(resultado.instanceName(), resultado.qrCode());
+    }
+
+    /**
+     * Deleta a instancia na Evolution API e limpa as configuracoes.
+     *
+     * @return true se deletou com sucesso
+     */
+    @Transactional
+    public boolean deletarInstancia() {
+        UUID oficinaId = TenantContext.getTenantId();
+        ConfiguracaoNotificacao config = getOrCreateConfig(oficinaId);
+
+        // Verificar se tem instancia configurada
+        if (config.getEvolutionInstanceName() == null || config.getEvolutionInstanceName().isBlank()) {
+            log.warn("Oficina {} nao possui instancia configurada", oficinaId);
+            return false;
+        }
+
+        // Criar config para chamar API
+        EvolutionConfig evolutionConfig = new EvolutionConfig(
+            config.getEvolutionApiUrl(),
+            config.getEvolutionApiToken(),
+            config.getEvolutionInstanceName(),
+            config.getWhatsappNumero()
+        );
+
+        // Tentar deletar na Evolution API
+        boolean deletado = evolutionApiClient.deletarInstancia(evolutionConfig);
+
+        // Limpar configuracao local (mesmo que falhe na API)
+        config.setEvolutionApiToken(null);
+        config.setEvolutionInstanceName(null);
+        config.setWhatsappNumero(null);
+        config.setWhatsappHabilitado(false);
+        repository.save(config);
+
+        log.info("Configuracao de instancia removida para oficina: {}", oficinaId);
+
+        return deletado;
+    }
+
+    /**
+     * Desconecta (logout) a instancia na Evolution API.
+     *
+     * @return true se desconectou com sucesso
+     */
+    public boolean desconectarInstancia() {
+        UUID oficinaId = TenantContext.getTenantId();
+        ConfiguracaoNotificacao config = getOrCreateConfig(oficinaId);
+
+        // Verificar se tem instancia configurada
+        if (config.getEvolutionInstanceName() == null || config.getEvolutionInstanceName().isBlank()) {
+            log.warn("Oficina {} nao possui instancia configurada", oficinaId);
+            return false;
+        }
+
+        // Criar config para chamar API
+        EvolutionConfig evolutionConfig = new EvolutionConfig(
+            config.getEvolutionApiUrl(),
+            config.getEvolutionApiToken(),
+            config.getEvolutionInstanceName(),
+            config.getWhatsappNumero()
+        );
+
+        boolean desconectado = evolutionApiClient.desconectarInstancia(evolutionConfig);
+
+        if (desconectado) {
+            log.info("Instancia desconectada para oficina: {}", oficinaId);
+        }
+
+        return desconectado;
+    }
+
+    /**
+     * Reconecta (reinicia) a instancia na Evolution API.
+     *
+     * @return true se reconectou com sucesso
+     */
+    public boolean reconectarInstancia() {
+        UUID oficinaId = TenantContext.getTenantId();
+        ConfiguracaoNotificacao config = getOrCreateConfig(oficinaId);
+
+        // Verificar se tem instancia configurada
+        if (config.getEvolutionInstanceName() == null || config.getEvolutionInstanceName().isBlank()) {
+            log.warn("Oficina {} nao possui instancia configurada", oficinaId);
+            return false;
+        }
+
+        // Criar config para chamar API
+        EvolutionConfig evolutionConfig = new EvolutionConfig(
+            config.getEvolutionApiUrl(),
+            config.getEvolutionApiToken(),
+            config.getEvolutionInstanceName(),
+            config.getWhatsappNumero()
+        );
+
+        boolean reiniciado = evolutionApiClient.reiniciarInstancia(evolutionConfig);
+
+        if (reiniciado) {
+            log.info("Instancia reiniciada para oficina: {}", oficinaId);
+        }
+
+        return reiniciado;
     }
 
     // ===== METODOS AUXILIARES =====

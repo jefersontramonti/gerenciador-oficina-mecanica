@@ -19,11 +19,14 @@ import java.util.UUID;
 public record OficinaResumoDTO(
     UUID id,
     String nomeFantasia,
-    String cnpj,
+    String razaoSocial,
+    String cnpjCpf,
+    String email,
+    String telefone,
     StatusOficina status,
     PlanoAssinatura plano,
-    BigDecimal mensalidade,
-    LocalDate dataVencimento,
+    BigDecimal valorMensalidade,
+    LocalDate dataVencimentoPlano,
     Integer diasRestantesTrial,
     Long totalUsuarios,
     Long totalOrdensServico,
@@ -35,11 +38,14 @@ public record OficinaResumoDTO(
      *
      * @param id Unique identifier
      * @param nomeFantasia Trade name of the workshop
-     * @param cnpj Brazilian company registration number
+     * @param razaoSocial Legal company name
+     * @param cnpjCpf Brazilian company registration number (CPF or CNPJ)
+     * @param email Contact email
+     * @param telefone Contact phone
      * @param status Current subscription status
      * @param plano Subscription plan tier
-     * @param mensalidade Monthly fee for the plan
-     * @param dataVencimento Next payment due date
+     * @param valorMensalidade Monthly fee for the plan
+     * @param dataVencimentoPlano Next payment due date
      * @param diasRestantesTrial Days remaining in trial (null if not in trial)
      * @param totalUsuarios Number of users in this workshop
      * @param totalOrdensServico Number of service orders created

@@ -1,8 +1,11 @@
 package com.pitstop.ordemservico.controller;
 
 import com.pitstop.ordemservico.domain.StatusOS;
+import com.pitstop.ordemservico.dto.AguardarPecaDTO;
 import com.pitstop.ordemservico.dto.CancelarOrdemServicoDTO;
 import com.pitstop.ordemservico.dto.CreateOrdemServicoDTO;
+import com.pitstop.ordemservico.dto.FinalizarOSDTO;
+import com.pitstop.ordemservico.dto.HistoricoStatusOSDTO;
 import com.pitstop.ordemservico.dto.OrdemServicoResponseDTO;
 import com.pitstop.ordemservico.dto.UpdateOrdemServicoDTO;
 import com.pitstop.ordemservico.service.OrdemServicoService;
@@ -29,6 +32,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
@@ -281,14 +285,65 @@ public class OrdemServicoController {
     }
 
     /**
-     * Finaliza OS (EM_ANDAMENTO/AGUARDANDO_PECA → FINALIZADO).
+     * Coloca OS em aguardando peça (EM_ANDAMENTO → AGUARDANDO_PECA).
+     *
+     * @param id ID da OS
+     * @param dto dados com descrição da peça aguardada
+     * @return HTTP 204 (No Content)
+     */
+    @PatchMapping("/{id}/aguardar-peca")
+    @PreAuthorize("hasAnyAuthority('ADMIN', 'GERENTE', 'MECANICO')")
+    @Operation(summary = "Aguardar peça", description = "Coloca OS em aguardando peça (transição para AGUARDANDO_PECA)")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "204", description = "OS em aguardando peça"),
+        @ApiResponse(responseCode = "400", description = "Transição inválida", content = @Content),
+        @ApiResponse(responseCode = "404", description = "OS não encontrada", content = @Content)
+    })
+    public ResponseEntity<Void> aguardarPeca(
+        @Parameter(description = "ID da OS", example = "123e4567-e89b-12d3-a456-426614174000")
+        @PathVariable UUID id,
+
+        @Valid @RequestBody AguardarPecaDTO dto
+    ) {
+        log.info("PATCH /api/ordens-servico/{}/aguardar-peca", id);
+        service.aguardarPeca(id, dto.descricaoPeca());
+        return ResponseEntity.noContent().build();
+    }
+
+    /**
+     * Retoma execução após recebimento de peça (AGUARDANDO_PECA → EM_ANDAMENTO).
+     *
+     * @param id ID da OS
+     * @return HTTP 204 (No Content)
+     */
+    @PatchMapping("/{id}/retomar")
+    @PreAuthorize("hasAnyAuthority('ADMIN', 'GERENTE', 'MECANICO')")
+    @Operation(summary = "Retomar execução", description = "Retoma execução após recebimento de peça (transição para EM_ANDAMENTO)")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "204", description = "Execução retomada"),
+        @ApiResponse(responseCode = "400", description = "Transição inválida", content = @Content),
+        @ApiResponse(responseCode = "404", description = "OS não encontrada", content = @Content)
+    })
+    public ResponseEntity<Void> retomarExecucao(
+        @Parameter(description = "ID da OS", example = "123e4567-e89b-12d3-a456-426614174000")
+        @PathVariable UUID id
+    ) {
+        log.info("PATCH /api/ordens-servico/{}/retomar", id);
+        service.retomarExecucao(id);
+        return ResponseEntity.noContent().build();
+    }
+
+    /**
+     * Finaliza OS sem informar horas (modelo VALOR_FIXO).
+     * Para OS com cobrança POR_HORA, use o endpoint POST com body.
      *
      * @param id ID da OS
      * @return HTTP 204 (No Content)
      */
     @PatchMapping("/{id}/finalizar")
     @PreAuthorize("hasAnyAuthority('ADMIN', 'GERENTE', 'MECANICO')")
-    @Operation(summary = "Finalizar OS", description = "Finaliza serviços (transição para FINALIZADO, baixa estoque)")
+    @Operation(summary = "Finalizar OS (VALOR_FIXO)",
+               description = "Finaliza serviços com mão de obra fixa (transição para FINALIZADO, baixa estoque)")
     @ApiResponses(value = {
         @ApiResponse(responseCode = "204", description = "OS finalizada com sucesso"),
         @ApiResponse(responseCode = "400", description = "Transição inválida", content = @Content),
@@ -301,6 +356,37 @@ public class OrdemServicoController {
         log.info("PATCH /api/ordens-servico/{}/finalizar", id);
         service.finalizar(id);
         return ResponseEntity.noContent().build();
+    }
+
+    /**
+     * Finaliza OS informando horas trabalhadas (modelo POR_HORA).
+     *
+     * <p>Valida que as horas informadas não excedem o limite aprovado pelo cliente.</p>
+     *
+     * @param id ID da OS
+     * @param dto dados de finalização (horas trabalhadas, observações opcionais)
+     * @return OS finalizada com valores calculados (HTTP 200)
+     */
+    @PostMapping("/{id}/finalizar")
+    @PreAuthorize("hasAnyAuthority('ADMIN', 'GERENTE', 'MECANICO')")
+    @Operation(summary = "Finalizar OS (POR_HORA)",
+               description = "Finaliza serviços informando horas trabalhadas. Calcula mão de obra automaticamente.")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "OS finalizada com sucesso",
+            content = @Content(schema = @Schema(implementation = OrdemServicoResponseDTO.class))),
+        @ApiResponse(responseCode = "400", description = "Transição inválida ou limite de horas excedido", content = @Content),
+        @ApiResponse(responseCode = "404", description = "OS não encontrada", content = @Content),
+        @ApiResponse(responseCode = "403", description = "Sem permissão", content = @Content)
+    })
+    public ResponseEntity<OrdemServicoResponseDTO> finalizarComHoras(
+        @Parameter(description = "ID da OS", example = "123e4567-e89b-12d3-a456-426614174000")
+        @PathVariable UUID id,
+
+        @Valid @RequestBody FinalizarOSDTO dto
+    ) {
+        log.info("POST /api/ordens-servico/{}/finalizar - {} horas trabalhadas", id, dto.horasTrabalhadas());
+        OrdemServicoResponseDTO response = service.finalizar(id, dto);
+        return ResponseEntity.ok(response);
     }
 
     /**
@@ -422,6 +508,31 @@ public class OrdemServicoController {
         log.info("GET /api/ordens-servico/dashboard/ticket-medio");
         BigDecimal ticketMedio = service.calcularTicketMedio(dataInicio, dataFim);
         return ResponseEntity.ok(Map.of("ticketMedio", ticketMedio));
+    }
+
+    // ===== STATUS HISTORY =====
+
+    /**
+     * Busca o histórico de mudanças de status de uma OS.
+     *
+     * @param id ID da OS
+     * @return lista de mudanças de status em ordem cronológica (HTTP 200)
+     */
+    @GetMapping("/{id}/historico-status")
+    @PreAuthorize("hasAnyAuthority('ADMIN', 'GERENTE', 'ATENDENTE', 'MECANICO')")
+    @Operation(summary = "Histórico de status", description = "Retorna todas as mudanças de status de uma OS")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "Histórico de status"),
+        @ApiResponse(responseCode = "404", description = "OS não encontrada", content = @Content),
+        @ApiResponse(responseCode = "403", description = "Sem permissão", content = @Content)
+    })
+    public ResponseEntity<List<HistoricoStatusOSDTO>> buscarHistoricoStatus(
+        @Parameter(description = "ID da OS", example = "123e4567-e89b-12d3-a456-426614174000")
+        @PathVariable UUID id
+    ) {
+        log.info("GET /api/ordens-servico/{}/historico-status", id);
+        List<HistoricoStatusOSDTO> historico = service.buscarHistoricoStatus(id);
+        return ResponseEntity.ok(historico);
     }
 
     // ===== PDF GENERATION =====

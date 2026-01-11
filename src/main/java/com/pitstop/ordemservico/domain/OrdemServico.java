@@ -239,6 +239,52 @@ public class OrdemServico implements Serializable {
     @Builder.Default
     private BigDecimal valorFinal = BigDecimal.ZERO;
 
+    // ===== MODELO DE COBRANÇA DE MÃO DE OBRA =====
+
+    /**
+     * Tipo de cobrança de mão de obra (VALOR_FIXO ou POR_HORA).
+     * Default: VALOR_FIXO (comportamento atual/tradicional).
+     */
+    @Enumerated(EnumType.STRING)
+    @Column(name = "tipo_cobranca_mao_obra", nullable = false, length = 20)
+    @Builder.Default
+    private TipoCobrancaMaoObra tipoCobrancaMaoObra = TipoCobrancaMaoObra.VALOR_FIXO;
+
+    /**
+     * Tempo estimado para conclusão do serviço (em horas).
+     * Usado apenas no modelo POR_HORA para informar estimativa ao cliente.
+     */
+    @Column(name = "tempo_estimado_horas", precision = 5, scale = 2)
+    @DecimalMin(value = "0.5", message = "Tempo estimado mínimo é 0.5 horas (30 minutos)")
+    @DecimalMax(value = "100.0", message = "Tempo estimado máximo é 100 horas")
+    private BigDecimal tempoEstimadoHoras;
+
+    /**
+     * Limite máximo de horas aprovado pelo cliente.
+     * Usado apenas no modelo POR_HORA. Se ultrapassado, requer nova aprovação.
+     */
+    @Column(name = "limite_horas_aprovado", precision = 5, scale = 2)
+    @DecimalMin(value = "0.5", message = "Limite mínimo é 0.5 horas (30 minutos)")
+    @DecimalMax(value = "100.0", message = "Limite máximo é 100 horas")
+    private BigDecimal limiteHorasAprovado;
+
+    /**
+     * Horas efetivamente trabalhadas (informadas na finalização).
+     * Usado apenas no modelo POR_HORA para calcular o valor final.
+     */
+    @Column(name = "horas_trabalhadas", precision = 5, scale = 2)
+    @DecimalMin(value = "0.5", message = "Mínimo é 0.5 horas (30 minutos)")
+    @DecimalMax(value = "100.0", message = "Máximo é 100 horas")
+    private BigDecimal horasTrabalhadas;
+
+    /**
+     * Snapshot do valor/hora da oficina no momento da criação da OS.
+     * Garante que mudanças no valor/hora não afetem orçamentos existentes.
+     */
+    @Column(name = "valor_hora_snapshot", precision = 10, scale = 2)
+    @DecimalMin(value = "0.00", message = "Valor/hora não pode ser negativo")
+    private BigDecimal valorHoraSnapshot;
+
     // ===== REGRAS DE NEGÓCIO =====
 
     /**
@@ -344,6 +390,12 @@ public class OrdemServico implements Serializable {
      *
      * <p>Usa calcularValorTotal() em vez de getValorTotal() para garantir que
      * os valores sejam calculados corretamente mesmo antes da persistência JPA.</p>
+     *
+     * <p><strong>Modelo de Cobrança:</strong></p>
+     * <ul>
+     *   <li>VALOR_FIXO: valorMaoObra é definido manualmente (comportamento tradicional)</li>
+     *   <li>POR_HORA: valorMaoObra = horasTrabalhadas × valorHoraSnapshot (calculado na finalização)</li>
+     * </ul>
      */
     public void recalcularValores() {
         // Calcula valor das peças (soma dos itens do tipo PECA)
@@ -361,6 +413,20 @@ public class OrdemServico implements Serializable {
             .reduce(BigDecimal.ZERO, BigDecimal::add)
             .setScale(2, RoundingMode.HALF_UP);
 
+        // Calcula mão de obra conforme tipo de cobrança
+        if (this.tipoCobrancaMaoObra == TipoCobrancaMaoObra.POR_HORA) {
+            // Modelo POR_HORA: calcula apenas se tiver horas trabalhadas (na finalização)
+            if (this.horasTrabalhadas != null && this.valorHoraSnapshot != null) {
+                this.valorMaoObra = this.horasTrabalhadas
+                    .multiply(this.valorHoraSnapshot)
+                    .setScale(2, RoundingMode.HALF_UP);
+            } else {
+                // Antes da finalização, mão de obra = 0 (será calculada depois)
+                this.valorMaoObra = BigDecimal.ZERO;
+            }
+        }
+        // Se VALOR_FIXO, mantém o valorMaoObra definido manualmente
+
         // Calcula valor total (mão de obra + peças + serviços)
         this.valorTotal = this.valorMaoObra.add(this.valorPecas).add(valorServicos)
             .setScale(2, RoundingMode.HALF_UP);
@@ -376,6 +442,53 @@ public class OrdemServico implements Serializable {
         if (this.valorFinal.compareTo(BigDecimal.ZERO) < 0) {
             this.valorFinal = BigDecimal.ZERO;
         }
+    }
+
+    /**
+     * Calcula o valor estimado mínimo de mão de obra (para modelo POR_HORA).
+     *
+     * @return Tempo estimado × valor/hora, ou null se não aplicável
+     */
+    public BigDecimal getValorMaoObraEstimadoMin() {
+        if (this.tipoCobrancaMaoObra != TipoCobrancaMaoObra.POR_HORA) {
+            return null;
+        }
+        if (this.tempoEstimadoHoras == null || this.valorHoraSnapshot == null) {
+            return null;
+        }
+        return this.tempoEstimadoHoras.multiply(this.valorHoraSnapshot)
+            .setScale(2, RoundingMode.HALF_UP);
+    }
+
+    /**
+     * Calcula o valor estimado máximo de mão de obra (para modelo POR_HORA).
+     *
+     * @return Limite aprovado × valor/hora, ou null se não aplicável
+     */
+    public BigDecimal getValorMaoObraEstimadoMax() {
+        if (this.tipoCobrancaMaoObra != TipoCobrancaMaoObra.POR_HORA) {
+            return null;
+        }
+        if (this.limiteHorasAprovado == null || this.valorHoraSnapshot == null) {
+            return null;
+        }
+        return this.limiteHorasAprovado.multiply(this.valorHoraSnapshot)
+            .setScale(2, RoundingMode.HALF_UP);
+    }
+
+    /**
+     * Verifica se as horas trabalhadas excedem o limite aprovado pelo cliente.
+     *
+     * @return true se exceder o limite, false caso contrário ou se não for modelo POR_HORA
+     */
+    public boolean isLimiteHorasExcedido() {
+        if (this.tipoCobrancaMaoObra != TipoCobrancaMaoObra.POR_HORA) {
+            return false;
+        }
+        if (this.horasTrabalhadas == null || this.limiteHorasAprovado == null) {
+            return false;
+        }
+        return this.horasTrabalhadas.compareTo(this.limiteHorasAprovado) > 0;
     }
 
     /**
@@ -463,6 +576,38 @@ public class OrdemServico implements Serializable {
         if (!Boolean.TRUE.equals(this.aprovadoPeloCliente)) {
             throw new IllegalStateException("OS precisa estar aprovada pelo cliente");
         }
+        mudarStatus(StatusOS.EM_ANDAMENTO);
+    }
+
+    /**
+     * Coloca a OS em aguardando peça (transição para AGUARDANDO_PECA).
+     * Usado quando uma peça necessária não está disponível.
+     *
+     * @param motivoAguardo Descrição da peça que está sendo aguardada
+     * @throws IllegalStateException se não estiver em andamento
+     */
+    public void aguardarPeca(String motivoAguardo) {
+        if (this.status != StatusOS.EM_ANDAMENTO) {
+            throw new IllegalStateException("Apenas OS em andamento podem aguardar peça");
+        }
+        if (motivoAguardo != null && !motivoAguardo.isBlank()) {
+            this.observacoes = (this.observacoes != null ? this.observacoes + "\n\n" : "")
+                + "AGUARDANDO PEÇA: " + motivoAguardo;
+        }
+        mudarStatus(StatusOS.AGUARDANDO_PECA);
+    }
+
+    /**
+     * Retoma a execução da OS após recebimento de peça (transição para EM_ANDAMENTO).
+     *
+     * @throws IllegalStateException se não estiver aguardando peça
+     */
+    public void retomarExecucao() {
+        if (this.status != StatusOS.AGUARDANDO_PECA) {
+            throw new IllegalStateException("Apenas OS aguardando peça podem retomar execução");
+        }
+        this.observacoes = (this.observacoes != null ? this.observacoes + "\n\n" : "")
+            + "PEÇA RECEBIDA - Execução retomada";
         mudarStatus(StatusOS.EM_ANDAMENTO);
     }
 

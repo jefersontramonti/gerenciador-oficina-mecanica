@@ -46,7 +46,7 @@ const mockOSByStatus: OSStatusCount[] = [
     status: StatusOS.EM_ANDAMENTO,
     count: 7,
     label: 'Em Andamento',
-    color: '#f59e0b', // Laranja
+    color: '#f59e0b', // Laranja/Amarelo
   },
   {
     status: StatusOS.AGUARDANDO_PECA,

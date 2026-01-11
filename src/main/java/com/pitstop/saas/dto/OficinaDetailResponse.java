@@ -20,16 +20,17 @@ public record OficinaDetailResponse(
     UUID id,
     String razaoSocial,
     String nomeFantasia,
-    String cnpj,
+    String cnpjCpf,
     String email,
     String telefone,
+    String nomeResponsavel,
     StatusOficina status,
     PlanoAssinatura plano,
-    BigDecimal mensalidade,
+    BigDecimal valorMensalidade,
     LocalDate dataInicioTrial,
     LocalDate dataFimTrial,
     Integer diasRestantesTrial,
-    LocalDate dataVencimento,
+    LocalDate dataVencimentoPlano,
     Boolean ativa,
 
     // Endereço
@@ -64,16 +65,17 @@ public record OficinaDetailResponse(
      * @param id Unique identifier
      * @param razaoSocial Legal company name
      * @param nomeFantasia Trade name
-     * @param cnpj Brazilian company registration number
+     * @param cnpjCpf Brazilian company registration number (CPF or CNPJ)
      * @param email Contact email
      * @param telefone Contact phone
+     * @param nomeResponsavel Name of the responsible person
      * @param status Current subscription status
      * @param plano Subscription plan tier
-     * @param mensalidade Monthly fee
+     * @param valorMensalidade Monthly fee
      * @param dataInicioTrial Trial start date (null if never in trial)
      * @param dataFimTrial Trial end date (null if never in trial)
      * @param diasRestantesTrial Days remaining in trial (null if not in trial)
-     * @param dataVencimento Next payment due date
+     * @param dataVencimentoPlano Next payment due date
      * @param ativa Whether workshop is active in the system
      * @param totalUsuarios Number of registered users
      * @param totalClientes Number of customers
