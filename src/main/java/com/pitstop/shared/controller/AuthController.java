@@ -77,9 +77,11 @@ public class AuthController {
     private static final long COOKIE_MAX_AGE_SECONDS = 7 * 24 * 60 * 60;
 
     /**
-     * SameSite policy for cookies (Lax for better compatibility).
+     * SameSite policy for cookies.
+     * "None" is required for cross-subdomain auth (app.domain.com -> api.domain.com).
+     * Requires Secure=true (HTTPS), which is enforced in production.
      */
-    private static final String COOKIE_SAME_SITE = "Lax";
+    private static final String COOKIE_SAME_SITE = "None";
 
     /**
      * Minimum characters to show at start and end of masked email.
