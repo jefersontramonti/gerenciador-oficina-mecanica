@@ -228,12 +228,12 @@ jobs:
             docker compose -f docker-compose.prod.yml rm -f pitstop-backend pitstop-frontend || true
 
             echo "=== Removendo imagens antigas do frontend e backend ==="
-            docker rmi ghcr.io/rilfranco/pitstop/frontend:latest || true
-            docker rmi ghcr.io/rilfranco/pitstop/backend:latest || true
+            docker rmi ghcr.io/jefersontramonti/gerenciador-oficina-mecanica/frontend:latest || true
+            docker rmi ghcr.io/jefersontramonti/gerenciador-oficina-mecanica/backend:latest || true
 
             echo "=== Pull das novas imagens (forçando download) ==="
-            docker pull ghcr.io/rilfranco/pitstop/frontend:latest
-            docker pull ghcr.io/rilfranco/pitstop/backend:latest
+            docker pull ghcr.io/jefersontramonti/gerenciador-oficina-mecanica/frontend:latest
+            docker pull ghcr.io/jefersontramonti/gerenciador-oficina-mecanica/backend:latest
 
             echo "=== Atualizando containers (forçando recreate) ==="
             docker compose -f docker-compose.prod.yml up -d --force-recreate --remove-orphans
