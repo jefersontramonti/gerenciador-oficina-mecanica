@@ -490,7 +490,233 @@ TELEGRAM_BOT_TOKEN=<token>
 | `CLAUDE.md` | This file - project guidance |
 | `docs/SUPER_ADMIN_IMPLEMENTATION_PLAN.md` | SaaS panel roadmap |
 | `docs/PITSTOP_FUNCIONALIDADES.md` | Feature documentation |
-| `compose.yaml` | Docker Compose config |
+| `docs/FIX_MOBILE_AUTH_2026-01-12.md` | Mobile auth fix documentation |
+| `compose.yaml` | Docker Compose (local development) |
+| `docker-compose.prod.yml` | Docker Compose (production VPS) |
+| `.env.production.template` | Environment variables template |
+| `deploy/nginx-pitstopai.conf` | Nginx configuration for VPS |
 | `pom.xml` | Maven dependencies |
 | `frontend/package.json` | Frontend dependencies |
 | `src/main/resources/application.properties` | Spring config |
+
+## VPS Production Deployment
+
+### Architecture Overview (Production)
+
+```
+Clients (Browser/Mobile)
+         │
+         ▼
+┌─────────────────────────────────────────────┐
+│          Nginx (Reverse Proxy)               │
+│                                              │
+│  pitstopai.com.br      → /opt/pitstop/landing│
+│  app.pitstopai.com.br  → frontend:3000       │
+│  app.pitstopai.com.br/api → backend:8080     │
+│  app.pitstopai.com.br/ws  → backend:8080     │
+│  api.pitstopai.com.br  → backend:8080        │
+│  whatsapp.pitstopai.com.br → evolution:8021  │
+└─────────────────────────────────────────────┘
+         │
+         ▼
+┌─────────────────────────────────────────────┐
+│          Docker Containers                   │
+│  - pitstop-frontend (3000)                   │
+│  - pitstop-backend (8080)                    │
+│  - pitstop-postgres (5432)                   │
+│  - pitstop-redis (6379)                      │
+│  - evolution-api (8021) [separate compose]   │
+└─────────────────────────────────────────────┘
+```
+
+### Critical: Same-Origin Cookie Configuration
+
+**IMPORTANT**: For mobile authentication to work, the API must be served from the **same domain** as the frontend. Mobile browsers block cross-site cookies.
+
+```
+Frontend: https://app.pitstopai.com.br
+API:      https://app.pitstopai.com.br/api  (proxied to backend:8080)
+WebSocket: https://app.pitstopai.com.br/ws  (proxied to backend:8080)
+```
+
+The `DOMAIN_API` environment variable **MUST** match the frontend domain:
+```env
+DOMAIN_API=app.pitstopai.com.br  # Same as frontend, NOT api.pitstopai.com.br
+```
+
+### VPS Directory Structure
+
+```
+/opt/pitstop/
+├── docker-compose.yml      # Copy from docker-compose.prod.yml
+├── .env                    # Copy from .env.production.template (with real values)
+├── backend/
+│   └── Dockerfile
+├── frontend/
+│   └── Dockerfile
+├── data/
+│   ├── postgres-pitstop/   # PostgreSQL data
+│   └── redis/              # Redis data
+└── landing/                # Static landing page files
+
+/etc/nginx/sites-available/
+└── pitstopai               # Copy from deploy/nginx-pitstopai.conf
+
+/etc/letsencrypt/live/pitstopai.com.br/
+├── fullchain.pem
+└── privkey.pem
+```
+
+### Initial VPS Setup
+
+```bash
+# 1. Create directories
+mkdir -p /opt/pitstop/data/postgres-pitstop
+mkdir -p /opt/pitstop/data/redis
+mkdir -p /opt/pitstop/landing
+
+# 2. Copy project files to VPS
+scp -r backend/ frontend/ docker-compose.prod.yml .env.production.template root@VPS:/opt/pitstop/
+
+# 3. On VPS: Rename and configure
+cd /opt/pitstop
+mv docker-compose.prod.yml docker-compose.yml
+cp .env.production.template .env
+nano .env  # Fill in real values
+
+# 4. Copy nginx config
+cp deploy/nginx-pitstopai.conf /etc/nginx/sites-available/pitstopai
+ln -sf /etc/nginx/sites-available/pitstopai /etc/nginx/sites-enabled/
+
+# 5. Generate SSL certificates (first time only)
+certbot certonly --webroot -w /var/www/certbot \
+  -d pitstopai.com.br -d www.pitstopai.com.br \
+  -d app.pitstopai.com.br -d api.pitstopai.com.br \
+  -d whatsapp.pitstopai.com.br
+
+# 6. Test and reload nginx
+nginx -t && systemctl reload nginx
+
+# 7. Start containers
+cd /opt/pitstop
+docker compose up -d
+```
+
+### Deployment Commands (Updates)
+
+```bash
+# SSH to VPS
+ssh root@YOUR_VPS_IP
+
+# Navigate to project
+cd /opt/pitstop
+
+# Pull latest code (if using git)
+git pull origin main
+
+# Or copy updated files from local
+# scp -r backend/ frontend/ root@VPS:/opt/pitstop/
+
+# Rebuild and restart all services
+docker compose build --no-cache
+docker compose up -d
+
+# Rebuild only backend
+docker compose build pitstop-backend --no-cache
+docker compose up -d pitstop-backend
+
+# Rebuild only frontend
+docker compose build pitstop-frontend --no-cache
+docker compose up -d pitstop-frontend
+
+# View logs
+docker compose logs -f pitstop-backend
+docker compose logs -f pitstop-frontend
+docker compose logs -f --tail=100  # All services, last 100 lines
+
+# Restart services
+docker compose restart pitstop-backend
+docker compose restart pitstop-frontend
+
+# Check container status
+docker compose ps
+
+# Check health
+curl http://localhost:8080/actuator/health
+curl http://localhost:3000/health
+```
+
+### Nginx Commands
+
+```bash
+# Test configuration
+nginx -t
+
+# Reload (apply changes without downtime)
+systemctl reload nginx
+
+# Restart (full restart)
+systemctl restart nginx
+
+# View logs
+tail -f /var/log/nginx/app_access.log
+tail -f /var/log/nginx/app_error.log
+tail -f /var/log/nginx/api_access.log
+```
+
+### Database Commands
+
+```bash
+# Access PostgreSQL
+docker exec -it pitstop-postgres psql -U pitstop -d pitstop_db
+
+# Backup database
+docker exec pitstop-postgres pg_dump -U pitstop pitstop_db > backup_$(date +%Y%m%d).sql
+
+# Restore database
+docker exec -i pitstop-postgres psql -U pitstop pitstop_db < backup_20260112.sql
+
+# Access Redis CLI
+docker exec -it pitstop-redis redis-cli -a YOUR_REDIS_PASSWORD
+```
+
+### Troubleshooting
+
+**Mobile login not persisting after reload:**
+1. Verify `DOMAIN_API=app.pitstopai.com.br` in `.env` (same as frontend)
+2. Check nginx has `/api/` and `/ws/` proxy in `app.pitstopai.com.br` server block
+3. Rebuild frontend: `docker compose build pitstop-frontend --no-cache`
+4. Verify URLs in build: `docker exec pitstop-frontend sh -c "grep -o 'https://app.pitstopai' /usr/share/nginx/html/assets/*.js | head -1"`
+
+**WebSocket 403 Forbidden:**
+1. Check `CORS_ALLOWED_ORIGINS` includes frontend URL
+2. Verify `WebSocketConfig.java` uses `setAllowedOriginPatterns()` not `setAllowedOrigins()`
+3. Rebuild backend: `docker compose build pitstop-backend --no-cache`
+
+**Container network errors:**
+1. Check network name matches in docker-compose.yml: `pitstop-app-network`
+2. Run `docker network ls` to see existing networks
+3. If conflict, use different network name
+
+**SockJS scheme error (wss:// not allowed):**
+1. Verify `VITE_WS_URL` uses `https://` not `wss://`
+2. SockJS handles the WebSocket upgrade automatically
+
+### Environment Variables Reference
+
+See `.env.production.template` for complete list. Critical variables:
+
+| Variable | Value | Notes |
+|----------|-------|-------|
+| `DOMAIN_API` | `app.pitstopai.com.br` | **MUST** match frontend domain for mobile cookies |
+| `CORS_ALLOWED_ORIGINS` | `https://app.pitstopai.com.br,https://pitstopai.com.br` | Comma-separated |
+| `APP_COOKIE_DOMAIN` | (empty) | Leave empty when using same-origin proxy |
+| `SPRING_PROFILES_ACTIVE` | `prod` | Production profile |
+
+### Security Notes
+
+- Never commit `.env` files with real values
+- Use strong passwords (generate with `openssl rand -base64 32`)
+- JWT secret must be 64+ bytes (`openssl rand -base64 64`)
+- PostgreSQL and Redis only listen on 127.0.0.1 (not exposed to internet)
+- Actuator endpoints restricted to localhost in nginx config

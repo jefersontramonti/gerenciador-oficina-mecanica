@@ -61,8 +61,16 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
      */
     @Override
     public void registerStompEndpoints(StompEndpointRegistry registry) {
+        // Usar setAllowedOriginPatterns em vez de setAllowedOrigins para melhor compatibilidade
+        // setAllowedOriginPatterns aceita wildcards e não tem problemas com trailing whitespace
+        String[] origins = allowedOrigins.split(",");
+        String[] patterns = new String[origins.length];
+        for (int i = 0; i < origins.length; i++) {
+            patterns[i] = origins[i].trim(); // Remove whitespace
+        }
+
         registry.addEndpoint("/ws")
-                .setAllowedOrigins(allowedOrigins.split(","))
+                .setAllowedOriginPatterns(patterns)
                 .withSockJS(); // Habilita fallback SockJS para navegadores antigos
     }
 }
