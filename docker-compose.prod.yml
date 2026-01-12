@@ -115,9 +115,10 @@ services:
       dockerfile: Dockerfile
       args:
         # IMPORTANTE: Usar https:// (não wss://) para WebSocket - SockJS faz upgrade automaticamente
-        VITE_API_URL: https://${DOMAIN_API}/api
-        VITE_WS_URL: https://${DOMAIN_API}/ws
-        VITE_API_BASE_URL: https://${DOMAIN_API}
+        # DOMAIN_API DEVE ser igual ao domínio do frontend para cookies mobile funcionarem
+        VITE_API_URL: https://${DOMAIN_API:-app.pitstopai.com.br}/api
+        VITE_WS_URL: https://${DOMAIN_API:-app.pitstopai.com.br}/ws
+        VITE_API_BASE_URL: https://${DOMAIN_API:-app.pitstopai.com.br}
     image: pitstop-frontend:latest
     container_name: pitstop-frontend
     restart: unless-stopped
