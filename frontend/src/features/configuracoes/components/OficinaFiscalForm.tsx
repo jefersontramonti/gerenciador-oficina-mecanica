@@ -68,7 +68,20 @@ export const OficinaFiscalForm = () => {
       });
       showSuccess('Dados fiscais salvos com sucesso!');
     } catch (error: unknown) {
-      const errorMessage = error instanceof Error ? error.message : 'Erro ao salvar os dados fiscais';
+      console.error('Erro ao salvar dados fiscais:', error);
+      let errorMessage = 'Erro ao salvar os dados fiscais';
+
+      if (error && typeof error === 'object') {
+        const axiosError = error as { response?: { data?: { message?: string; error?: string } }; message?: string };
+        if (axiosError.response?.data?.message) {
+          errorMessage = axiosError.response.data.message;
+        } else if (axiosError.response?.data?.error) {
+          errorMessage = axiosError.response.data.error;
+        } else if (axiosError.message) {
+          errorMessage = axiosError.message;
+        }
+      }
+
       showError(errorMessage);
     }
   };
@@ -124,7 +137,7 @@ export const OficinaFiscalForm = () => {
           <div>
             <p className="text-xs text-gray-500 dark:text-gray-400">Razao Social</p>
             <p className="font-medium text-gray-900 dark:text-white">
-              {oficina?.razaoSocial || oficina?.nome || '-'}
+              {oficina?.razaoSocial || oficina?.nomeFantasia || '-'}
             </p>
           </div>
           <div>

@@ -163,19 +163,6 @@ export const LoginPage = () => {
           </div>
         </form>
 
-        {/* Link para Cadastre-se */}
-        <div className="mt-6 text-center">
-          <p className="text-sm text-gray-400">
-            Não tem uma conta?{' '}
-            <Link
-              to="/register"
-              className="font-medium text-blue-400 hover:text-blue-300 hover:underline"
-            >
-              Cadastre-se
-            </Link>
-          </p>
-        </div>
-
         {/* Rodapé do Card */}
         <div className="mt-8 text-center">
           <p className="text-sm text-gray-500">

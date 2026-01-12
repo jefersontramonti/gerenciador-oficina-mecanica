@@ -268,17 +268,17 @@ public class AuthenticationService {
                 });
 
         // 2. If email is being changed, verify new email is not in use
-        if (!usuario.getEmail().equals(request.email())) {
+        if (request.email() != null && !request.email().isBlank() && !usuario.getEmail().equals(request.email())) {
             usuarioRepository.findByEmail(request.email())
                     .ifPresent(existingUser -> {
                         log.warn("Update profile failed: email already in use - {}", request.email());
                         throw new EmailAlreadyExistsException(request.email());
                     });
+            usuario.setEmail(request.email());
         }
 
         // 3. Update user data
         usuario.setNome(request.nome());
-        usuario.setEmail(request.email());
 
         // 4. Save changes
         Usuario updatedUsuario = usuarioRepository.save(usuario);
@@ -311,13 +311,13 @@ public class AuthenticationService {
                 });
 
         // 2. Verify current password is correct
-        if (!passwordEncoder.matches(request.senhaAtual(), usuario.getSenha())) {
+        if (!passwordEncoder.matches(request.currentPassword(), usuario.getSenha())) {
             log.warn("Change password failed: incorrect current password for user {}", userId);
             throw new InvalidCredentialsException();
         }
 
         // 3. Hash and update password
-        usuario.setSenha(passwordEncoder.encode(request.novaSenha()));
+        usuario.setSenha(passwordEncoder.encode(request.newPassword()));
 
         // 4. Save changes
         usuarioRepository.save(usuario);

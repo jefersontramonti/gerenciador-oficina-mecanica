@@ -163,7 +163,20 @@ export const OficinaOperacionalForm = () => {
       });
       showSuccess('Informacoes operacionais salvas com sucesso!');
     } catch (error: unknown) {
-      const errorMessage = error instanceof Error ? error.message : 'Erro ao salvar as alteracoes';
+      console.error('Erro ao salvar informacoes operacionais:', error);
+      let errorMessage = 'Erro ao salvar as alteracoes';
+
+      if (error && typeof error === 'object') {
+        const axiosError = error as { response?: { data?: { message?: string; error?: string } }; message?: string };
+        if (axiosError.response?.data?.message) {
+          errorMessage = axiosError.response.data.message;
+        } else if (axiosError.response?.data?.error) {
+          errorMessage = axiosError.response.data.error;
+        } else if (axiosError.message) {
+          errorMessage = axiosError.message;
+        }
+      }
+
       showError(errorMessage);
     }
   };

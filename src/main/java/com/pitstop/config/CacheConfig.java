@@ -23,21 +23,41 @@ import java.util.Map;
 /**
  * Redis cache configuration for PitStop application.
  *
- * Defines cache names and TTLs for different types of data:
- * - categorias: 24 hours (static data)
- * - pecas: 24 hours (inventory data)
- * - consultas: 1 hour (frequent queries)
- * - relatorios: 15 minutes (reports with calculations)
+ * Cache strategy:
+ * - Detail caches (entity by ID): Longer TTL (1 hour)
+ * - List caches (paginated results): Shorter TTL (5 minutes) - evicted on mutations
+ * - Static data (categorias): 24 hours
+ * - Reports: 15 minutes
+ *
+ * Performance notes:
+ * - List caches use shorter TTL because they need to reflect new items quickly
+ * - Detail caches can have longer TTL since specific item changes are less frequent
+ * - Using @CacheEvict with key instead of allEntries where possible
  */
 @Configuration
 @EnableCaching
 public class CacheConfig {
 
+    // Detail caches (single entity)
     public static final String CATEGORIAS_CACHE = "categorias";
     public static final String PECAS_CACHE = "pecas";
     public static final String CLIENTES_CACHE = "clientes";
+    public static final String VEICULOS_CACHE = "veiculos";
+    public static final String USUARIOS_CACHE = "usuarios";
+    public static final String ORDEM_SERVICO_CACHE = "ordemServico";
+
+    // List caches (paginated results) - shorter TTL
+    public static final String PECAS_LIST_CACHE = "pecas-list";
+    public static final String CLIENTES_LIST_CACHE = "clientes-list";
+    public static final String VEICULOS_LIST_CACHE = "veiculos-list";
+    public static final String OS_LIST_CACHE = "os-list";
+
+    // Aggregation caches
     public static final String CONSULTAS_CACHE = "consultas";
     public static final String RELATORIOS_CACHE = "relatorios";
+    public static final String DASHBOARD_CACHE = "dashboard";
+    public static final String OS_COUNT_CACHE = "osCountByStatus";
+    public static final String ESTOQUE_BAIXO_CACHE = "estoqueBaixo";
 
     @Bean
     public CacheManager cacheManager(RedisConnectionFactory connectionFactory) {
@@ -76,18 +96,40 @@ public class CacheConfig {
         // Specific cache configurations with custom TTLs
         Map<String, RedisCacheConfiguration> cacheConfigurations = new HashMap<>();
 
+        // Static data caches (24 hours)
         cacheConfigurations.put(CATEGORIAS_CACHE, defaultConfig
             .entryTtl(Duration.ofHours(24)));
 
+        // Detail caches (1 hour) - single entity by ID
         cacheConfigurations.put(PECAS_CACHE, defaultConfig
-            .entryTtl(Duration.ofHours(24)));
-
+            .entryTtl(Duration.ofHours(1)));
         cacheConfigurations.put(CLIENTES_CACHE, defaultConfig
-            .entryTtl(Duration.ofHours(24)));
-
-        cacheConfigurations.put(CONSULTAS_CACHE, defaultConfig
+            .entryTtl(Duration.ofHours(1)));
+        cacheConfigurations.put(VEICULOS_CACHE, defaultConfig
+            .entryTtl(Duration.ofHours(1)));
+        cacheConfigurations.put(USUARIOS_CACHE, defaultConfig
+            .entryTtl(Duration.ofHours(1)));
+        cacheConfigurations.put(ORDEM_SERVICO_CACHE, defaultConfig
             .entryTtl(Duration.ofHours(1)));
 
+        // List caches (5 minutes) - shorter TTL for quick updates
+        RedisCacheConfiguration listConfig = defaultConfig.entryTtl(Duration.ofMinutes(5));
+        cacheConfigurations.put(PECAS_LIST_CACHE, listConfig);
+        cacheConfigurations.put(CLIENTES_LIST_CACHE, listConfig);
+        cacheConfigurations.put(VEICULOS_LIST_CACHE, listConfig);
+        cacheConfigurations.put(OS_LIST_CACHE, listConfig);
+
+        // Aggregation caches
+        cacheConfigurations.put(CONSULTAS_CACHE, defaultConfig
+            .entryTtl(Duration.ofHours(1)));
+        cacheConfigurations.put(DASHBOARD_CACHE, defaultConfig
+            .entryTtl(Duration.ofMinutes(5)));
+        cacheConfigurations.put(OS_COUNT_CACHE, defaultConfig
+            .entryTtl(Duration.ofMinutes(5)));
+        cacheConfigurations.put(ESTOQUE_BAIXO_CACHE, defaultConfig
+            .entryTtl(Duration.ofMinutes(15)));
+
+        // Reports (15 minutes)
         cacheConfigurations.put(RELATORIOS_CACHE, defaultConfig
             .entryTtl(Duration.ofMinutes(15)));
 

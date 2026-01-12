@@ -111,7 +111,6 @@ public class Oficina extends AuditableEntity {
 
     @Embedded
     @Valid
-    @NotNull(message = "Dados de contato são obrigatórios")
     private Contato contato;
 
     // =====================================
@@ -120,7 +119,6 @@ public class Oficina extends AuditableEntity {
 
     @Embedded
     @Valid
-    @NotNull(message = "Endereço é obrigatório")
     @AttributeOverrides({
         @AttributeOverride(name = "logradouro", column = @Column(name = "endereco_logradouro")),
         @AttributeOverride(name = "numero", column = @Column(name = "endereco_numero")),

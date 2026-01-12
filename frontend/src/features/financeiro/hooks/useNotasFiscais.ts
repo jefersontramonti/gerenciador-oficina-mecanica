@@ -3,7 +3,7 @@
  */
 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { toast } from 'sonner';
+import toast from 'react-hot-toast';
 import { notasFiscaisApi } from '../api/notasFiscaisApi';
 import type {
   NotaFiscalRequestDTO,

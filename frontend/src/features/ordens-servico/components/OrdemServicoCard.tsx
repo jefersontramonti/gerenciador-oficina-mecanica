@@ -1,7 +1,9 @@
 /**
  * Card compacto de Ordem de Serviço para exibição em listas
+ * Memoized to prevent unnecessary re-renders in list views
  */
 
+import { memo } from 'react';
 import { Link } from 'react-router-dom';
 import { Calendar, User, Car } from 'lucide-react';
 import { format } from 'date-fns';
@@ -47,7 +49,7 @@ const formatCurrency = (value: number): string => {
   }).format(value);
 };
 
-export const OrdemServicoCard: React.FC<OrdemServicoCardProps> = ({ ordemServico }) => {
+export const OrdemServicoCard: React.FC<OrdemServicoCardProps> = memo(({ ordemServico }) => {
   return (
     <Link
       to={`/ordens-servico/${ordemServico.id}`}
@@ -101,4 +103,6 @@ export const OrdemServicoCard: React.FC<OrdemServicoCardProps> = ({ ordemServico
       </div>
     </Link>
   );
-};
+});
+
+OrdemServicoCard.displayName = 'OrdemServicoCard';

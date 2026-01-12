@@ -3,7 +3,7 @@
  */
 
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { toast } from 'sonner';
+import toast from 'react-hot-toast';
 import pecaService from '../services/pecaService';
 import type {
   CreatePecaRequest,
@@ -160,15 +160,11 @@ export const useCreatePeca = () => {
       queryClient.invalidateQueries({ queryKey: pecaKeys.lists() });
       queryClient.invalidateQueries({ queryKey: pecaKeys.marcas() });
       queryClient.invalidateQueries({ queryKey: pecaKeys.valorTotal() });
-      toast.success('Peça criada com sucesso!', {
-        description: `Código: ${data.codigo}`,
-      });
+      toast.success(`Peça criada com sucesso! Código: ${data.codigo}`);
     },
     onError: (error: any) => {
       const message = error.response?.data?.message || 'Erro ao criar peça';
-      toast.error('Erro ao criar peça', {
-        description: message,
-      });
+      toast.error(message);
     },
   });
 };
@@ -191,9 +187,7 @@ export const useUpdatePeca = () => {
     },
     onError: (error: any) => {
       const message = error.response?.data?.message || 'Erro ao atualizar peça';
-      toast.error('Erro ao atualizar peça', {
-        description: message,
-      });
+      toast.error(message);
     },
   });
 };
@@ -213,9 +207,7 @@ export const useDesativarPeca = () => {
     },
     onError: (error: any) => {
       const message = error.response?.data?.message || 'Erro ao desativar peça';
-      toast.error('Erro ao desativar peça', {
-        description: message,
-      });
+      toast.error(message);
     },
   });
 };
@@ -235,9 +227,7 @@ export const useReativarPeca = () => {
     },
     onError: (error: any) => {
       const message = error.response?.data?.message || 'Erro ao reativar peça';
-      toast.error('Erro ao reativar peça', {
-        description: message,
-      });
+      toast.error(message);
     },
   });
 };
@@ -256,17 +246,14 @@ export const useDefinirLocalizacao = () => {
       queryClient.invalidateQueries({ queryKey: pecaKeys.lists() });
       queryClient.invalidateQueries({ queryKey: pecaKeys.semLocalizacao(0) });
       queryClient.invalidateQueries({ queryKey: pecaKeys.contadorSemLocalizacao() });
-      toast.success('Localização definida com sucesso!', {
-        description: data.localArmazenamento
-          ? `Local: ${data.localArmazenamento.descricao}`
-          : 'Localização removida',
-      });
+      const localDesc = data.localArmazenamento
+        ? `Local: ${data.localArmazenamento.descricao}`
+        : 'Localização removida';
+      toast.success(`Localização definida! ${localDesc}`);
     },
     onError: (error: any) => {
       const message = error.response?.data?.message || 'Erro ao definir localização';
-      toast.error('Erro ao definir localização', {
-        description: message,
-      });
+      toast.error(message);
     },
   });
 };

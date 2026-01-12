@@ -1,8 +1,10 @@
 /**
  * Tabela de itens da Ordem de Serviço
  * Exibe peças e serviços com suporte para modo leitura e edição
+ * Memoized to prevent unnecessary re-renders
  */
 
+import { memo } from 'react';
 import { Wrench, Package, Trash2, Edit, Warehouse, ShoppingBag, UserCheck } from 'lucide-react';
 import { TipoItem, OrigemPeca, type ItemOS } from '../types';
 
@@ -64,7 +66,7 @@ const OrigemPecaBadge: React.FC<{ origem?: OrigemPeca }> = ({ origem }) => {
   );
 };
 
-export const ItemOSTable: React.FC<ItemOSTableProps> = ({
+export const ItemOSTable: React.FC<ItemOSTableProps> = memo(({
   items,
   onEdit,
   onDelete,
@@ -297,4 +299,6 @@ export const ItemOSTable: React.FC<ItemOSTableProps> = ({
       </div>
     </>
   );
-};
+});
+
+ItemOSTable.displayName = 'ItemOSTable';

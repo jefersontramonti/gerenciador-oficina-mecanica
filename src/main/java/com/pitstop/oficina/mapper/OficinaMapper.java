@@ -36,6 +36,9 @@ public interface OficinaMapper {
      * @param oficina Entity Oficina
      * @return DTO de resposta completa
      */
+    @Mapping(target = "email", source = "contato.email")
+    @Mapping(target = "telefone", source = "contato.telefoneFixo")
+    @Mapping(target = "celular", source = "contato.telefoneCelular")
     OficinaResponse toResponse(Oficina oficina);
 
     /**
@@ -63,5 +66,89 @@ public interface OficinaMapper {
     @Mapping(target = "dataAssinatura", ignore = true)
     @Mapping(target = "dataVencimentoPlano", ignore = true)
     @Mapping(target = "valorMensalidade", ignore = true)
+    @Mapping(target = "razaoSocial", source = "nome") // Map nome to razaoSocial
+    @Mapping(target = "contato.telefoneFixo", source = "contato.telefoneFixo")
+    @Mapping(target = "contato.telefoneCelular", source = "contato.telefoneCelular")
+    @Mapping(target = "contato.email", source = "contato.email")
+    @Mapping(target = "contato.telefoneAdicional", source = "contato.telefoneAdicional")
+    @Mapping(target = "contato.emailSecundario", source = "contato.emailSecundario")
+    @Mapping(target = "contato.website", source = "contato.website")
     void updateEntityFromRequest(UpdateOficinaRequest request, @MappingTarget Oficina oficina);
+
+    /**
+     * Método auxiliar para criar instâncias de objetos embutidos.
+     * Chamado após o mapeamento para garantir que objetos embutidos existam.
+     */
+    @AfterMapping
+    default void ensureEmbeddedObjects(@MappingTarget Oficina oficina, UpdateOficinaRequest request) {
+        // Garantir que o objeto contato existe
+        if (oficina.getContato() == null && request.contato() != null) {
+            oficina.setContato(new com.pitstop.oficina.domain.Contato());
+        }
+
+        // Garantir que informacoesOperacionais existe e mesclar campos
+        if (request.informacoesOperacionais() != null) {
+            if (oficina.getInformacoesOperacionais() == null) {
+                oficina.setInformacoesOperacionais(new com.pitstop.oficina.domain.InformacoesOperacionais());
+            }
+            mergeInformacoesOperacionais(oficina.getInformacoesOperacionais(), request.informacoesOperacionais());
+        }
+
+        // Garantir que redesSociais existe e mesclar campos
+        if (request.redesSociais() != null) {
+            if (oficina.getRedesSociais() == null) {
+                oficina.setRedesSociais(new com.pitstop.oficina.domain.RedesSociais());
+            }
+            mergeRedesSociais(oficina.getRedesSociais(), request.redesSociais());
+        }
+
+        // Garantir que dadosBancarios existe e mesclar campos
+        if (request.dadosBancarios() != null) {
+            if (oficina.getDadosBancarios() == null) {
+                oficina.setDadosBancarios(new com.pitstop.oficina.domain.DadosBancarios());
+            }
+            mergeDadosBancarios(oficina.getDadosBancarios(), request.dadosBancarios());
+        }
+
+        // Atualizar valorHora se fornecido
+        if (request.valorHora() != null) {
+            oficina.setValorHora(request.valorHora());
+        }
+    }
+
+    /**
+     * Mescla campos de InformacoesOperacionais (apenas campos não-nulos são atualizados)
+     */
+    private static void mergeInformacoesOperacionais(
+            com.pitstop.oficina.domain.InformacoesOperacionais target,
+            com.pitstop.oficina.domain.InformacoesOperacionais source) {
+        if (source.getHorarioFuncionamento() != null) target.setHorarioFuncionamento(source.getHorarioFuncionamento());
+        if (source.getCapacidadeSimultanea() != null) target.setCapacidadeSimultanea(source.getCapacidadeSimultanea());
+        if (source.getNumeroFuncionarios() != null) target.setNumeroFuncionarios(source.getNumeroFuncionarios());
+        if (source.getNumeroMecanicos() != null) target.setNumeroMecanicos(source.getNumeroMecanicos());
+    }
+
+    /**
+     * Mescla campos de RedesSociais (apenas campos não-nulos são atualizados)
+     */
+    private static void mergeRedesSociais(
+            com.pitstop.oficina.domain.RedesSociais target,
+            com.pitstop.oficina.domain.RedesSociais source) {
+        if (source.getInstagram() != null) target.setInstagram(source.getInstagram());
+        if (source.getFacebook() != null) target.setFacebook(source.getFacebook());
+    }
+
+    /**
+     * Mescla campos de DadosBancarios (apenas campos não-nulos são atualizados)
+     */
+    private static void mergeDadosBancarios(
+            com.pitstop.oficina.domain.DadosBancarios target,
+            com.pitstop.oficina.domain.DadosBancarios source) {
+        if (source.getBanco() != null) target.setBanco(source.getBanco());
+        if (source.getAgencia() != null) target.setAgencia(source.getAgencia());
+        if (source.getConta() != null) target.setConta(source.getConta());
+        if (source.getDigitoConta() != null) target.setDigitoConta(source.getDigitoConta());
+        if (source.getTipoConta() != null) target.setTipoConta(source.getTipoConta());
+        if (source.getChavePix() != null) target.setChavePix(source.getChavePix());
+    }
 }

@@ -93,9 +93,11 @@ export const diaSemanaLabels: Record<DiaSemana, string> = {
 
 export interface Contato {
   email?: string;
-  telefone?: string;
-  celular?: string;
-  whatsapp?: string;
+  telefoneFixo?: string;
+  telefoneCelular?: string;
+  telefoneAdicional?: string;
+  emailSecundario?: string;
+  website?: string;
 }
 
 export interface Endereco {
@@ -160,10 +162,9 @@ export interface DadosBancarios {
 export interface Oficina {
   id: string;
 
-  // Dados basicos
-  nome: string;
+  // Dados basicos (match backend OficinaResponse)
+  razaoSocial: string;
   nomeFantasia?: string;
-  razaoSocial?: string;
   cnpjCpf: string;
   tipoPessoa: TipoPessoa;
 

@@ -3,7 +3,7 @@
  */
 
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { toast } from 'sonner';
+import toast from 'react-hot-toast';
 import { authService } from '@/features/auth/services/authService';
 import { useAppDispatch } from '@/shared/hooks';
 import { setUser } from '@/features/auth/store/authSlice';
@@ -38,9 +38,7 @@ export const useUpdateProfile = () => {
     },
     onError: (error: any) => {
       const message = error.response?.data?.message || 'Erro ao atualizar perfil';
-      toast.error('Erro ao atualizar perfil', {
-        description: message,
-      });
+      toast.error(message);
     },
   });
 };
@@ -53,15 +51,11 @@ export const useChangePassword = () => {
     mutationFn: (data: ChangePasswordData) =>
       authService.changePassword(data.currentPassword, data.newPassword),
     onSuccess: () => {
-      toast.success('Senha alterada com sucesso!', {
-        description: 'Use sua nova senha no próximo login.',
-      });
+      toast.success('Senha alterada com sucesso! Use sua nova senha no próximo login.');
     },
     onError: (error: any) => {
       const message = error.response?.data?.message || 'Erro ao alterar senha';
-      toast.error('Erro ao alterar senha', {
-        description: message,
-      });
+      toast.error(message);
     },
   });
 };

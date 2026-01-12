@@ -173,3 +173,6 @@ databaseChangeLog:
   - include:
       file: db/changelog/migrations/V059__update_peca_obrigatoria_constraint.sql
       relativeToChangelogFile: false
+  - include:
+      file: db/changelog/migrations/V060__add_performance_indexes.sql
+      relativeToChangelogFile: false

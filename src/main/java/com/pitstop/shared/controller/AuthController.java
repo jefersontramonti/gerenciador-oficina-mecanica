@@ -77,11 +77,9 @@ public class AuthController {
     private static final long COOKIE_MAX_AGE_SECONDS = 7 * 24 * 60 * 60;
 
     /**
-     * SameSite policy for cookies.
-     * "None" is required for cross-subdomain auth (app.domain.com -> api.domain.com).
-     * Requires Secure=true (HTTPS), which is enforced in production.
+     * Cookie max age for "Remember Me" option (30 days = 2592000 seconds).
      */
-    private static final String COOKIE_SAME_SITE = "None";
+    private static final long COOKIE_MAX_AGE_REMEMBER_ME_SECONDS = 30 * 24 * 60 * 60;
 
     /**
      * Minimum characters to show at start and end of masked email.
@@ -139,12 +137,17 @@ public class AuthController {
 
         LoginResponse response = authenticationService.login(request);
 
-        // Cookie duration: Always 7 days for refresh token persistence
-        // The "rememberMe" option controls localStorage user data, not the refresh token cookie
-        // This ensures users stay logged in even if they didn't check "remember me"
-        ResponseCookie cookie = buildRefreshTokenCookie(response.refreshToken(), COOKIE_MAX_AGE_SECONDS, httpRequest);
+        // Cookie duration based on "Remember Me" option:
+        // - Checked: 30 days (user wants to stay logged in longer)
+        // - Unchecked: 7 days (default session)
+        long cookieMaxAge = request.isRememberMe()
+                ? COOKIE_MAX_AGE_REMEMBER_ME_SECONDS
+                : COOKIE_MAX_AGE_SECONDS;
 
-        log.info("Login successful - email: {}, rememberMe: {}", maskEmail(request.email()), request.isRememberMe());
+        ResponseCookie cookie = buildRefreshTokenCookie(response.refreshToken(), cookieMaxAge, httpRequest);
+
+        log.info("Login successful - email: {}, rememberMe: {}, cookieMaxAgeDays: {}",
+                maskEmail(request.email()), request.isRememberMe(), cookieMaxAge / (24 * 60 * 60));
 
         return ResponseEntity.ok()
                 .header(HttpHeaders.SET_COOKIE, cookie.toString())
@@ -510,9 +513,9 @@ public class AuthController {
      * <ul>
      *   <li>httpOnly: true (prevents XSS)</li>
      *   <li>secure: true in production (HTTPS only)</li>
-     *   <li>sameSite: Lax (CSRF protection while allowing navigation)</li>
+     *   <li>sameSite: Lax for dev (HTTP compatible), None for prod (cross-subdomain)</li>
      *   <li>domain: configurable for cross-subdomain auth</li>
-     *   <li>path: /api/auth (minimal exposure)</li>
+     *   <li>path: / (root path for compatibility)</li>
      * </ul>
      *
      * @param tokenValue the refresh token value (empty string to clear)
@@ -521,11 +524,18 @@ public class AuthController {
      * @return configured ResponseCookie
      */
     private ResponseCookie buildRefreshTokenCookie(String tokenValue, long maxAge, HttpServletRequest request) {
+        boolean isSecure = isSecureRequest(request);
+
+        // SameSite policy:
+        // - "Lax" for development (works with HTTP, allows same-site navigation)
+        // - "None" for production (allows cross-subdomain, requires Secure=true)
+        String sameSitePolicy = isSecure ? "None" : "Lax";
+
         ResponseCookie.ResponseCookieBuilder builder = ResponseCookie.from("refreshToken", tokenValue)
                 .httpOnly(true)
-                .secure(isSecureRequest(request))
+                .secure(isSecure)
                 .path(COOKIE_PATH)
-                .sameSite(COOKIE_SAME_SITE)
+                .sameSite(sameSitePolicy)
                 .maxAge(maxAge);
 
         // Set domain for cross-subdomain cookie sharing

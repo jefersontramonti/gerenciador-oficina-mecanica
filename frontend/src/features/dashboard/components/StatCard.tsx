@@ -1,7 +1,9 @@
 /**
  * Card de estatística reutilizável para o dashboard
+ * Memoized to prevent unnecessary re-renders
  */
 
+import { memo } from 'react';
 import type { LucideIcon } from 'lucide-react';
 
 interface StatCardProps {
@@ -13,7 +15,7 @@ interface StatCardProps {
   isLoading?: boolean;
 }
 
-export const StatCard = ({
+export const StatCard = memo(({
   title,
   value,
   icon: Icon,
@@ -45,4 +47,6 @@ export const StatCard = ({
       </div>
     </div>
   );
-};
+});
+
+StatCard.displayName = 'StatCard';

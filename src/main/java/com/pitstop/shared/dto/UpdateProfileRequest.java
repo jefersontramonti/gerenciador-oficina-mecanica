@@ -8,7 +8,8 @@ import jakarta.validation.constraints.Size;
 /**
  * Request DTO for updating user profile.
  *
- * <p>Allows the authenticated user to update their name and email.
+ * <p>Allows the authenticated user to update their name.
+ * Email is optional (only updated if provided).
  * Password changes must be done through the dedicated endpoint.
  */
 @Schema(description = "Request body for updating user profile")
@@ -19,8 +20,7 @@ public record UpdateProfileRequest(
         @Size(min = 3, max = 100, message = "Nome deve ter entre 3 e 100 caracteres")
         String nome,
 
-        @Schema(description = "User email address", example = "joao.silva@example.com")
-        @NotBlank(message = "Email é obrigatório")
+        @Schema(description = "User email address (optional)", example = "joao.silva@example.com")
         @Email(message = "Email inválido")
         @Size(max = 100, message = "Email deve ter no máximo 100 caracteres")
         String email

@@ -28,30 +28,32 @@ public class Contato implements Serializable {
     private static final long serialVersionUID = 1L;
 
     /**
-     * Landline phone number in format (XX) XXXX-XXXX.
+     * Landline phone number.
+     * Accepts formats: (XX) XXXX-XXXX or just digits.
      */
-    @Column(name = "telefone_fixo", length = 15)
-    @Pattern(regexp = "^\\(\\d{2}\\) \\d{4}-\\d{4}$", message = "Telefone fixo deve estar no formato (XX) XXXX-XXXX")
+    @Column(name = "telefone_fixo", length = 20)
+    @Size(max = 20, message = "Telefone fixo deve ter no máximo 20 caracteres")
     private String telefoneFixo;
 
     /**
-     * Mobile phone number (WhatsApp) in format (XX) XXXXX-XXXX.
+     * Mobile phone number (WhatsApp).
+     * Accepts formats: (XX) XXXXX-XXXX or just digits.
      */
-    @Column(name = "telefone_celular", nullable = false, length = 16)
-    @Pattern(regexp = "^\\(\\d{2}\\) \\d{5}-\\d{4}$", message = "Telefone celular deve estar no formato (XX) XXXXX-XXXX")
+    @Column(name = "telefone_celular", length = 20)
+    @Size(max = 20, message = "Telefone celular deve ter no máximo 20 caracteres")
     private String telefoneCelular;
 
     /**
      * Additional phone number.
      */
-    @Column(name = "telefone_adicional", length = 16)
-    @Pattern(regexp = "^\\(\\d{2}\\) \\d{4,5}-\\d{4}$", message = "Telefone adicional deve estar no formato válido")
+    @Column(name = "telefone_adicional", length = 20)
+    @Size(max = 20, message = "Telefone adicional deve ter no máximo 20 caracteres")
     private String telefoneAdicional;
 
     /**
      * Primary email address.
      */
-    @Column(name = "email", nullable = false, length = 200)
+    @Column(name = "email", length = 200)
     @Email(message = "Email inválido")
     @Size(max = 200, message = "Email deve ter no máximo 200 caracteres")
     private String email;
@@ -72,13 +74,15 @@ public class Contato implements Serializable {
     private String website;
 
     /**
-     * Checks if basic contact info is complete (email and mobile phone).
+     * Checks if basic contact info is complete (at least one contact method).
      *
-     * @return true if email and telefoneCelular are filled
+     * @return true if email or any phone is filled
      */
     public boolean isCompleto() {
-        return email != null && !email.isBlank() &&
-               telefoneCelular != null && !telefoneCelular.isBlank();
+        boolean hasEmail = email != null && !email.isBlank();
+        boolean hasPhone = (telefoneCelular != null && !telefoneCelular.isBlank()) ||
+                          (telefoneFixo != null && !telefoneFixo.isBlank());
+        return hasEmail || hasPhone;
     }
 
     /**

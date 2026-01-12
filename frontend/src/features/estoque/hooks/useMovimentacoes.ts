@@ -3,7 +3,7 @@
  */
 
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { toast } from 'sonner';
+import toast from 'react-hot-toast';
 import movimentacaoService from '../services/movimentacaoService';
 import { pecaKeys } from './usePecas';
 import type {
@@ -88,15 +88,11 @@ export const useRegistrarEntrada = () => {
         queryKey: movimentacaoKeys.historicoPeca(data.peca.id, 0)
       });
 
-      toast.success('Entrada registrada com sucesso!', {
-        description: `+${data.quantidade} ${data.peca.codigo}`,
-      });
+      toast.success(`Entrada registrada: +${data.quantidade} ${data.peca.codigo}`);
     },
     onError: (error: any) => {
       const message = error.response?.data?.message || 'Erro ao registrar entrada';
-      toast.error('Erro ao registrar entrada', {
-        description: message,
-      });
+      toast.error(message);
     },
   });
 };
@@ -124,15 +120,11 @@ export const useRegistrarSaida = () => {
         queryKey: movimentacaoKeys.historicoPeca(data.peca.id, 0)
       });
 
-      toast.success('Saída registrada com sucesso!', {
-        description: `-${data.quantidade} ${data.peca.codigo}`,
-      });
+      toast.success(`Saída registrada: -${data.quantidade} ${data.peca.codigo}`);
     },
     onError: (error: any) => {
       const message = error.response?.data?.message || 'Erro ao registrar saída';
-      toast.error('Erro ao registrar saída', {
-        description: message,
-      });
+      toast.error(message);
     },
   });
 };
@@ -163,15 +155,11 @@ export const useRegistrarAjuste = () => {
       const diff = data.quantidadeAtual - data.quantidadeAnterior;
       const sinal = diff >= 0 ? '+' : '';
 
-      toast.success('Ajuste de inventário registrado!', {
-        description: `${data.peca.codigo}: ${data.quantidadeAnterior} → ${data.quantidadeAtual} (${sinal}${diff})`,
-      });
+      toast.success(`Ajuste registrado: ${data.peca.codigo}: ${data.quantidadeAnterior} → ${data.quantidadeAtual} (${sinal}${diff})`);
     },
     onError: (error: any) => {
       const message = error.response?.data?.message || 'Erro ao registrar ajuste';
-      toast.error('Erro ao registrar ajuste', {
-        description: message,
-      });
+      toast.error(message);
     },
   });
 };
