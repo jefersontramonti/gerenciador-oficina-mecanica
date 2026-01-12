@@ -604,35 +604,43 @@ docker compose up -d
 
 ### Deployment Commands (Updates)
 
+**IMPORTANTE**: A VPS usa git fetch + checkout (não git pull direto). O código fonte fica em `backend/src/` e `frontend/src/`.
+
 ```bash
 # SSH to VPS
 ssh root@YOUR_VPS_IP
-
-# Navigate to project
 cd /opt/pitstop
 
-# Pull latest code (if using git)
-git pull origin main
+# Buscar atualizações do GitHub
+git fetch origin main
 
-# Or copy updated files from local
-# scp -r backend/ frontend/ root@VPS:/opt/pitstop/
+# === ATUALIZAR BACKEND ===
+# Baixar código Java atualizado
+git checkout origin/main -- src/main/java/com/pitstop/
 
-# Rebuild and restart all services
-docker compose build --no-cache
-docker compose up -d
+# Copiar para pasta do backend (estrutura da VPS)
+cp -r src/main/java/com/pitstop/* backend/src/main/java/com/pitstop/
 
-# Rebuild only backend
+# Rebuild e restart backend
 docker compose build pitstop-backend --no-cache
 docker compose up -d pitstop-backend
 
-# Rebuild only frontend
+# === ATUALIZAR FRONTEND ===
+git checkout origin/main -- frontend/src/
+cp -r frontend/src/* frontend/src/
 docker compose build pitstop-frontend --no-cache
 docker compose up -d pitstop-frontend
 
+# === ATUALIZAR DOCKER-COMPOSE ===
+git checkout origin/main -- docker-compose.prod.yml
+cp docker-compose.prod.yml docker-compose.yml
+docker compose up -d
+
+# === COMANDOS ÚTEIS ===
 # View logs
 docker compose logs -f pitstop-backend
 docker compose logs -f pitstop-frontend
-docker compose logs -f --tail=100  # All services, last 100 lines
+docker compose logs -f --tail=100  # All services
 
 # Restart services
 docker compose restart pitstop-backend
@@ -644,6 +652,10 @@ docker compose ps
 # Check health
 curl http://localhost:8080/actuator/health
 curl http://localhost:3000/health
+
+# Remover containers antigos (se houver conflito)
+docker rm pitstop-backend pitstop-frontend
+docker compose up -d
 ```
 
 ### Nginx Commands
