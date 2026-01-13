@@ -463,6 +463,7 @@ TELEGRAM_BOT_TOKEN=<token>
 - **Redux for UI state**: Only auth state currently
 - **Zod validation**: All forms have schemas
 - **Token in memory**: XSS protection (not localStorage)
+- **Mobile-first responsive**: List pages show cards on mobile (`lg:hidden`), tables on desktop (`hidden lg:block`)
 
 ## Observability
 
@@ -693,6 +694,16 @@ docker exec -it pitstop-redis redis-cli -a YOUR_REDIS_PASSWORD
 ```
 
 ### Troubleshooting
+
+**Redis cache corruption (500 errors on pages):**
+1. Error message: `Unexpected token (START_OBJECT), expected START_ARRAY`
+2. Flush Redis cache: `docker exec pitstop-redis redis-cli -a $(grep REDIS_PASSWORD /opt/pitstop/.env | cut -d'=' -f2) FLUSHALL`
+3. Restart backend: `docker compose restart pitstop-backend`
+
+**Environment variables not applied after .env change:**
+1. Simple restart does NOT apply new env vars
+2. Must recreate container: `docker compose up -d --force-recreate pitstop-backend`
+3. Verify vars applied: `docker exec pitstop-backend printenv | grep VARIABLE_NAME`
 
 **Mobile login not persisting after reload:**
 1. Verify `DOMAIN_API=app.pitstopai.com.br` in `.env` (same as frontend)

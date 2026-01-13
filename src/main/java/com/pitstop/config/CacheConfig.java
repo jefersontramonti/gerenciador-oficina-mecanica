@@ -1,5 +1,6 @@
 package com.pitstop.config;
 
+import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.databind.jsontype.BasicPolymorphicTypeValidator;
@@ -78,7 +79,7 @@ public class CacheConfig {
             .allowIfBaseType(Object.class)
             .build();
 
-        objectMapper.activateDefaultTyping(ptv, ObjectMapper.DefaultTyping.NON_FINAL);
+        objectMapper.activateDefaultTyping(ptv, ObjectMapper.DefaultTyping.NON_FINAL, JsonTypeInfo.As.PROPERTY);
 
         // Create serializer with custom ObjectMapper
         GenericJackson2JsonRedisSerializer serializer =
