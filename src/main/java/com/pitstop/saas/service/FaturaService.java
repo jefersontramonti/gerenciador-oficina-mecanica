@@ -352,8 +352,8 @@ public class FaturaService {
      */
     @Transactional(readOnly = true)
     public FaturasResumoSummaryDTO getSummary() {
-        LocalDate inicioMes = LocalDate.now().withDayOfMonth(1);
-        LocalDate fimMes = inicioMes.plusMonths(1);
+        LocalDateTime inicioMes = LocalDate.now().withDayOfMonth(1).atStartOfDay();
+        LocalDateTime fimMes = inicioMes.plusMonths(1);
 
         return new FaturasResumoSummaryDTO(
             faturaRepository.countByStatus(StatusFatura.PENDENTE),

@@ -30,10 +30,10 @@ public interface TicketRepository extends JpaRepository<Ticket, UUID> {
           AND (:tipo IS NULL OR t.tipo = :tipo)
           AND (:prioridade IS NULL OR t.prioridade = :prioridade)
           AND (:atribuidoA IS NULL OR t.atribuidoA.id = :atribuidoA)
-          AND (:busca IS NULL OR
-               LOWER(t.numero) LIKE LOWER(CONCAT('%', :busca, '%')) OR
-               LOWER(t.assunto) LIKE LOWER(CONCAT('%', :busca, '%')) OR
-               LOWER(t.usuarioNome) LIKE LOWER(CONCAT('%', :busca, '%')))
+          AND (:busca IS NULL OR :busca = '' OR
+               LOWER(CAST(t.numero AS string)) LIKE LOWER(CONCAT('%', CAST(:busca AS string), '%')) OR
+               LOWER(CAST(t.assunto AS string)) LIKE LOWER(CONCAT('%', CAST(:busca AS string), '%')) OR
+               LOWER(CAST(t.usuarioNome AS string)) LIKE LOWER(CONCAT('%', CAST(:busca AS string), '%')))
         ORDER BY
             CASE t.prioridade
                 WHEN 'URGENTE' THEN 1
