@@ -30,6 +30,13 @@ cleanup_containers() {
 # Função para atualizar do GitHub
 update_from_github() {
     echo "[2/5] Atualizando código do GitHub..."
+
+    # IMPORTANTE: Fazer backup do .env antes de qualquer operação
+    if [ -f /opt/pitstop/.env ]; then
+        cp /opt/pitstop/.env /opt/pitstop/.env.backup
+        echo "Backup do .env criado em .env.backup"
+    fi
+
     git fetch origin main
 }
 
@@ -124,6 +131,15 @@ deploy_all() {
     git checkout origin/main -- deploy/ 2>/dev/null || true
 
     echo "[4/5] Preparando estrutura de diretórios..."
+
+    # Restaurar .env do backup se foi sobrescrito
+    if [ -f /opt/pitstop/.env.backup ]; then
+        # Verificar se .env foi alterado (ficou vazio ou diferente)
+        if [ ! -s /opt/pitstop/.env ] || ! grep -q "MAIL_HOST=" /opt/pitstop/.env || [ -z "$(grep 'MAIL_HOST=' /opt/pitstop/.env | cut -d'=' -f2)" ]; then
+            echo "Restaurando .env do backup..."
+            cp /opt/pitstop/.env.backup /opt/pitstop/.env
+        fi
+    fi
 
     # Garantir estrutura backend
     mkdir -p backend/src/main/java/com/pitstop
