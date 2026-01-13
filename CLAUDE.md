@@ -605,39 +605,47 @@ docker compose up -d
 
 ### Deployment Commands (Updates)
 
-**IMPORTANTE**: A VPS usa git fetch + checkout (não git pull direto). O código fonte fica em `backend/src/` e `frontend/src/`.
+**Use o script de deploy** (`/opt/pitstop/deploy.sh`) para evitar problemas com containers órfãos:
 
 ```bash
 # SSH to VPS
 ssh root@YOUR_VPS_IP
 cd /opt/pitstop
 
-# Buscar atualizações do GitHub
+# Deploy completo (backend + frontend + landing)
+./deploy.sh
+
+# Ou deploy específico
+./deploy.sh backend      # Apenas backend
+./deploy.sh frontend     # Apenas frontend
+./deploy.sh landing      # Apenas landing page
+```
+
+**Instalação do script (primeira vez):**
+```bash
+cd /opt/pitstop
+git fetch origin main
+git checkout origin/main -- deploy/deploy.sh
+cp deploy/deploy.sh ./deploy.sh
+chmod +x deploy.sh
+```
+
+**Deploy manual (se preferir):**
+```bash
+cd /opt/pitstop
 git fetch origin main
 
-# === ATUALIZAR BACKEND ===
-# Baixar código Java atualizado
+# Atualizar código
 git checkout origin/main -- src/main/java/com/pitstop/
-
-# Copiar para pasta do backend (estrutura da VPS)
-cp -r src/main/java/com/pitstop/* backend/src/main/java/com/pitstop/
-
-# Rebuild e restart backend
-docker compose build pitstop-backend --no-cache
-docker compose up -d pitstop-backend
-
-# === ATUALIZAR FRONTEND ===
 git checkout origin/main -- frontend/src/
-cp -r frontend/src/* frontend/src/
-docker compose build pitstop-frontend --no-cache
-docker compose up -d pitstop-frontend
 
-# === ATUALIZAR DOCKER-COMPOSE ===
-git checkout origin/main -- docker-compose.prod.yml
-cp docker-compose.prod.yml docker-compose.yml
-docker compose up -d
+# IMPORTANTE: Sempre usar --force-recreate para evitar conflitos
+docker compose build --no-cache
+docker compose up -d --force-recreate --remove-orphans
+```
 
-# === COMANDOS ÚTEIS ===
+**Comandos úteis:**
+```bash
 # View logs
 docker compose logs -f pitstop-backend
 docker compose logs -f pitstop-frontend
@@ -654,9 +662,9 @@ docker compose ps
 curl http://localhost:8080/actuator/health
 curl http://localhost:3000/health
 
-# Remover containers antigos (se houver conflito)
-docker rm pitstop-backend pitstop-frontend
-docker compose up -d
+# Limpar containers órfãos manualmente (se necessário)
+docker rm -f pitstop-backend pitstop-frontend pitstop-postgres pitstop-redis 2>/dev/null
+docker compose up -d --force-recreate --remove-orphans
 ```
 
 ### Nginx Commands
