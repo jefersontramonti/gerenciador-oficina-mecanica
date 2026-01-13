@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="pt-BR" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Integrações - PitStop | Sistema de Gestão para Oficinas</title>
+
+    <!-- SEO Meta Tags -->
+    <meta name="description" content="Conheça as integrações do PitStop: WhatsApp, Telegram, Email, Mercado Pago e muito mais. Automatize sua oficina mecânica.">
+    <meta name="keywords" content="integração oficina mecânica, whatsapp oficina, sistema integrado oficina, automação oficina">
+    <meta name="author" content="PitStop">
+    <meta name="robots" content="index, follow">
+
+    <!-- Open Graph -->
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://pitstopai.com.br/integracoes">
+    <meta property="og:title" content="Integrações - PitStop">
+    <meta property="og:description" content="Conheça as integrações do PitStop: WhatsApp, Telegram, Email, Mercado Pago e muito mais.">
+
+    <!-- Favicon -->
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🔧</text></svg>">
+
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+
+    <style>
+        * { font-family: 'Inter', sans-serif; }
+        @keyframes fade-in-up {
+            from { opacity: 0; transform: translateY(30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .animate-fade-in-up { animation: fade-in-up 0.6s ease-out forwards; }
+    </style>
+</head>
+<body class="bg-white">
+
+<!-- Navigation -->
+<nav class="fixed top-0 left-0 right-0 bg-white/95 backdrop-blur-sm z-50 border-b border-gray-100">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="flex justify-between items-center h-16">
+            <a href="index.html" class="flex items-center space-x-2">
+                <div class="w-10 h-10 bg-blue-600 rounded-lg flex items-center justify-center">
+                    <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/>
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                    </svg>
+                </div>
+                <span class="text-xl font-bold text-gray-900">PitStop</span>
+            </a>
+
+            <div class="hidden md:flex items-center space-x-8">
+                <a href="index.html#funcionalidades" class="text-gray-600 hover:text-blue-600 transition font-medium">Funcionalidades</a>
+                <a href="index.html#precos" class="text-gray-600 hover:text-blue-600 transition font-medium">Preços</a>
+                <a href="index.html#faq" class="text-gray-600 hover:text-blue-600 transition font-medium">FAQ</a>
+                <a href="https://app.pitstopai.com.br/login" class="text-blue-600 hover:text-blue-700 transition font-semibold">Login</a>
+                <a href="index.html#cta" class="bg-amber-500 hover:bg-amber-600 text-white px-6 py-2.5 rounded-lg font-semibold transition shadow-md">
+                    Teste Grátis
+                </a>
+            </div>
+        </div>
+    </div>
+</nav>
+
+<!-- Hero Section -->
+<section class="pt-32 pb-16 px-4 bg-gradient-to-br from-blue-600 to-blue-700">
+    <div class="max-w-4xl mx-auto text-center animate-fade-in-up">
+        <h1 class="text-4xl lg:text-5xl font-bold text-white mb-6">
+            Integrações Poderosas
+        </h1>
+        <p class="text-xl text-blue-100 max-w-2xl mx-auto">
+            Conecte o PitStop às ferramentas que você já usa e automatize sua oficina de ponta a ponta.
+        </p>
+    </div>
+</section>
+
+<!-- Integrations Grid -->
+<section class="py-20 px-4">
+    <div class="max-w-6xl mx-auto">
+
+        <!-- Communication Integrations -->
+        <div class="mb-16">
+            <h2 class="text-2xl font-bold text-gray-900 mb-8 text-center">Comunicação</h2>
+            <div class="grid md:grid-cols-3 gap-8">
+
+                <!-- WhatsApp -->
+                <div class="bg-white rounded-xl p-8 shadow-lg border border-gray-100 hover:shadow-xl transition">
+                    <div class="w-16 h-16 bg-green-500 rounded-2xl flex items-center justify-center mb-6">
+                        <svg class="w-8 h-8 text-white" fill="currentColor" viewBox="0 0 24 24">
+                            <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/>
+                        </svg>
+                    </div>
+                    <h3 class="text-xl font-bold text-gray-900 mb-3">WhatsApp</h3>
+                    <p class="text-gray-600 mb-4">
+                        Envie notificações automáticas para seus clientes via WhatsApp. Atualizações de status, lembretes e confirmações.
+                    </p>
+                    <span class="inline-block bg-green-100 text-green-700 text-sm font-medium px-3 py-1 rounded-full">
+                        Disponível
+                    </span>
+                </div>
+
+                <!-- Telegram -->
+                <div class="bg-white rounded-xl p-8 shadow-lg border border-gray-100 hover:shadow-xl transition">
+                    <div class="w-16 h-16 bg-blue-500 rounded-2xl flex items-center justify-center mb-6">
+                        <svg class="w-8 h-8 text-white" fill="currentColor" viewBox="0 0 24 24">
+                            <path d="M11.944 0A12 12 0 0 0 0 12a12 12 0 0 0 12 12 12 12 0 0 0 12-12A12 12 0 0 0 12 0a12 12 0 0 0-.056 0zm4.962 7.224c.1-.002.321.023.465.14a.506.506 0 0 1 .171.325c.016.093.036.306.02.472-.18 1.898-.962 6.502-1.36 8.627-.168.9-.499 1.201-.82 1.23-.696.065-1.225-.46-1.9-.902-1.056-.693-1.653-1.124-2.678-1.8-1.185-.78-.417-1.21.258-1.91.177-.184 3.247-2.977 3.307-3.23.007-.032.014-.15-.056-.212s-.174-.041-.249-.024c-.106.024-1.793 1.14-5.061 3.345-.48.33-.913.49-1.302.48-.428-.008-1.252-.241-1.865-.44-.752-.245-1.349-.374-1.297-.789.027-.216.325-.437.893-.663 3.498-1.524 5.83-2.529 6.998-3.014 3.332-1.386 4.025-1.627 4.476-1.635z"/>
+                        </svg>
+                    </div>
+                    <h3 class="text-xl font-bold text-gray-900 mb-3">Telegram</h3>
+                    <p class="text-gray-600 mb-4">
+                        Receba alertas e notificações importantes diretamente no seu Telegram. Ideal para gestores.
+                    </p>
+                    <span class="inline-block bg-green-100 text-green-700 text-sm font-medium px-3 py-1 rounded-full">
+                        Disponível
+                    </span>
+                </div>
+
+                <!-- Email -->
+                <div class="bg-white rounded-xl p-8 shadow-lg border border-gray-100 hover:shadow-xl transition">
+                    <div class="w-16 h-16 bg-red-500 rounded-2xl flex items-center justify-center mb-6">
+                        <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
+                        </svg>
+                    </div>
+                    <h3 class="text-xl font-bold text-gray-900 mb-3">Email</h3>
+                    <p class="text-gray-600 mb-4">
+                        Envie orçamentos, notas fiscais e atualizações por email com templates profissionais personalizados.
+                    </p>
+                    <span class="inline-block bg-green-100 text-green-700 text-sm font-medium px-3 py-1 rounded-full">
+                        Disponível
+                    </span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Payment Integrations -->
+        <div class="mb-16">
+            <h2 class="text-2xl font-bold text-gray-900 mb-8 text-center">Pagamentos</h2>
+            <div class="grid md:grid-cols-3 gap-8">
+
+                <!-- Mercado Pago -->
+                <div class="bg-white rounded-xl p-8 shadow-lg border border-gray-100 hover:shadow-xl transition">
+                    <div class="w-16 h-16 bg-blue-400 rounded-2xl flex items-center justify-center mb-6">
+                        <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"/>
+                        </svg>
+                    </div>
+                    <h3 class="text-xl font-bold text-gray-900 mb-3">Mercado Pago</h3>
+                    <p class="text-gray-600 mb-4">
+                        Receba pagamentos via Pix, cartão de crédito e boleto. Link de pagamento automático para clientes.
+                    </p>
+                    <span class="inline-block bg-green-100 text-green-700 text-sm font-medium px-3 py-1 rounded-full">
+                        Disponível
+                    </span>
+                </div>
+
+                <!-- PIX -->
+                <div class="bg-white rounded-xl p-8 shadow-lg border border-gray-100 hover:shadow-xl transition">
+                    <div class="w-16 h-16 bg-teal-500 rounded-2xl flex items-center justify-center mb-6">
+                        <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                        </svg>
+                    </div>
+                    <h3 class="text-xl font-bold text-gray-900 mb-3">PIX Integrado</h3>
+                    <p class="text-gray-600 mb-4">
+                        QR Code PIX gerado automaticamente para cada ordem de serviço. Confirmação instantânea.
+                    </p>
+                    <span class="inline-block bg-green-100 text-green-700 text-sm font-medium px-3 py-1 rounded-full">
+                        Disponível
+                    </span>
+                </div>
+
+                <!-- Nota Fiscal -->
+                <div class="bg-white rounded-xl p-8 shadow-lg border border-gray-100 hover:shadow-xl transition">
+                    <div class="w-16 h-16 bg-purple-500 rounded-2xl flex items-center justify-center mb-6">
+                        <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                        </svg>
+                    </div>
+                    <h3 class="text-xl font-bold text-gray-900 mb-3">Notas Fiscais</h3>
+                    <p class="text-gray-600 mb-4">
+                        Emissão de notas fiscais de serviço integrada. Controle fiscal simplificado para sua oficina.
+                    </p>
+                    <span class="inline-block bg-yellow-100 text-yellow-700 text-sm font-medium px-3 py-1 rounded-full">
+                        Em Breve
+                    </span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Future Integrations -->
+        <div>
+            <h2 class="text-2xl font-bold text-gray-900 mb-8 text-center">Em Desenvolvimento</h2>
+            <div class="grid md:grid-cols-4 gap-6">
+                <div class="bg-gray-50 rounded-xl p-6 text-center">
+                    <div class="w-12 h-12 bg-gray-200 rounded-xl flex items-center justify-center mx-auto mb-4">
+                        <svg class="w-6 h-6 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                        </svg>
+                    </div>
+                    <h4 class="font-semibold text-gray-700">Contabilidade</h4>
+                </div>
+                <div class="bg-gray-50 rounded-xl p-6 text-center">
+                    <div class="w-12 h-12 bg-gray-200 rounded-xl flex items-center justify-center mx-auto mb-4">
+                        <svg class="w-6 h-6 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                        </svg>
+                    </div>
+                    <h4 class="font-semibold text-gray-700">Google Calendar</h4>
+                </div>
+                <div class="bg-gray-50 rounded-xl p-6 text-center">
+                    <div class="w-12 h-12 bg-gray-200 rounded-xl flex items-center justify-center mx-auto mb-4">
+                        <svg class="w-6 h-6 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/>
+                        </svg>
+                    </div>
+                    <h4 class="font-semibold text-gray-700">CRM</h4>
+                </div>
+                <div class="bg-gray-50 rounded-xl p-6 text-center">
+                    <div class="w-12 h-12 bg-gray-200 rounded-xl flex items-center justify-center mx-auto mb-4">
+                        <svg class="w-6 h-6 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
+                        </svg>
+                    </div>
+                    <h4 class="font-semibold text-gray-700">BI / Analytics</h4>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- CTA Section -->
+<section class="py-20 px-4 bg-gradient-to-br from-blue-600 to-blue-700">
+    <div class="max-w-4xl mx-auto text-center">
+        <h2 class="text-3xl lg:text-4xl font-bold text-white mb-6">
+            Pronto para automatizar sua oficina?
+        </h2>
+        <p class="text-xl text-blue-100 mb-10">
+            Teste grátis por 14 dias e descubra o poder das integrações.
+        </p>
+        <a href="index.html#cta" class="inline-block bg-amber-500 hover:bg-amber-600 text-white px-8 py-4 rounded-lg font-semibold text-lg transition shadow-xl">
+            Começar Agora
+        </a>
+    </div>
+</section>
+
+<!-- Footer -->
+<footer class="bg-gray-900 text-gray-300 py-12 px-4">
+    <div class="max-w-7xl mx-auto">
+        <div class="grid md:grid-cols-4 gap-8 mb-8">
+            <div>
+                <a href="index.html" class="flex items-center space-x-2 mb-4">
+                    <div class="w-10 h-10 bg-blue-600 rounded-lg flex items-center justify-center">
+                        <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/>
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                        </svg>
+                    </div>
+                    <span class="text-2xl font-bold text-white">PitStop</span>
+                </a>
+                <p class="text-gray-400">Gestão ágil para sua oficina</p>
+            </div>
+            <div>
+                <h3 class="text-white font-semibold mb-4">Produto</h3>
+                <ul class="space-y-2 text-sm">
+                    <li><a href="index.html#funcionalidades" class="hover:text-white transition">Funcionalidades</a></li>
+                    <li><a href="index.html#precos" class="hover:text-white transition">Preços</a></li>
+                    <li><a href="integracoes.html" class="hover:text-white transition">Integrações</a></li>
+                    <li><a href="roadmap.html" class="hover:text-white transition">Roadmap</a></li>
+                </ul>
+            </div>
+            <div>
+                <h3 class="text-white font-semibold mb-4">Empresa</h3>
+                <ul class="space-y-2 text-sm">
+                    <li><a href="sobre.html" class="hover:text-white transition">Sobre nós</a></li>
+                    <li><a href="blog.html" class="hover:text-white transition">Blog</a></li>
+                    <li><a href="contato.html" class="hover:text-white transition">Contato</a></li>
+                    <li><a href="index.html#faq" class="hover:text-white transition">FAQ</a></li>
+                </ul>
+            </div>
+            <div>
+                <h3 class="text-white font-semibold mb-4">Legal</h3>
+                <ul class="space-y-2 text-sm">
+                    <li><a href="termos.html" class="hover:text-white transition">Termos de uso</a></li>
+                    <li><a href="privacidade.html" class="hover:text-white transition">Privacidade</a></li>
+                    <li><a href="lgpd.html" class="hover:text-white transition">LGPD</a></li>
+                </ul>
+            </div>
+        </div>
+        <div class="border-t border-gray-800 pt-8 text-center text-gray-400">
+            <p>&copy; 2026 PitStop. Todos os direitos reservados.</p>
+        </div>
+    </div>
+</footer>
+
+</body>
+</html>
