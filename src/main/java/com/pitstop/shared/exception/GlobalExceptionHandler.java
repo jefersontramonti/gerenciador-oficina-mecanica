@@ -4,6 +4,7 @@ import com.pitstop.usuario.exception.*;
 import com.pitstop.cliente.exception.*;
 import com.pitstop.ordemservico.exception.*;
 import com.pitstop.estoque.exception.*;
+import com.pitstop.anexo.exception.*;
 import com.pitstop.shared.security.tenant.TenantNotSetException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -836,6 +837,100 @@ public class GlobalExceptionHandler {
         );
         problemDetail.setTitle("Estado Inválido");
         problemDetail.setType(URI.create("https://pitstop.com/errors/illegal-state"));
+        problemDetail.setProperty("timestamp", Instant.now());
+
+        return problemDetail;
+    }
+
+    // ========== EXCEÇÕES DO MÓDULO DE ANEXOS ==========
+
+    /**
+     * Trata exceção quando um anexo não é encontrado.
+     * HTTP 404 - Not Found
+     */
+    @ExceptionHandler(AnexoNotFoundException.class)
+    public ProblemDetail handleAnexoNotFoundException(
+            AnexoNotFoundException ex,
+            WebRequest request
+    ) {
+        log.warn("Anexo não encontrado: {}", ex.getMessage());
+
+        ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(
+                HttpStatus.NOT_FOUND,
+                ex.getMessage()
+        );
+        problemDetail.setTitle("Anexo Não Encontrado");
+        problemDetail.setType(URI.create("https://pitstop.com/errors/anexo-not-found"));
+        problemDetail.setProperty("timestamp", Instant.now());
+
+        return problemDetail;
+    }
+
+    /**
+     * Trata exceção de quota de storage excedida.
+     * HTTP 413 - Payload Too Large
+     */
+    @ExceptionHandler(QuotaExceededException.class)
+    public ProblemDetail handleQuotaExceededException(
+            QuotaExceededException ex,
+            WebRequest request
+    ) {
+        log.warn("Quota de storage excedida: {}", ex.getMessage());
+
+        ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(
+                HttpStatus.PAYLOAD_TOO_LARGE,
+                ex.getMessage()
+        );
+        problemDetail.setTitle("Quota de Storage Excedida");
+        problemDetail.setType(URI.create("https://pitstop.com/errors/quota-exceeded"));
+        problemDetail.setProperty("timestamp", Instant.now());
+        problemDetail.setProperty("usadoBytes", ex.getUsadoBytes());
+        problemDetail.setProperty("limiteBytes", ex.getLimiteBytes());
+        problemDetail.setProperty("arquivoBytes", ex.getArquivoBytes());
+
+        return problemDetail;
+    }
+
+    /**
+     * Trata exceção de tipo de arquivo inválido.
+     * HTTP 415 - Unsupported Media Type
+     */
+    @ExceptionHandler(InvalidFileTypeException.class)
+    public ProblemDetail handleInvalidFileTypeException(
+            InvalidFileTypeException ex,
+            WebRequest request
+    ) {
+        log.warn("Tipo de arquivo inválido: {}", ex.getMessage());
+
+        ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(
+                HttpStatus.UNSUPPORTED_MEDIA_TYPE,
+                ex.getMessage()
+        );
+        problemDetail.setTitle("Tipo de Arquivo Não Suportado");
+        problemDetail.setType(URI.create("https://pitstop.com/errors/invalid-file-type"));
+        problemDetail.setProperty("timestamp", Instant.now());
+        problemDetail.setProperty("mimeType", ex.getMimeType());
+
+        return problemDetail;
+    }
+
+    /**
+     * Trata exceções genéricas de anexo (storage, permissões, etc).
+     * HTTP 500 - Internal Server Error
+     */
+    @ExceptionHandler(AnexoException.class)
+    public ProblemDetail handleAnexoException(
+            AnexoException ex,
+            WebRequest request
+    ) {
+        log.error("Erro no módulo de anexos: {}", ex.getMessage(), ex);
+
+        ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(
+                HttpStatus.INTERNAL_SERVER_ERROR,
+                "Erro ao processar anexo. Por favor, contate o suporte."
+        );
+        problemDetail.setTitle("Erro de Anexo");
+        problemDetail.setType(URI.create("https://pitstop.com/errors/anexo-error"));
         problemDetail.setProperty("timestamp", Instant.now());
 
         return problemDetail;
