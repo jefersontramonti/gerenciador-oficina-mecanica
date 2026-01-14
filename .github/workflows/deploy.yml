@@ -175,10 +175,6 @@ jobs:
           APP_COOKIE_DOMAIN=
           APP_STORAGE_BASE_PATH=/var/pitstop/uploads
           DOMAIN_API=app.pitstopai.com.br
-          PITSTOP_OFICINA_NOME=${{ secrets.PITSTOP_OFICINA_NOME }}
-          PITSTOP_OFICINA_CNPJ=${{ secrets.PITSTOP_OFICINA_CNPJ }}
-          PITSTOP_OFICINA_TELEFONE=${{ secrets.PITSTOP_OFICINA_TELEFONE }}
-          PITSTOP_OFICINA_EMAIL=${{ secrets.PITSTOP_OFICINA_EMAIL }}
           EVOLUTION_API_URL=${{ secrets.EVOLUTION_API_URL }}
           EVOLUTION_API_KEY=${{ secrets.EVOLUTION_API_KEY }}
           MAIL_HOST=${{ secrets.MAIL_HOST }}

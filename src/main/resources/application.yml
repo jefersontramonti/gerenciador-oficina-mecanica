@@ -124,6 +124,14 @@ spring:
     basename: messages
     fallback-to-system-locale: false
 
+  # File Upload Configuration (Multipart)
+  servlet:
+    multipart:
+      enabled: true
+      max-file-size: 5MB
+      max-request-size: 10MB
+      file-size-threshold: 2KB
+
 # Server Configuration
 server:
   port: 8080
@@ -213,15 +221,23 @@ app:
   # Leave empty for same-origin cookies (default for local development)
   cookie:
     domain: ${APP_COOKIE_DOMAIN:}
+  # File Storage Configuration
+  storage:
+    # Base path for file uploads
+    # Development: ./uploads (relative to project root)
+    # Production: /var/pitstop/uploads (absolute path on VPS)
+    base-path: ${APP_STORAGE_BASE_PATH:./uploads}
+    # Maximum file size per upload (5MB default)
+    max-file-size: ${APP_STORAGE_MAX_FILE_SIZE:5242880}
+    # Quota per plan (in bytes)
+    quota:
+      economico: ${APP_STORAGE_QUOTA_ECONOMICO:524288000}      # 500MB
+      profissional: ${APP_STORAGE_QUOTA_PROFISSIONAL:2147483648} # 2GB
+      turbinado: ${APP_STORAGE_QUOTA_TURBINADO:10737418240}     # 10GB
 
 # PitStop Configuration
 pitstop:
-  oficina:
-    nome: ${PITSTOP_OFICINA_NOME:PitStop Auto Center}
-    cnpj: ${PITSTOP_OFICINA_CNPJ:00.000.000/0001-00}
-    endereco: ${PITSTOP_OFICINA_ENDERECO:Rua Exemplo, 123 - São Paulo/SP - CEP 01234-567}
-    telefone: ${PITSTOP_OFICINA_TELEFONE:(11) 98765-4321}
-    email: ${PITSTOP_OFICINA_EMAIL:contato@pitstop.com.br}
+  # Dados de cada oficina vêm do banco de dados (multi-tenant)
   evolution:
     api-url: ${EVOLUTION_API_URL:https://whatsapp.pitstopai.com.br}
     global-api-key: ${EVOLUTION_API_KEY:}

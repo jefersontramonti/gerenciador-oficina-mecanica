@@ -69,10 +69,6 @@ services:
       CORS_ALLOWED_ORIGINS: ${CORS_ALLOWED_ORIGINS}
       SPRING_PROFILES_ACTIVE: ${SPRING_PROFILES_ACTIVE}
       APP_COOKIE_DOMAIN: ${APP_COOKIE_DOMAIN:-}
-      PITSTOP_OFICINA_NOME: ${PITSTOP_OFICINA_NOME}
-      PITSTOP_OFICINA_CNPJ: ${PITSTOP_OFICINA_CNPJ}
-      PITSTOP_OFICINA_TELEFONE: ${PITSTOP_OFICINA_TELEFONE}
-      PITSTOP_OFICINA_EMAIL: ${PITSTOP_OFICINA_EMAIL}
       EVOLUTION_API_URL: ${EVOLUTION_API_URL}
       EVOLUTION_API_KEY: ${EVOLUTION_API_KEY}
       MAIL_HOST: ${MAIL_HOST}
@@ -83,9 +79,13 @@ services:
       MAIL_SMTP_AUTH: ${MAIL_SMTP_AUTH}
       MAIL_SMTP_SSL_ENABLE: ${MAIL_SMTP_SSL_ENABLE}
       MAIL_SMTP_STARTTLS_ENABLE: ${MAIL_SMTP_STARTTLS_ENABLE}
+      # File Storage
+      APP_STORAGE_BASE_PATH: /var/pitstop/uploads
       JAVA_OPTS: "-XX:+UseContainerSupport -XX:MaxRAMPercentage=75.0 -XX:+UseG1GC -Duser.timezone=America/Sao_Paulo"
     ports:
       - "127.0.0.1:8080:8080"
+    volumes:
+      - /var/pitstop/uploads:/var/pitstop/uploads
     networks:
       - pitstop-app-network
     depends_on:
