@@ -254,7 +254,6 @@ export const PecaDetailPage = () => {
               entidadeTipo="PECA"
               entidadeId={id}
               title="Fotos da Peça"
-              defaultCategoria="FOTO_PECA"
             />
           )}
 

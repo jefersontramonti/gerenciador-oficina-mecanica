@@ -6,7 +6,7 @@ import { useEffect, useMemo, useState, useRef } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { ArrowLeft, Save, Camera, Plus, X, Loader2, Upload, Image } from 'lucide-react';
+import { ArrowLeft, Save, X, Loader2, Upload, Image } from 'lucide-react';
 import { Button } from '@/shared/components/ui/button';
 import {
   Select,
@@ -183,7 +183,7 @@ export const PecaFormPage = () => {
               entidadeTipo: 'PECA',
               entidadeId: pecaId,
               categoria: 'FOTO_PECA' as CategoriaAnexo,
-              descricao: null,
+              descricao: undefined,
             });
           }
           showSuccess(`${pendingFiles.length} imagem(ns) enviada(s) com sucesso!`);

@@ -17,7 +17,7 @@ interface AnexosPublicosProps {
 export function AnexosPublicos({ token }: AnexosPublicosProps) {
   const [anexos, setAnexos] = useState<AnexoPublicoResponse[]>([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const [_error, setError] = useState<string | null>(null);
   const [viewingAnexo, setViewingAnexo] = useState<AnexoPublicoResponse | null>(null);
   const [imageUrl, setImageUrl] = useState<string | null>(null);
   const [loadingImage, setLoadingImage] = useState(false);
