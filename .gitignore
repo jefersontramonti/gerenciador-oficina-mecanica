@@ -80,6 +80,7 @@ serviceAccountKey.json
 
 ### Docker ###
 docker-compose.override.yml
+compose.yaml
 .docker/
 
 ### Temporary Files ###
