@@ -557,6 +557,32 @@ public class GlobalExceptionHandler {
     }
 
     /**
+     * Trata exceção de acesso proibido por regras de negócio (plano, feature flags, etc).
+     * HTTP 403 - Forbidden
+     *
+     * <p>Diferente de AccessDeniedException (Spring Security), esta exceção é
+     * lançada explicitamente pelo código de negócio quando uma funcionalidade
+     * não está disponível para o usuário/oficina.</p>
+     */
+    @ExceptionHandler(ForbiddenException.class)
+    public ProblemDetail handleForbiddenException(
+            ForbiddenException ex,
+            WebRequest request
+    ) {
+        log.warn("Acesso proibido: {}", ex.getMessage());
+
+        ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(
+                HttpStatus.FORBIDDEN,
+                ex.getMessage()
+        );
+        problemDetail.setTitle("Acesso Negado");
+        problemDetail.setType(URI.create("https://pitstop.com/errors/forbidden"));
+        problemDetail.setProperty("timestamp", Instant.now());
+
+        return problemDetail;
+    }
+
+    /**
      * Trata exceção genérica de recurso não encontrado.
      * HTTP 404 - Not Found
      */

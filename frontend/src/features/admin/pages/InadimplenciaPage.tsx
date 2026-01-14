@@ -206,7 +206,7 @@ export function InadimplenciaPage() {
       )}
 
       {/* Defaulters Table */}
-      <div className="overflow-hidden rounded-lg bg-white shadow dark:bg-gray-800">
+      <div className="rounded-lg bg-white shadow dark:bg-gray-800">
         <div className="border-b border-gray-200 px-4 py-3 dark:border-gray-700">
           <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Oficinas Inadimplentes</h2>
         </div>

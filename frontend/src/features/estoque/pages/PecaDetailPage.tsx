@@ -21,6 +21,7 @@ import {
   MovimentacaoModal,
 } from '../components';
 import { UnidadeMedidaLabel, getMargemLucroStatus, getStockStatus } from '../types';
+import { AnexosSection } from '@/features/anexos/components';
 
 export const PecaDetailPage = () => {
   const navigate = useNavigate();
@@ -246,6 +247,16 @@ export const PecaDetailPage = () => {
               </div>
             </div>
           </div>
+
+          {/* Fotos da Peça */}
+          {id && (
+            <AnexosSection
+              entidadeTipo="PECA"
+              entidadeId={id}
+              title="Fotos da Peça"
+              defaultCategoria="FOTO_PECA"
+            />
+          )}
 
           {/* Ações de Movimentação */}
           <div className="rounded-lg bg-white dark:bg-gray-800 p-4 sm:p-6 shadow">

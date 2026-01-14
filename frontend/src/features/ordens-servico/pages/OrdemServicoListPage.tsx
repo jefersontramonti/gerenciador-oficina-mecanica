@@ -247,7 +247,7 @@ export const OrdemServicoListPage = () => {
 
       {/* Desktop: Table Layout */}
       {!isLoading && data?.content && data.content.length > 0 && (
-        <div className="hidden lg:block overflow-hidden rounded-lg bg-white shadow dark:bg-gray-800">
+        <div className="hidden lg:block rounded-lg bg-white shadow dark:bg-gray-800">
           <div className="overflow-x-auto">
             <table className="w-full divide-y divide-gray-200 dark:divide-gray-700">
               <thead className="bg-gray-50 dark:bg-gray-900">

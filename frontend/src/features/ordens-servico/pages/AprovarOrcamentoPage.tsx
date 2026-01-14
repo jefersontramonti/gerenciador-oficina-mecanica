@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { Check, X, FileText, Car, Clock, Loader2, AlertTriangle, CheckCircle } from 'lucide-react';
 import axios from 'axios';
+import { AnexosPublicos } from '../components/AnexosPublicos';
 
 interface ItemOS {
   tipo: string;
@@ -311,6 +312,9 @@ export function AprovarOrcamentoPage() {
               </div>
             </div>
           )}
+
+          {/* Anexos (Fotos e Documentos) */}
+          {token && <AnexosPublicos token={token} />}
 
           {/* Valores */}
           <div className="mt-6 rounded-lg bg-gray-50 p-4">

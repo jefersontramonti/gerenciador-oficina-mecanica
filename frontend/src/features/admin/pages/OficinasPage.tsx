@@ -221,7 +221,7 @@ export const OficinasPage = () => {
       </div>
 
       {/* Table */}
-      <div className="overflow-hidden rounded-lg bg-white shadow dark:bg-gray-800">
+      <div className="rounded-lg bg-white shadow dark:bg-gray-800">
         <div className="overflow-x-auto">
           <table className="w-full">
             <thead className="bg-gray-50 dark:bg-gray-700">

@@ -2,11 +2,11 @@
  * Página de formulário para Criar/Editar Peça
  */
 
-import { useEffect, useMemo } from 'react';
+import { useEffect, useMemo, useState, useRef } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { ArrowLeft, Save } from 'lucide-react';
+import { ArrowLeft, Save, Camera, Plus, X, Loader2, Upload, Image } from 'lucide-react';
 import { Button } from '@/shared/components/ui/button';
 import {
   Select,
@@ -16,6 +16,7 @@ import {
   SelectValue,
 } from '@/shared/components/ui/select';
 import { formatCurrency } from '@/shared/utils/formatters';
+import { showError, showSuccess } from '@/shared/utils/notifications';
 import { usePeca, useCreatePeca, useUpdatePeca } from '../hooks/usePecas';
 import {
   createPecaSchema,
@@ -23,6 +24,17 @@ import {
 } from '../utils/validation';
 import { UnidadeMedida, UnidadeMedidaLabel, getMargemLucroStatus } from '../types';
 import { LocalArmazenamentoSelect } from '../components';
+import { anexoService } from '@/features/anexos/services/anexoService';
+import type { CategoriaAnexo } from '@/features/anexos/types';
+
+/**
+ * Interface para arquivos pendentes de upload
+ */
+interface PendingFile {
+  id: string;
+  file: File;
+  preview: string;
+}
 
 export const PecaFormPage = () => {
   const navigate = useNavigate();
@@ -57,6 +69,11 @@ export const PecaFormPage = () => {
     },
   });
 
+  // Estado para upload de imagens
+  const [pendingFiles, setPendingFiles] = useState<PendingFile[]>([]);
+  const [uploadingFiles, setUploadingFiles] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
   // Popular form no modo edição
   useEffect(() => {
     if (peca) {
@@ -75,6 +92,62 @@ export const PecaFormPage = () => {
     }
   }, [peca, reset]);
 
+  // Limpar URLs de preview quando componente desmontar
+  useEffect(() => {
+    return () => {
+      pendingFiles.forEach((file) => URL.revokeObjectURL(file.preview));
+    };
+  }, [pendingFiles]);
+
+  // Handler para seleção de arquivos
+  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (!files) return;
+
+    const validTypes = ['image/jpeg', 'image/png', 'image/webp'];
+    const maxSize = 5 * 1024 * 1024; // 5MB
+
+    const newFiles: PendingFile[] = [];
+
+    for (let i = 0; i < files.length; i++) {
+      const file = files[i];
+
+      if (!validTypes.includes(file.type)) {
+        showError(`Arquivo ${file.name} não é uma imagem válida. Use JPEG, PNG ou WebP.`);
+        continue;
+      }
+
+      if (file.size > maxSize) {
+        showError(`Arquivo ${file.name} excede 5MB.`);
+        continue;
+      }
+
+      newFiles.push({
+        id: crypto.randomUUID(),
+        file,
+        preview: URL.createObjectURL(file),
+      });
+    }
+
+    setPendingFiles((prev) => [...prev, ...newFiles]);
+
+    // Limpar input para permitir selecionar mesmo arquivo novamente
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
+  };
+
+  // Handler para remover arquivo pendente
+  const handleRemoveFile = (fileId: string) => {
+    setPendingFiles((prev) => {
+      const file = prev.find((f) => f.id === fileId);
+      if (file) {
+        URL.revokeObjectURL(file.preview);
+      }
+      return prev.filter((f) => f.id !== fileId);
+    });
+  };
+
   const valorCusto = watch('valorCusto');
   const valorVenda = watch('valorVenda');
 
@@ -90,13 +163,38 @@ export const PecaFormPage = () => {
 
   const onSubmit = async (data: CreatePecaFormData) => {
     try {
+      let pecaId: string;
+
       if (isEditMode && id) {
         await updatePeca.mutateAsync({ id, data });
-        navigate(`/estoque/${id}`);
+        pecaId = id;
       } else {
         const result = await createPeca.mutateAsync(data);
-        navigate(`/estoque/${result.id}`);
+        pecaId = result.id;
       }
+
+      // Upload de imagens após criar/atualizar peça
+      if (pendingFiles.length > 0) {
+        setUploadingFiles(true);
+        try {
+          for (const pendingFile of pendingFiles) {
+            await anexoService.upload({
+              file: pendingFile.file,
+              entidadeTipo: 'PECA',
+              entidadeId: pecaId,
+              categoria: 'FOTO_PECA' as CategoriaAnexo,
+              descricao: null,
+            });
+          }
+          showSuccess(`${pendingFiles.length} imagem(ns) enviada(s) com sucesso!`);
+        } catch (uploadError) {
+          showError('Erro ao enviar algumas imagens. A peça foi salva.');
+        } finally {
+          setUploadingFiles(false);
+        }
+      }
+
+      navigate(`/estoque/${pecaId}`);
     } catch (error) {
       // Error handled by mutation
     }
@@ -349,14 +447,84 @@ export const PecaFormPage = () => {
             )}
           </div>
 
+          {/* Fotos da Peça */}
+          <div className="rounded-lg bg-white dark:bg-gray-800 p-6 shadow">
+            <h2 className="mb-4 text-lg font-semibold text-gray-900 dark:text-gray-100 flex items-center gap-2">
+              <Image className="h-5 w-5 text-blue-600" />
+              Fotos da Peça
+            </h2>
+
+            <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
+              Adicione fotos da peça para facilitar a identificação no estoque.
+            </p>
+
+            {/* Área de Upload */}
+            <div
+              onClick={() => fileInputRef.current?.click()}
+              className="border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg p-6 text-center cursor-pointer hover:border-blue-500 dark:hover:border-blue-400 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors"
+            >
+              <input
+                ref={fileInputRef}
+                type="file"
+                multiple
+                accept="image/jpeg,image/png,image/webp"
+                onChange={handleFileSelect}
+                className="hidden"
+              />
+              <Upload className="h-8 w-8 text-gray-400 dark:text-gray-500 mx-auto mb-2" />
+              <p className="text-sm text-gray-600 dark:text-gray-400">
+                Clique para selecionar imagens
+              </p>
+              <p className="text-xs text-gray-500 dark:text-gray-500 mt-1">
+                JPEG, PNG ou WebP (máx. 5MB cada)
+              </p>
+            </div>
+
+            {/* Preview das Imagens Selecionadas */}
+            {pendingFiles.length > 0 && (
+              <div className="mt-4">
+                <p className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  {pendingFiles.length} imagem(ns) selecionada(s)
+                </p>
+                <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-3">
+                  {pendingFiles.map((pf) => (
+                    <div key={pf.id} className="relative group">
+                      <img
+                        src={pf.preview}
+                        alt="Preview"
+                        className="w-full aspect-square object-cover rounded-lg border border-gray-200 dark:border-gray-600"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => handleRemoveFile(pf.id)}
+                        className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1 shadow-lg opacity-0 group-hover:opacity-100 transition-opacity"
+                      >
+                        <X className="h-4 w-4" />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+
           {/* Botões */}
           <div className="flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
             <Button type="button" variant="outline" onClick={() => navigate('/estoque')} className="w-full sm:w-auto">
               Cancelar
             </Button>
-            <Button type="submit" disabled={isSubmitting} className="w-full sm:w-auto">
-              <Save className="h-4 w-4 mr-2" />
-              {isSubmitting ? 'Salvando...' : 'Salvar'}
+            <Button type="submit" disabled={isSubmitting || uploadingFiles} className="w-full sm:w-auto">
+              {uploadingFiles ? (
+                <>
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  Enviando imagens...
+                </>
+              ) : (
+                <>
+                  <Save className="h-4 w-4 mr-2" />
+                  {isSubmitting ? 'Salvando...' : 'Salvar'}
+                </>
+              )}
             </Button>
           </div>
         </div>

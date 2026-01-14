@@ -176,3 +176,9 @@ databaseChangeLog:
   - include:
       file: db/changelog/migrations/V060__add_performance_indexes.sql
       relativeToChangelogFile: false
+  - include:
+      file: db/changelog/migrations/V061__create_anexos_table.sql
+      relativeToChangelogFile: false
+  - include:
+      file: db/changelog/migrations/V062__add_visivel_cliente_to_anexos.sql
+      relativeToChangelogFile: false

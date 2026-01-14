@@ -1,5 +1,8 @@
 package com.pitstop.ordemservico.controller;
 
+import com.pitstop.anexo.dto.AnexoPublicoResponse;
+import com.pitstop.anexo.exception.AnexoNotFoundException;
+import com.pitstop.anexo.service.AnexoService;
 import com.pitstop.cliente.domain.Cliente;
 import com.pitstop.cliente.repository.ClienteRepository;
 import com.pitstop.oficina.domain.Oficina;
@@ -10,6 +13,9 @@ import com.pitstop.notificacao.service.NotificacaoEventPublisher;
 import com.pitstop.shared.security.RateLimitService;
 import com.pitstop.veiculo.domain.Veiculo;
 import com.pitstop.veiculo.repository.VeiculoRepository;
+import org.springframework.core.io.Resource;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import io.swagger.v3.oas.annotations.Operation;
@@ -50,6 +56,7 @@ public class OrcamentoPublicoController {
     private final SimpMessagingTemplate messagingTemplate;
     private final NotificacaoEventPublisher notificacaoEventPublisher;
     private final RateLimitService rateLimitService;
+    private final AnexoService anexoService;
 
     /**
      * Consulta dados do orçamento pelo token.
@@ -350,6 +357,115 @@ public class OrcamentoPublicoController {
             "mensagem", "Orçamento rejeitado. Agradecemos seu contato.",
             "numero", os.getNumero()
         ));
+    }
+
+    /**
+     * Lista anexos visíveis para o cliente na página de aprovação.
+     *
+     * @param token Token de aprovação único
+     * @param request HTTP request for IP extraction
+     * @return Lista de anexos visíveis
+     */
+    @GetMapping("/{token}/anexos")
+    @Operation(summary = "Listar anexos visíveis", description = "Retorna anexos marcados como visíveis para o cliente")
+    @Transactional(readOnly = true)
+    public ResponseEntity<?> listarAnexos(
+            @PathVariable String token,
+            HttpServletRequest request
+    ) {
+        String clientIp = getClientIp(request);
+
+        // Rate limiting check
+        if (!rateLimitService.isOrcamentoRequestAllowed(clientIp)) {
+            return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS)
+                .body(Map.of(
+                    "erro", "RATE_LIMIT_EXCEEDED",
+                    "mensagem", "Muitas tentativas. Aguarde alguns minutos."
+                ));
+        }
+
+        OrdemServico os = ordemServicoRepository.findByTokenAprovacao(token)
+            .orElse(null);
+
+        if (os == null) {
+            return ResponseEntity.notFound().build();
+        }
+
+        // Valida token
+        if (os.getTokenAprovacaoExpiracao() != null &&
+            LocalDateTime.now().isAfter(os.getTokenAprovacaoExpiracao())) {
+            return ResponseEntity.badRequest().body(Map.of(
+                "erro", "TOKEN_EXPIRADO",
+                "mensagem", "Este link expirou."
+            ));
+        }
+
+        List<AnexoPublicoResponse> anexos = anexoService.listarVisiveisParaCliente(
+            os.getOficina().getId(), os.getId()
+        );
+
+        return ResponseEntity.ok(anexos);
+    }
+
+    /**
+     * Visualiza um anexo na página de aprovação.
+     *
+     * @param token Token de aprovação único
+     * @param anexoId ID do anexo
+     * @param request HTTP request for IP extraction
+     * @return Arquivo para visualização inline
+     */
+    @GetMapping("/{token}/anexos/{anexoId}/view")
+    @Operation(summary = "Visualizar anexo", description = "Retorna arquivo para visualização inline")
+    @Transactional(readOnly = true)
+    public ResponseEntity<?> visualizarAnexo(
+            @PathVariable String token,
+            @PathVariable UUID anexoId,
+            HttpServletRequest request
+    ) {
+        String clientIp = getClientIp(request);
+
+        // Rate limiting check
+        if (!rateLimitService.isOrcamentoRequestAllowed(clientIp)) {
+            return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS)
+                .body(Map.of(
+                    "erro", "RATE_LIMIT_EXCEEDED",
+                    "mensagem", "Muitas tentativas. Aguarde alguns minutos."
+                ));
+        }
+
+        OrdemServico os = ordemServicoRepository.findByTokenAprovacao(token)
+            .orElse(null);
+
+        if (os == null) {
+            return ResponseEntity.notFound().build();
+        }
+
+        // Valida token
+        if (os.getTokenAprovacaoExpiracao() != null &&
+            LocalDateTime.now().isAfter(os.getTokenAprovacaoExpiracao())) {
+            return ResponseEntity.badRequest().body(Map.of(
+                "erro", "TOKEN_EXPIRADO",
+                "mensagem", "Este link expirou."
+            ));
+        }
+
+        try {
+            Resource resource = anexoService.downloadPublico(
+                os.getOficina().getId(), os.getId(), anexoId
+            );
+
+            String mimeType = anexoService.getMimeTypePublico(
+                os.getOficina().getId(), os.getId(), anexoId
+            );
+
+            return ResponseEntity.ok()
+                .contentType(MediaType.parseMediaType(mimeType))
+                .header(HttpHeaders.CONTENT_DISPOSITION, "inline")
+                .body(resource);
+        } catch (AnexoNotFoundException e) {
+            return ResponseEntity.notFound().build();
+        }
     }
 
     // ==================== Helper Methods ====================

@@ -143,7 +143,7 @@ export const AlertasEstoquePage = () => {
           </div>
 
           {/* Desktop: Table Layout */}
-          <div className="hidden lg:block rounded-lg bg-white dark:bg-gray-800 shadow overflow-hidden">
+          <div className="hidden lg:block rounded-lg bg-white dark:bg-gray-800 shadow">
             {isLoadingBaixo ? (
               <div className="flex justify-center items-center py-12">
                 <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
@@ -313,7 +313,7 @@ export const AlertasEstoquePage = () => {
           </div>
 
           {/* Desktop: Table Layout */}
-          <div className="hidden lg:block rounded-lg bg-white dark:bg-gray-800 shadow overflow-hidden">
+          <div className="hidden lg:block rounded-lg bg-white dark:bg-gray-800 shadow">
             {isLoadingZerado ? (
               <div className="flex justify-center items-center py-12">
                 <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>

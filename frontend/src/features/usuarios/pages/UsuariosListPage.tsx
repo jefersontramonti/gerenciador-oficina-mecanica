@@ -279,7 +279,7 @@ export const UsuariosListPage = () => {
       </div>
 
       {/* Desktop Table */}
-      <div className="hidden lg:block overflow-hidden rounded-lg bg-white dark:bg-gray-800 shadow">
+      <div className="hidden lg:block rounded-lg bg-white dark:bg-gray-800 shadow">
         <div className="overflow-x-auto">
           <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
             <thead className="bg-gray-50 dark:bg-gray-700">

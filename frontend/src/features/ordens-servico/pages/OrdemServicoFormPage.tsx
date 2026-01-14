@@ -3,12 +3,12 @@
  * Suporta itens dinâmicos com cálculos automáticos
  */
 
-import { useEffect } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { useForm, useFieldArray, Controller, type Resolver } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { ArrowLeft, Save, Plus, Trash2, Package, AlertCircle, Clock, DollarSign } from 'lucide-react';
-import { showError } from '@/shared/utils/notifications';
+import { ArrowLeft, Save, Plus, Trash2, Package, AlertCircle, Clock, DollarSign, Camera, X, Eye, Loader2 } from 'lucide-react';
+import { showError, showSuccess } from '@/shared/utils/notifications';
 import { useOrdemServico, useCreateOrdemServico, useUpdateOrdemServico } from '../hooks/useOrdensServico';
 import { useOficina } from '@/features/configuracoes/hooks/useOficina';
 import { ordemServicoFormSchema } from '../utils/validation';
@@ -19,6 +19,18 @@ import { VeiculoAutocomplete } from '../components/VeiculoAutocomplete';
 import { MecanicoSelect } from '../components/MecanicoSelect';
 import { PecaAutocomplete } from '../components/PecaAutocomplete';
 import { DiagnosticoIA } from '@/features/ia/components';
+import { anexoService } from '@/features/anexos/services/anexoService';
+import type { CategoriaAnexo } from '@/features/anexos/types';
+
+/**
+ * Interface para arquivos pendentes de upload
+ */
+interface PendingFile {
+  id: string;
+  file: File;
+  preview: string;
+  categoria: CategoriaAnexo;
+}
 
 export const OrdemServicoFormPage = () => {
   const navigate = useNavigate();
@@ -33,6 +45,11 @@ export const OrdemServicoFormPage = () => {
   const { data: oficina } = useOficina();
   const createMutation = useCreateOrdemServico();
   const updateMutation = useUpdateOrdemServico();
+
+  // Estado para arquivos pendentes de upload (apenas para criação)
+  const [pendingFiles, setPendingFiles] = useState<PendingFile[]>([]);
+  const [uploadingFiles, setUploadingFiles] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const {
     register,
@@ -276,10 +293,48 @@ export const OrdemServicoFormPage = () => {
           id: id!,
           data: payload,
         });
+        navigate('/ordens-servico');
       } else {
-        await createMutation.mutateAsync(payload);
+        // Criar a OS primeiro
+        const novaOS = await createMutation.mutateAsync(payload);
+
+        // Se há arquivos pendentes, fazer upload
+        if (pendingFiles.length > 0) {
+          setUploadingFiles(true);
+
+          try {
+            // Fazer upload de todos os arquivos
+            for (const pendingFile of pendingFiles) {
+              try {
+                // Upload do arquivo
+                const anexoResponse = await anexoService.upload({
+                  file: pendingFile.file,
+                  entidadeTipo: 'ORDEM_SERVICO',
+                  entidadeId: novaOS.id,
+                  categoria: pendingFile.categoria,
+                });
+
+                // Marcar como visível para cliente
+                await anexoService.alterarVisibilidade(anexoResponse.id, {
+                  visivelParaCliente: true,
+                });
+              } catch (uploadError) {
+                console.error('Erro ao fazer upload de arquivo:', uploadError);
+                // Continua com os outros arquivos mesmo se um falhar
+              }
+            }
+
+            showSuccess(`OS criada com ${pendingFiles.length} anexo(s)!`);
+          } catch (uploadError) {
+            console.error('Erro geral no upload de arquivos:', uploadError);
+            showError('OS criada, mas houve erro ao enviar alguns anexos.');
+          } finally {
+            setUploadingFiles(false);
+          }
+        }
+
+        navigate('/ordens-servico');
       }
-      navigate('/ordens-servico');
     } catch (error: any) {
       const errorMessage = error.response?.data?.message || error.message || 'Erro ao salvar OS';
       showError(`Erro: ${errorMessage}`);
@@ -297,6 +352,75 @@ export const OrdemServicoFormPage = () => {
     });
   };
 
+  // Manipuladores de arquivos para anexos
+  const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const files = event.target.files;
+    if (!files) return;
+
+    const allowedTypes = ['image/jpeg', 'image/png', 'image/webp', 'application/pdf'];
+    const maxSize = 5 * 1024 * 1024; // 5MB
+
+    const newFiles: PendingFile[] = [];
+
+    Array.from(files).forEach((file) => {
+      // Validar tipo
+      if (!allowedTypes.includes(file.type)) {
+        showError(`Tipo de arquivo não suportado: ${file.name}`);
+        return;
+      }
+
+      // Validar tamanho
+      if (file.size > maxSize) {
+        showError(`Arquivo muito grande (máx 5MB): ${file.name}`);
+        return;
+      }
+
+      // Criar preview para imagens
+      const preview = file.type.startsWith('image/')
+        ? URL.createObjectURL(file)
+        : '';
+
+      newFiles.push({
+        id: crypto.randomUUID(),
+        file,
+        preview,
+        categoria: 'FOTO_VEICULO' as CategoriaAnexo,
+      });
+    });
+
+    setPendingFiles((prev) => [...prev, ...newFiles]);
+
+    // Limpar input
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
+  };
+
+  const handleRemoveFile = (fileId: string) => {
+    setPendingFiles((prev) => {
+      const file = prev.find((f) => f.id === fileId);
+      if (file?.preview) {
+        URL.revokeObjectURL(file.preview);
+      }
+      return prev.filter((f) => f.id !== fileId);
+    });
+  };
+
+  const handleCategoriaChange = (fileId: string, categoria: CategoriaAnexo) => {
+    setPendingFiles((prev) =>
+      prev.map((f) => (f.id === fileId ? { ...f, categoria } : f))
+    );
+  };
+
+  // Cleanup previews on unmount
+  useEffect(() => {
+    return () => {
+      pendingFiles.forEach((f) => {
+        if (f.preview) URL.revokeObjectURL(f.preview);
+      });
+    };
+  }, []);
+
   if (loadingOS) {
     return (
       <div className="flex h-64 items-center justify-center">
@@ -305,7 +429,7 @@ export const OrdemServicoFormPage = () => {
     );
   }
 
-  const isSubmitting = createMutation.isPending || updateMutation.isPending;
+  const isSubmitting = createMutation.isPending || updateMutation.isPending || uploadingFiles;
 
   return (
     <div className="p-4 sm:p-6">
@@ -464,6 +588,110 @@ export const OrdemServicoFormPage = () => {
             </div>
           </div>
         </div>
+
+        {/* Seção: Fotos e Documentos (apenas para criação) */}
+        {!isEditMode && (
+          <div className="rounded-lg bg-white dark:bg-gray-800 p-4 sm:p-6 shadow">
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center gap-2">
+                <Camera className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+                <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
+                  Fotos e Documentos
+                </h2>
+              </div>
+              <div className="flex items-center gap-2">
+                <Eye className="h-4 w-4 text-green-600 dark:text-green-400" />
+                <span className="text-xs text-gray-500 dark:text-gray-400">
+                  Visíveis para o cliente
+                </span>
+              </div>
+            </div>
+
+            <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
+              Adicione fotos do veículo ou documentos que serão enviados junto com o orçamento para o cliente.
+            </p>
+
+            {/* Input de arquivo oculto */}
+            <input
+              type="file"
+              ref={fileInputRef}
+              onChange={handleFileSelect}
+              accept="image/jpeg,image/png,image/webp,application/pdf"
+              multiple
+              className="hidden"
+            />
+
+            {/* Botão de adicionar */}
+            <button
+              type="button"
+              onClick={() => fileInputRef.current?.click()}
+              className="flex items-center gap-2 rounded-lg border-2 border-dashed border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-700/50 px-4 py-3 text-gray-600 dark:text-gray-400 hover:border-blue-500 dark:hover:border-blue-400 hover:text-blue-600 dark:hover:text-blue-400 transition-colors w-full justify-center"
+            >
+              <Plus className="h-5 w-5" />
+              <span>Adicionar fotos ou documentos</span>
+            </button>
+
+            {/* Preview dos arquivos selecionados */}
+            {pendingFiles.length > 0 && (
+              <div className="mt-4 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
+                {pendingFiles.map((pf) => (
+                  <div
+                    key={pf.id}
+                    className="relative bg-gray-100 dark:bg-gray-700 rounded-lg overflow-hidden border border-gray-200 dark:border-gray-600"
+                  >
+                    {/* Preview da imagem ou ícone de PDF */}
+                    <div className="aspect-square flex items-center justify-center">
+                      {pf.preview ? (
+                        <img
+                          src={pf.preview}
+                          alt={pf.file.name}
+                          className="w-full h-full object-cover"
+                        />
+                      ) : (
+                        <div className="text-center p-4">
+                          <div className="text-3xl mb-1">📄</div>
+                          <p className="text-xs text-gray-500 dark:text-gray-400 truncate px-2">
+                            {pf.file.name}
+                          </p>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Botão remover */}
+                    <button
+                      type="button"
+                      onClick={() => handleRemoveFile(pf.id)}
+                      className="absolute top-1 right-1 p-1 bg-red-500 text-white rounded-full hover:bg-red-600"
+                    >
+                      <X className="h-3 w-3" />
+                    </button>
+
+                    {/* Seletor de categoria */}
+                    <div className="p-2 bg-white dark:bg-gray-800">
+                      <select
+                        value={pf.categoria}
+                        onChange={(e) => handleCategoriaChange(pf.id, e.target.value as CategoriaAnexo)}
+                        className="w-full text-xs rounded border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 px-2 py-1"
+                      >
+                        <option value="FOTO_VEICULO">Foto do Veículo</option>
+                        <option value="DIAGNOSTICO">Diagnóstico</option>
+                        <option value="AUTORIZACAO">Autorização</option>
+                        <option value="LAUDO_TECNICO">Laudo Técnico</option>
+                        <option value="OUTROS">Outros</option>
+                      </select>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {pendingFiles.length > 0 && (
+              <p className="mt-3 text-sm text-green-600 dark:text-green-400">
+                {pendingFiles.length} arquivo(s) selecionado(s) - serão enviados ao salvar a OS
+              </p>
+            )}
+          </div>
+        )}
 
         {/* Seção: Datas */}
         <div className="rounded-lg bg-white dark:bg-gray-800 p-4 sm:p-6 shadow">
@@ -955,8 +1183,16 @@ export const OrdemServicoFormPage = () => {
             disabled={isSubmitting}
             className="w-full sm:w-auto flex items-center justify-center gap-2 rounded-lg bg-blue-600 dark:bg-blue-700 px-6 py-2.5 text-white hover:bg-blue-700 dark:hover:bg-blue-600 disabled:opacity-50"
           >
-            <Save className="h-5 w-5" />
-            {isSubmitting ? 'Salvando...' : 'Salvar OS'}
+            {isSubmitting ? (
+              <Loader2 className="h-5 w-5 animate-spin" />
+            ) : (
+              <Save className="h-5 w-5" />
+            )}
+            {uploadingFiles
+              ? 'Enviando fotos...'
+              : createMutation.isPending || updateMutation.isPending
+                ? 'Salvando...'
+                : `Salvar OS${pendingFiles.length > 0 ? ` (${pendingFiles.length} foto${pendingFiles.length > 1 ? 's' : ''})` : ''}`}
           </button>
         </div>
       </form>

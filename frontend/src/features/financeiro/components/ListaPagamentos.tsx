@@ -169,7 +169,7 @@ export function ListaPagamentos({ ordemServicoId }: ListaPagamentosProps) {
       </div>
 
       {/* Desktop: Table Layout */}
-      <div className="hidden lg:block overflow-hidden rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800">
+      <div className="hidden lg:block rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800">
         <div className="overflow-x-auto">
           <table className="w-full">
             <thead className="bg-gray-50 dark:bg-gray-900">

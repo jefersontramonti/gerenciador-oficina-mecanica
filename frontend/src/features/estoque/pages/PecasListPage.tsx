@@ -381,7 +381,7 @@ export const PecasListPage = () => {
       </div>
 
       {/* Desktop: Table Layout */}
-      <div className="hidden lg:block rounded-lg bg-white dark:bg-gray-800 shadow overflow-hidden">
+      <div className="hidden lg:block rounded-lg bg-white dark:bg-gray-800 shadow">
         <Table>
           <TableHeader>
             <TableRow className="bg-gray-50 dark:bg-gray-700">

@@ -21,6 +21,7 @@ import { ListaPagamentos } from '@/features/financeiro/components/ListaPagamento
 import { PagamentoModal } from '@/features/financeiro/components/PagamentoModal';
 import { BotaoPagarOnline } from '@/features/financeiro/components/BotaoPagarOnline';
 import { useResumoFinanceiro } from '@/features/financeiro/hooks/usePagamentos';
+import { AnexosSection } from '@/features/anexos';
 import { useState } from 'react';
 
 /**
@@ -439,6 +440,15 @@ export const OrdemServicoDetailPage = () => {
               </div>
             </div>
           </div>
+
+          {/* Seção: Anexos */}
+          <AnexosSection
+            entidadeTipo="ORDEM_SERVICO"
+            entidadeId={ordemServico.id}
+            title="Anexos"
+            defaultExpanded={true}
+            showVisibilityToggle={true}
+          />
 
           {/* Seção: Pagamentos (oculto para MECANICO) */}
           {canViewPayments && (
