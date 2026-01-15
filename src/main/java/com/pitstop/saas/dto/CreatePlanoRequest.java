@@ -37,36 +37,47 @@ public class CreatePlanoRequest {
 
     @Min(value = 0, message = "Dias de trial não pode ser negativo")
     @Max(value = 365, message = "Dias de trial não pode exceder 365")
+    @Builder.Default
     private Integer trialDias = 14;
 
     // Limits (-1 = unlimited)
     @Min(value = -1, message = "Limite de usuários inválido")
+    @Builder.Default
     private Integer limiteUsuarios = 1;
 
     @Min(value = -1, message = "Limite de OS/mês inválido")
+    @Builder.Default
     private Integer limiteOsMes = -1;
 
     @Min(value = -1, message = "Limite de clientes inválido")
+    @Builder.Default
     private Integer limiteClientes = -1;
 
     @Min(value = -1, message = "Limite de espaço inválido")
+    @Builder.Default
     private Long limiteEspacoMb = 5120L;
 
     @Min(value = -1, message = "Limite de API calls inválido")
+    @Builder.Default
     private Integer limiteApiCalls = -1;
 
     @Min(value = 0, message = "Limite de WhatsApp não pode ser negativo")
+    @Builder.Default
     private Integer limiteWhatsappMensagens = 0;
 
     @Min(value = 0, message = "Limite de emails não pode ser negativo")
+    @Builder.Default
     private Integer limiteEmailsMes = 100;
 
     // Features
     private Map<String, Boolean> features;
 
     // Display & Marketing
+    @Builder.Default
     private Boolean ativo = true;
+    @Builder.Default
     private Boolean visivel = true;
+    @Builder.Default
     private Boolean recomendado = false;
 
     @Size(max = 20, message = "Cor deve ter no máximo 20 caracteres")
@@ -76,5 +87,6 @@ public class CreatePlanoRequest {
     private String tagPromocao;
 
     @Min(value = 0, message = "Ordem de exibição não pode ser negativa")
+    @Builder.Default
     private Integer ordemExibicao = 0;
 }

@@ -5,6 +5,7 @@ import com.pitstop.cliente.exception.*;
 import com.pitstop.ordemservico.exception.*;
 import com.pitstop.estoque.exception.*;
 import com.pitstop.anexo.exception.*;
+import com.pitstop.shared.security.feature.FeatureNotEnabledException;
 import com.pitstop.shared.security.tenant.TenantNotSetException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -529,6 +530,45 @@ public class GlobalExceptionHandler {
         problemDetail.setType(URI.create("https://pitstop.com/errors/tenant-not-set"));
         problemDetail.setProperty("timestamp", Instant.now());
         problemDetail.setProperty("hint", "SUPER_ADMIN deve usar /api/saas/* para operações cross-tenant");
+
+        return problemDetail;
+    }
+
+    // ========== EXCEÇÕES DE FEATURE FLAGS ==========
+
+    /**
+     * Trata exceção quando uma feature flag não está habilitada para a oficina.
+     * HTTP 403 - Forbidden
+     *
+     * <p>Esta exceção é lançada pelo {@link com.pitstop.shared.security.feature.FeatureGateAspect}
+     * quando um endpoint/método anotado com {@link com.pitstop.shared.security.feature.RequiresFeature}
+     * é acessado por uma oficina que não tem a feature habilitada.</p>
+     *
+     * <p>A resposta inclui informações úteis para o frontend exibir mensagem de upgrade.</p>
+     */
+    @ExceptionHandler(FeatureNotEnabledException.class)
+    public ProblemDetail handleFeatureNotEnabledException(
+            FeatureNotEnabledException ex,
+            WebRequest request
+    ) {
+        log.warn("Feature não habilitada: {} - {}", ex.getFeatureCode(), ex.getMessage());
+
+        ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(
+                HttpStatus.FORBIDDEN,
+                ex.getMessage()
+        );
+        problemDetail.setTitle("Funcionalidade Não Disponível");
+        problemDetail.setType(URI.create("https://pitstop.com/errors/feature-not-enabled"));
+        problemDetail.setProperty("timestamp", Instant.now());
+        problemDetail.setProperty("featureCode", ex.getFeatureCode());
+
+        if (ex.getFeatureName() != null) {
+            problemDetail.setProperty("featureName", ex.getFeatureName());
+        }
+        if (ex.getRequiredPlan() != null) {
+            problemDetail.setProperty("requiredPlan", ex.getRequiredPlan());
+            problemDetail.setProperty("upgradeRequired", true);
+        }
 
         return problemDetail;
     }

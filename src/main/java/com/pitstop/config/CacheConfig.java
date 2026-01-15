@@ -1,10 +1,7 @@
 package com.pitstop.config;
 
-import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
-import com.fasterxml.jackson.databind.jsontype.BasicPolymorphicTypeValidator;
-import com.fasterxml.jackson.databind.jsontype.PolymorphicTypeValidator;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import org.springframework.cache.CacheManager;
 import org.springframework.cache.annotation.EnableCaching;
@@ -46,6 +43,7 @@ public class CacheConfig {
     public static final String VEICULOS_CACHE = "veiculos";
     public static final String USUARIOS_CACHE = "usuarios";
     public static final String ORDEM_SERVICO_CACHE = "ordemServico";
+    public static final String OFICINAS_CACHE = "oficinas";
 
     // List caches (paginated results) - shorter TTL
     public static final String PECAS_LIST_CACHE = "pecas-list";
@@ -63,25 +61,17 @@ public class CacheConfig {
     @Bean
     public CacheManager cacheManager(RedisConnectionFactory connectionFactory) {
         // Create ObjectMapper with Java 8 Date/Time support (JSR-310)
+        // NOTE: We intentionally DO NOT use activateDefaultTyping() because:
+        // 1. Our cached DTOs are records/simple classes with known types
+        // 2. Polymorphic typing adds @class property which causes deserialization
+        //    failures when cached data format changes
+        // 3. Spring's cache abstraction knows the return type from method signatures
         ObjectMapper objectMapper = new ObjectMapper();
         objectMapper.registerModule(new JavaTimeModule());
         objectMapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
         objectMapper.disable(SerializationFeature.FAIL_ON_EMPTY_BEANS);
 
-        // Configure type validation for polymorphic deserialization
-        // This allows Redis to deserialize objects back to their original types
-        PolymorphicTypeValidator ptv = BasicPolymorphicTypeValidator.builder()
-            .allowIfSubType("com.pitstop")
-            .allowIfSubType("java.util")
-            .allowIfSubType("java.time")
-            .allowIfSubType("java.lang")
-            .allowIfSubType("java.math")
-            .allowIfBaseType(Object.class)
-            .build();
-
-        objectMapper.activateDefaultTyping(ptv, ObjectMapper.DefaultTyping.NON_FINAL, JsonTypeInfo.As.PROPERTY);
-
-        // Create serializer with custom ObjectMapper
+        // Create serializer with custom ObjectMapper (without polymorphic typing)
         GenericJackson2JsonRedisSerializer serializer =
             new GenericJackson2JsonRedisSerializer(objectMapper);
 
@@ -112,6 +102,9 @@ public class CacheConfig {
             .entryTtl(Duration.ofHours(1)));
         cacheConfigurations.put(ORDEM_SERVICO_CACHE, defaultConfig
             .entryTtl(Duration.ofHours(1)));
+        // Oficinas cache - longer TTL since oficina data rarely changes
+        cacheConfigurations.put(OFICINAS_CACHE, defaultConfig
+            .entryTtl(Duration.ofHours(4)));
 
         // List caches (5 minutes) - shorter TTL for quick updates
         RedisCacheConfiguration listConfig = defaultConfig.entryTtl(Duration.ofMinutes(5));

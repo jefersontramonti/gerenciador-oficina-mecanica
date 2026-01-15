@@ -288,15 +288,64 @@ public class FeatureFlagService {
     }
 
     /**
+     * Verifica se uma feature está habilitada usando dados já carregados.
+     * OTIMIZADO: Não faz nenhuma query adicional ao banco.
+     *
+     * @param flag A entidade FeatureFlag já carregada
+     * @param oficinaId ID da oficina
+     * @param plano Plano da oficina já carregado
+     * @return true se a feature está habilitada
+     */
+    private boolean isEnabledForOficina(FeatureFlag flag, UUID oficinaId, PlanoAssinatura plano) {
+        // 1. Verificar período de atividade
+        if (!flag.isAtivo()) {
+            return false;
+        }
+
+        // 2. Verificar habilitação global
+        if (Boolean.TRUE.equals(flag.getHabilitadoGlobal())) {
+            return true;
+        }
+
+        // 3. Verificar habilitação por oficina
+        if (flag.isHabilitadoParaOficina(oficinaId)) {
+            return true;
+        }
+
+        // 4. Verificar habilitação por plano
+        if (plano != null && flag.isHabilitadoParaPlano(plano.name())) {
+            return true;
+        }
+
+        // 5. Verificar rollout percentual
+        Integer rollout = flag.getPercentualRollout();
+        if (rollout != null && rollout > 0) {
+            int hash = Math.abs(oficinaId.hashCode());
+            int bucket = hash % 100;
+            if (bucket < rollout) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /**
      * Retorna todas as features habilitadas para uma oficina específica.
+     * OTIMIZADO: Carrega oficina e flags uma única vez.
      */
     @Transactional(readOnly = true)
     public OficinaFeatureFlagsDTO getOficinaFeatures(UUID oficinaId) {
+        // Carregar oficina uma única vez
+        Oficina oficina = oficinaRepository.findById(oficinaId).orElse(null);
+        PlanoAssinatura plano = oficina != null ? oficina.getPlano() : null;
+
         List<FeatureFlag> allFlags = featureFlagRepository.findAll();
 
         Map<String, Boolean> features = new HashMap<>();
         for (FeatureFlag flag : allFlags) {
-            features.put(flag.getCodigo(), isEnabled(flag.getCodigo(), oficinaId));
+            // Usar método otimizado que não faz queries adicionais
+            features.put(flag.getCodigo(), isEnabledForOficina(flag, oficinaId, plano));
         }
 
         return new OficinaFeatureFlagsDTO(oficinaId, features);
@@ -349,6 +398,8 @@ public class FeatureFlagService {
     /**
      * Retorna informações completas do plano da oficina para a página "Meu Plano".
      * Inclui plano atual, features habilitadas, e features do próximo plano.
+     *
+     * OTIMIZADO: Evita N+1 queries usando dados já carregados.
      */
     @Transactional(readOnly = true)
     public MeuPlanoDTO getMeuPlano(UUID oficinaId) {
@@ -368,7 +419,9 @@ public class FeatureFlagService {
         for (FeatureFlag flag : allFlags) {
             if (!flag.isAtivo()) continue;
 
-            boolean habilitada = isEnabled(flag.getCodigo(), oficinaId);
+            // OTIMIZADO: Usa o método isEnabledForOficina que recebe os dados já carregados
+            // ao invés de isEnabled que faz queries adicionais
+            boolean habilitada = isEnabledForOficina(flag, oficinaId, planoAtual);
             String disponivelNoPlano = null;
 
             if (!habilitada && proximoPlano != null) {

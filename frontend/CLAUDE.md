@@ -338,47 +338,184 @@ if (error) {
 }
 ```
 
-## Estilos com Tailwind
+## Dark Mode e Responsividade (OBRIGATÓRIO)
+
+**IMPORTANTE:** Todo componente deve suportar tema claro/escuro E ser responsivo para mobile.
+
+### Regra de Ouro
+
+Ao escrever qualquer classe Tailwind para cores, **SEMPRE** adicione a variante `dark:`:
+
+```tsx
+// ❌ ERRADO - Apenas tema claro
+className="bg-white text-gray-900 border-gray-200"
+
+// ✅ CORRETO - Ambos os temas
+className="bg-white dark:bg-gray-800 text-gray-900 dark:text-white border-gray-200 dark:border-gray-700"
+```
+
+### Padrão de Cores - Dark Mode
+
+| Elemento | Light | Dark |
+|----------|-------|------|
+| Background principal | `bg-white` | `dark:bg-gray-800` |
+| Background secundário | `bg-gray-50` | `dark:bg-gray-700/50` |
+| Background sutil | `bg-gray-100` | `dark:bg-gray-700` |
+| Texto primário | `text-gray-900` | `dark:text-white` ou `dark:text-gray-100` |
+| Texto secundário | `text-gray-600` | `dark:text-gray-400` |
+| Texto muted | `text-gray-500` | `dark:text-gray-400` |
+| Bordas | `border-gray-200` | `dark:border-gray-700` ou `dark:border-gray-600` |
+| Hover background | `hover:bg-gray-50` | `dark:hover:bg-gray-700` |
+
+### Padrão de Cores - Status/Badges
+
+```tsx
+// Success
+className="bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-400"
+
+// Warning
+className="bg-yellow-100 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-400"
+
+// Error
+className="bg-red-100 dark:bg-red-900/30 text-red-800 dark:text-red-400"
+
+// Info
+className="bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400"
+```
+
+### Responsividade - Breakpoints
+
+| Breakpoint | Tamanho | Uso |
+|------------|---------|-----|
+| (default) | < 640px | Mobile |
+| `sm:` | >= 640px | Mobile landscape / Tablet pequeno |
+| `md:` | >= 768px | Tablet |
+| `lg:` | >= 1024px | Desktop |
+| `xl:` | >= 1280px | Desktop grande |
+
+### Padrões Responsivos Comuns
+
+```tsx
+// Padding
+className="p-3 sm:p-4 lg:p-6"
+
+// Texto
+className="text-sm sm:text-base"
+className="text-xs sm:text-sm"
+
+// Ícones
+className="h-4 w-4 sm:h-5 sm:w-5"
+
+// Layout flex
+className="flex flex-col sm:flex-row"
+className="flex-col sm:flex-row sm:items-center"
+
+// Grid
+className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3"
+className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5"
+
+// Gap
+className="gap-2 sm:gap-3 lg:gap-4"
+
+// Esconder/Mostrar
+className="hidden sm:block"  // Esconde em mobile
+className="sm:hidden"        // Mostra só em mobile
+```
+
+### Exemplo Completo - Card Responsivo com Dark Mode
+
+```tsx
+<div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 shadow-sm p-3 sm:p-4 lg:p-6">
+  <h3 className="text-base sm:text-lg font-semibold text-gray-900 dark:text-white mb-2">
+    Título
+  </h3>
+  <p className="text-sm text-gray-600 dark:text-gray-400">
+    Descrição do card
+  </p>
+  <div className="mt-3 sm:mt-4 flex flex-col sm:flex-row gap-2">
+    <button className="flex-1 sm:flex-none px-3 sm:px-4 py-2 bg-blue-600 dark:bg-blue-700 text-white rounded-lg hover:bg-blue-700 dark:hover:bg-blue-600 text-sm sm:text-base">
+      Ação Principal
+    </button>
+    <button className="flex-1 sm:flex-none px-3 sm:px-4 py-2 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 text-sm sm:text-base">
+      Cancelar
+    </button>
+  </div>
+</div>
+```
+
+### Modais Responsivos
+
+```tsx
+// Overlay
+className="fixed inset-0 bg-black/50 dark:bg-black/70 z-50 flex items-center justify-center p-2 sm:p-4"
+
+// Modal container
+className="bg-white dark:bg-gray-800 rounded-lg p-4 sm:p-6 max-w-sm sm:max-w-md w-full shadow-xl"
+
+// Título
+className="text-lg font-semibold text-gray-900 dark:text-white mb-2"
+
+// Botões do modal
+className="flex flex-col-reverse sm:flex-row justify-end gap-2 mt-4"
+```
+
+### Inputs com Dark Mode
+
+```tsx
+className="w-full rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 px-3 py-2 text-sm sm:text-base focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-transparent"
+```
+
+### Referências de Implementação
+
+- `features/clientes/pages/ClientesListPage.tsx` - Lista com dark mode
+- `features/ordens-servico/pages/OrdemServicoDetailPage.tsx` - Detail page completa
+- `features/anexos/components/` - Componentes com dark mode e responsividade
+
+---
+
+## Estilos com Tailwind (Padrões Legados)
+
+> **Nota:** Os padrões abaixo são legados. Sempre adicione as variantes `dark:` e responsivas conforme documentado acima.
 
 ### Classes Padrão
 
 **Botões:**
 ```tsx
-// Primary
-className="rounded-lg bg-blue-600 px-4 py-2 text-white hover:bg-blue-700"
+// Primary (com dark mode)
+className="rounded-lg bg-blue-600 dark:bg-blue-700 px-3 sm:px-4 py-2 text-white hover:bg-blue-700 dark:hover:bg-blue-600 text-sm sm:text-base"
 
-// Secondary
-className="rounded-lg border border-gray-300 px-4 py-2 text-gray-700 hover:bg-gray-50"
+// Secondary (com dark mode)
+className="rounded-lg border border-gray-300 dark:border-gray-600 px-3 sm:px-4 py-2 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 text-sm sm:text-base"
 
-// Danger
-className="rounded-lg border border-red-600 px-4 py-2 text-red-600 hover:bg-red-50"
+// Danger (com dark mode)
+className="rounded-lg bg-red-600 dark:bg-red-700 px-3 sm:px-4 py-2 text-white hover:bg-red-700 dark:hover:bg-red-600 text-sm sm:text-base"
 ```
 
 **Inputs:**
 ```tsx
-className="w-full rounded-lg border border-gray-300 px-3 py-2 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+className="w-full rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-white px-3 py-2 text-sm sm:text-base focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
 ```
 
 **Cards:**
 ```tsx
-className="rounded-lg bg-white p-6 shadow"
+className="rounded-lg bg-white dark:bg-gray-800 p-4 sm:p-6 shadow border border-gray-200 dark:border-gray-700"
 ```
 
 **Tabelas:**
 ```tsx
 // Container
-className="overflow-hidden rounded-lg bg-white shadow"
+className="overflow-hidden rounded-lg bg-white dark:bg-gray-800 shadow border border-gray-200 dark:border-gray-700"
 
 // Table
-className="w-full divide-y divide-gray-200"
+className="w-full divide-y divide-gray-200 dark:divide-gray-700"
 
 // Header
-className="bg-gray-50"
-className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-700"
+className="bg-gray-50 dark:bg-gray-700"
+className="px-4 sm:px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-700 dark:text-gray-300"
 
 // Body
-className="divide-y divide-gray-200 bg-white"
-className="px-6 py-4 text-sm text-gray-900"
+className="divide-y divide-gray-200 dark:divide-gray-700 bg-white dark:bg-gray-800"
+className="px-4 sm:px-6 py-4 text-sm text-gray-900 dark:text-gray-100"
 ```
 
 ## Navegação
@@ -447,10 +584,11 @@ npm run lint
 - `PADRAO_FILTROS.md` - Padrão de implementação de filtros (OBRIGATÓRIO)
 - `src/features/clientes/` - Feature completa de referência
 - `src/features/veiculos/` - Feature completa de referência
+- `src/features/anexos/components/` - Referência de dark mode e responsividade
 - `src/shared/services/api.ts` - Configuração do Axios
 - `src/shared/contexts/AuthContext.tsx` - Autenticação
 
 ---
 
-**Última atualização:** 2025-11-01
-**Versão:** 1.0.0
+**Última atualização:** 2026-01-13
+**Versão:** 1.1.0 - Adicionado padrões de Dark Mode e Responsividade

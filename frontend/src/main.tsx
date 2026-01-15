@@ -3,7 +3,7 @@ import { createRoot } from 'react-dom/client';
 import { Provider } from 'react-redux';
 import { QueryClientProvider } from '@tanstack/react-query';
 import { Toaster } from 'react-hot-toast';
-import { ThemeProvider } from './shared/contexts';
+import { ThemeProvider, FeatureFlagProvider } from './shared/contexts';
 import { store } from './shared/store';
 import { queryClient } from './config/queryClient';
 import { initializeErrorHandlers } from './shared/services/errorLogger';
@@ -18,7 +18,9 @@ createRoot(document.getElementById('root')!).render(
     <ThemeProvider>
       <Provider store={store}>
         <QueryClientProvider client={queryClient}>
-          <App />
+          <FeatureFlagProvider>
+            <App />
+          </FeatureFlagProvider>
           <Toaster
             position="top-right"
             toastOptions={{

@@ -21,11 +21,13 @@ public class AlterarPlanoOficinaRequest {
     /**
      * Whether to apply the change immediately or at the end of the billing cycle.
      */
+    @Builder.Default
     private Boolean aplicarImediatamente = true;
 
     /**
      * Whether to keep the old price (grandfathering) for existing customers.
      */
+    @Builder.Default
     private Boolean manterPrecoAntigo = false;
 
     /**

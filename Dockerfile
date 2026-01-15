@@ -20,6 +20,10 @@ WORKDIR /app
 RUN addgroup -g 1001 pitstop && \
     adduser -D -u 1001 -G pitstop pitstop
 
+# Criar diretório de uploads (será sobrescrito pelo volume, mas garante que existe)
+RUN mkdir -p /var/pitstop/uploads && \
+    chown -R pitstop:pitstop /var/pitstop
+
 # Copiar JAR do stage de build
 COPY --from=build /app/target/*.jar app.jar
 

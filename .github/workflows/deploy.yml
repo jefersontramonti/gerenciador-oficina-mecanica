@@ -97,30 +97,44 @@ jobs:
             mkdir -p /opt/pitstop/logs
           ENDSSH
 
-      - name: Backup database before deploy
+      - name: Backup database and uploads before deploy
         run: |
           ssh -o StrictHostKeyChecking=no ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }} << 'ENDSSH'
             cd /opt/pitstop
+            TIMESTAMP=$(date +%Y%m%d_%H%M%S)
 
             # Verifica se o container postgres está rodando
             if docker ps --format '{{.Names}}' | grep -q pitstop-postgres; then
               echo "=== Criando backup do banco de dados ==="
-              BACKUP_FILE="/opt/pitstop/backups/pitstop_pre_deploy_$(date +%Y%m%d_%H%M%S).sql.gz"
+              BACKUP_FILE="/opt/pitstop/backups/pitstop_db_${TIMESTAMP}.sql.gz"
               docker exec pitstop-postgres pg_dump -U pitstop pitstop_db 2>/dev/null | gzip > "$BACKUP_FILE"
 
               if [ -s "$BACKUP_FILE" ]; then
-                echo "Backup criado: $BACKUP_FILE"
+                echo "Backup DB criado: $BACKUP_FILE"
                 ls -lh "$BACKUP_FILE"
               else
-                echo "AVISO: Backup vazio ou falhou (primeira instalacao?)"
+                echo "AVISO: Backup DB vazio ou falhou (primeira instalacao?)"
                 rm -f "$BACKUP_FILE"
               fi
 
-              # Mantém apenas os últimos 10 backups
-              cd /opt/pitstop/backups
-              ls -t *.sql.gz 2>/dev/null | tail -n +11 | xargs -r rm -f
+              # Mantém apenas os últimos 10 backups de DB
+              ls -t /opt/pitstop/backups/pitstop_db_*.sql.gz 2>/dev/null | tail -n +11 | xargs -r rm -f
             else
               echo "Container postgres nao encontrado - primeira instalacao"
+            fi
+
+            # Backup dos uploads (arquivos de anexos)
+            if [ -d "/var/pitstop/uploads" ] && [ "$(ls -A /var/pitstop/uploads 2>/dev/null)" ]; then
+              echo "=== Criando backup dos uploads ==="
+              UPLOADS_BACKUP="/opt/pitstop/backups/pitstop_uploads_${TIMESTAMP}.tar.gz"
+              tar -czf "$UPLOADS_BACKUP" -C /var/pitstop uploads
+              echo "Backup uploads criado: $UPLOADS_BACKUP"
+              ls -lh "$UPLOADS_BACKUP"
+
+              # Mantém apenas os últimos 5 backups de uploads
+              ls -t /opt/pitstop/backups/pitstop_uploads_*.tar.gz 2>/dev/null | tail -n +6 | xargs -r rm -f
+            else
+              echo "Diretorio de uploads vazio - nada a fazer backup"
             fi
           ENDSSH
 
