@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="pt-BR" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Como Reduzir o Tempo de Atendimento na Sua Oficina - Blog PitStop</title>
+    <meta name="description" content="Estratégias práticas de workflow para agilizar processos sem perder a qualidade do serviço.">
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🔧</text></svg>">
+
+    <!-- Google Analytics 4 -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-C1YK3X5KTX"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        gtag('js', new Date());
+        gtag('config', 'G-C1YK3X5KTX');
+    </script>
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <style>
+        * { font-family: 'Inter', sans-serif; }
+        .prose h2 { margin-top: 2rem; margin-bottom: 1rem; }
+        .prose p { margin-bottom: 1.25rem; line-height: 1.8; }
+    </style>
+</head>
+<body class="bg-gray-50">
+
+<!-- Navigation -->
+<nav class="fixed top-0 left-0 right-0 bg-white/95 backdrop-blur-sm z-50 border-b border-gray-100">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="flex justify-between items-center h-16">
+            <a href="index.html" class="flex items-center space-x-2">
+                <div class="w-10 h-10 bg-blue-600 rounded-lg flex items-center justify-center">
+                    <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/>
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                    </svg>
+                </div>
+                <span class="text-xl font-bold text-gray-900">PitStop</span>
+            </a>
+            <div class="hidden md:flex items-center space-x-8">
+                <a href="blog.html" class="text-blue-600 font-semibold">Blog</a>
+                <a href="https://app.pitstopai.com.br/login" class="text-blue-600 hover:text-blue-700 transition font-semibold">Login</a>
+                <a href="index.html#cta" class="bg-amber-500 hover:bg-amber-600 text-white px-6 py-2.5 rounded-lg font-semibold transition shadow-md">Teste Grátis</a>
+            </div>
+        </div>
+    </div>
+</nav>
+
+<!-- Article Header -->
+<header class="pt-24 pb-12 bg-gradient-to-br from-green-800 to-emerald-900 relative overflow-hidden">
+    <div class="absolute inset-0 opacity-20">
+        <img src="https://images.unsplash.com/photo-1625047509168-a7026f36de04?q=80&w=2000&auto=format&fit=crop" alt="Mecânico trabalhando" class="w-full h-full object-cover">
+    </div>
+    <div class="absolute inset-0 bg-gradient-to-br from-green-900/90 to-emerald-900/80"></div>
+    <div class="max-w-4xl mx-auto px-4 relative z-10">
+        <a href="blog.html" class="inline-flex items-center text-green-200 hover:text-white transition mb-6">
+            <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
+            Voltar ao Blog
+        </a>
+        <div class="flex items-center gap-3 mb-4">
+            <span class="bg-green-500 text-white text-sm font-bold px-3 py-1 rounded-full">Produtividade</span>
+            <span class="text-green-200">•</span>
+            <span class="text-green-200">6 min de leitura</span>
+        </div>
+        <h1 class="text-3xl md:text-5xl font-bold text-white mb-6">Como Reduzir o Tempo de Atendimento na Sua Oficina</h1>
+        <div class="flex items-center text-green-200">
+            <img src="https://ui-avatars.com/api/?name=PitStop&background=22c55e&color=fff" alt="PitStop" class="w-10 h-10 rounded-full mr-3">
+            <div>
+                <p class="text-white font-medium">Equipe PitStop</p>
+                <p class="text-sm">10 de Janeiro, 2026</p>
+            </div>
+        </div>
+    </div>
+</header>
+
+<!-- Article Content -->
+<article class="py-12 px-4">
+    <div class="max-w-3xl mx-auto">
+        <div class="prose prose-lg max-w-none">
+
+            <p class="text-xl text-gray-600 leading-relaxed mb-8">
+                Tempo é dinheiro. Essa frase nunca foi tão verdadeira quanto no contexto de uma oficina mecânica. Cada minuto que um carro passa ocupando um elevador sem gerar valor é prejuízo. Vamos ver como otimizar seu fluxo de trabalho.
+            </p>
+
+            <h2 class="text-2xl font-bold text-gray-900">O Problema do Tempo Ocioso</h2>
+
+            <p class="text-gray-700">
+                Em uma oficina típica, estima-se que apenas 60% do tempo de um mecânico é efetivamente produtivo. Os outros 40% são gastos com:
+            </p>
+
+            <ul class="list-disc pl-6 text-gray-700 space-y-2">
+                <li>Procurar peças no estoque</li>
+                <li>Aguardar aprovação do cliente</li>
+                <li>Buscar informações técnicas</li>
+                <li>Preencher papelada</li>
+                <li>Esperar liberação de elevador</li>
+            </ul>
+
+            <p class="text-gray-700">
+                A boa notícia? A maioria desses gargalos pode ser eliminada com processos bem definidos e tecnologia adequada.
+            </p>
+
+            <h2 class="text-2xl font-bold text-gray-900">1. Padronize o Processo de Recepção</h2>
+
+            <p class="text-gray-700">
+                O atendimento começa na recepção. Um checklist padronizado garante que todas as informações necessárias sejam coletadas de primeira:
+            </p>
+
+            <ul class="list-disc pl-6 text-gray-700 space-y-2">
+                <li>Problema relatado pelo cliente (com detalhes)</li>
+                <li>Quilometragem atual</li>
+                <li>Último serviço realizado</li>
+                <li>Contato para aprovação de orçamento</li>
+                <li>Prazo desejado de entrega</li>
+            </ul>
+
+            <div class="bg-green-50 border-l-4 border-green-500 p-6 my-6 rounded-r-lg">
+                <p class="text-green-800 font-medium mb-2">💡 Dica do PitStop</p>
+                <p class="text-green-700">Com o PitStop, você pode criar templates de recepção que guiam o atendente passo a passo, garantindo que nada seja esquecido.</p>
+            </div>
+
+            <h2 class="text-2xl font-bold text-gray-900">2. Separe Diagnóstico de Execução</h2>
+
+            <p class="text-gray-700">
+                Um erro comum é colocar o carro no elevador antes de ter clareza sobre o serviço. Resultado: o mecânico para no meio, aguarda aprovação, o elevador fica ocupado.
+            </p>
+
+            <p class="text-gray-700">
+                A solução é trabalhar em duas etapas:
+            </p>
+
+            <div class="grid md:grid-cols-2 gap-4 my-6">
+                <div class="bg-white border border-gray-200 rounded-xl p-6">
+                    <h4 class="font-bold text-gray-900 mb-2">Etapa 1: Diagnóstico</h4>
+                    <ul class="text-gray-600 text-sm space-y-1">
+                        <li>✓ Identificar o problema</li>
+                        <li>✓ Listar peças necessárias</li>
+                        <li>✓ Calcular mão de obra</li>
+                        <li>✓ Enviar orçamento ao cliente</li>
+                        <li>✓ Aguardar aprovação</li>
+                    </ul>
+                </div>
+                <div class="bg-white border border-gray-200 rounded-xl p-6">
+                    <h4 class="font-bold text-gray-900 mb-2">Etapa 2: Execução</h4>
+                    <ul class="text-gray-600 text-sm space-y-1">
+                        <li>✓ Separar peças antecipadamente</li>
+                        <li>✓ Alocar mecânico disponível</li>
+                        <li>✓ Executar serviço sem interrupções</li>
+                        <li>✓ Fazer teste final</li>
+                        <li>✓ Liberar veículo</li>
+                    </ul>
+                </div>
+            </div>
+
+            <h2 class="text-2xl font-bold text-gray-900">3. Implemente um Sistema de Filas</h2>
+
+            <p class="text-gray-700">
+                Nem todo serviço tem a mesma urgência ou complexidade. Organize sua fila de trabalho considerando:
+            </p>
+
+            <ul class="list-disc pl-6 text-gray-700 space-y-2">
+                <li><strong>Prioridade:</strong> Clientes com hora marcada, emergências</li>
+                <li><strong>Complexidade:</strong> Serviços rápidos x serviços longos</li>
+                <li><strong>Disponibilidade:</strong> Peças já disponíveis x aguardando entrega</li>
+                <li><strong>Recursos:</strong> Qual mecânico/elevador é mais adequado</li>
+            </ul>
+
+            <h2 class="text-2xl font-bold text-gray-900">4. Comunique-se Proativamente com o Cliente</h2>
+
+            <p class="text-gray-700">
+                Quantas horas são perdidas esperando o cliente responder uma ligação? A solução é usar canais onde o cliente responde mais rápido - como WhatsApp - e enviar informações completas de primeira.
+            </p>
+
+            <p class="text-gray-700">
+                Uma mensagem eficiente de orçamento deve conter:
+            </p>
+
+            <ul class="list-disc pl-6 text-gray-700 space-y-2">
+                <li>Descrição clara do problema encontrado</li>
+                <li>Lista de peças com valores</li>
+                <li>Valor da mão de obra</li>
+                <li>Prazo de execução</li>
+                <li>Botões claros de "Aprovar" ou "Falar com atendente"</li>
+            </ul>
+
+            <h2 class="text-2xl font-bold text-gray-900">5. Meça e Melhore Continuamente</h2>
+
+            <p class="text-gray-700">
+                O que não é medido não pode ser melhorado. Acompanhe métricas como:
+            </p>
+
+            <ul class="list-disc pl-6 text-gray-700 space-y-2">
+                <li>Tempo médio de diagnóstico</li>
+                <li>Tempo entre orçamento e aprovação</li>
+                <li>Tempo de execução por tipo de serviço</li>
+                <li>Taxa de retrabalho</li>
+                <li>Veículos atendidos por dia</li>
+            </ul>
+
+            <div class="bg-gray-900 text-white p-8 rounded-2xl my-8">
+                <h3 class="text-xl font-bold mb-4">🚀 Resultado Esperado</h3>
+                <p class="text-gray-300 mb-4">
+                    Oficinas que implementam essas práticas relatam aumento de 30% a 50% na capacidade de atendimento, sem precisar contratar mais funcionários ou expandir o espaço físico.
+                </p>
+                <a href="index.html#cta" class="inline-block bg-amber-500 hover:bg-amber-600 text-white px-6 py-3 rounded-lg font-semibold transition">
+                    Experimente o PitStop Grátis →
+                </a>
+            </div>
+
+        </div>
+
+        <!-- Share -->
+        <div class="border-t border-gray-200 pt-8 mt-12">
+            <p class="text-gray-600 font-medium mb-4">Compartilhe este artigo:</p>
+            <div class="flex gap-3">
+                <a href="#" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition">LinkedIn</a>
+                <a href="#" class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition">WhatsApp</a>
+            </div>
+        </div>
+    </div>
+</article>
+
+<!-- Footer -->
+<footer class="bg-gray-900 text-gray-300 py-12 px-4">
+    <div class="max-w-7xl mx-auto text-center">
+        <p>&copy; 2026 PitStop Sistemas Automotivos. Todos os direitos reservados.</p>
+    </div>
+</footer>
+
+</body>
+</html>

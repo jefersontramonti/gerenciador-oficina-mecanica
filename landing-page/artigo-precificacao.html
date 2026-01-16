@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="pt-BR" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Precificação de Serviços: Cobrando o Valor Justo - Blog PitStop</title>
+    <meta name="description" content="Aprenda a calcular hora-homem, margem de lucro nas peças e custos fixos para precificar corretamente.">
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🔧</text></svg>">
+
+    <!-- Google Analytics 4 -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-C1YK3X5KTX"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        gtag('js', new Date());
+        gtag('config', 'G-C1YK3X5KTX');
+    </script>
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <style>
+        * { font-family: 'Inter', sans-serif; }
+        .prose h2 { margin-top: 2rem; margin-bottom: 1rem; }
+        .prose p { margin-bottom: 1.25rem; line-height: 1.8; }
+    </style>
+</head>
+<body class="bg-gray-50">
+
+<!-- Navigation -->
+<nav class="fixed top-0 left-0 right-0 bg-white/95 backdrop-blur-sm z-50 border-b border-gray-100">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="flex justify-between items-center h-16">
+            <a href="index.html" class="flex items-center space-x-2">
+                <div class="w-10 h-10 bg-blue-600 rounded-lg flex items-center justify-center">
+                    <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/>
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                    </svg>
+                </div>
+                <span class="text-xl font-bold text-gray-900">PitStop</span>
+            </a>
+            <div class="hidden md:flex items-center space-x-8">
+                <a href="blog.html" class="text-blue-600 font-semibold">Blog</a>
+                <a href="https://app.pitstopai.com.br/login" class="text-blue-600 hover:text-blue-700 transition font-semibold">Login</a>
+                <a href="index.html#cta" class="bg-amber-500 hover:bg-amber-600 text-white px-6 py-2.5 rounded-lg font-semibold transition shadow-md">Teste Grátis</a>
+            </div>
+        </div>
+    </div>
+</nav>
+
+<!-- Article Header -->
+<header class="pt-24 pb-12 bg-gradient-to-br from-amber-700 to-orange-800 relative overflow-hidden">
+    <div class="absolute inset-0 opacity-20">
+        <img src="https://images.unsplash.com/photo-1554224155-6726b3ff858f?q=80&w=2000&auto=format&fit=crop" alt="Finanças" class="w-full h-full object-cover">
+    </div>
+    <div class="absolute inset-0 bg-gradient-to-br from-amber-800/90 to-orange-900/80"></div>
+    <div class="max-w-4xl mx-auto px-4 relative z-10">
+        <a href="blog.html" class="inline-flex items-center text-amber-200 hover:text-white transition mb-6">
+            <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
+            Voltar ao Blog
+        </a>
+        <div class="flex items-center gap-3 mb-4">
+            <span class="bg-amber-500 text-white text-sm font-bold px-3 py-1 rounded-full">Financeiro</span>
+            <span class="text-amber-200">•</span>
+            <span class="text-amber-200">7 min de leitura</span>
+        </div>
+        <h1 class="text-3xl md:text-5xl font-bold text-white mb-6">Precificação de Serviços: Cobrando o Valor Justo</h1>
+        <div class="flex items-center text-amber-200">
+            <img src="https://ui-avatars.com/api/?name=PitStop&background=f59e0b&color=fff" alt="PitStop" class="w-10 h-10 rounded-full mr-3">
+            <div>
+                <p class="text-white font-medium">Equipe PitStop</p>
+                <p class="text-sm">28 de Dezembro, 2025</p>
+            </div>
+        </div>
+    </div>
+</header>
+
+<!-- Article Content -->
+<article class="py-12 px-4">
+    <div class="max-w-3xl mx-auto">
+        <div class="prose prose-lg max-w-none">
+
+            <p class="text-xl text-gray-600 leading-relaxed mb-8">
+                Você sabe exatamente quanto custa uma hora de trabalho na sua oficina? Se a resposta for "mais ou menos", você pode estar perdendo dinheiro sem perceber. Vamos descomplicar a precificação.
+            </p>
+
+            <h2 class="text-2xl font-bold text-gray-900">O Erro Mais Comum</h2>
+
+            <p class="text-gray-700">
+                Muitas oficinas precificam "de cabeça", baseando-se no que o concorrente cobra ou no que acham que o cliente pode pagar. O problema? Isso ignora seus custos reais e pode resultar em:
+            </p>
+
+            <ul class="list-disc pl-6 text-gray-700 space-y-2">
+                <li>Trabalhar muito e lucrar pouco</li>
+                <li>Preços inconsistentes (cada orçamento diferente)</li>
+                <li>Dificuldade em dar descontos sem saber o limite</li>
+                <li>Falta de clareza sobre a saúde do negócio</li>
+            </ul>
+
+            <h2 class="text-2xl font-bold text-gray-900">Calculando o Custo da Hora-Homem</h2>
+
+            <p class="text-gray-700">
+                O primeiro passo é descobrir quanto custa cada hora de trabalho na sua oficina. Siga este roteiro:
+            </p>
+
+            <h3 class="text-xl font-bold text-gray-900 mt-6">1. Levante seus custos fixos mensais</h3>
+
+            <div class="bg-gray-100 rounded-xl p-6 my-6">
+                <div class="space-y-3 text-gray-700">
+                    <div class="flex justify-between"><span>Aluguel</span><span class="font-mono">R$ 3.000</span></div>
+                    <div class="flex justify-between"><span>Água + Luz</span><span class="font-mono">R$ 800</span></div>
+                    <div class="flex justify-between"><span>Internet + Telefone</span><span class="font-mono">R$ 300</span></div>
+                    <div class="flex justify-between"><span>Contador</span><span class="font-mono">R$ 500</span></div>
+                    <div class="flex justify-between"><span>Sistemas e softwares</span><span class="font-mono">R$ 200</span></div>
+                    <div class="flex justify-between"><span>Seguro</span><span class="font-mono">R$ 400</span></div>
+                    <div class="flex justify-between border-t pt-3"><span class="font-bold">TOTAL CUSTOS FIXOS</span><span class="font-mono font-bold">R$ 5.200</span></div>
+                </div>
+            </div>
+
+            <h3 class="text-xl font-bold text-gray-900 mt-6">2. Calcule o custo de mão de obra</h3>
+
+            <p class="text-gray-700">
+                Some salários, encargos e benefícios de toda a equipe produtiva (mecânicos):
+            </p>
+
+            <div class="bg-gray-100 rounded-xl p-6 my-6">
+                <div class="space-y-3 text-gray-700">
+                    <div class="flex justify-between"><span>Mecânico 1 (salário + encargos)</span><span class="font-mono">R$ 4.500</span></div>
+                    <div class="flex justify-between"><span>Mecânico 2 (salário + encargos)</span><span class="font-mono">R$ 4.500</span></div>
+                    <div class="flex justify-between border-t pt-3"><span class="font-bold">TOTAL MÃO DE OBRA</span><span class="font-mono font-bold">R$ 9.000</span></div>
+                </div>
+            </div>
+
+            <h3 class="text-xl font-bold text-gray-900 mt-6">3. Calcule as horas produtivas</h3>
+
+            <p class="text-gray-700">
+                Nem toda hora trabalhada é hora faturável. Considere:
+            </p>
+
+            <div class="bg-gray-100 rounded-xl p-6 my-6">
+                <div class="space-y-3 text-gray-700">
+                    <div class="flex justify-between"><span>Horas de trabalho por mês (por mecânico)</span><span class="font-mono">176h</span></div>
+                    <div class="flex justify-between"><span>Taxa de produtividade (realista)</span><span class="font-mono">70%</span></div>
+                    <div class="flex justify-between"><span>Horas produtivas por mecânico</span><span class="font-mono">123h</span></div>
+                    <div class="flex justify-between border-t pt-3"><span class="font-bold">TOTAL HORAS (2 mecânicos)</span><span class="font-mono font-bold">246h</span></div>
+                </div>
+            </div>
+
+            <h3 class="text-xl font-bold text-gray-900 mt-6">4. Chegue ao custo por hora</h3>
+
+            <div class="bg-amber-50 border-2 border-amber-300 rounded-xl p-6 my-6">
+                <p class="text-lg font-bold text-amber-800 mb-4">Fórmula do Custo por Hora:</p>
+                <p class="text-center text-2xl font-mono text-amber-900">
+                    (Custos Fixos + Mão de Obra) ÷ Horas Produtivas
+                </p>
+                <p class="text-center text-xl font-mono text-amber-900 mt-4">
+                    (R$ 5.200 + R$ 9.000) ÷ 246h = <strong>R$ 57,72/hora</strong>
+                </p>
+            </div>
+
+            <p class="text-gray-700">
+                Isso é o seu <strong>custo</strong>. Para ter lucro, você precisa adicionar uma margem.
+            </p>
+
+            <h2 class="text-2xl font-bold text-gray-900">Definindo o Preço de Venda</h2>
+
+            <p class="text-gray-700">
+                Com uma margem de lucro de 30% sobre o custo:
+            </p>
+
+            <div class="bg-green-50 border-2 border-green-300 rounded-xl p-6 my-6">
+                <p class="text-center text-2xl font-mono text-green-900">
+                    R$ 57,72 × 1,30 = <strong>R$ 75,00/hora</strong>
+                </p>
+                <p class="text-center text-green-700 mt-2">Este é o valor mínimo da sua hora-homem</p>
+            </div>
+
+            <h2 class="text-2xl font-bold text-gray-900">E as Peças?</h2>
+
+            <p class="text-gray-700">
+                Para peças, a margem de lucro costuma variar entre 30% e 100%, dependendo do item. Uma regra comum:
+            </p>
+
+            <ul class="list-disc pl-6 text-gray-700 space-y-2">
+                <li><strong>Peças de alto giro</strong> (filtros, velas, pastilhas): margem menor (30-50%)</li>
+                <li><strong>Peças especiais</strong> (sob encomenda): margem maior (50-80%)</li>
+                <li><strong>Fluidos e consumíveis</strong>: margem alta (80-100%)</li>
+            </ul>
+
+            <div class="bg-amber-50 border-l-4 border-amber-500 p-6 my-6 rounded-r-lg">
+                <p class="text-amber-800 font-medium mb-2">💡 Dica do PitStop</p>
+                <p class="text-amber-700">No PitStop, você cadastra o preço de custo e a margem desejada para cada peça. O sistema calcula automaticamente o preço de venda e atualiza em todos os orçamentos.</p>
+            </div>
+
+            <h2 class="text-2xl font-bold text-gray-900">Tabela de Serviços Padronizados</h2>
+
+            <p class="text-gray-700">
+                Com o valor da hora definido, crie uma tabela de serviços comuns com tempo estimado. Exemplo:
+            </p>
+
+            <div class="overflow-x-auto my-6">
+                <table class="w-full border-collapse border border-gray-200 text-sm">
+                    <thead>
+                    <tr class="bg-gray-50">
+                        <th class="border border-gray-200 px-4 py-3 text-left">Serviço</th>
+                        <th class="border border-gray-200 px-4 py-3 text-center">Tempo Médio</th>
+                        <th class="border border-gray-200 px-4 py-3 text-center">Valor MO</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr>
+                        <td class="border border-gray-200 px-4 py-3">Troca de óleo + filtro</td>
+                        <td class="border border-gray-200 px-4 py-3 text-center">0,5h</td>
+                        <td class="border border-gray-200 px-4 py-3 text-center">R$ 37,50</td>
+                    </tr>
+                    <tr class="bg-gray-50">
+                        <td class="border border-gray-200 px-4 py-3">Troca de pastilhas (eixo)</td>
+                        <td class="border border-gray-200 px-4 py-3 text-center">1h</td>
+                        <td class="border border-gray-200 px-4 py-3 text-center">R$ 75,00</td>
+                    </tr>
+                    <tr>
+                        <td class="border border-gray-200 px-4 py-3">Alinhamento + balanceamento</td>
+                        <td class="border border-gray-200 px-4 py-3 text-center">1h</td>
+                        <td class="border border-gray-200 px-4 py-3 text-center">R$ 75,00</td>
+                    </tr>
+                    <tr class="bg-gray-50">
+                        <td class="border border-gray-200 px-4 py-3">Troca de correia dentada</td>
+                        <td class="border border-gray-200 px-4 py-3 text-center">3h</td>
+                        <td class="border border-gray-200 px-4 py-3 text-center">R$ 225,00</td>
+                    </tr>
+                    <tr>
+                        <td class="border border-gray-200 px-4 py-3">Retífica de motor</td>
+                        <td class="border border-gray-200 px-4 py-3 text-center">16h</td>
+                        <td class="border border-gray-200 px-4 py-3 text-center">R$ 1.200,00</td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="bg-gray-900 text-white p-8 rounded-2xl my-8">
+                <h3 class="text-xl font-bold mb-4">💰 Resultado</h3>
+                <p class="text-gray-300 mb-4">
+                    Com preços bem calculados, você tem segurança para negociar descontos (sabendo seu limite), confiança para justificar valores ao cliente, e clareza sobre a rentabilidade de cada serviço.
+                </p>
+                <a href="index.html#cta" class="inline-block bg-amber-500 hover:bg-amber-600 text-white px-6 py-3 rounded-lg font-semibold transition">
+                    Gerencie Preços com o PitStop →
+                </a>
+            </div>
+
+        </div>
+
+        <!-- Share -->
+        <div class="border-t border-gray-200 pt-8 mt-12">
+            <p class="text-gray-600 font-medium mb-4">Compartilhe este artigo:</p>
+            <div class="flex gap-3">
+                <a href="#" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition">LinkedIn</a>
+                <a href="#" class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition">WhatsApp</a>
+            </div>
+        </div>
+    </div>
+</article>
+
+<!-- Footer -->
+<footer class="bg-gray-900 text-gray-300 py-12 px-4">
+    <div class="max-w-7xl mx-auto text-center">
+        <p>&copy; 2026 PitStop Sistemas Automotivos. Todos os direitos reservados.</p>
+    </div>
+</footer>
+
+</body>
+</html>

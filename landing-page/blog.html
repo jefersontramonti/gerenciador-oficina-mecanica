@@ -4,24 +4,22 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Blog - PitStop | Dicas e Novidades para Oficinas Mecânicas</title>
-
-    <!-- SEO Meta Tags -->
     <meta name="description" content="Blog do PitStop: dicas de gestão para oficinas mecânicas, novidades do sistema, tendências do setor automotivo e muito mais.">
-    <meta name="keywords" content="blog oficina mecânica, dicas gestão oficina, novidades setor automotivo, sistema oficina">
-    <meta name="author" content="PitStop">
-    <meta name="robots" content="index, follow">
-
-    <!-- Favicon -->
     <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🔧</text></svg>">
 
-    <!-- Tailwind CSS -->
-    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Analytics 4 -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-C1YK3X5KTX"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        gtag('js', new Date());
+        gtag('config', 'G-C1YK3X5KTX');
+    </script>
 
-    <!-- Google Fonts -->
+    <script src="https://cdn.tailwindcss.com"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
-
     <style>
         * { font-family: 'Inter', sans-serif; }
         @keyframes fade-in-up {
@@ -29,13 +27,7 @@
             to { opacity: 1; transform: translateY(0); }
         }
         .animate-fade-in-up { animation: fade-in-up 0.6s ease-out forwards; }
-
-        /* Utilitário para garantir que as imagens cubram a área corretamente */
-        .image-cover {
-            object-fit: cover;
-            width: 100%;
-            height: 100%;
-        }
+        .image-cover { object-fit: cover; width: 100%; height: 100%; }
     </style>
 </head>
 <body class="bg-gray-50">
@@ -53,15 +45,12 @@
                 </div>
                 <span class="text-xl font-bold text-gray-900">PitStop</span>
             </a>
-
             <div class="hidden md:flex items-center space-x-8">
                 <a href="index.html#funcionalidades" class="text-gray-600 hover:text-blue-600 transition font-medium">Funcionalidades</a>
                 <a href="index.html#precos" class="text-gray-600 hover:text-blue-600 transition font-medium">Preços</a>
                 <a href="index.html#faq" class="text-gray-600 hover:text-blue-600 transition font-medium">FAQ</a>
                 <a href="https://app.pitstopai.com.br/login" class="text-blue-600 hover:text-blue-700 transition font-semibold">Login</a>
-                <a href="index.html#cta" class="bg-amber-500 hover:bg-amber-600 text-white px-6 py-2.5 rounded-lg font-semibold transition shadow-md">
-                    Teste Grátis
-                </a>
+                <a href="index.html#cta" class="bg-amber-500 hover:bg-amber-600 text-white px-6 py-2.5 rounded-lg font-semibold transition shadow-md">Teste Grátis</a>
             </div>
         </div>
     </div>
@@ -69,16 +58,13 @@
 
 <!-- Hero Section -->
 <section class="pt-32 pb-16 px-4 bg-gradient-to-br from-indigo-800 to-blue-900 relative overflow-hidden">
-    <!-- Imagem de fundo sutil para o Hero -->
     <div class="absolute inset-0 opacity-20">
-        <img src="https://images.unsplash.com/photo-1486006920555-c77dcf18193c?q=80&w=2000&auto=format&fit=crop" alt="Oficina Background" class="w-full h-full object-cover">
+        <!-- Correção: Substituindo link temporário por imagem definitiva do Unsplash -->
+        <img src="https://images.unsplash.com/photo-1486006920555-c77dcf18193c?q=80&w=2000&auto=format&fit=crop" alt="Oficina PitStop Moderna e Tecnológica" class="w-full h-full object-cover">
     </div>
     <div class="absolute inset-0 bg-gradient-to-br from-indigo-900/90 to-blue-900/80"></div>
-
     <div class="max-w-4xl mx-auto text-center animate-fade-in-up relative z-10">
-        <h1 class="text-4xl lg:text-5xl font-bold text-white mb-6">
-            Blog PitStop
-        </h1>
+        <h1 class="text-4xl lg:text-5xl font-bold text-white mb-6">Blog PitStop</h1>
         <p class="text-xl text-indigo-100 max-w-2xl mx-auto">
             Dicas de gestão, novidades do setor automotivo e insights para acelerar o crescimento da sua oficina.
         </p>
@@ -90,22 +76,15 @@
     <div class="max-w-6xl mx-auto">
 
         <!-- Featured Post -->
-        <div class="bg-white rounded-2xl shadow-xl overflow-hidden mb-12 group cursor-pointer hover:shadow-2xl transition duration-300">
+        <a href="artigo-gestao-estoque.html" class="block bg-white rounded-2xl shadow-xl overflow-hidden mb-12 group cursor-pointer hover:shadow-2xl transition duration-300">
             <div class="md:flex h-full">
-                <!-- Imagem do Destaque (Gestão de Estoque) -->
                 <div class="md:w-1/2 relative h-64 md:h-auto overflow-hidden">
-                    <img
-                            src="https://images.unsplash.com/photo-1635437456728-662589254d03?q=80&w=1000&auto=format&fit=crop"
-                            alt="Peças de carro organizadas"
-                            class="image-cover transform group-hover:scale-105 transition duration-700 ease-in-out"
-                    >
+                    <img src="https://images.unsplash.com/photo-1635437456728-662589254d03?q=80&w=1000&auto=format&fit=crop" alt="Peças de carro organizadas" class="image-cover transform group-hover:scale-105 transition duration-700 ease-in-out">
                     <div class="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent md:bg-gradient-to-r"></div>
                 </div>
                 <div class="md:w-1/2 p-8 md:p-12 flex flex-col justify-center">
                     <div class="flex items-center gap-3 mb-4">
-                        <span class="inline-block bg-blue-100 text-blue-700 text-sm font-bold px-3 py-1 rounded-full">
-                            Destaque
-                        </span>
+                        <span class="inline-block bg-blue-100 text-blue-700 text-sm font-bold px-3 py-1 rounded-full">Destaque</span>
                         <span class="text-sm text-gray-500 font-medium">Gestão</span>
                     </div>
                     <h2 class="text-2xl md:text-3xl font-bold text-gray-900 mb-4 group-hover:text-blue-600 transition">
@@ -127,23 +106,17 @@
                     </div>
                 </div>
             </div>
-        </div>
+        </a>
 
         <!-- Grid de Posts -->
         <div class="grid md:grid-cols-3 gap-8">
 
             <!-- Post 1 (Produtividade) -->
-            <article class="bg-white rounded-xl shadow-md overflow-hidden hover:shadow-xl transition group flex flex-col h-full">
+            <a href="artigo-tempo-atendimento.html" class="bg-white rounded-xl shadow-md overflow-hidden hover:shadow-xl transition group flex flex-col h-full">
                 <div class="h-52 overflow-hidden relative">
-                    <img
-                            src="https://images.unsplash.com/photo-1625047509168-a7026f36de04?q=80&w=600&auto=format&fit=crop"
-                            alt="Mecânico trabalhando"
-                            class="image-cover transform group-hover:scale-110 transition duration-500"
-                    >
+                    <img src="https://images.unsplash.com/photo-1625047509168-a7026f36de04?q=80&w=600&auto=format&fit=crop" alt="Mecânico trabalhando" class="image-cover transform group-hover:scale-110 transition duration-500">
                     <div class="absolute top-4 left-4">
-                         <span class="bg-green-100 text-green-800 text-xs font-bold px-2.5 py-1 rounded shadow-sm">
-                            Produtividade
-                        </span>
+                        <span class="bg-green-100 text-green-800 text-xs font-bold px-2.5 py-1 rounded shadow-sm">Produtividade</span>
                     </div>
                 </div>
                 <div class="p-6 flex-1 flex flex-col">
@@ -157,20 +130,14 @@
                         <span class="text-sm text-gray-500">10 de Janeiro, 2026</span>
                     </div>
                 </div>
-            </article>
+            </a>
 
             <!-- Post 2 (Tecnologia/WhatsApp) -->
-            <article class="bg-white rounded-xl shadow-md overflow-hidden hover:shadow-xl transition group flex flex-col h-full">
+            <a href="artigo-whatsapp-business.html" class="bg-white rounded-xl shadow-md overflow-hidden hover:shadow-xl transition group flex flex-col h-full">
                 <div class="h-52 overflow-hidden relative">
-                    <img
-                            src="https://images.unsplash.com/photo-1611162617474-5b21e879e113?q=80&w=600&auto=format&fit=crop"
-                            alt="Smartphone com aplicativos"
-                            class="image-cover transform group-hover:scale-110 transition duration-500"
-                    >
+                    <img src="https://images.unsplash.com/photo-1611162617474-5b21e879e113?q=80&w=600&auto=format&fit=crop" alt="Smartphone com aplicativos" class="image-cover transform group-hover:scale-110 transition duration-500">
                     <div class="absolute top-4 left-4">
-                        <span class="bg-purple-100 text-purple-800 text-xs font-bold px-2.5 py-1 rounded shadow-sm">
-                            Tecnologia
-                        </span>
+                        <span class="bg-purple-100 text-purple-800 text-xs font-bold px-2.5 py-1 rounded shadow-sm">Tecnologia</span>
                     </div>
                 </div>
                 <div class="p-6 flex-1 flex flex-col">
@@ -184,20 +151,14 @@
                         <span class="text-sm text-gray-500">5 de Janeiro, 2026</span>
                     </div>
                 </div>
-            </article>
+            </a>
 
             <!-- Post 3 (Financeiro) -->
-            <article class="bg-white rounded-xl shadow-md overflow-hidden hover:shadow-xl transition group flex flex-col h-full">
+            <a href="artigo-precificacao.html" class="bg-white rounded-xl shadow-md overflow-hidden hover:shadow-xl transition group flex flex-col h-full">
                 <div class="h-52 overflow-hidden relative">
-                    <img
-                            src="https://images.unsplash.com/photo-1554224155-6726b3ff858f?q=80&w=600&auto=format&fit=crop"
-                            alt="Calculadora e finanças"
-                            class="image-cover transform group-hover:scale-110 transition duration-500"
-                    >
+                    <img src="https://images.unsplash.com/photo-1554224155-6726b3ff858f?q=80&w=600&auto=format&fit=crop" alt="Calculadora e finanças" class="image-cover transform group-hover:scale-110 transition duration-500">
                     <div class="absolute top-4 left-4">
-                        <span class="bg-amber-100 text-amber-800 text-xs font-bold px-2.5 py-1 rounded shadow-sm">
-                            Financeiro
-                        </span>
+                        <span class="bg-amber-100 text-amber-800 text-xs font-bold px-2.5 py-1 rounded shadow-sm">Financeiro</span>
                     </div>
                 </div>
                 <div class="p-6 flex-1 flex flex-col">
@@ -211,20 +172,14 @@
                         <span class="text-sm text-gray-500">28 de Dezembro, 2025</span>
                     </div>
                 </div>
-            </article>
+            </a>
 
             <!-- Post 4 (Erros/Gestão) -->
-            <article class="bg-white rounded-xl shadow-md overflow-hidden hover:shadow-xl transition group flex flex-col h-full">
+            <a href="artigo-erros-gestao.html" class="bg-white rounded-xl shadow-md overflow-hidden hover:shadow-xl transition group flex flex-col h-full">
                 <div class="h-52 overflow-hidden relative">
-                    <img
-                            src="https://images.unsplash.com/photo-1487754180451-c456f719a1fc?q=80&w=600&auto=format&fit=crop"
-                            alt="Mecânico inspecionando motor"
-                            class="image-cover transform group-hover:scale-110 transition duration-500"
-                    >
+                    <img src="https://images.unsplash.com/photo-1487754180451-c456f719a1fc?q=80&w=600&auto=format&fit=crop" alt="Mecânico inspecionando motor" class="image-cover transform group-hover:scale-110 transition duration-500">
                     <div class="absolute top-4 left-4">
-                        <span class="bg-red-100 text-red-800 text-xs font-bold px-2.5 py-1 rounded shadow-sm">
-                            Alertas
-                        </span>
+                        <span class="bg-red-100 text-red-800 text-xs font-bold px-2.5 py-1 rounded shadow-sm">Alertas</span>
                     </div>
                 </div>
                 <div class="p-6 flex-1 flex flex-col">
@@ -238,20 +193,14 @@
                         <span class="text-sm text-gray-500">20 de Dezembro, 2025</span>
                     </div>
                 </div>
-            </article>
+            </a>
 
             <!-- Post 5 (Equipe) -->
-            <article class="bg-white rounded-xl shadow-md overflow-hidden hover:shadow-xl transition group flex flex-col h-full">
+            <a href="artigo-motivar-mecanicos.html" class="bg-white rounded-xl shadow-md overflow-hidden hover:shadow-xl transition group flex flex-col h-full">
                 <div class="h-52 overflow-hidden relative">
-                    <img
-                            src="https://images.unsplash.com/photo-1600880292089-90a7e086ee0c?q=80&w=600&auto=format&fit=crop"
-                            alt="Equipe de trabalho unida"
-                            class="image-cover transform group-hover:scale-110 transition duration-500"
-                    >
+                    <img src="https://images.unsplash.com/photo-1600880292089-90a7e086ee0c?q=80&w=600&auto=format&fit=crop" alt="Equipe de trabalho unida" class="image-cover transform group-hover:scale-110 transition duration-500">
                     <div class="absolute top-4 left-4">
-                        <span class="bg-teal-100 text-teal-800 text-xs font-bold px-2.5 py-1 rounded shadow-sm">
-                            Equipe
-                        </span>
+                        <span class="bg-teal-100 text-teal-800 text-xs font-bold px-2.5 py-1 rounded shadow-sm">Equipe</span>
                     </div>
                 </div>
                 <div class="p-6 flex-1 flex flex-col">
@@ -265,20 +214,14 @@
                         <span class="text-sm text-gray-500">15 de Dezembro, 2025</span>
                     </div>
                 </div>
-            </article>
+            </a>
 
             <!-- Post 6 (Novidades/IA) -->
-            <article class="bg-white rounded-xl shadow-md overflow-hidden hover:shadow-xl transition group flex flex-col h-full">
+            <a href="artigo-lancamento-ia.html" class="bg-white rounded-xl shadow-md overflow-hidden hover:shadow-xl transition group flex flex-col h-full">
                 <div class="h-52 overflow-hidden relative">
-                    <img
-                            src="https://images.unsplash.com/photo-1485827404703-89b55fcc595e?q=80&w=600&auto=format&fit=crop"
-                            alt="Tecnologia futurista e IA"
-                            class="image-cover transform group-hover:scale-110 transition duration-500"
-                    >
+                    <img src="https://images.unsplash.com/photo-1485827404703-89b55fcc595e?q=80&w=600&auto=format&fit=crop" alt="Tecnologia futurista e IA" class="image-cover transform group-hover:scale-110 transition duration-500">
                     <div class="absolute top-4 left-4">
-                        <span class="bg-blue-100 text-blue-800 text-xs font-bold px-2.5 py-1 rounded shadow-sm">
-                            Novidades
-                        </span>
+                        <span class="bg-blue-100 text-blue-800 text-xs font-bold px-2.5 py-1 rounded shadow-sm">Novidades</span>
                     </div>
                 </div>
                 <div class="p-6 flex-1 flex flex-col">
@@ -292,17 +235,15 @@
                         <span class="text-sm text-gray-500">10 de Dezembro, 2025</span>
                     </div>
                 </div>
-            </article>
+            </a>
 
         </div>
 
         <!-- Coming Soon -->
         <div class="mt-16 text-center">
-            <div class="bg-gray-50 rounded-2xl p-12 border-2 border-dashed border-gray-300 hover:border-blue-400 transition cursor-default">
-                <div class="w-16 h-16 bg-gray-200 rounded-full flex items-center justify-center mx-auto mb-4">
-                    <svg class="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/>
-                    </svg>
+            <div class="bg-gray-50 rounded-2xl p-8 border-2 border-dashed border-gray-300 hover:border-blue-400 transition cursor-default flex flex-col items-center">
+                <div class="w-full max-w-md h-56 overflow-hidden rounded-xl mb-6 shadow-sm">
+                    <img src="image_e9b6c8.jpg" alt="Planejando novos conteúdos" class="w-full h-full object-cover transform hover:scale-105 transition duration-700">
                 </div>
                 <h3 class="text-xl font-bold text-gray-900 mb-2">Mais Conteúdo em Breve</h3>
                 <p class="text-gray-600 max-w-md mx-auto">
@@ -321,12 +262,7 @@
             Junte-se a mais de 5.000 gestores de oficinas e receba dicas semanais.
         </p>
         <form class="flex flex-col sm:flex-row gap-4 justify-center" onsubmit="event.preventDefault(); alert('Obrigado por se inscrever!');">
-            <input
-                    type="email"
-                    required
-                    placeholder="seu@email.com"
-                    class="px-6 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent w-full sm:w-80 shadow-sm"
-            >
+            <input type="email" required placeholder="seu@email.com" class="px-6 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent w-full sm:w-80 shadow-sm">
             <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white px-8 py-3 rounded-lg font-semibold transition shadow-md hover:shadow-lg transform hover:-translate-y-0.5">
                 Cadastrar
             </button>
@@ -355,25 +291,20 @@
                 <ul class="space-y-2 text-sm">
                     <li><a href="index.html#funcionalidades" class="hover:text-white transition">Funcionalidades</a></li>
                     <li><a href="index.html#precos" class="hover:text-white transition">Preços</a></li>
-                    <li><a href="integracoes.html" class="hover:text-white transition">Integrações</a></li>
-                    <li><a href="roadmap.html" class="hover:text-white transition">Roadmap</a></li>
                 </ul>
             </div>
             <div>
                 <h3 class="text-white font-semibold mb-4">Empresa</h3>
                 <ul class="space-y-2 text-sm">
-                    <li><a href="sobre.html" class="hover:text-white transition">Sobre nós</a></li>
                     <li><a href="blog.html" class="hover:text-white transition text-white">Blog</a></li>
-                    <li><a href="contato.html" class="hover:text-white transition">Contato</a></li>
                     <li><a href="index.html#faq" class="hover:text-white transition">FAQ</a></li>
                 </ul>
             </div>
             <div>
-                <h3 class="text-white font-semibold mb-4">Legal</h3>
+                <h3 class="text-white font-semibold mb-4">Contato</h3>
                 <ul class="space-y-2 text-sm">
-                    <li><a href="termos.html" class="hover:text-white transition">Termos de uso</a></li>
-                    <li><a href="privacidade.html" class="hover:text-white transition">Privacidade</a></li>
-                    <li><a href="lgpd.html" class="hover:text-white transition">LGPD</a></li>
+                    <li>contato@pitstopai.com.br</li>
+                    <li>Porto Alegre, RS</li>
                 </ul>
             </div>
         </div>

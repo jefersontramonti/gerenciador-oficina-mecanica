@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="pt-BR" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PitStop: Lançamento da Versão 2.0 com IA - Blog PitStop</title>
+    <meta name="description" content="Diagnósticos preditivos e atendimento automatizado: conheça o poder da IA na sua oficina.">
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🔧</text></svg>">
+
+    <!-- Google Analytics 4 -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-C1YK3X5KTX"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        gtag('js', new Date());
+        gtag('config', 'G-C1YK3X5KTX');
+    </script>
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <style>
+        * { font-family: 'Inter', sans-serif; }
+        .prose h2 { margin-top: 2rem; margin-bottom: 1rem; }
+        .prose p { margin-bottom: 1.25rem; line-height: 1.8; }
+    </style>
+</head>
+<body class="bg-gray-50">
+
+<!-- Navigation -->
+<nav class="fixed top-0 left-0 right-0 bg-white/95 backdrop-blur-sm z-50 border-b border-gray-100">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="flex justify-between items-center h-16">
+            <a href="index.html" class="flex items-center space-x-2">
+                <div class="w-10 h-10 bg-blue-600 rounded-lg flex items-center justify-center">
+                    <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/>
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                    </svg>
+                </div>
+                <span class="text-xl font-bold text-gray-900">PitStop</span>
+            </a>
+            <div class="hidden md:flex items-center space-x-8">
+                <a href="blog.html" class="text-blue-600 font-semibold">Blog</a>
+                <a href="https://app.pitstopai.com.br/login" class="text-blue-600 hover:text-blue-700 transition font-semibold">Login</a>
+                <a href="index.html#cta" class="bg-amber-500 hover:bg-amber-600 text-white px-6 py-2.5 rounded-lg font-semibold transition shadow-md">Teste Grátis</a>
+            </div>
+        </div>
+    </div>
+</nav>
+
+<!-- Article Header -->
+<header class="pt-24 pb-12 bg-gradient-to-br from-blue-900 to-indigo-900 relative overflow-hidden">
+    <div class="absolute inset-0 opacity-20">
+        <img src="https://images.unsplash.com/photo-1485827404703-89b55fcc595e?q=80&w=2000&auto=format&fit=crop" alt="IA" class="w-full h-full object-cover">
+    </div>
+    <div class="absolute inset-0 bg-gradient-to-br from-blue-900/90 to-indigo-900/80"></div>
+    <div class="max-w-4xl mx-auto px-4 relative z-10">
+        <a href="blog.html" class="inline-flex items-center text-blue-200 hover:text-white transition mb-6">
+            <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
+            Voltar ao Blog
+        </a>
+        <div class="flex items-center gap-3 mb-4">
+            <span class="bg-blue-500 text-white text-sm font-bold px-3 py-1 rounded-full">Novidades</span>
+            <span class="text-blue-200">•</span>
+            <span class="text-blue-200">5 min de leitura</span>
+        </div>
+        <h1 class="text-3xl md:text-5xl font-bold text-white mb-6">PitStop 2.0: Inteligência Artificial Chegou às Oficinas</h1>
+        <div class="flex items-center text-blue-200">
+            <img src="https://ui-avatars.com/api/?name=PitStop&background=3b82f6&color=fff" alt="PitStop" class="w-10 h-10 rounded-full mr-3">
+            <div>
+                <p class="text-white font-medium">Equipe PitStop</p>
+                <p class="text-sm">10 de Dezembro, 2025</p>
+            </div>
+        </div>
+    </div>
+</header>
+
+<!-- Article Content -->
+<article class="py-12 px-4">
+    <div class="max-w-3xl mx-auto">
+        <div class="prose prose-lg max-w-none">
+
+            <p class="text-xl text-gray-600 leading-relaxed mb-8">
+                Temos o prazer de anunciar a maior atualização do PitStop desde seu lançamento. A versão 2.0 traz recursos de Inteligência Artificial que vão transformar a forma como você gerencia sua oficina.
+            </p>
+
+            <div class="bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-2xl p-8 my-8">
+                <div class="flex items-center gap-4 mb-4">
+                    <span class="text-4xl">🚀</span>
+                    <div>
+                        <p class="text-blue-100 text-sm uppercase tracking-wide">Novidade</p>
+                        <h3 class="text-2xl font-bold">PitStop 2.0 com IA</h3>
+                    </div>
+                </div>
+                <p class="text-blue-100">Disponível para todos os planos PRO e ENTERPRISE a partir de hoje.</p>
+            </div>
+
+            <h2 class="text-2xl font-bold text-gray-900">O Que Há de Novo?</h2>
+
+            <h3 class="text-xl font-bold text-gray-900 mt-6">🔍 Diagnóstico Assistido por IA</h3>
+
+            <p class="text-gray-700">
+                Descreva os sintomas relatados pelo cliente e a IA sugere possíveis causas, ordenadas por probabilidade. O sistema aprende com o histórico da sua oficina, ficando cada vez mais preciso.
+            </p>
+
+            <div class="bg-gray-100 rounded-xl p-6 my-6">
+                <p class="text-sm text-gray-500 mb-2">Exemplo de uso:</p>
+                <div class="bg-white rounded-lg p-4 mb-3">
+                    <p class="text-gray-600 text-sm"><strong>Você:</strong> "Gol 2018, cliente relata barulho metálico ao frear, principalmente em baixa velocidade"</p>
+                </div>
+                <div class="bg-blue-50 rounded-lg p-4">
+                    <p class="text-blue-800 text-sm"><strong>IA PitStop:</strong></p>
+                    <ul class="text-blue-700 text-sm mt-2 space-y-1">
+                        <li>1. Pastilhas de freio gastas (85% probabilidade)</li>
+                        <li>2. Disco de freio com desgaste irregular (60%)</li>
+                        <li>3. Caliper com trava (25%)</li>
+                    </ul>
+                    <p class="text-blue-600 text-xs mt-3">Baseado em 47 casos similares na sua oficina</p>
+                </div>
+            </div>
+
+            <h3 class="text-xl font-bold text-gray-900 mt-6">📊 Relatórios Inteligentes</h3>
+
+            <p class="text-gray-700">
+                A IA analisa seus dados e gera insights automáticos sobre o desempenho da oficina:
+            </p>
+
+            <ul class="list-disc pl-6 text-gray-700 space-y-2">
+                <li>Previsão de faturamento para o próximo mês</li>
+                <li>Identificação de serviços com margem abaixo do ideal</li>
+                <li>Alertas de peças com baixa rotação (capital parado)</li>
+                <li>Sugestão de clientes para reativar (última visita há muito tempo)</li>
+                <li>Análise de produtividade por mecânico</li>
+            </ul>
+
+            <h3 class="text-xl font-bold text-gray-900 mt-6">💬 Respostas Automáticas Inteligentes</h3>
+
+            <p class="text-gray-700">
+                O chatbot de WhatsApp agora é potencializado por IA. Ele consegue:
+            </p>
+
+            <ul class="list-disc pl-6 text-gray-700 space-y-2">
+                <li>Responder perguntas frequentes automaticamente</li>
+                <li>Fornecer estimativas de preço baseadas no histórico</li>
+                <li>Agendar horários verificando disponibilidade real</li>
+                <li>Enviar lembretes de revisão personalizados</li>
+            </ul>
+
+            <div class="bg-green-50 rounded-xl p-6 my-6">
+                <div class="flex gap-4 items-start">
+                    <div class="bg-green-500 text-white rounded-full w-10 h-10 flex items-center justify-center flex-shrink-0">
+                        <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/></svg>
+                    </div>
+                    <div>
+                        <p class="text-gray-700 text-sm"><strong>Cliente:</strong> "Quanto fica uma troca de óleo do meu Civic?"</p>
+                        <p class="text-green-700 text-sm mt-2"><strong>IA PitStop:</strong> "Olá João! Para o seu Honda Civic 2019, a troca de óleo sintético com filtro fica em torno de R$ 280,00. Quer que eu verifique horários disponíveis para esta semana?"</p>
+                    </div>
+                </div>
+            </div>
+
+            <h3 class="text-xl font-bold text-gray-900 mt-6">🔮 Manutenção Preditiva</h3>
+
+            <p class="text-gray-700">
+                Com base no histórico do veículo e na quilometragem média, a IA prevê quando cada item precisará de manutenção e alerta automaticamente o cliente:
+            </p>
+
+            <div class="bg-amber-50 border border-amber-200 rounded-xl p-6 my-6">
+                <p class="text-amber-800 font-medium mb-3">📱 Mensagem automática enviada ao cliente:</p>
+                <p class="text-gray-700 text-sm italic">"Olá Maria! Seu Corolla XEi já rodou aproximadamente 48.000 km. Pela nossa estimativa, as pastilhas de freio devem ser substituídas em breve. Que tal agendar uma revisão preventiva? Temos horários disponíveis na quinta e sexta."</p>
+            </div>
+
+            <h2 class="text-2xl font-bold text-gray-900">Como Funciona a IA do PitStop?</h2>
+
+            <p class="text-gray-700">
+                Nossa IA é baseada em tecnologia de última geração, treinada especificamente para o contexto de oficinas mecânicas brasileiras. Ela considera:
+            </p>
+
+            <ul class="list-disc pl-6 text-gray-700 space-y-2">
+                <li>Histórico de serviços da sua oficina</li>
+                <li>Padrões de problemas por marca/modelo/ano</li>
+                <li>Comportamento de clientes similares</li>
+                <li>Sazonalidade (mais ar-condicionado no verão, por exemplo)</li>
+                <li>Dados do mercado automotivo brasileiro</li>
+            </ul>
+
+            <div class="bg-blue-50 border-l-4 border-blue-500 p-6 my-6 rounded-r-lg">
+                <p class="text-blue-800 font-medium mb-2">🔒 Privacidade</p>
+                <p class="text-blue-700">Seus dados são processados com segurança e criptografia. A IA aprende com padrões agregados, nunca expondo informações individuais de clientes.</p>
+            </div>
+
+            <h2 class="text-2xl font-bold text-gray-900">Outras Novidades da Versão 2.0</h2>
+
+            <p class="text-gray-700">
+                Além da IA, a versão 2.0 traz:
+            </p>
+
+            <ul class="list-disc pl-6 text-gray-700 space-y-2">
+                <li><strong>Novo dashboard:</strong> visualização mais clara e personalizável</li>
+                <li><strong>App mobile:</strong> versão para Android e iOS (em breve)</li>
+                <li><strong>Integração PIX:</strong> receba pagamentos instantâneos</li>
+                <li><strong>Relatórios em PDF:</strong> envie OS profissional para o cliente</li>
+                <li><strong>Multi-filial:</strong> gerencie várias unidades em uma conta</li>
+            </ul>
+
+            <h2 class="text-2xl font-bold text-gray-900">Como Ativar os Recursos de IA?</h2>
+
+            <p class="text-gray-700">
+                Para clientes dos planos <strong>PRO</strong> e <strong>ENTERPRISE</strong>, os recursos de IA já estão disponíveis. Basta acessar o menu "Configurações > Inteligência Artificial" e ativar as funcionalidades desejadas.
+            </p>
+
+            <p class="text-gray-700">
+                Clientes do plano <strong>STARTER</strong> podem fazer upgrade a qualquer momento para ter acesso aos novos recursos.
+            </p>
+
+            <div class="bg-gray-900 text-white p-8 rounded-2xl my-8">
+                <h3 class="text-xl font-bold mb-4">🎉 Experimente Agora</h3>
+                <p class="text-gray-300 mb-4">
+                    O futuro da gestão de oficinas chegou. Com IA, você trabalha menos e fatura mais. Junte-se a centenas de oficinas que já estão usando tecnologia de ponta.
+                </p>
+                <div class="flex flex-wrap gap-4">
+                    <a href="index.html#cta" class="inline-block bg-amber-500 hover:bg-amber-600 text-white px-6 py-3 rounded-lg font-semibold transition">
+                        Começar Teste Grátis →
+                    </a>
+                    <a href="index.html#precos" class="inline-block bg-white/10 hover:bg-white/20 text-white px-6 py-3 rounded-lg font-semibold transition">
+                        Ver Planos
+                    </a>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- Share -->
+        <div class="border-t border-gray-200 pt-8 mt-12">
+            <p class="text-gray-600 font-medium mb-4">Compartilhe esta novidade:</p>
+            <div class="flex gap-3">
+                <a href="#" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition">LinkedIn</a>
+                <a href="#" class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition">WhatsApp</a>
+                <a href="#" class="bg-sky-500 hover:bg-sky-600 text-white px-4 py-2 rounded-lg text-sm font-medium transition">Twitter</a>
+            </div>
+        </div>
+    </div>
+</article>
+
+<!-- Footer -->
+<footer class="bg-gray-900 text-gray-300 py-12 px-4">
+    <div class="max-w-7xl mx-auto text-center">
+        <p>&copy; 2026 PitStop Sistemas Automotivos. Todos os direitos reservados.</p>
+    </div>
+</footer>
+
+</body>
+</html>
