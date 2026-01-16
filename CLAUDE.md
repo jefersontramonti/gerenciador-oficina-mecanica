@@ -475,6 +475,19 @@ TELEGRAM_BOT_TOKEN=<token>
 
 **Swagger UI**: http://localhost:8080/swagger-ui.html
 
+## Pending Tasks (Short-term)
+
+**Landing Page (2026-01-15):**
+1. **Lead Capture Endpoint** - Create `POST /api/public/leads` to receive form submissions from landing page contact form
+2. **Mobile Menu** - Add hamburger menu to other landing pages (currently only `index.html` has it)
+3. **Google Ads Conversion Tracking** - Configure conversion tracking with Google Ads ID: `147-235-9974`
+
+**Completed Today (2026-01-15):**
+- Google Analytics 4 (G-C1YK3X5KTX) added to all 16 landing page HTML files
+- Fixed broken Unsplash images with `referrerpolicy="no-referrer"`
+- Replaced corrupted/404 images with working alternatives
+- Fixed Redis cache corruption issue (ClassCastException on `/api/oficinas/{id}`)
+
 ## What's Next (Not Yet Implemented)
 
 1. **Mercado Pago Integration** - Payment gateway
