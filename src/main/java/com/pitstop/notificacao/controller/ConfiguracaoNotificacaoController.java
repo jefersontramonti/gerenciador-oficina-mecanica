@@ -10,6 +10,7 @@ import com.pitstop.notificacao.service.ConfiguracaoNotificacaoService;
 import com.pitstop.notificacao.service.EmailService;
 import com.pitstop.notificacao.service.TelegramService;
 import com.pitstop.notificacao.service.WhatsAppService;
+import com.pitstop.shared.security.feature.RequiresFeature;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -109,6 +110,7 @@ public class ConfiguracaoNotificacaoController {
      */
     @PutMapping("/smtp")
     @PreAuthorize("hasAnyAuthority('ADMIN', 'GERENTE')")
+    @RequiresFeature(value = "SMTP_CUSTOMIZADO", name = "SMTP Customizado", requiredPlan = "PROFISSIONAL")
     @Operation(summary = "Configurar SMTP", description = "Configura servidor SMTP proprio da oficina")
     public ResponseEntity<ConfiguracaoNotificacaoDTO> configurarSmtp(
         @RequestBody SmtpConfigRequest request
@@ -132,6 +134,7 @@ public class ConfiguracaoNotificacaoController {
      */
     @DeleteMapping("/smtp")
     @PreAuthorize("hasAnyAuthority('ADMIN', 'GERENTE')")
+    @RequiresFeature(value = "SMTP_CUSTOMIZADO", name = "SMTP Customizado", requiredPlan = "PROFISSIONAL")
     @Operation(summary = "Remover SMTP", description = "Remove configuracao de SMTP proprio")
     public ResponseEntity<ConfiguracaoNotificacaoDTO> removerSmtp() {
         log.info("DELETE /api/notificacoes/configuracao/smtp");
@@ -147,6 +150,7 @@ public class ConfiguracaoNotificacaoController {
      */
     @PutMapping("/whatsapp")
     @PreAuthorize("hasAnyAuthority('ADMIN', 'GERENTE')")
+    @RequiresFeature(value = "WHATSAPP_NOTIFICATIONS", name = "Notificacoes WhatsApp", requiredPlan = "PROFISSIONAL")
     @Operation(summary = "Configurar WhatsApp", description = "Configura Evolution API para WhatsApp")
     public ResponseEntity<ConfiguracaoNotificacaoDTO> configurarWhatsApp(
         @RequestBody WhatsAppConfigRequest request
@@ -167,6 +171,7 @@ public class ConfiguracaoNotificacaoController {
      */
     @GetMapping("/whatsapp/status")
     @PreAuthorize("hasAnyAuthority('ADMIN', 'GERENTE')")
+    @RequiresFeature(value = "WHATSAPP_NOTIFICATIONS", name = "Notificacoes WhatsApp", requiredPlan = "PROFISSIONAL")
     @Operation(summary = "Status WhatsApp", description = "Verifica status da conexao com Evolution API")
     public ResponseEntity<EvolutionInstanceStatus> statusWhatsApp() {
         EvolutionInstanceStatus status = service.verificarConexaoWhatsApp();
@@ -179,6 +184,7 @@ public class ConfiguracaoNotificacaoController {
      */
     @GetMapping("/whatsapp/qrcode")
     @PreAuthorize("hasAnyAuthority('ADMIN', 'GERENTE')")
+    @RequiresFeature(value = "WHATSAPP_NOTIFICATIONS", name = "Notificacoes WhatsApp", requiredPlan = "PROFISSIONAL")
     @Operation(summary = "QR Code WhatsApp", description = "Gera QR Code para conectar WhatsApp")
     public ResponseEntity<Map<String, String>> qrCodeWhatsApp() {
         String qrCode = service.gerarQrCodeWhatsApp();
@@ -194,6 +200,7 @@ public class ConfiguracaoNotificacaoController {
      */
     @PostMapping("/whatsapp/criar-instancia")
     @PreAuthorize("hasAnyAuthority('ADMIN', 'GERENTE')")
+    @RequiresFeature(value = "WHATSAPP_NOTIFICATIONS", name = "Notificacoes WhatsApp", requiredPlan = "PROFISSIONAL")
     @Operation(summary = "Criar instancia WhatsApp", description = "Cria automaticamente uma instancia na Evolution API")
     public ResponseEntity<CriarInstanciaResponse> criarInstanciaWhatsApp() {
         log.info("POST /api/notificacoes/configuracao/whatsapp/criar-instancia");
@@ -207,6 +214,7 @@ public class ConfiguracaoNotificacaoController {
      */
     @DeleteMapping("/whatsapp/instancia")
     @PreAuthorize("hasAnyAuthority('ADMIN', 'GERENTE')")
+    @RequiresFeature(value = "WHATSAPP_NOTIFICATIONS", name = "Notificacoes WhatsApp", requiredPlan = "PROFISSIONAL")
     @Operation(summary = "Deletar instancia WhatsApp", description = "Remove instancia da Evolution API e limpa configuracoes")
     public ResponseEntity<Map<String, Object>> deletarInstanciaWhatsApp() {
         log.info("DELETE /api/notificacoes/configuracao/whatsapp/instancia");
@@ -223,6 +231,7 @@ public class ConfiguracaoNotificacaoController {
      */
     @PostMapping("/whatsapp/desconectar")
     @PreAuthorize("hasAnyAuthority('ADMIN', 'GERENTE')")
+    @RequiresFeature(value = "WHATSAPP_NOTIFICATIONS", name = "Notificacoes WhatsApp", requiredPlan = "PROFISSIONAL")
     @Operation(summary = "Desconectar WhatsApp", description = "Faz logout do WhatsApp na instancia")
     public ResponseEntity<Map<String, Object>> desconectarWhatsApp() {
         log.info("POST /api/notificacoes/configuracao/whatsapp/desconectar");
@@ -239,6 +248,7 @@ public class ConfiguracaoNotificacaoController {
      */
     @PostMapping("/whatsapp/reconectar")
     @PreAuthorize("hasAnyAuthority('ADMIN', 'GERENTE')")
+    @RequiresFeature(value = "WHATSAPP_NOTIFICATIONS", name = "Notificacoes WhatsApp", requiredPlan = "PROFISSIONAL")
     @Operation(summary = "Reconectar WhatsApp", description = "Reinicia a instancia para reconectar")
     public ResponseEntity<Map<String, Object>> reconectarWhatsApp() {
         log.info("POST /api/notificacoes/configuracao/whatsapp/reconectar");
@@ -257,6 +267,7 @@ public class ConfiguracaoNotificacaoController {
      */
     @PutMapping("/telegram")
     @PreAuthorize("hasAnyAuthority('ADMIN', 'GERENTE')")
+    @RequiresFeature(value = "TELEGRAM_NOTIFICATIONS", name = "Notificacoes Telegram", requiredPlan = "PROFISSIONAL")
     @Operation(summary = "Configurar Telegram", description = "Configura o bot do Telegram para notificacoes")
     public ResponseEntity<ConfiguracaoNotificacaoDTO> configurarTelegram(
         @RequestBody TelegramConfigRequest request
@@ -275,6 +286,7 @@ public class ConfiguracaoNotificacaoController {
      */
     @GetMapping("/telegram/status")
     @PreAuthorize("hasAnyAuthority('ADMIN', 'GERENTE')")
+    @RequiresFeature(value = "TELEGRAM_NOTIFICATIONS", name = "Notificacoes Telegram", requiredPlan = "PROFISSIONAL")
     @Operation(summary = "Status Telegram", description = "Verifica status da conexao com o bot do Telegram")
     public ResponseEntity<Map<String, Object>> statusTelegram() {
         boolean conectado = service.verificarConexaoTelegram();

@@ -1,4 +1,4 @@
-import { createContext, useContext, useEffect, useState, useCallback } from 'react';
+import { createContext, useContext, useEffect, useState, useCallback, useMemo, useRef } from 'react';
 import type { ReactNode } from 'react';
 import { featureService, type OficinaFeatures } from '@/shared/services/featureService';
 import { useAuth } from '@/features/auth/hooks/useAuth';
@@ -19,6 +19,8 @@ interface FeatureFlagContextType {
   features: Record<string, boolean>;
   /** Se as features estão sendo carregadas */
   isLoading: boolean;
+  /** Se as features já foram carregadas pelo menos uma vez nesta sessão */
+  isReady: boolean;
   /** Se houve erro ao carregar features */
   error: string | null;
   /** Verifica se uma feature específica está habilitada */
@@ -82,7 +84,11 @@ export function FeatureFlagProvider({ children }: FeatureFlagProviderProps) {
     return loadFeaturesFromStorage() || {};
   });
   const [isLoading, setIsLoading] = useState(false);
+  const [isReady, setIsReady] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  // Track the user ID to detect user changes (login/logout/switch)
+  const lastUserIdRef = useRef<string | null>(null);
 
   // Fetch features from API
   const fetchFeatures = useCallback(async () => {
@@ -93,10 +99,12 @@ export function FeatureFlagProvider({ children }: FeatureFlagProviderProps) {
       const response: OficinaFeatures = await featureService.getMyFeatures();
       setFeatures(response.features || {});
       saveFeaturesToStorage(response.features || {});
+      setIsReady(true);
     } catch (err: any) {
       console.error('Error fetching features:', err);
       setError(err.message || 'Erro ao carregar funcionalidades');
-      // Keep cached features on error
+      // Keep cached features on error, but mark as ready so app can continue
+      setIsReady(true);
     } finally {
       setIsLoading(false);
     }
@@ -107,26 +115,43 @@ export function FeatureFlagProvider({ children }: FeatureFlagProviderProps) {
     setFeatures({});
     clearFeaturesFromStorage();
     setError(null);
+    setIsReady(false);
   }, []);
 
-  // Load features when authenticated
+  // Load features when authenticated or when user changes
   useEffect(() => {
     if (isAuthenticated && user) {
+      const currentUserId = user.id;
+
       // SUPER_ADMIN doesn't need feature checks (has access to everything)
       // They have full access handled in isFeatureEnabled()
       if (user.perfil === 'SUPER_ADMIN') {
         setFeatures({});
+        setIsReady(true);
+        lastUserIdRef.current = currentUserId;
         return;
       }
 
-      // Normal users: fetch features from API
-      fetchFeatures();
+      // Check if user changed (fresh login or user switch)
+      const userChanged = lastUserIdRef.current !== currentUserId;
+
+      if (userChanged || !isReady) {
+        // Clear old features before fetching new ones
+        if (userChanged && lastUserIdRef.current !== null) {
+          clearFeaturesFromStorage();
+          setFeatures({});
+        }
+
+        lastUserIdRef.current = currentUserId;
+        fetchFeatures();
+      }
     }
-  }, [isAuthenticated, user, fetchFeatures]);
+  }, [isAuthenticated, user, fetchFeatures, isReady]);
 
   // Clear features on logout
   useEffect(() => {
     if (!isAuthenticated) {
+      lastUserIdRef.current = null;
       clearFeatures();
     }
   }, [isAuthenticated, clearFeatures]);
@@ -168,16 +193,31 @@ export function FeatureFlagProvider({ children }: FeatureFlagProviderProps) {
     [isFeatureEnabled]
   );
 
-  const value: FeatureFlagContextType = {
-    features,
-    isLoading,
-    error,
-    isFeatureEnabled,
-    areAllFeaturesEnabled,
-    isAnyFeatureEnabled,
-    refreshFeatures: fetchFeatures,
-    clearFeatures,
-  };
+  // Memoize the context value to prevent unnecessary re-renders
+  const value: FeatureFlagContextType = useMemo(
+    () => ({
+      features,
+      isLoading,
+      isReady,
+      error,
+      isFeatureEnabled,
+      areAllFeaturesEnabled,
+      isAnyFeatureEnabled,
+      refreshFeatures: fetchFeatures,
+      clearFeatures,
+    }),
+    [
+      features,
+      isLoading,
+      isReady,
+      error,
+      isFeatureEnabled,
+      areAllFeaturesEnabled,
+      isAnyFeatureEnabled,
+      fetchFeatures,
+      clearFeatures,
+    ]
+  );
 
   return (
     <FeatureFlagContext.Provider value={value}>

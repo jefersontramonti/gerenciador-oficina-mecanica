@@ -3,6 +3,8 @@ import { Settings, Radio, MessageSquare, Send, Mail, FileText } from 'lucide-rea
 import { MetricasCards } from '../components/MetricasCards';
 import { CanaisTab, WhatsAppEvolutionTab, TelegramTab, EmailTab, TemplatesTab } from '../components/tabs';
 import { useConfiguracoes } from '../hooks/useNotificacoes';
+import { FeatureGate } from '@/shared/components/FeatureGate';
+import { PlanUpgradePrompt } from '@/shared/components/PlanUpgradePrompt';
 
 type TabId = 'canais' | 'whatsapp' | 'telegram' | 'email' | 'templates';
 
@@ -67,9 +69,37 @@ export function ConfiguracaoNotificacoesPage() {
       case 'canais':
         return <CanaisTab />;
       case 'whatsapp':
-        return <WhatsAppEvolutionTab />;
+        return (
+          <FeatureGate
+            feature="WHATSAPP_NOTIFICATIONS"
+            fallback={
+              <PlanUpgradePrompt
+                featureCode="WHATSAPP_NOTIFICATIONS"
+                featureName="Notificações via WhatsApp"
+                requiredPlan="PROFISSIONAL"
+                message="Configure o WhatsApp para enviar notificações automáticas de status de ordens de serviço, lembretes e muito mais para seus clientes."
+              />
+            }
+          >
+            <WhatsAppEvolutionTab />
+          </FeatureGate>
+        );
       case 'telegram':
-        return <TelegramTab />;
+        return (
+          <FeatureGate
+            feature="TELEGRAM_NOTIFICATIONS"
+            fallback={
+              <PlanUpgradePrompt
+                featureCode="TELEGRAM_NOTIFICATIONS"
+                featureName="Notificações via Telegram"
+                requiredPlan="PROFISSIONAL"
+                message="Configure o Telegram Bot para notificar sua equipe sobre atualizações de ordens de serviço em tempo real."
+              />
+            }
+          >
+            <TelegramTab />
+          </FeatureGate>
+        );
       case 'email':
         return <EmailTab />;
       case 'templates':

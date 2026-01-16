@@ -1,12 +1,14 @@
 import { useState, useEffect } from 'react';
-import { Mail, Send, Loader2, CheckCircle, Server } from 'lucide-react';
+import { Mail, Send, Loader2, CheckCircle, Server, Lock } from 'lucide-react';
 import { useConfiguracoes, useUpdateConfiguracao, useTestarNotificacao } from '../../hooks/useNotificacoes';
 import type { UpdateConfiguracaoNotificacaoRequest } from '../../types';
+import { useFeatureFlag } from '@/shared/hooks/useFeatureFlag';
 
 export function EmailTab() {
   const { data: config, isLoading: configLoading } = useConfiguracoes();
   const updateMutation = useUpdateConfiguracao();
   const testMutation = useTestarNotificacao();
+  const canUseCustomSmtp = useFeatureFlag('SMTP_CUSTOMIZADO');
 
   const [useCustomSmtp, setUseCustomSmtp] = useState(false);
 
@@ -131,16 +133,31 @@ export function EmailTab() {
               </div>
             </label>
 
-            <label className="flex items-start gap-3 rounded-lg border border-gray-200 dark:border-gray-700 p-4 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700">
+            <label
+              className={`flex items-start gap-3 rounded-lg border p-4 ${
+                canUseCustomSmtp
+                  ? 'border-gray-200 dark:border-gray-700 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700'
+                  : 'border-gray-200 dark:border-gray-700 cursor-not-allowed opacity-60'
+              }`}
+            >
               <input
                 type="radio"
                 name="smtpMode"
                 checked={useCustomSmtp}
-                onChange={() => setUseCustomSmtp(true)}
-                className="mt-0.5 h-4 w-4 text-blue-600 focus:ring-blue-500"
+                onChange={() => canUseCustomSmtp && setUseCustomSmtp(true)}
+                disabled={!canUseCustomSmtp}
+                className="mt-0.5 h-4 w-4 text-blue-600 focus:ring-blue-500 disabled:cursor-not-allowed"
               />
-              <div>
-                <p className="font-medium text-gray-900 dark:text-white">SMTP Personalizado</p>
+              <div className="flex-1">
+                <div className="flex items-center gap-2">
+                  <p className="font-medium text-gray-900 dark:text-white">SMTP Personalizado</p>
+                  {!canUseCustomSmtp && (
+                    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-400 border border-purple-200 dark:border-purple-800">
+                      <Lock className="h-3 w-3" />
+                      Profissional
+                    </span>
+                  )}
+                </div>
                 <p className="mt-1 text-sm text-gray-600 dark:text-gray-400">
                   Configurar servidor SMTP próprio (Gmail, Outlook, domínio próprio, etc.)
                 </p>

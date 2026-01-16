@@ -187,10 +187,14 @@ frontend/src/shared/
 
 | Flag | Status | Data | Observações |
 |------|--------|------|-------------|
-| EMAIL_MARKETING | ❌ | | |
+| WHATSAPP_NOTIFICATIONS | ✅ | 2026-01-15 | Gating backend + frontend |
+| TELEGRAM_NOTIFICATIONS | ✅ | 2026-01-15 | Gating backend + frontend |
+| EMAIL_NOTIFICATIONS | ✅ | 2026-01-15 | Habilitado global |
+| SMTP_CUSTOMIZADO | ✅ | 2026-01-15 | Gating backend + frontend |
+| EMAIL_MARKETING | ❌ | | Campanhas não implementadas |
 | SMS_NOTIFICATIONS | ❌ | | |
-| WHATSAPP_CAMPANHAS | ⚠️ | | Evolution API ok |
-| TELEGRAM_BOT | ⚠️ | | Service existe |
+| WHATSAPP_CAMPANHAS | ⚠️ | | Evolution API ok, campanhas pendentes |
+| TELEGRAM_BOT | ⚠️ | | Service existe, bot commands pendentes |
 | WEBHOOK_NOTIFICATIONS | ❌ | | |
 | CHAT_INTERNO | ❌ | | WebSocket pronto |
 
@@ -757,6 +761,32 @@ Opções:
 
 ## Changelog
 
+### 2026-01-15
+
+**Etapa 2 - Comunicação Básica: PARCIAL ✅**
+
+Backend:
+- [x] Criada migration V063 para flags básicas de notificação
+- [x] Adicionadas flags: WHATSAPP_NOTIFICATIONS, TELEGRAM_NOTIFICATIONS, EMAIL_NOTIFICATIONS, SMTP_CUSTOMIZADO
+- [x] Adicionado @RequiresFeature em todos endpoints WhatsApp do ConfiguracaoNotificacaoController
+- [x] Adicionado @RequiresFeature em todos endpoints Telegram do ConfiguracaoNotificacaoController
+- [x] Adicionado @RequiresFeature nos endpoints SMTP do ConfiguracaoNotificacaoController
+
+Frontend:
+- [x] FeatureGate no WhatsAppEvolutionTab (com PlanUpgradePrompt)
+- [x] FeatureGate no TelegramTab (com PlanUpgradePrompt)
+- [x] useFeatureFlag no EmailTab para SMTP_CUSTOMIZADO
+- [x] UI de bloqueio com badge "Profissional" na opção SMTP Personalizado
+
+Arquivos modificados:
+- `src/main/resources/db/changelog/migrations/V063__add_basic_notification_flags.sql` (novo)
+- `src/main/resources/db/changelog/db.changelog-master.yaml` (adicionada migration)
+- `src/main/java/com/pitstop/notificacao/controller/ConfiguracaoNotificacaoController.java` (+12 @RequiresFeature)
+- `frontend/src/features/notificacoes/pages/ConfiguracaoNotificacoesPage.tsx` (FeatureGate)
+- `frontend/src/features/notificacoes/components/tabs/EmailTab.tsx` (useFeatureFlag)
+
+---
+
 ### 2026-01-14 (Tarde)
 
 **Etapa 1 - Infraestrutura de Gating: CONCLUÍDA ✅**
@@ -811,7 +841,7 @@ Arquivos criados/modificados:
 | Etapa | Total | Feito | % |
 |-------|-------|-------|---|
 | 1. Infraestrutura | 10 | 9 | 90% |
-| 2. Comunicação | 6 | 0 | 0% |
+| 2. Comunicação | 10 | 4 | 40% |
 | 3. Financeiro | 8 | 0 | 0% |
 | 4. Nota Fiscal | 6 | 0 | 0% |
 | 5. Operacional | 7 | 0 | 0% |
@@ -821,16 +851,17 @@ Arquivos criados/modificados:
 | 9. Customização | 4 | 0 | 0% |
 | 10. Marketing | 5 | 0 | 0% |
 | 11. Mobile | 5 | 0 | 0% |
-| **TOTAL** | **68** | **13** | **19%** |
+| **TOTAL** | **72** | **17** | **24%** |
 
 ---
 
 ## Próximos Passos
 
 1. ~~**Etapa 1** - Infraestrutura de Gating~~ ✅ CONCLUÍDA
-2. **Priorizar Etapa 2** - Comunicação (WhatsApp, Telegram já parcial)
-3. **Priorizar Etapa 3** - Mercado Pago (receita)
-4. **Priorizar Etapa 4** - NF-e (compliance)
+2. ~~**Etapa 2 (Parcial)** - Comunicação Básica~~ ✅ Gating WhatsApp/Telegram/Email/SMTP
+3. **Etapa 2 (Restante)** - Completar campanhas (EMAIL_MARKETING, WHATSAPP_CAMPANHAS)
+4. **Priorizar Etapa 3** - Mercado Pago (receita)
+5. **Priorizar Etapa 4** - NF-e (compliance)
 
 ---
 

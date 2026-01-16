@@ -21,9 +21,19 @@ import { useFeatureFlags } from '@/shared/contexts/FeatureFlagContext';
  * ```
  */
 export function useFeatureFlag(featureCode: string): boolean {
-  const { isFeatureEnabled } = useFeatureFlags();
+  const { features, isFeatureEnabled } = useFeatureFlags();
 
-  return useMemo(() => isFeatureEnabled(featureCode), [isFeatureEnabled, featureCode]);
+  // Depend on features directly to ensure re-render when features change
+  return useMemo(() => isFeatureEnabled(featureCode), [features, isFeatureEnabled, featureCode]);
+}
+
+/**
+ * Hook para verificar se as features estão prontas (carregadas).
+ * Útil para mostrar loading states enquanto as features são carregadas.
+ */
+export function useFeatureFlagsReady(): boolean {
+  const { isReady } = useFeatureFlags();
+  return isReady;
 }
 
 /**
@@ -63,8 +73,9 @@ export function useFeatureFlagMultiple(featureCodes: string[]): {
   /** Map de código -> habilitado */
   map: Record<string, boolean>;
 } {
-  const { isFeatureEnabled, areAllFeaturesEnabled, isAnyFeatureEnabled } = useFeatureFlags();
+  const { features, isFeatureEnabled, areAllFeaturesEnabled, isAnyFeatureEnabled } = useFeatureFlags();
 
+  // Depend on features directly to ensure re-render when features change
   return useMemo(() => {
     const map: Record<string, boolean> = {};
     for (const code of featureCodes) {
@@ -76,5 +87,5 @@ export function useFeatureFlagMultiple(featureCodes: string[]): {
       any: isAnyFeatureEnabled(featureCodes),
       map,
     };
-  }, [featureCodes, isFeatureEnabled, areAllFeaturesEnabled, isAnyFeatureEnabled]);
+  }, [features, featureCodes, isFeatureEnabled, areAllFeaturesEnabled, isAnyFeatureEnabled]);
 }
