@@ -37,7 +37,7 @@ public class WebSocketNotificationService {
     @Async
     public void handleOrdemServicoEvent(OrdemServicoEvent event) {
         try {
-            String tipo = mapEventoToTipo(event.getEvento().name());
+            String tipo = mapEventoToTipo(event.getTipoEvento().name());
 
             Map<String, Object> notification = new HashMap<>();
             notification.put("tipo", tipo);
@@ -180,7 +180,7 @@ public class WebSocketNotificationService {
     }
 
     private String getTitulo(OrdemServicoEvent event) {
-        return switch (event.getEvento().name()) {
+        return switch (event.getTipoEvento().name()) {
             case "OS_CRIADA" -> "Nova Ordem de Serviço";
             case "OS_APROVADA" -> "Orçamento Aprovado";
             case "OS_REJEITADA" -> "Orçamento Rejeitado";
@@ -195,7 +195,7 @@ public class WebSocketNotificationService {
         String nomeCliente = event.getNomeCliente() != null ? event.getNomeCliente() : "Cliente";
         Long numero = event.getNumeroOS();
 
-        return switch (event.getEvento().name()) {
+        return switch (event.getTipoEvento().name()) {
             case "OS_CRIADA" -> String.format("OS #%d criada para %s", numero, nomeCliente);
             case "OS_APROVADA" -> String.format("OS #%d foi aprovada pelo cliente", numero);
             case "OS_REJEITADA" -> String.format("OS #%d foi rejeitada pelo cliente", numero);
