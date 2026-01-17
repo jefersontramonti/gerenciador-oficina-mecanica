@@ -168,7 +168,15 @@ deploy_all() {
 check_status() {
     echo ""
     echo "Aguardando containers iniciarem..."
-    sleep 15
+    sleep 10
+
+    # Limpar cache Redis APÓS containers subirem para evitar problemas de serialização
+    echo ""
+    echo "=========================================="
+    echo "Limpando cache Redis (pós-deploy)..."
+    echo "=========================================="
+    REDIS_PASS=$(grep REDIS_PASSWORD /opt/pitstop/.env | cut -d'=' -f2)
+    docker exec pitstop-redis redis-cli -a "$REDIS_PASS" FLUSHALL 2>/dev/null && echo "Cache Redis limpo!" || echo "Aviso: Não foi possível limpar cache Redis"
 
     echo ""
     echo "=========================================="
@@ -180,6 +188,8 @@ check_status() {
     echo "=========================================="
     echo "Health Check do Backend:"
     echo "=========================================="
+    # Aguardar backend ficar healthy
+    sleep 5
     curl -s http://127.0.0.1:8080/actuator/health 2>/dev/null | jq '.' || echo "Backend ainda iniciando..."
 
     echo ""
