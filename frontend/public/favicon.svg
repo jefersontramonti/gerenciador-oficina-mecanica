@@ -1,20 +1,15 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" fill="none">
-  <!-- Background circle -->
+  <!-- Background rounded square -->
   <rect width="32" height="32" rx="8" fill="#2563eb"/>
-  <!-- Wrench icon (based on Lucide) -->
-  <path
-    d="M22.5 9.5a5 5 0 0 0-7.08 0l-.92.92-6.5 6.5a2 2 0 0 0 0 2.83l1.25 1.25a2 2 0 0 0 2.83 0l6.5-6.5.92-.92a5 5 0 0 0 0-7.08z"
-    stroke="white"
-    stroke-width="2"
-    stroke-linecap="round"
-    stroke-linejoin="round"
-    fill="none"
-  />
-  <path
-    d="M9.5 22.5l3-3M20 12l4-4"
-    stroke="white"
-    stroke-width="2"
-    stroke-linecap="round"
-    stroke-linejoin="round"
-  />
+  <!-- Wrench icon (Lucide exact) - scaled and centered -->
+  <g transform="translate(4, 4) scale(1)">
+    <path
+      d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.106-3.105c.32-.322.863-.22.983.218a6 6 0 0 1-8.259 7.057l-7.91 7.91a1 1 0 0 1-2.999-3l7.91-7.91a6 6 0 0 1 7.057-8.259c.438.12.54.662.219.984z"
+      stroke="white"
+      stroke-width="2"
+      stroke-linecap="round"
+      stroke-linejoin="round"
+      fill="none"
+    />
+  </g>
 </svg>

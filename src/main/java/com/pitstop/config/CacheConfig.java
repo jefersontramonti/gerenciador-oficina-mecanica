@@ -2,6 +2,8 @@ package com.pitstop.config;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
+import com.fasterxml.jackson.databind.jsontype.BasicPolymorphicTypeValidator;
+import com.fasterxml.jackson.databind.jsontype.PolymorphicTypeValidator;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import org.springframework.cache.CacheManager;
 import org.springframework.cache.annotation.EnableCaching;
@@ -61,17 +63,22 @@ public class CacheConfig {
     @Bean
     public CacheManager cacheManager(RedisConnectionFactory connectionFactory) {
         // Create ObjectMapper with Java 8 Date/Time support (JSR-310)
-        // NOTE: We intentionally DO NOT use activateDefaultTyping() because:
-        // 1. Our cached DTOs are records/simple classes with known types
-        // 2. Polymorphic typing adds @class property which causes deserialization
-        //    failures when cached data format changes
-        // 3. Spring's cache abstraction knows the return type from method signatures
+        // IMPORTANT: activateDefaultTyping() is REQUIRED because GenericJackson2JsonRedisSerializer
+        // deserializes JSON objects as LinkedHashMap when type information is not present.
+        // Spring's cache abstraction does NOT convert the value to the expected type.
         ObjectMapper objectMapper = new ObjectMapper();
         objectMapper.registerModule(new JavaTimeModule());
         objectMapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
         objectMapper.disable(SerializationFeature.FAIL_ON_EMPTY_BEANS);
 
-        // Create serializer with custom ObjectMapper (without polymorphic typing)
+        // Enable polymorphic type handling for proper deserialization
+        // This adds @class property to cached JSON, allowing correct type reconstruction
+        PolymorphicTypeValidator ptv = BasicPolymorphicTypeValidator.builder()
+            .allowIfBaseType(Object.class)
+            .build();
+        objectMapper.activateDefaultTyping(ptv, ObjectMapper.DefaultTyping.NON_FINAL);
+
+        // Create serializer with custom ObjectMapper (with polymorphic typing enabled)
         GenericJackson2JsonRedisSerializer serializer =
             new GenericJackson2JsonRedisSerializer(objectMapper);
 
