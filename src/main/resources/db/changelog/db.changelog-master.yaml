@@ -185,3 +185,9 @@ databaseChangeLog:
   - include:
       file: db/changelog/migrations/V063__add_basic_notification_flags.sql
       relativeToChangelogFile: false
+  - include:
+      file: db/changelog/migrations/V064__create_manutencao_preventiva_tables.sql
+      relativeToChangelogFile: false
+  - include:
+      file: db/changelog/migrations/V065__add_agendamentos_notificacao_to_planos.sql
+      relativeToChangelogFile: false

@@ -118,6 +118,28 @@ public enum TemplateNotificacao {
      */
     REMINDER_MAINTENANCE("reminder-maintenance", "Hora de fazer a revisão do seu veículo"),
 
+    // ===== TEMPLATES DE MANUTENÇÃO PREVENTIVA =====
+
+    /**
+     * Manutenção preventiva próxima de vencer.
+     */
+    MANUTENCAO_PROXIMA("manutencao-proxima", "Sua manutenção está próxima - {{tipoManutencao}}"),
+
+    /**
+     * Manutenção preventiva vencida.
+     */
+    MANUTENCAO_VENCIDA("manutencao-vencida", "Atenção: Manutenção vencida - {{tipoManutencao}}"),
+
+    /**
+     * Lembrete de agendamento de manutenção.
+     */
+    LEMBRETE_AGENDAMENTO("lembrete-agendamento", "Lembrete: Sua manutenção é hoje!"),
+
+    /**
+     * Confirmação de agendamento de manutenção.
+     */
+    CONFIRMACAO_AGENDAMENTO("confirmacao-agendamento", "Agendamento confirmado - {{tipoManutencao}}"),
+
     // ===== TEMPLATE DE TESTE =====
 
     /**

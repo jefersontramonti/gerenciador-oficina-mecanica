@@ -1,0 +1,11 @@
+export { default as ManutencaoPreventivaDashboardPage } from './ManutencaoPreventivaDashboardPage';
+export { default as PlanosListPage } from './PlanosListPage';
+export { default as PlanoDetailPage } from './PlanoDetailPage';
+export { default as PlanoFormPage } from './PlanoFormPage';
+export { default as TemplatesListPage } from './TemplatesListPage';
+export { default as TemplateFormPage } from './TemplateFormPage';
+export { default as AgendamentosListPage } from './AgendamentosListPage';
+export { default as AgendamentoFormPage } from './AgendamentoFormPage';
+export { default as AgendamentoDetailPage } from './AgendamentoDetailPage';
+export { default as CalendarioPage } from './CalendarioPage';
+export { default as VencidosListPage } from './VencidosListPage';

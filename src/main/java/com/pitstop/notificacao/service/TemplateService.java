@@ -134,6 +134,10 @@ public class TemplateService {
             case PAYMENT_PENDING -> criarCorpoPagamentoPendente(tipoNotificacao);
             case REMINDER_PICKUP -> criarCorpoLembreteRetirada(tipoNotificacao);
             case REMINDER_MAINTENANCE -> criarCorpoLembreteRevisao(tipoNotificacao);
+            case MANUTENCAO_PROXIMA -> criarCorpoManutencaoProxima(tipoNotificacao);
+            case MANUTENCAO_VENCIDA -> criarCorpoManutencaoVencida(tipoNotificacao);
+            case LEMBRETE_AGENDAMENTO -> criarCorpoLembreteAgendamento(tipoNotificacao);
+            case CONFIRMACAO_AGENDAMENTO -> criarCorpoConfirmacaoAgendamento(tipoNotificacao);
             case TEST -> criarCorpoTeste(tipoNotificacao);
         };
 
@@ -552,6 +556,117 @@ public class TemplateService {
             📅 Proxima revisao: {proximaRevisao}
 
             Agende sua visita!
+
+            {nomeOficina}
+            """;
+    }
+
+    private String criarCorpoManutencaoProxima(TipoNotificacao tipo) {
+        if (tipo == TipoNotificacao.EMAIL) {
+            return """
+                <h1>Manutencao Preventiva Proxima - {tipoManutencao}</h1>
+                <p>Ola {nomeCliente},</p>
+                <p>A manutencao do seu veiculo <strong>{veiculoModelo}</strong> ({veiculoPlaca}) esta proxima!</p>
+                <p><strong>Tipo:</strong> {tipoManutencao}</p>
+                <p><strong>Previsao:</strong> {dataPrevisao}</p>
+                <p>Agende sua visita para evitar problemas.</p>
+                <p>Atenciosamente,<br/>{nomeOficina}</p>
+                """;
+        }
+        return """
+            🔧 *Manutencao Preventiva Proxima*
+
+            Ola {nomeCliente}!
+
+            Seu {veiculoModelo} ({veiculoPlaca}) esta proximo da {tipoManutencao}!
+
+            📅 Previsao: {dataPrevisao}
+
+            Agende agora sua manutencao!
+
+            {nomeOficina}
+            """;
+    }
+
+    private String criarCorpoManutencaoVencida(TipoNotificacao tipo) {
+        if (tipo == TipoNotificacao.EMAIL) {
+            return """
+                <h1>⚠️ Atencao: Manutencao Vencida - {tipoManutencao}</h1>
+                <p>Ola {nomeCliente},</p>
+                <p>A {tipoManutencao} do seu veiculo <strong>{veiculoModelo}</strong> ({veiculoPlaca}) esta VENCIDA!</p>
+                <p>E importante realizar a manutencao o quanto antes para evitar problemas maiores.</p>
+                <p>Agende sua visita hoje mesmo!</p>
+                <p>Atenciosamente,<br/>{nomeOficina}</p>
+                """;
+        }
+        return """
+            ⚠️ *ATENCAO: Manutencao Vencida!*
+
+            Ola {nomeCliente}!
+
+            A {tipoManutencao} do seu {veiculoModelo} esta VENCIDA!
+
+            🚗 {veiculoPlaca}
+
+            ⚡ Agende sua manutencao o quanto antes!
+
+            {nomeOficina}
+            """;
+    }
+
+    private String criarCorpoLembreteAgendamento(TipoNotificacao tipo) {
+        if (tipo == TipoNotificacao.EMAIL) {
+            return """
+                <h1>🔔 Lembrete: Sua Manutencao e Hoje!</h1>
+                <p>Ola {nomeCliente},</p>
+                <p>Este e um lembrete que sua {tipoManutencao} esta agendada para <strong>hoje as {horaAgendamento}</strong>!</p>
+                <p><strong>Veiculo:</strong> {veiculoPlaca}</p>
+                <p>Estamos esperando voce!</p>
+                <p>Atenciosamente,<br/>{nomeOficina}</p>
+                """;
+        }
+        return """
+            🔔 *Lembrete: Sua Manutencao e Hoje!*
+
+            Ola {nomeCliente}!
+
+            Sua {tipoManutencao} e HOJE as {horaAgendamento}!
+
+            🚗 {veiculoPlaca}
+
+            Nos vemos em breve! 😊
+
+            {nomeOficina}
+            """;
+    }
+
+    private String criarCorpoConfirmacaoAgendamento(TipoNotificacao tipo) {
+        if (tipo == TipoNotificacao.EMAIL) {
+            return """
+                <h1>✅ Agendamento Confirmado - {tipoManutencao}</h1>
+                <p>Ola {nomeCliente},</p>
+                <p>Seu agendamento foi confirmado com sucesso!</p>
+                <p><strong>Servico:</strong> {tipoManutencao}</p>
+                <p><strong>Data:</strong> {dataAgendamento}</p>
+                <p><strong>Horario:</strong> {horaAgendamento}</p>
+                <p><strong>Veiculo:</strong> {veiculoPlaca}</p>
+                <p>Estaremos esperando voce!</p>
+                <p>Atenciosamente,<br/>{nomeOficina}</p>
+                """;
+        }
+        return """
+            ✅ *Agendamento Confirmado!*
+
+            Ola {nomeCliente}!
+
+            Seu agendamento foi confirmado:
+
+            🔧 {tipoManutencao}
+            📅 {dataAgendamento}
+            ⏰ {horaAgendamento}
+            🚗 {veiculoPlaca}
+
+            Estaremos esperando voce!
 
             {nomeOficina}
             """;

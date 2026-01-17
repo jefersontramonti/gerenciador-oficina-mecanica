@@ -13,19 +13,19 @@ import { QueryClient } from '@tanstack/react-query';
 export const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
-      // Stale time: How long data is considered fresh (5 minutes)
-      staleTime: 5 * 60 * 1000,
+      // Stale time: How long data is considered fresh (2 minutes - reduced for fresher data)
+      staleTime: 2 * 60 * 1000,
       // Cache time: How long inactive data stays in cache (15 minutes)
       gcTime: 15 * 60 * 1000,
       // Retry failed requests with delay
       retry: 1,
       retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 10000),
-      // Disable refetch on window focus to reduce API calls
-      refetchOnWindowFocus: false,
+      // Enable refetch on window focus - updates data when user returns to tab
+      refetchOnWindowFocus: true,
       // Refetch on reconnect
       refetchOnReconnect: true,
-      // Don't refetch on mount if data is fresh
-      refetchOnMount: false,
+      // Refetch on mount if data is stale
+      refetchOnMount: 'always',
     },
     mutations: {
       // Mutations should not retry automatically

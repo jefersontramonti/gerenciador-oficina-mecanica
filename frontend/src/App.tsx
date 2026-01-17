@@ -71,6 +71,20 @@ const HistoricoNotificacoesPage = lazy(() => import('./features/notificacoes/pag
 // Comunicados (para oficinas)
 const ComunicadosOficinaPage = lazy(() => import('./features/comunicados').then(m => ({ default: m.ComunicadosPage })));
 
+// Manutenção Preventiva
+const ManutencaoPreventivaLayout = lazy(() => import('./features/manutencao-preventiva/layouts').then(m => ({ default: m.ManutencaoPreventivaLayout })));
+const ManutencaoPreventivaDashboardPage = lazy(() => import('./features/manutencao-preventiva/pages').then(m => ({ default: m.ManutencaoPreventivaDashboardPage })));
+const ManutencaoPlanosListPage = lazy(() => import('./features/manutencao-preventiva/pages').then(m => ({ default: m.PlanosListPage })));
+const ManutencaoPlanoDetailPage = lazy(() => import('./features/manutencao-preventiva/pages').then(m => ({ default: m.PlanoDetailPage })));
+const ManutencaoPlanoFormPage = lazy(() => import('./features/manutencao-preventiva/pages').then(m => ({ default: m.PlanoFormPage })));
+const ManutencaoTemplatesListPage = lazy(() => import('./features/manutencao-preventiva/pages').then(m => ({ default: m.TemplatesListPage })));
+const ManutencaoTemplateFormPage = lazy(() => import('./features/manutencao-preventiva/pages').then(m => ({ default: m.TemplateFormPage })));
+const ManutencaoAgendamentosListPage = lazy(() => import('./features/manutencao-preventiva/pages').then(m => ({ default: m.AgendamentosListPage })));
+const ManutencaoAgendamentoFormPage = lazy(() => import('./features/manutencao-preventiva/pages').then(m => ({ default: m.AgendamentoFormPage })));
+const ManutencaoAgendamentoDetailPage = lazy(() => import('./features/manutencao-preventiva/pages').then(m => ({ default: m.AgendamentoDetailPage })));
+const ManutencaoCalendarioPage = lazy(() => import('./features/manutencao-preventiva/pages').then(m => ({ default: m.CalendarioPage })));
+const ManutencaoVencidosListPage = lazy(() => import('./features/manutencao-preventiva/pages').then(m => ({ default: m.VencidosListPage })));
+
 // Paginas Publicas (aprovacao de orcamento)
 const AprovarOrcamentoPage = lazy(() => import('./features/ordens-servico/pages/AprovarOrcamentoPage').then(m => ({ default: m.AprovarOrcamentoPage })));
 
@@ -542,6 +556,155 @@ function App() {
               </ProtectedRoute>
             }
           />
+
+          {/* Manutenção Preventiva - ADMIN, GERENTE e ATENDENTE */}
+          {/* Protegido por FeatureGate: MANUTENCAO_PREVENTIVA */}
+          <Route path="manutencao-preventiva" element={<ManutencaoPreventivaLayout />}>
+            <Route
+              index
+              element={
+                <ProtectedRoute
+                  requiredRoles={[PerfilUsuario.ADMIN, PerfilUsuario.GERENTE, PerfilUsuario.ATENDENTE]}
+                >
+                  <ManutencaoPreventivaDashboardPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="planos"
+              element={
+                <ProtectedRoute
+                  requiredRoles={[PerfilUsuario.ADMIN, PerfilUsuario.GERENTE, PerfilUsuario.ATENDENTE]}
+                >
+                  <ManutencaoPlanosListPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="novo"
+              element={
+                <ProtectedRoute
+                  requiredRoles={[PerfilUsuario.ADMIN, PerfilUsuario.GERENTE, PerfilUsuario.ATENDENTE]}
+                >
+                  <ManutencaoPlanoFormPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="vencidos"
+              element={
+                <ProtectedRoute
+                  requiredRoles={[PerfilUsuario.ADMIN, PerfilUsuario.GERENTE, PerfilUsuario.ATENDENTE]}
+                >
+                  <ManutencaoVencidosListPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path=":id"
+              element={
+                <ProtectedRoute
+                  requiredRoles={[PerfilUsuario.ADMIN, PerfilUsuario.GERENTE, PerfilUsuario.ATENDENTE]}
+                >
+                  <ManutencaoPlanoDetailPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path=":id/editar"
+              element={
+                <ProtectedRoute
+                  requiredRoles={[PerfilUsuario.ADMIN, PerfilUsuario.GERENTE, PerfilUsuario.ATENDENTE]}
+                >
+                  <ManutencaoPlanoFormPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route path="templates">
+              <Route
+                index
+                element={
+                  <ProtectedRoute
+                    requiredRoles={[PerfilUsuario.ADMIN, PerfilUsuario.GERENTE, PerfilUsuario.ATENDENTE]}
+                  >
+                    <ManutencaoTemplatesListPage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="novo"
+                element={
+                  <ProtectedRoute
+                    requiredRoles={[PerfilUsuario.ADMIN, PerfilUsuario.GERENTE, PerfilUsuario.ATENDENTE]}
+                  >
+                    <ManutencaoTemplateFormPage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path=":id/editar"
+                element={
+                  <ProtectedRoute
+                    requiredRoles={[PerfilUsuario.ADMIN, PerfilUsuario.GERENTE, PerfilUsuario.ATENDENTE]}
+                  >
+                    <ManutencaoTemplateFormPage />
+                  </ProtectedRoute>
+                }
+              />
+            </Route>
+            <Route path="agendamentos">
+              <Route
+                index
+                element={
+                  <ProtectedRoute
+                    requiredRoles={[PerfilUsuario.ADMIN, PerfilUsuario.GERENTE, PerfilUsuario.ATENDENTE]}
+                  >
+                    <ManutencaoAgendamentosListPage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="novo"
+                element={
+                  <ProtectedRoute
+                    requiredRoles={[PerfilUsuario.ADMIN, PerfilUsuario.GERENTE, PerfilUsuario.ATENDENTE]}
+                  >
+                    <ManutencaoAgendamentoFormPage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path=":id"
+                element={
+                  <ProtectedRoute
+                    requiredRoles={[PerfilUsuario.ADMIN, PerfilUsuario.GERENTE, PerfilUsuario.ATENDENTE]}
+                  >
+                    <ManutencaoAgendamentoDetailPage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path=":id/editar"
+                element={
+                  <ProtectedRoute
+                    requiredRoles={[PerfilUsuario.ADMIN, PerfilUsuario.GERENTE, PerfilUsuario.ATENDENTE]}
+                  >
+                    <ManutencaoAgendamentoFormPage />
+                  </ProtectedRoute>
+                }
+              />
+            </Route>
+            <Route
+              path="calendario"
+              element={
+                <ProtectedRoute
+                  requiredRoles={[PerfilUsuario.ADMIN, PerfilUsuario.GERENTE, PerfilUsuario.ATENDENTE]}
+                >
+                  <ManutencaoCalendarioPage />
+                </ProtectedRoute>
+              }
+            />
+          </Route>
 
           {/* Admin SaaS - SUPER_ADMIN apenas */}
           <Route path="admin">

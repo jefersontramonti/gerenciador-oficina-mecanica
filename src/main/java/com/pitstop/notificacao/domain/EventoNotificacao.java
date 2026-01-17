@@ -178,6 +178,62 @@ public enum EventoNotificacao {
         TemplateNotificacao.REMINDER_MAINTENANCE
     ),
 
+    // ===== MANUTENÇÃO PREVENTIVA =====
+    MANUTENCAO_PROXIMA(
+        "Manutenção Próxima",
+        "Notifica cliente sobre manutenção preventiva próxima de vencer",
+        Map.of(
+            "nomeCliente", "Nome do cliente",
+            "veiculoPlaca", "Placa do veículo",
+            "veiculoModelo", "Modelo do veículo",
+            "tipoManutencao", "Tipo de manutenção",
+            "dataPrevisao", "Data prevista",
+            "kmPrevisao", "Quilometragem prevista",
+            "nomeOficina", "Nome da oficina"
+        ),
+        TemplateNotificacao.MANUTENCAO_PROXIMA
+    ),
+
+    MANUTENCAO_VENCIDA(
+        "Manutenção Vencida",
+        "Notifica cliente sobre manutenção preventiva vencida",
+        Map.of(
+            "nomeCliente", "Nome do cliente",
+            "veiculoPlaca", "Placa do veículo",
+            "veiculoModelo", "Modelo do veículo",
+            "tipoManutencao", "Tipo de manutenção",
+            "nomeOficina", "Nome da oficina"
+        ),
+        TemplateNotificacao.MANUTENCAO_VENCIDA
+    ),
+
+    LEMBRETE_AGENDAMENTO(
+        "Lembrete de Agendamento",
+        "Lembra cliente sobre agendamento de manutenção do dia",
+        Map.of(
+            "nomeCliente", "Nome do cliente",
+            "veiculoPlaca", "Placa do veículo",
+            "tipoManutencao", "Tipo de manutenção",
+            "horaAgendamento", "Hora do agendamento",
+            "nomeOficina", "Nome da oficina"
+        ),
+        TemplateNotificacao.LEMBRETE_AGENDAMENTO
+    ),
+
+    CONFIRMACAO_AGENDAMENTO(
+        "Confirmação de Agendamento",
+        "Confirma agendamento de manutenção preventiva",
+        Map.of(
+            "nomeCliente", "Nome do cliente",
+            "veiculoPlaca", "Placa do veículo",
+            "tipoManutencao", "Tipo de manutenção",
+            "dataAgendamento", "Data do agendamento",
+            "horaAgendamento", "Hora do agendamento",
+            "nomeOficina", "Nome da oficina"
+        ),
+        TemplateNotificacao.CONFIRMACAO_AGENDAMENTO
+    ),
+
     // ===== TESTE =====
     TESTE(
         "Teste de Notificação",

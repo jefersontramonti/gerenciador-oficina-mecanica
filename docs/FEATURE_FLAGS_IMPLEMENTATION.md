@@ -57,8 +57,8 @@ O PitStop possui 60+ feature flags definidas no banco de dados, controladas por:
 
 | Status | Símbolo | Quantidade |
 |--------|---------|------------|
-| Implementado | ✅ | 10 |
-| Parcial | ⚠️ | 11 |
+| Implementado | ✅ | 11 |
+| Parcial | ⚠️ | 10 |
 | Não Implementado | ❌ | 39 |
 | **Total** | | **60** |
 
@@ -359,14 +359,21 @@ Opções:
 - [ ] Fotos por item
 - [ ] PDF do checklist
 
-### 5.2 MANUTENCAO_PREVENTIVA (Completar)
+### 5.2 MANUTENCAO_PREVENTIVA ✅ CONCLUÍDO
 
-- [ ] Verificar `docs/manutencaopreventiva.md`
-- [ ] Criar `PlanoManutencao` entity
-- [ ] Alertas por KM
-- [ ] Alertas por tempo
-- [ ] Notificação ao cliente
-- [ ] Dashboard de veículos próximos
+- [x] Documentação completa em `docs/manutencaopreventiva.md`
+- [x] `PlanoManutencaoPreventiva` entity com critérios TEMPO/KM/AMBOS
+- [x] `TemplateManutencao` entity para templates reutilizáveis
+- [x] `AlertaManutencao` entity para fila de alertas
+- [x] `AgendamentoManutencao` entity para agendamentos
+- [x] `HistoricoManutencaoPreventiva` entity para histórico
+- [x] Alertas automáticos por KM e tempo via scheduler
+- [x] Notificação multicanal (WhatsApp, Email, Telegram)
+- [x] Dashboard com estatísticas e próximas manutenções
+- [x] Calendário visual de agendamentos
+- [x] Agendamento de notificações personalizadas (data/hora específicos)
+- [x] Criação automática de OS quando manutenção vence
+- [x] Frontend completo (11 páginas, hooks, types, services)
 
 ### 5.3 CONTROLE_GARANTIA
 
@@ -412,7 +419,7 @@ Opções:
 | Flag | Status | Data | Observações |
 |------|--------|------|-------------|
 | CHECKLIST_VISTORIA | ❌ | | |
-| MANUTENCAO_PREVENTIVA | ⚠️ | | Doc existe |
+| MANUTENCAO_PREVENTIVA | ✅ | 2026-01-17 | Módulo completo! 41 arquivos backend, 11 páginas frontend |
 | CONTROLE_GARANTIA | ❌ | | |
 | GESTAO_FORNECEDORES | ❌ | | |
 | ORDEM_COMPRA | ❌ | | |
@@ -761,6 +768,48 @@ Opções:
 
 ## Changelog
 
+### 2026-01-17
+
+**Etapa 5 - MANUTENCAO_PREVENTIVA: CONCLUÍDA ✅**
+
+Módulo completo de Manutenção Preventiva implementado:
+
+Backend (41 arquivos):
+- [x] 12 Entities/Enums: PlanoManutencaoPreventiva, TemplateManutencao, AlertaManutencao, AgendamentoManutencao, HistoricoManutencaoPreventiva, AgendamentoNotificacao, CriterioManutencao, StatusPlanoManutencao, StatusAlerta, StatusAgendamento, TipoAlerta, CanalNotificacao
+- [x] 7 Repositories com queries customizadas
+- [x] 11 DTOs para requests/responses
+- [x] 5 Services: PlanoManutencaoService, TemplateManutencaoService, AgendamentoManutencaoService, AlertaManutencaoService, DashboardManutencaoService
+- [x] 4 Controllers: PlanoManutencaoController, TemplateManutencaoController, AgendamentoManutencaoController, DashboardManutencaoController
+- [x] 1 Scheduler: ManutencaoPreventivaScheduler (5 jobs cron)
+- [x] 1 Mapper: ManutencaoMapper
+
+Frontend (11 páginas):
+- [x] ManutencaoPreventivaDashboardPage - Dashboard com estatísticas
+- [x] PlanosListPage - Lista de planos com filtros
+- [x] PlanoDetailPage - Detalhes do plano com timeline de histórico
+- [x] PlanoFormPage - Criar/editar plano com agendamento de notificações
+- [x] TemplatesListPage - Lista de templates
+- [x] TemplateFormPage - Criar/editar template
+- [x] AgendamentosListPage - Lista de agendamentos
+- [x] AgendamentoDetailPage - Detalhes do agendamento
+- [x] AgendamentoFormPage - Criar/editar agendamento
+- [x] CalendarioPage - Calendário visual de agendamentos
+- [x] VencidosListPage - Lista de planos vencidos
+
+Funcionalidades implementadas:
+- [x] Planos com critérios TEMPO, KM ou AMBOS
+- [x] Templates reutilizáveis
+- [x] Alertas automáticos via scheduler (8h e 8h30)
+- [x] Notificação multicanal: WhatsApp, Email, Telegram
+- [x] Agendamento personalizado de notificações (data/hora específicos)
+- [x] Criação automática de OS quando manutenção vence/próxima
+- [x] Calendário visual de agendamentos
+- [x] Dashboard com estatísticas e próximas manutenções
+- [x] Integração com módulo de Ordens de Serviço
+- [x] Atualização em tempo real via WebSocket
+
+---
+
 ### 2026-01-15
 
 **Etapa 2 - Comunicação Básica: PARCIAL ✅**
@@ -844,14 +893,14 @@ Arquivos criados/modificados:
 | 2. Comunicação | 10 | 4 | 40% |
 | 3. Financeiro | 8 | 0 | 0% |
 | 4. Nota Fiscal | 6 | 0 | 0% |
-| 5. Operacional | 7 | 0 | 0% |
+| 5. Operacional | 7 | 1 | 14% |
 | 6. Relatórios | 6 | 0 | 0% |
 | 7. Integrações | 7 | 2 | 29% |
 | 8. Segurança | 4 | 2 | 50% |
 | 9. Customização | 4 | 0 | 0% |
 | 10. Marketing | 5 | 0 | 0% |
 | 11. Mobile | 5 | 0 | 0% |
-| **TOTAL** | **72** | **17** | **24%** |
+| **TOTAL** | **72** | **18** | **25%** |
 
 ---
 
@@ -859,9 +908,10 @@ Arquivos criados/modificados:
 
 1. ~~**Etapa 1** - Infraestrutura de Gating~~ ✅ CONCLUÍDA
 2. ~~**Etapa 2 (Parcial)** - Comunicação Básica~~ ✅ Gating WhatsApp/Telegram/Email/SMTP
-3. **Etapa 2 (Restante)** - Completar campanhas (EMAIL_MARKETING, WHATSAPP_CAMPANHAS)
-4. **Priorizar Etapa 3** - Mercado Pago (receita)
-5. **Priorizar Etapa 4** - NF-e (compliance)
+3. ~~**Etapa 5 (Parcial)** - MANUTENCAO_PREVENTIVA~~ ✅ CONCLUÍDA (módulo completo!)
+4. **Etapa 2 (Restante)** - Completar campanhas (EMAIL_MARKETING, WHATSAPP_CAMPANHAS)
+5. **Priorizar Etapa 3** - Mercado Pago (receita)
+6. **Priorizar Etapa 4** - NF-e (compliance)
 
 ---
 

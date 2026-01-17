@@ -28,9 +28,11 @@ import {
   Headphones,
   Megaphone,
   Flag,
+  CalendarClock,
 } from 'lucide-react';
 import { cn } from '@/shared/utils/cn';
 import { useWebSocket } from '@/shared/hooks/useWebSocket';
+import { useRealtimeUpdates } from '@/shared/hooks/useRealtimeUpdates';
 import { WebSocketNotificationHandler } from '@/shared/components/WebSocketNotificationHandler';
 import { useContadorEstoqueBaixo } from '@/features/estoque/hooks/usePecas';
 import { useComunicadosNaoLidos } from '@/features/comunicados/hooks/useComunicados';
@@ -140,6 +142,12 @@ const navigationItems: NavigationItem[] = [
     // Todos têm acesso (visualizar)
   },
   {
+    name: 'Manutenção Preventiva',
+    href: '/manutencao-preventiva',
+    icon: CalendarClock,
+    requiredRoles: [PerfilUsuario.ADMIN, PerfilUsuario.GERENTE, PerfilUsuario.ATENDENTE],
+  },
+  {
     name: 'Usuários',
     href: '/usuarios',
     icon: UserCog,
@@ -228,6 +236,9 @@ export const MainLayout = () => {
 
   // WebSocket connection - automatically connects when authenticated
   const { isConnected } = useWebSocket();
+
+  // Real-time cache invalidation - listens to WebSocket events and updates React Query cache
+  useRealtimeUpdates();
 
   // Badge de alerta de estoque baixo
   const { data: contadorEstoqueBaixo } = useContadorEstoqueBaixo();

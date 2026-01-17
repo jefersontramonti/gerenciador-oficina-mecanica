@@ -280,8 +280,9 @@ public class NotificacaoOrchestrator {
             }
         }
 
-        // Envia por Telegram se habilitado
-        if (config.isEventoHabilitado(evento, TipoNotificacao.TELEGRAM)) {
+        // Envia por Telegram SEMPRE (se configurado globalmente)
+        // Telegram é sempre enviado junto com Email e WhatsApp
+        if (config.getTelegramHabilitado() && config.temTelegramConfigurado()) {
             try {
                 // Se tem PDF em bytes, envia documento diretamente
                 if (pdfBytes != null && evento == EventoNotificacao.OS_ENTREGUE) {
