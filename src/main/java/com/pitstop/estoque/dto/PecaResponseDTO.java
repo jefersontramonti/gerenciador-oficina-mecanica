@@ -20,6 +20,7 @@ public record PecaResponseDTO(
         String descricao,
         String marca,
         String aplicacao,
+        UUID localArmazenamentoId,
         LocalArmazenamentoSimplificadoDTO localArmazenamento,
         UnidadeMedida unidadeMedida,
         Integer quantidadeAtual,

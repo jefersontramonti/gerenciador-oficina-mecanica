@@ -1,5 +1,6 @@
 package com.pitstop.estoque.dto;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import com.pitstop.estoque.domain.TipoMovimentacao;
 
 import java.math.BigDecimal;
@@ -26,7 +27,9 @@ public record MovimentacaoEstoqueResponseDTO(
         BigDecimal valorTotal,
         String motivo,
         String observacao,
+        @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss")
         LocalDateTime dataMovimentacao,
+        @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss")
         LocalDateTime createdAt
 ) {
     /**

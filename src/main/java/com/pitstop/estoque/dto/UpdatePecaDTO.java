@@ -4,6 +4,7 @@ import com.pitstop.estoque.domain.UnidadeMedida;
 import jakarta.validation.constraints.*;
 
 import java.math.BigDecimal;
+import java.util.UUID;
 
 /**
  * DTO para atualização de peça existente.
@@ -30,6 +31,8 @@ public record UpdatePecaDTO(
 
         @Size(max = 100, message = "Localização deve ter no máximo 100 caracteres")
         String localizacao,
+
+        UUID localArmazenamentoId,
 
         @NotNull(message = "Unidade de medida é obrigatória")
         UnidadeMedida unidadeMedida,

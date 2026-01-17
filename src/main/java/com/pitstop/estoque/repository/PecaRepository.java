@@ -81,7 +81,8 @@ public interface PecaRepository extends JpaRepository<Peca, UUID> {
      * @param pageable paginação
      * @return página de peças com estoque baixo
      */
-    @Query("SELECT p FROM Peca p WHERE p.oficina.id = :oficinaId AND p.ativo = true AND p.quantidadeAtual <= p.quantidadeMinima ORDER BY p.quantidadeAtual ASC")
+    @Query(value = "SELECT p FROM Peca p LEFT JOIN FETCH p.localArmazenamento WHERE p.oficina.id = :oficinaId AND p.ativo = true AND p.quantidadeAtual <= p.quantidadeMinima ORDER BY p.quantidadeAtual ASC",
+            countQuery = "SELECT COUNT(p) FROM Peca p WHERE p.oficina.id = :oficinaId AND p.ativo = true AND p.quantidadeAtual <= p.quantidadeMinima")
     Page<Peca> findEstoqueBaixoByOficinaId(@Param("oficinaId") UUID oficinaId, Pageable pageable);
 
     /**
@@ -91,7 +92,8 @@ public interface PecaRepository extends JpaRepository<Peca, UUID> {
      * @param pageable paginação
      * @return página de peças sem estoque
      */
-    @Query("SELECT p FROM Peca p WHERE p.oficina.id = :oficinaId AND p.ativo = true AND p.quantidadeAtual = 0 ORDER BY p.descricao")
+    @Query(value = "SELECT p FROM Peca p LEFT JOIN FETCH p.localArmazenamento WHERE p.oficina.id = :oficinaId AND p.ativo = true AND p.quantidadeAtual = 0 ORDER BY p.descricao",
+            countQuery = "SELECT COUNT(p) FROM Peca p WHERE p.oficina.id = :oficinaId AND p.ativo = true AND p.quantidadeAtual = 0")
     Page<Peca> findEstoqueZeradoByOficinaId(@Param("oficinaId") UUID oficinaId, Pageable pageable);
 
     /**
@@ -188,8 +190,9 @@ public interface PecaRepository extends JpaRepository<Peca, UUID> {
      * @param pageable paginação
      * @return página de peças filtradas
      */
-    @Query("""
+    @Query(value = """
             SELECT p FROM Peca p
+            LEFT JOIN FETCH p.localArmazenamento
             WHERE p.oficina.id = :oficinaId
             AND (:ativo IS NULL OR p.ativo = :ativo)
             AND (COALESCE(:codigo, '') = '' OR p.codigo LIKE CONCAT('%', :codigo, '%'))
@@ -198,7 +201,17 @@ public interface PecaRepository extends JpaRepository<Peca, UUID> {
             AND (:unidadeMedida IS NULL OR p.unidadeMedida = :unidadeMedida)
             AND (:estoqueBaixo IS NULL OR (:estoqueBaixo = true AND p.quantidadeAtual <= p.quantidadeMinima) OR (:estoqueBaixo = false))
             AND (:localArmazenamentoId IS NULL OR p.localArmazenamento.id = :localArmazenamentoId)
-            ORDER BY p.descricao
+            """,
+            countQuery = """
+            SELECT COUNT(p) FROM Peca p
+            WHERE p.oficina.id = :oficinaId
+            AND (:ativo IS NULL OR p.ativo = :ativo)
+            AND (COALESCE(:codigo, '') = '' OR p.codigo LIKE CONCAT('%', :codigo, '%'))
+            AND (COALESCE(:descricao, '') = '' OR LOWER(p.descricao) LIKE LOWER(CONCAT('%', :descricao, '%')))
+            AND (COALESCE(:marca, '') = '' OR LOWER(p.marca) LIKE LOWER(CONCAT('%', :marca, '%')))
+            AND (:unidadeMedida IS NULL OR p.unidadeMedida = :unidadeMedida)
+            AND (:estoqueBaixo IS NULL OR (:estoqueBaixo = true AND p.quantidadeAtual <= p.quantidadeMinima) OR (:estoqueBaixo = false))
+            AND (:localArmazenamentoId IS NULL OR p.localArmazenamento.id = :localArmazenamentoId)
             """)
     Page<Peca> findByFilters(
             @Param("oficinaId") UUID oficinaId,
@@ -220,7 +233,8 @@ public interface PecaRepository extends JpaRepository<Peca, UUID> {
      * @param pageable paginação
      * @return página de peças sem localização
      */
-    @Query("SELECT p FROM Peca p WHERE p.oficina.id = :oficinaId AND p.ativo = true AND p.localArmazenamento IS NULL ORDER BY p.descricao")
+    @Query(value = "SELECT p FROM Peca p LEFT JOIN FETCH p.localArmazenamento WHERE p.oficina.id = :oficinaId AND p.ativo = true AND p.localArmazenamento IS NULL ORDER BY p.descricao",
+            countQuery = "SELECT COUNT(p) FROM Peca p WHERE p.oficina.id = :oficinaId AND p.ativo = true AND p.localArmazenamento IS NULL")
     Page<Peca> findPecasSemLocalizacaoByOficinaId(@Param("oficinaId") UUID oficinaId, Pageable pageable);
 
     /**
@@ -234,12 +248,13 @@ public interface PecaRepository extends JpaRepository<Peca, UUID> {
 
     /**
      * Busca peça por ID em uma oficina.
+     * Usa LEFT JOIN FETCH para carregar o local de armazenamento (evita LazyInitializationException).
      *
      * @param oficinaId ID da oficina (tenant)
      * @param id ID da peça
      * @return Optional contendo a peça se encontrada
      */
-    @Query("SELECT p FROM Peca p WHERE p.oficina.id = :oficinaId AND p.id = :id AND p.ativo = true")
+    @Query("SELECT p FROM Peca p LEFT JOIN FETCH p.localArmazenamento WHERE p.oficina.id = :oficinaId AND p.id = :id AND p.ativo = true")
     Optional<Peca> findByOficinaIdAndId(@Param("oficinaId") UUID oficinaId, @Param("id") UUID id);
 
     /**

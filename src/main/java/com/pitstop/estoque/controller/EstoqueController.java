@@ -55,6 +55,12 @@ public class EstoqueController {
 
         Peca peca = pecaMapper.toEntity(dto);
         Peca pecaCriada = estoqueService.criar(peca);
+
+        // Define localização se informada
+        if (dto.localArmazenamentoId() != null) {
+            pecaCriada = estoqueService.definirLocalizacaoPeca(pecaCriada.getId(), dto.localArmazenamentoId());
+        }
+
         PecaResponseDTO response = pecaMapper.toResponseDTO(pecaCriada);
 
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
@@ -129,6 +135,10 @@ public class EstoqueController {
 
         Peca pecaAtualizada = pecaMapper.toEntity(dto);
         Peca peca = estoqueService.atualizar(id, pecaAtualizada);
+
+        // Atualiza localização (pode ser null para remover)
+        peca = estoqueService.definirLocalizacaoPeca(id, dto.localArmazenamentoId());
+
         PecaResponseDTO response = pecaMapper.toResponseDTO(peca);
 
         return ResponseEntity.ok(response);

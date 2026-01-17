@@ -93,6 +93,7 @@ export interface CreatePecaRequest {
   marca?: string;
   aplicacao?: string;
   localizacao?: string;
+  localArmazenamentoId?: string;
   unidadeMedida: UnidadeMedida;
   quantidadeMinima: number;
   valorCusto: number;
@@ -105,6 +106,7 @@ export interface UpdatePecaRequest {
   marca?: string;
   aplicacao?: string;
   localizacao?: string;
+  localArmazenamentoId?: string;
   unidadeMedida?: UnidadeMedida;
   quantidadeMinima?: number;
   valorCusto?: number;

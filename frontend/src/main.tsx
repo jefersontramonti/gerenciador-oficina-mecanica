@@ -23,6 +23,11 @@ createRoot(document.getElementById('root')!).render(
           </FeatureFlagProvider>
           <Toaster
             position="top-right"
+            containerStyle={{
+              top: 20,
+              right: 20,
+              zIndex: 99999,
+            }}
             toastOptions={{
               duration: 4000,
               className: 'dark:bg-gray-800 dark:text-gray-100 dark:border-gray-700',
@@ -32,6 +37,7 @@ createRoot(document.getElementById('root')!).render(
                 border: '1px solid #374151',
                 padding: '12px 16px',
                 fontSize: '14px',
+                zIndex: 99999,
               },
               success: {
                 iconTheme: {

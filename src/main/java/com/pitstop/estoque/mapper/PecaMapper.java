@@ -60,6 +60,7 @@ public interface PecaMapper {
      * @param peca entidade
      * @return DTO de resposta
      */
+    @Mapping(source = "localArmazenamento.id", target = "localArmazenamentoId")
     @Mapping(source = "localArmazenamento", target = "localArmazenamento", qualifiedByName = "toSimplificadoDTO")
     @Mapping(source = "estoqueBaixo", target = "estoqueBaixo")
     @Mapping(source = "margemLucro", target = "margemLucro")
