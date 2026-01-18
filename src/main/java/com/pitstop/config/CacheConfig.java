@@ -2,6 +2,7 @@ package com.pitstop.config;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
+import com.fasterxml.jackson.databind.jsontype.impl.LaissezFaireSubTypeValidator;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import org.springframework.cache.CacheManager;
 import org.springframework.cache.annotation.EnableCaching;
@@ -61,13 +62,19 @@ public class CacheConfig {
     @Bean
     public CacheManager cacheManager(RedisConnectionFactory connectionFactory) {
         // Create ObjectMapper with Java 8 Date/Time support (JSR-310)
-        // GenericJackson2JsonRedisSerializer default does NOT include JavaTimeModule
         ObjectMapper objectMapper = new ObjectMapper();
         objectMapper.registerModule(new JavaTimeModule());
         objectMapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
         objectMapper.disable(SerializationFeature.FAIL_ON_EMPTY_BEANS);
 
-        // GenericJackson2JsonRedisSerializer with custom ObjectMapper includes type info by default
+        // CRITICAL: Enable polymorphic type handling with LaissezFaireSubTypeValidator
+        // This stores @class property in JSON, allowing proper deserialization of DTOs
+        // Without this, cached objects return as LinkedHashMap instead of typed DTOs
+        objectMapper.activateDefaultTyping(
+            LaissezFaireSubTypeValidator.instance,
+            ObjectMapper.DefaultTyping.NON_FINAL
+        );
+
         GenericJackson2JsonRedisSerializer serializer = new GenericJackson2JsonRedisSerializer(objectMapper);
 
         // Default cache configuration

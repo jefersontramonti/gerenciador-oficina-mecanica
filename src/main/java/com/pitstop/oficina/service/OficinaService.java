@@ -102,8 +102,7 @@ public class OficinaService {
      * @throws OficinaNotFoundException se não encontrada
      * @throws AccessDeniedException se tentar acessar oficina de outro tenant
      */
-    // NOTE: Cache disabled for oficinas findById due to serialization issues with Java records
-    // The oficina data rarely changes, and the query is simple enough to not need caching
+    @Cacheable(value = "oficinas", key = "#id")
     public OficinaResponse findById(UUID id) {
         // SECURITY: Validate tenant access
         validateTenantAccess(id);
