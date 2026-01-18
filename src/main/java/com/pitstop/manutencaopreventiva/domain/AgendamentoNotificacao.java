@@ -1,5 +1,6 @@
 package com.pitstop.manutencaopreventiva.domain;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.*;
 
 import java.io.Serializable;
@@ -39,6 +40,7 @@ public class AgendamentoNotificacao implements Serializable {
     /**
      * Retorna o LocalDateTime combinando data e hora.
      */
+    @JsonIgnore
     public LocalDateTime getDataHora() {
         if (data == null || hora == null) {
             return null;
@@ -49,6 +51,7 @@ public class AgendamentoNotificacao implements Serializable {
     /**
      * Verifica se está na hora de enviar a notificação.
      */
+    @JsonIgnore
     public boolean isHoraDeEnviar() {
         if (data == null || hora == null || Boolean.TRUE.equals(enviado)) {
             return false;

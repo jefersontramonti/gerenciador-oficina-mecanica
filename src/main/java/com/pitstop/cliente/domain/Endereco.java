@@ -1,5 +1,6 @@
 package com.pitstop.cliente.domain;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.Column;
 import jakarta.persistence.Embeddable;
 import jakarta.validation.constraints.Pattern;
@@ -84,6 +85,7 @@ public class Endereco implements Serializable {
      *
      * @return true se logradouro, número, bairro, cidade, estado e CEP estão preenchidos
      */
+    @JsonIgnore
     public boolean isCompleto() {
         return logradouro != null && !logradouro.isBlank() &&
                numero != null && !numero.isBlank() &&
@@ -99,6 +101,7 @@ public class Endereco implements Serializable {
      *
      * @return endereço formatado ou string vazia se endereço incompleto
      */
+    @JsonIgnore
     public String getEnderecoFormatado() {
         if (!isCompleto()) {
             return "";

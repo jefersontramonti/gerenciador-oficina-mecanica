@@ -1,5 +1,6 @@
 package com.pitstop.manutencaopreventiva.domain;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.pitstop.oficina.domain.Oficina;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.*;
@@ -136,6 +137,7 @@ public class TemplateManutencao implements Serializable {
     /**
      * Verifica se é um template global (sem oficina).
      */
+    @JsonIgnore
     public boolean isGlobal() {
         return oficina == null;
     }
