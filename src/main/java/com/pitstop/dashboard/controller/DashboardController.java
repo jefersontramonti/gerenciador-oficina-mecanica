@@ -1,9 +1,6 @@
 package com.pitstop.dashboard.controller;
 
-import com.pitstop.dashboard.dto.DashboardStatsDTO;
-import com.pitstop.dashboard.dto.FaturamentoMensalDTO;
-import com.pitstop.dashboard.dto.OSStatusCountDTO;
-import com.pitstop.dashboard.dto.RecentOSDTO;
+import com.pitstop.dashboard.dto.*;
 import com.pitstop.dashboard.service.DashboardService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -25,10 +22,10 @@ import java.util.List;
 
 /**
  * Controller REST para endpoints do dashboard principal.
- * Fornece estatísticas agregadas e dados recentes do sistema.
+ * Fornece estatísticas agregadas, alertas dinâmicos e dados para widgets.
  *
  * @author PitStop Team
- * @version 1.0
+ * @version 2.0
  * @since 2025-11-11
  */
 @RestController
@@ -71,6 +68,187 @@ public class DashboardController {
         DashboardStatsDTO stats = dashboardService.getDashboardStats();
 
         return ResponseEntity.ok(stats);
+    }
+
+    /**
+     * Retorna estatísticas com variação percentual vs mês anterior.
+     * GET /api/dashboard/stats-trend
+     *
+     * @return estatísticas com trends
+     */
+    @GetMapping("/stats-trend")
+    @PreAuthorize("hasAnyAuthority('ADMIN', 'GERENTE')")
+    @Operation(
+            summary = "Estatísticas com variação",
+            description = "Retorna estatísticas com variação percentual comparado ao mês anterior"
+    )
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Estatísticas retornadas com sucesso"),
+            @ApiResponse(responseCode = "403", description = "Acesso negado", content = @Content)
+    })
+    public ResponseEntity<DashboardStatsComTrendDTO> getStatsComTrend() {
+        log.info("GET /api/dashboard/stats-trend - Buscando estatísticas com trend");
+
+        DashboardStatsComTrendDTO stats = dashboardService.getDashboardStatsComTrend();
+
+        return ResponseEntity.ok(stats);
+    }
+
+    /**
+     * Retorna alertas dinâmicos que requerem atenção.
+     * GET /api/dashboard/alertas
+     *
+     * @return alertas do dashboard
+     */
+    @GetMapping("/alertas")
+    @PreAuthorize("hasAnyAuthority('ADMIN', 'GERENTE', 'ATENDENTE')")
+    @Operation(
+            summary = "Alertas do dashboard",
+            description = "Retorna alertas dinâmicos: pagamentos vencidos, manutenções pendentes, peças críticas"
+    )
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Alertas retornados com sucesso"),
+            @ApiResponse(responseCode = "403", description = "Acesso negado", content = @Content)
+    })
+    public ResponseEntity<DashboardAlertasDTO> getAlertas() {
+        log.info("GET /api/dashboard/alertas - Buscando alertas");
+
+        DashboardAlertasDTO alertas = dashboardService.getAlertas();
+
+        return ResponseEntity.ok(alertas);
+    }
+
+    /**
+     * Retorna resumo de pagamentos para widget expansível.
+     * GET /api/dashboard/pagamentos-resumo
+     *
+     * @return resumo de pagamentos
+     */
+    @GetMapping("/pagamentos-resumo")
+    @PreAuthorize("hasAnyAuthority('ADMIN', 'GERENTE', 'ATENDENTE')")
+    @Operation(
+            summary = "Resumo de pagamentos",
+            description = "Retorna resumo completo de pagamentos: recebido, pendentes, vencidos, por tipo"
+    )
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Resumo retornado com sucesso"),
+            @ApiResponse(responseCode = "403", description = "Acesso negado", content = @Content)
+    })
+    public ResponseEntity<PagamentosResumoDTO> getPagamentosResumo() {
+        log.info("GET /api/dashboard/pagamentos-resumo - Buscando resumo de pagamentos");
+
+        PagamentosResumoDTO resumo = dashboardService.getPagamentosResumo();
+
+        return ResponseEntity.ok(resumo);
+    }
+
+    /**
+     * Retorna pagamentos agrupados por tipo.
+     * GET /api/dashboard/pagamentos-por-tipo
+     *
+     * @return lista de pagamentos por tipo
+     */
+    @GetMapping("/pagamentos-por-tipo")
+    @PreAuthorize("hasAnyAuthority('ADMIN', 'GERENTE')")
+    @Operation(
+            summary = "Pagamentos por tipo",
+            description = "Retorna pagamentos do mês agrupados por tipo para gráfico"
+    )
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Dados retornados com sucesso"),
+            @ApiResponse(responseCode = "403", description = "Acesso negado", content = @Content)
+    })
+    public ResponseEntity<List<PagamentoPorTipoDTO>> getPagamentosPorTipo() {
+        log.info("GET /api/dashboard/pagamentos-por-tipo - Buscando pagamentos por tipo");
+
+        List<PagamentoPorTipoDTO> porTipo = dashboardService.getPagamentosPorTipo();
+
+        return ResponseEntity.ok(porTipo);
+    }
+
+    /**
+     * Retorna resumo de manutenção preventiva para widget expansível.
+     * GET /api/dashboard/manutencao-resumo
+     *
+     * @return resumo de manutenção
+     */
+    @GetMapping("/manutencao-resumo")
+    @PreAuthorize("hasAnyAuthority('ADMIN', 'GERENTE', 'ATENDENTE')")
+    @Operation(
+            summary = "Resumo de manutenção",
+            description = "Retorna resumo de manutenção preventiva: planos ativos, alertas, próximas manutenções"
+    )
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Resumo retornado com sucesso"),
+            @ApiResponse(responseCode = "403", description = "Acesso negado", content = @Content)
+    })
+    public ResponseEntity<ManutencaoResumoDTO> getManutencaoResumo() {
+        log.info("GET /api/dashboard/manutencao-resumo - Buscando resumo de manutenção");
+
+        ManutencaoResumoDTO resumo = dashboardService.getManutencaoResumo();
+
+        return ResponseEntity.ok(resumo);
+    }
+
+    /**
+     * Retorna lista das próximas manutenções.
+     * GET /api/dashboard/proximas-manutencoes?dias=7&limite=5
+     *
+     * @param dias quantidade de dias à frente (padrão 7)
+     * @param limite quantidade máxima de resultados (padrão 5)
+     * @return lista de próximas manutenções
+     */
+    @GetMapping("/proximas-manutencoes")
+    @PreAuthorize("hasAnyAuthority('ADMIN', 'GERENTE', 'ATENDENTE')")
+    @Operation(
+            summary = "Próximas manutenções",
+            description = "Retorna lista das próximas manutenções preventivas agendadas"
+    )
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Lista retornada com sucesso"),
+            @ApiResponse(responseCode = "403", description = "Acesso negado", content = @Content)
+    })
+    public ResponseEntity<List<ProximaManutencaoDTO>> getProximasManutencoes(
+            @Parameter(description = "Dias à frente para buscar", example = "7")
+            @RequestParam(defaultValue = "7")
+            @Min(value = 1, message = "Dias mínimo é 1")
+            @Max(value = 30, message = "Dias máximo é 30")
+            int dias,
+            @Parameter(description = "Quantidade máxima de resultados", example = "5")
+            @RequestParam(defaultValue = "5")
+            @Min(value = 1, message = "Limite mínimo é 1")
+            @Max(value = 20, message = "Limite máximo é 20")
+            int limite
+    ) {
+        log.info("GET /api/dashboard/proximas-manutencoes?dias={}&limite={}", dias, limite);
+
+        List<ProximaManutencaoDTO> proximas = dashboardService.getProximasManutencoes(dias, limite);
+
+        return ResponseEntity.ok(proximas);
+    }
+
+    /**
+     * Retorna resumo de notas fiscais para widget expansível.
+     * GET /api/dashboard/notas-fiscais-resumo
+     *
+     * @return resumo de notas fiscais
+     */
+    @GetMapping("/notas-fiscais-resumo")
+    @PreAuthorize("hasAnyAuthority('ADMIN', 'GERENTE')")
+    @Operation(
+            summary = "Resumo de notas fiscais",
+            description = "Retorna resumo de notas fiscais: emitidas, rascunhos, canceladas no mês"
+    )
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Resumo retornado com sucesso"),
+            @ApiResponse(responseCode = "403", description = "Acesso negado", content = @Content)
+    })
+    public ResponseEntity<NotasFiscaisResumoDTO> getNotasFiscaisResumo() {
+        log.info("GET /api/dashboard/notas-fiscais-resumo - Buscando resumo de notas fiscais");
+
+        NotasFiscaisResumoDTO resumo = dashboardService.getNotasFiscaisResumo();
+
+        return ResponseEntity.ok(resumo);
     }
 
     /**

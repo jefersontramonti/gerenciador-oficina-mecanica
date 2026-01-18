@@ -129,4 +129,55 @@ public interface NotaFiscalRepository extends JpaRepository<NotaFiscal, UUID> {
     default Long findProximoNumero(UUID oficinaId, Integer serie) {
         return findProximoNumeroByOficinaId(oficinaId, serie);
     }
+
+    // ==================== MÉTODOS PARA DASHBOARD ====================
+
+    /**
+     * Conta notas fiscais por status em uma oficina.
+     *
+     * @param oficinaId ID da oficina (tenant)
+     * @param status status da nota
+     * @return quantidade de notas com o status
+     */
+    @Query("SELECT COUNT(nf) FROM NotaFiscal nf WHERE nf.oficina.id = :oficinaId AND nf.status = :status")
+    long countByOficinaIdAndStatus(@Param("oficinaId") UUID oficinaId, @Param("status") StatusNotaFiscal status);
+
+    /**
+     * Conta notas fiscais emitidas no mês atual em uma oficina.
+     *
+     * @param oficinaId ID da oficina (tenant)
+     * @return quantidade de notas emitidas no mês
+     */
+    @Query("""
+        SELECT COUNT(nf) FROM NotaFiscal nf
+        WHERE nf.oficina.id = :oficinaId
+        AND nf.status = 'EMITIDA'
+        AND MONTH(nf.dataEmissao) = MONTH(CURRENT_DATE)
+        AND YEAR(nf.dataEmissao) = YEAR(CURRENT_DATE)
+        """)
+    long countEmitidasNoMes(@Param("oficinaId") UUID oficinaId);
+
+    /**
+     * Conta notas fiscais canceladas no mês atual em uma oficina.
+     *
+     * @param oficinaId ID da oficina (tenant)
+     * @return quantidade de notas canceladas no mês
+     */
+    @Query("""
+        SELECT COUNT(nf) FROM NotaFiscal nf
+        WHERE nf.oficina.id = :oficinaId
+        AND nf.status = 'CANCELADA'
+        AND MONTH(nf.updatedAt) = MONTH(CURRENT_DATE)
+        AND YEAR(nf.updatedAt) = YEAR(CURRENT_DATE)
+        """)
+    long countCanceladasNoMes(@Param("oficinaId") UUID oficinaId);
+
+    /**
+     * Conta notas fiscais em rascunho (pendentes de emissão) em uma oficina.
+     *
+     * @param oficinaId ID da oficina (tenant)
+     * @return quantidade de rascunhos
+     */
+    @Query("SELECT COUNT(nf) FROM NotaFiscal nf WHERE nf.oficina.id = :oficinaId AND nf.status = 'RASCUNHO'")
+    long countRascunhos(@Param("oficinaId") UUID oficinaId);
 }

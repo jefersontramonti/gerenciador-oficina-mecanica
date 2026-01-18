@@ -20,3 +20,7 @@ O cache Redis será limpo automaticamente, evitando erros 500 por cache corrompi
 
 localmente
 docker exec pitstop-redis redis-cli FLUSHALL
+
+Isso mostra o commit mais recente no remoto. Para ver o commit que está rodando no container, você pode verificar quando a imagem foi construída:
+cd /opt/pitstop
+git log --oneline -1 origin/main

@@ -1,15 +1,21 @@
 /**
  * Serviço para chamadas à API do Dashboard
- * Mock data para desenvolvimento (até backend implementar os endpoints)
  */
 
 import { api } from '@/shared/services/api';
 import type {
   DashboardStats,
+  DashboardStatsComTrend,
   DashboardExtras,
+  DashboardAlertas,
   OSStatusCount,
   FaturamentoMensal,
   RecentOS,
+  PagamentosResumo,
+  PagamentoPorTipo,
+  ManutencaoResumo,
+  ProximaManutencao,
+  NotasFiscaisResumo,
 } from '../types';
 import { StatusOS } from '@/features/ordens-servico/types';
 
@@ -281,5 +287,65 @@ export const dashboardService = {
       valorTotalEstoque: valorEstoqueRes.data || 0,
       estoqueBaixoCount: estoqueBaixoRes.data || 0,
     };
+  },
+
+  /**
+   * Busca estatísticas com variação percentual vs mês anterior
+   */
+  async getStatsComTrend(): Promise<DashboardStatsComTrend> {
+    const { data } = await api.get<DashboardStatsComTrend>('/dashboard/stats-trend');
+    return data;
+  },
+
+  /**
+   * Busca alertas dinâmicos do dashboard
+   */
+  async getAlertas(): Promise<DashboardAlertas> {
+    const { data } = await api.get<DashboardAlertas>('/dashboard/alertas');
+    return data;
+  },
+
+  /**
+   * Busca resumo de pagamentos para widget expansível
+   */
+  async getPagamentosResumo(): Promise<PagamentosResumo> {
+    const { data } = await api.get<PagamentosResumo>('/dashboard/pagamentos-resumo');
+    return data;
+  },
+
+  /**
+   * Busca pagamentos agrupados por tipo para gráfico
+   */
+  async getPagamentosPorTipo(): Promise<PagamentoPorTipo[]> {
+    const { data } = await api.get<PagamentoPorTipo[]>('/dashboard/pagamentos-por-tipo');
+    return data;
+  },
+
+  /**
+   * Busca resumo de manutenção preventiva para widget
+   */
+  async getManutencaoResumo(): Promise<ManutencaoResumo> {
+    const { data } = await api.get<ManutencaoResumo>('/dashboard/manutencao-resumo');
+    return data;
+  },
+
+  /**
+   * Busca lista das próximas manutenções
+   * @param dias Dias à frente para buscar (padrão 7)
+   * @param limite Quantidade máxima de resultados (padrão 5)
+   */
+  async getProximasManutencoes(dias = 7, limite = 5): Promise<ProximaManutencao[]> {
+    const { data } = await api.get<ProximaManutencao[]>('/dashboard/proximas-manutencoes', {
+      params: { dias, limite },
+    });
+    return data;
+  },
+
+  /**
+   * Busca resumo de notas fiscais para widget
+   */
+  async getNotasFiscaisResumo(): Promise<NotasFiscaisResumo> {
+    const { data } = await api.get<NotasFiscaisResumo>('/dashboard/notas-fiscais-resumo');
+    return data;
   },
 };

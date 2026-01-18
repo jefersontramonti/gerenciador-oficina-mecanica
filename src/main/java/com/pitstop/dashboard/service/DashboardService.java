@@ -1,10 +1,14 @@
 package com.pitstop.dashboard.service;
 
 import com.pitstop.cliente.repository.ClienteRepository;
-import com.pitstop.dashboard.dto.DashboardStatsDTO;
-import com.pitstop.dashboard.dto.FaturamentoMensalDTO;
-import com.pitstop.dashboard.dto.OSStatusCountDTO;
-import com.pitstop.dashboard.dto.RecentOSDTO;
+import com.pitstop.dashboard.dto.*;
+import com.pitstop.estoque.repository.PecaRepository;
+import com.pitstop.financeiro.domain.TipoPagamento;
+import com.pitstop.financeiro.repository.NotaFiscalRepository;
+import com.pitstop.financeiro.repository.PagamentoRepository;
+import com.pitstop.manutencaopreventiva.domain.PlanoManutencaoPreventiva;
+import com.pitstop.manutencaopreventiva.repository.AlertaManutencaoRepository;
+import com.pitstop.manutencaopreventiva.repository.PlanoManutencaoRepository;
 import com.pitstop.ordemservico.domain.StatusOS;
 import com.pitstop.ordemservico.repository.OrdemServicoRepository;
 import com.pitstop.shared.security.tenant.TenantContext;
@@ -15,17 +19,21 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.sql.Timestamp;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.TextStyle;
+import java.time.temporal.ChronoUnit;
 import java.util.*;
 
 /**
  * Service para agregação de dados do dashboard.
- * Consolida informações de múltiplos módulos (Clientes, Veículos, Ordens de Serviço).
+ * Consolida informações de múltiplos módulos (Clientes, Veículos, Ordens de Serviço,
+ * Pagamentos, Manutenção Preventiva, Estoque, Notas Fiscais).
  *
  * @author PitStop Team
- * @version 1.0
+ * @version 2.0
  * @since 2025-11-11
  */
 @Service
@@ -36,6 +44,32 @@ public class DashboardService {
     private final ClienteRepository clienteRepository;
     private final VeiculoRepository veiculoRepository;
     private final OrdemServicoRepository ordemServicoRepository;
+    private final PagamentoRepository pagamentoRepository;
+    private final PecaRepository pecaRepository;
+    private final PlanoManutencaoRepository planoManutencaoRepository;
+    private final AlertaManutencaoRepository alertaManutencaoRepository;
+    private final NotaFiscalRepository notaFiscalRepository;
+
+    // Cores para gráfico de pagamentos por tipo
+    private static final Map<TipoPagamento, String> TIPO_PAGAMENTO_COLORS = Map.of(
+            TipoPagamento.PIX, "#3b82f6",           // Azul
+            TipoPagamento.DINHEIRO, "#22c55e",      // Verde
+            TipoPagamento.CARTAO_CREDITO, "#f59e0b", // Amarelo
+            TipoPagamento.CARTAO_DEBITO, "#8b5cf6",  // Roxo
+            TipoPagamento.BOLETO, "#ec4899",         // Rosa
+            TipoPagamento.TRANSFERENCIA, "#06b6d4", // Ciano
+            TipoPagamento.CHEQUE, "#6b7280"         // Cinza
+    );
+
+    private static final Map<TipoPagamento, String> TIPO_PAGAMENTO_LABELS = Map.of(
+            TipoPagamento.PIX, "PIX",
+            TipoPagamento.DINHEIRO, "Dinheiro",
+            TipoPagamento.CARTAO_CREDITO, "Cartão Crédito",
+            TipoPagamento.CARTAO_DEBITO, "Cartão Débito",
+            TipoPagamento.BOLETO, "Boleto",
+            TipoPagamento.TRANSFERENCIA, "Transferência",
+            TipoPagamento.CHEQUE, "Cheque"
+    );
 
     /**
      * Obtém estatísticas gerais do dashboard.
@@ -68,6 +102,319 @@ public class DashboardService {
                 totalVeiculos,
                 osAtivas,
                 faturamentoMes
+        );
+    }
+
+    /**
+     * Obtém estatísticas com variação percentual vs mês anterior.
+     *
+     * @return estatísticas com trends
+     */
+    @Transactional(readOnly = true)
+    public DashboardStatsComTrendDTO getDashboardStatsComTrend() {
+        UUID oficinaId = TenantContext.getTenantId();
+
+        // Stats básicos
+        Long totalClientes = clienteRepository.countByOficinaId(oficinaId);
+        Long totalVeiculos = veiculoRepository.countByOficinaId(oficinaId);
+        Long osAtivas = ordemServicoRepository.countOSAtivas(oficinaId);
+
+        // Faturamento mês atual
+        BigDecimal faturamentoMes = ordemServicoRepository.calcularFaturamentoMesAtual(oficinaId);
+
+        // Faturamento mês anterior
+        LocalDate inicioMesAnterior = LocalDate.now().minusMonths(1).withDayOfMonth(1);
+        LocalDate fimMesAnterior = LocalDate.now().withDayOfMonth(1).minusDays(1);
+        BigDecimal faturamentoMesAnterior = pagamentoRepository.sumRecebidoNoPeriodo(
+                oficinaId, inicioMesAnterior, fimMesAnterior
+        );
+
+        // Calcular variação do faturamento
+        Double variacaoFaturamento = calcularVariacaoPercentual(faturamentoMes, faturamentoMesAnterior);
+
+        // Ticket médio (faturamento / quantidade de OS entregues no mês)
+        // Simplificado: usar o faturamento / OS ativas como aproximação
+        BigDecimal ticketMedio = osAtivas > 0 ?
+                faturamentoMes.divide(BigDecimal.valueOf(osAtivas), 2, RoundingMode.HALF_UP) :
+                BigDecimal.ZERO;
+
+        // Ticket médio mês anterior (simplificado)
+        BigDecimal ticketMedioAnterior = BigDecimal.ZERO;
+        Double variacaoTicketMedio = 0.0;
+
+        log.info("Stats com trend - Faturamento: R$ {} ({}%), Ticket Médio: R$ {}",
+                faturamentoMes, variacaoFaturamento, ticketMedio);
+
+        return new DashboardStatsComTrendDTO(
+                totalClientes,
+                totalVeiculos,
+                osAtivas,
+                faturamentoMes,
+                faturamentoMesAnterior,
+                variacaoFaturamento,
+                ticketMedio,
+                ticketMedioAnterior,
+                variacaoTicketMedio
+        );
+    }
+
+    /**
+     * Obtém alertas dinâmicos que requerem atenção.
+     *
+     * @return alertas do dashboard
+     */
+    @Transactional(readOnly = true)
+    public DashboardAlertasDTO getAlertas() {
+        UUID oficinaId = TenantContext.getTenantId();
+        LocalDate hoje = LocalDate.now();
+
+        // Pagamentos vencidos
+        long pagamentosVencidos = pagamentoRepository.countVencidos(oficinaId, hoje);
+
+        // Alertas de manutenção pendentes (atrasadas)
+        long manutencoesAtrasadas = alertaManutencaoRepository.countPendentes(oficinaId);
+
+        // Peças críticas (estoque zerado)
+        long pecasCriticas = pecaRepository.countEstoqueZerado(oficinaId);
+
+        // Planos de manutenção ativos
+        long planosAtivos = planoManutencaoRepository.countAtivos(oficinaId);
+
+        log.info("Alertas - Pagamentos vencidos: {}, Manutenções atrasadas: {}, Peças críticas: {}, Planos ativos: {}",
+                pagamentosVencidos, manutencoesAtrasadas, pecasCriticas, planosAtivos);
+
+        return new DashboardAlertasDTO(
+                pagamentosVencidos,
+                manutencoesAtrasadas,
+                pecasCriticas,
+                planosAtivos
+        );
+    }
+
+    /**
+     * Obtém resumo de pagamentos para o widget expansível.
+     *
+     * @return resumo de pagamentos
+     */
+    @Transactional(readOnly = true)
+    public PagamentosResumoDTO getPagamentosResumo() {
+        UUID oficinaId = TenantContext.getTenantId();
+        LocalDate hoje = LocalDate.now();
+
+        // Total recebido no mês
+        BigDecimal recebidoMes = pagamentoRepository.sumRecebidoNoMes(oficinaId);
+
+        // Pagamentos pendentes
+        long pendentesCount = pagamentoRepository.countPendentes(oficinaId);
+        BigDecimal pendentesValor = pagamentoRepository.sumPendentes(oficinaId);
+
+        // Pagamentos vencidos
+        long vencidosCount = pagamentoRepository.countVencidos(oficinaId, hoje);
+        BigDecimal vencidosValor = pagamentoRepository.sumVencidos(oficinaId, hoje);
+
+        // Pagamentos por tipo (para gráfico)
+        List<PagamentoPorTipoDTO> porTipo = getPagamentosPorTipo();
+
+        // Lista de vencidos (últimos 5)
+        List<PagamentoVencidoDTO> vencidosLista = getVencidosLista(5);
+
+        log.info("Pagamentos resumo - Recebido: R$ {}, Pendentes: {}, Vencidos: {}",
+                recebidoMes, pendentesCount, vencidosCount);
+
+        return new PagamentosResumoDTO(
+                recebidoMes != null ? recebidoMes : BigDecimal.ZERO,
+                pendentesCount,
+                pendentesValor != null ? pendentesValor : BigDecimal.ZERO,
+                vencidosCount,
+                vencidosValor != null ? vencidosValor : BigDecimal.ZERO,
+                porTipo,
+                vencidosLista
+        );
+    }
+
+    /**
+     * Obtém pagamentos agrupados por tipo para gráfico.
+     *
+     * @return lista de pagamentos por tipo
+     */
+    @Transactional(readOnly = true)
+    public List<PagamentoPorTipoDTO> getPagamentosPorTipo() {
+        UUID oficinaId = TenantContext.getTenantId();
+
+        List<Object[]> resultados = pagamentoRepository.estatisticasPorTipoNoMes(oficinaId);
+        List<PagamentoPorTipoDTO> porTipo = new ArrayList<>();
+
+        for (Object[] row : resultados) {
+            try {
+                TipoPagamento tipo = (TipoPagamento) row[0];
+                Long quantidade = ((Number) row[1]).longValue();
+                BigDecimal valorTotal = (BigDecimal) row[2];
+
+                porTipo.add(new PagamentoPorTipoDTO(
+                        tipo,
+                        TIPO_PAGAMENTO_LABELS.getOrDefault(tipo, tipo.name()),
+                        quantidade,
+                        valorTotal,
+                        TIPO_PAGAMENTO_COLORS.getOrDefault(tipo, "#6b7280")
+                ));
+            } catch (Exception e) {
+                log.error("Erro ao mapear pagamento por tipo: {}", e.getMessage(), e);
+            }
+        }
+
+        return porTipo;
+    }
+
+    /**
+     * Obtém lista de pagamentos vencidos com informações do cliente.
+     *
+     * @param limite quantidade máxima de resultados
+     * @return lista de pagamentos vencidos
+     */
+    @Transactional(readOnly = true)
+    public List<PagamentoVencidoDTO> getVencidosLista(int limite) {
+        UUID oficinaId = TenantContext.getTenantId();
+        LocalDate hoje = LocalDate.now();
+
+        List<Object[]> resultados = pagamentoRepository.findVencidosComCliente(oficinaId, hoje, limite);
+        List<PagamentoVencidoDTO> vencidos = new ArrayList<>();
+
+        for (Object[] row : resultados) {
+            try {
+                UUID id = (UUID) row[0];
+                String clienteNome = (String) row[1];
+                BigDecimal valor = (BigDecimal) row[2];
+                LocalDate dataVencimento = ((java.sql.Date) row[3]).toLocalDate();
+                long diasVencido = ChronoUnit.DAYS.between(dataVencimento, hoje);
+
+                vencidos.add(new PagamentoVencidoDTO(
+                        id,
+                        clienteNome,
+                        valor,
+                        dataVencimento,
+                        diasVencido
+                ));
+            } catch (Exception e) {
+                log.error("Erro ao mapear pagamento vencido: {}", e.getMessage(), e);
+            }
+        }
+
+        return vencidos;
+    }
+
+    /**
+     * Obtém resumo de manutenção preventiva para o widget expansível.
+     *
+     * @return resumo de manutenção
+     */
+    @Transactional(readOnly = true)
+    public ManutencaoResumoDTO getManutencaoResumo() {
+        UUID oficinaId = TenantContext.getTenantId();
+        LocalDate hoje = LocalDate.now();
+
+        // Planos ativos
+        long planosAtivos = planoManutencaoRepository.countAtivos(oficinaId);
+
+        // Alertas pendentes
+        long alertasPendentes = alertaManutencaoRepository.countPendentes(oficinaId);
+
+        // Planos vencidos
+        long planosVencidos = planoManutencaoRepository.countVencidos(oficinaId, hoje);
+
+        // Próximas manutenções (7 dias)
+        List<ProximaManutencaoDTO> proximasManutencoes = getProximasManutencoes(7, 5);
+
+        log.info("Manutenção resumo - Planos ativos: {}, Alertas: {}, Vencidos: {}",
+                planosAtivos, alertasPendentes, planosVencidos);
+
+        return new ManutencaoResumoDTO(
+                planosAtivos,
+                alertasPendentes,
+                planosVencidos,
+                proximasManutencoes
+        );
+    }
+
+    /**
+     * Obtém lista das próximas manutenções.
+     *
+     * @param dias quantidade de dias à frente
+     * @param limite quantidade máxima de resultados
+     * @return lista de próximas manutenções
+     */
+    @Transactional(readOnly = true)
+    public List<ProximaManutencaoDTO> getProximasManutencoes(int dias, int limite) {
+        UUID oficinaId = TenantContext.getTenantId();
+        LocalDate hoje = LocalDate.now();
+        LocalDate dataLimite = hoje.plusDays(dias);
+
+        List<PlanoManutencaoPreventiva> planos = planoManutencaoRepository
+                .findPlanosProximosAVencerPorData(oficinaId, hoje, dataLimite);
+
+        List<ProximaManutencaoDTO> proximas = new ArrayList<>();
+
+        for (PlanoManutencaoPreventiva plano : planos) {
+            if (proximas.size() >= limite) break;
+
+            try {
+                var veiculo = plano.getVeiculo();
+
+                // Busca o nome do cliente via repository (Veiculo tem apenas clienteId)
+                String clienteNome = "N/A";
+                if (veiculo != null && veiculo.getClienteId() != null) {
+                    clienteNome = clienteRepository.findById(veiculo.getClienteId())
+                            .map(c -> c.getNome())
+                            .orElse("N/A");
+                }
+
+                long diasRestantes = plano.getProximaPrevisaoData() != null ?
+                        ChronoUnit.DAYS.between(hoje, plano.getProximaPrevisaoData()) : 0;
+
+                proximas.add(new ProximaManutencaoDTO(
+                        plano.getId(),
+                        plano.getNome(),
+                        plano.getTipoManutencao(),
+                        veiculo != null ? veiculo.getId() : null,
+                        veiculo != null ? veiculo.getPlaca() : "N/A",
+                        veiculo != null ? (veiculo.getMarca() + " " + veiculo.getModelo()) : "N/A",
+                        clienteNome,
+                        plano.getProximaPrevisaoData(),
+                        plano.getProximaPrevisaoKm(),
+                        diasRestantes
+                ));
+            } catch (Exception e) {
+                log.error("Erro ao mapear próxima manutenção: {}", e.getMessage(), e);
+            }
+        }
+
+        return proximas;
+    }
+
+    /**
+     * Obtém resumo de notas fiscais para o widget expansível.
+     *
+     * @return resumo de notas fiscais
+     */
+    @Transactional(readOnly = true)
+    public NotasFiscaisResumoDTO getNotasFiscaisResumo() {
+        UUID oficinaId = TenantContext.getTenantId();
+
+        // Emitidas no mês
+        long emitidasMes = notaFiscalRepository.countEmitidasNoMes(oficinaId);
+
+        // Rascunhos (pendentes)
+        long rascunhosCount = notaFiscalRepository.countRascunhos(oficinaId);
+
+        // Canceladas no mês
+        long canceladasMes = notaFiscalRepository.countCanceladasNoMes(oficinaId);
+
+        log.info("Notas fiscais resumo - Emitidas: {}, Rascunhos: {}, Canceladas: {}",
+                emitidasMes, rascunhosCount, canceladasMes);
+
+        return new NotasFiscaisResumoDTO(
+                emitidasMes,
+                rascunhosCount,
+                canceladasMes
         );
     }
 
@@ -221,5 +568,29 @@ public class DashboardService {
 
         log.info("Retornando faturamento de {} meses", faturamentoList.size());
         return faturamentoList;
+    }
+
+    // ==================== MÉTODOS AUXILIARES ====================
+
+    /**
+     * Calcula variação percentual entre dois valores.
+     *
+     * @param atual valor atual
+     * @param anterior valor anterior
+     * @return variação percentual (positivo ou negativo)
+     */
+    private Double calcularVariacaoPercentual(BigDecimal atual, BigDecimal anterior) {
+        if (anterior == null || anterior.compareTo(BigDecimal.ZERO) == 0) {
+            return atual != null && atual.compareTo(BigDecimal.ZERO) > 0 ? 100.0 : 0.0;
+        }
+        if (atual == null) {
+            return -100.0;
+        }
+
+        BigDecimal diferenca = atual.subtract(anterior);
+        BigDecimal variacao = diferenca.divide(anterior, 4, RoundingMode.HALF_UP)
+                .multiply(BigDecimal.valueOf(100));
+
+        return variacao.setScale(1, RoundingMode.HALF_UP).doubleValue();
     }
 }

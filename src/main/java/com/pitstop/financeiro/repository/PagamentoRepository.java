@@ -310,4 +310,135 @@ public interface PagamentoRepository extends JpaRepository<Pagamento, UUID> {
     default Page<Pagamento> findVencidos(UUID oficinaId, LocalDate dataReferencia, Pageable pageable) {
         return findVencidosByOficinaId(oficinaId, dataReferencia, pageable);
     }
+
+    // ==================== MÉTODOS PARA DASHBOARD ====================
+
+    /**
+     * Conta pagamentos pendentes (não pagos) em uma oficina.
+     *
+     * @param oficinaId ID da oficina (tenant)
+     * @return quantidade de pagamentos pendentes
+     */
+    @Query("SELECT COUNT(p) FROM Pagamento p WHERE p.oficina.id = :oficinaId AND p.status IN ('PENDENTE', 'VENCIDO')")
+    long countPendentes(@Param("oficinaId") UUID oficinaId);
+
+    /**
+     * Soma valor de pagamentos pendentes em uma oficina.
+     *
+     * @param oficinaId ID da oficina (tenant)
+     * @return valor total pendente
+     */
+    @Query("SELECT COALESCE(SUM(p.valor), 0) FROM Pagamento p WHERE p.oficina.id = :oficinaId AND p.status IN ('PENDENTE', 'VENCIDO')")
+    BigDecimal sumPendentes(@Param("oficinaId") UUID oficinaId);
+
+    /**
+     * Conta pagamentos vencidos (data vencimento antes de hoje e status PENDENTE) em uma oficina.
+     *
+     * @param oficinaId ID da oficina (tenant)
+     * @param dataReferencia data de referência (geralmente hoje)
+     * @return quantidade de pagamentos vencidos
+     */
+    @Query("""
+        SELECT COUNT(p) FROM Pagamento p
+        WHERE p.oficina.id = :oficinaId
+        AND p.status = 'PENDENTE'
+        AND p.dataVencimento < :dataReferencia
+        """)
+    long countVencidos(@Param("oficinaId") UUID oficinaId, @Param("dataReferencia") LocalDate dataReferencia);
+
+    /**
+     * Soma valor de pagamentos vencidos em uma oficina.
+     *
+     * @param oficinaId ID da oficina (tenant)
+     * @param dataReferencia data de referência
+     * @return valor total vencido
+     */
+    @Query("""
+        SELECT COALESCE(SUM(p.valor), 0) FROM Pagamento p
+        WHERE p.oficina.id = :oficinaId
+        AND p.status = 'PENDENTE'
+        AND p.dataVencimento < :dataReferencia
+        """)
+    BigDecimal sumVencidos(@Param("oficinaId") UUID oficinaId, @Param("dataReferencia") LocalDate dataReferencia);
+
+    /**
+     * Calcula total recebido no mês atual em uma oficina.
+     *
+     * @param oficinaId ID da oficina (tenant)
+     * @return valor total recebido no mês
+     */
+    @Query("""
+        SELECT COALESCE(SUM(p.valor), 0) FROM Pagamento p
+        WHERE p.oficina.id = :oficinaId
+        AND p.status = 'PAGO'
+        AND MONTH(p.dataPagamento) = MONTH(CURRENT_DATE)
+        AND YEAR(p.dataPagamento) = YEAR(CURRENT_DATE)
+        """)
+    BigDecimal sumRecebidoNoMes(@Param("oficinaId") UUID oficinaId);
+
+    /**
+     * Calcula total recebido no mês anterior em uma oficina.
+     *
+     * @param oficinaId ID da oficina (tenant)
+     * @param mesAnterior primeiro dia do mês anterior
+     * @param fimMesAnterior último dia do mês anterior
+     * @return valor total recebido no mês anterior
+     */
+    @Query("""
+        SELECT COALESCE(SUM(p.valor), 0) FROM Pagamento p
+        WHERE p.oficina.id = :oficinaId
+        AND p.status = 'PAGO'
+        AND p.dataPagamento BETWEEN :mesAnterior AND :fimMesAnterior
+        """)
+    BigDecimal sumRecebidoNoPeriodo(
+        @Param("oficinaId") UUID oficinaId,
+        @Param("mesAnterior") LocalDate mesAnterior,
+        @Param("fimMesAnterior") LocalDate fimMesAnterior
+    );
+
+    /**
+     * Busca pagamentos vencidos com informações do cliente para exibição.
+     * Retorna [pagamentoId, clienteNome, valor, dataVencimento].
+     *
+     * @param oficinaId ID da oficina (tenant)
+     * @param dataReferencia data de referência
+     * @param limite quantidade máxima de resultados
+     * @return lista de arrays com dados dos pagamentos vencidos
+     */
+    @Query(value = """
+        SELECT p.id, c.nome, p.valor, p.data_vencimento
+        FROM pagamentos p
+        JOIN ordem_servico os ON p.ordem_servico_id = os.id
+        JOIN veiculos v ON os.veiculo_id = v.id
+        JOIN clientes c ON v.cliente_id = c.id
+        WHERE p.oficina_id = :oficinaId
+        AND p.status = 'PENDENTE'
+        AND p.data_vencimento < :dataReferencia
+        ORDER BY p.data_vencimento ASC
+        LIMIT :limite
+        """, nativeQuery = true)
+    List<Object[]> findVencidosComCliente(
+        @Param("oficinaId") UUID oficinaId,
+        @Param("dataReferencia") LocalDate dataReferencia,
+        @Param("limite") int limite
+    );
+
+    /**
+     * Estatísticas de pagamentos PAGOS por tipo no mês atual em uma oficina.
+     * Retorna [TipoPagamento, quantidade, valorTotal].
+     *
+     * @param oficinaId ID da oficina (tenant)
+     * @return lista de arrays com estatísticas por tipo
+     */
+    @Query("""
+        SELECT p.tipo, COUNT(p), SUM(p.valor)
+        FROM Pagamento p
+        WHERE p.oficina.id = :oficinaId
+        AND p.status = 'PAGO'
+        AND MONTH(p.dataPagamento) = MONTH(CURRENT_DATE)
+        AND YEAR(p.dataPagamento) = YEAR(CURRENT_DATE)
+        GROUP BY p.tipo
+        ORDER BY SUM(p.valor) DESC
+        """)
+    List<Object[]> estatisticasPorTipoNoMes(@Param("oficinaId") UUID oficinaId);
 }
