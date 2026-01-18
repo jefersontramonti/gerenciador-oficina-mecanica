@@ -70,10 +70,11 @@ public class CacheConfig {
 
         // CRITICAL: Enable polymorphic type handling with LaissezFaireSubTypeValidator
         // Using PROPERTY format: {"@class": "com.pitstop...", "field": "value"}
-        // This is more compatible than WRAPPER_ARRAY format: ["com.pitstop...", {...}]
+        // Using EVERYTHING because Java records (like OficinaResponse) are implicitly final
+        // and NON_FINAL would skip them, causing LinkedHashMap deserialization issues
         objectMapper.activateDefaultTyping(
             LaissezFaireSubTypeValidator.instance,
-            ObjectMapper.DefaultTyping.NON_FINAL,
+            ObjectMapper.DefaultTyping.EVERYTHING,
             JsonTypeInfo.As.PROPERTY
         );
 
