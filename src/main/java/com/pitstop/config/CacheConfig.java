@@ -1,5 +1,6 @@
 package com.pitstop.config;
 
+import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.databind.jsontype.impl.LaissezFaireSubTypeValidator;
@@ -68,11 +69,12 @@ public class CacheConfig {
         objectMapper.disable(SerializationFeature.FAIL_ON_EMPTY_BEANS);
 
         // CRITICAL: Enable polymorphic type handling with LaissezFaireSubTypeValidator
-        // This stores @class property in JSON, allowing proper deserialization of DTOs
-        // Without this, cached objects return as LinkedHashMap instead of typed DTOs
+        // Using PROPERTY format: {"@class": "com.pitstop...", "field": "value"}
+        // This is more compatible than WRAPPER_ARRAY format: ["com.pitstop...", {...}]
         objectMapper.activateDefaultTyping(
             LaissezFaireSubTypeValidator.instance,
-            ObjectMapper.DefaultTyping.NON_FINAL
+            ObjectMapper.DefaultTyping.NON_FINAL,
+            JsonTypeInfo.As.PROPERTY
         );
 
         GenericJackson2JsonRedisSerializer serializer = new GenericJackson2JsonRedisSerializer(objectMapper);
