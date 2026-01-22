@@ -1,6 +1,7 @@
 package com.pitstop.financeiro.controller;
 
 import com.pitstop.financeiro.service.MercadoPagoService;
+import com.pitstop.saas.service.FaturaWebhookService;
 import com.pitstop.shared.security.RateLimitService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -38,6 +39,7 @@ import java.util.Map;
 public class WebhookController {
 
     private final MercadoPagoService mercadoPagoService;
+    private final FaturaWebhookService faturaWebhookService;
     private final RateLimitService rateLimitService;
 
     /**
@@ -271,6 +273,77 @@ public class WebhookController {
             return parts.length >= 2 ? parts[0] + "." + parts[1] + ".xxx.xxx" : "xxx.xxx.xxx.xxx";
         }
         return "xxx.xxx.xxx.xxx";
+    }
+
+    /**
+     * Webhook do Mercado Pago para Faturas SaaS.
+     * Recebe notificações de pagamentos de faturas de oficinas.
+     *
+     * @param signature X-Signature header from Mercado Pago
+     * @param requestId X-Request-Id header for idempotency
+     * @param topic Topic from query param
+     * @param id Resource ID from query param
+     * @param type Type from query param
+     * @param payload JSON body
+     * @param request HTTP request for IP extraction
+     * @return Acknowledgment response
+     */
+    @PostMapping("/mercadopago/fatura")
+    @Operation(summary = "Receber webhook do Mercado Pago para faturas SaaS")
+    public ResponseEntity<String> mercadoPagoFaturaWebhook(
+            @RequestHeader(value = "X-Signature", required = false) String signature,
+            @RequestHeader(value = "X-Request-Id", required = false) String requestId,
+            @RequestParam(value = "topic", required = false) String topic,
+            @RequestParam(value = "id", required = false) String id,
+            @RequestParam(value = "type", required = false) String type,
+            @RequestBody(required = false) Map<String, Object> payload,
+            HttpServletRequest request) {
+
+        String clientIp = getClientIp(request);
+        log.info("Webhook MP Fatura recebido - topic: {}, id: {}, type: {}, requestId: {}, IP: {}",
+            topic, id, type, requestId, maskIp(clientIp));
+
+        // Rate limiting check
+        if (!rateLimitService.isWebhookAllowed(clientIp)) {
+            log.warn("SECURITY: Rate limit exceeded for fatura webhook - IP: {}", maskIp(clientIp));
+            return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS)
+                .body("RATE_LIMIT_EXCEEDED");
+        }
+
+        try {
+            // Parse webhook data similar to main webhook
+            String actualTopic = topic;
+            String actualId = id;
+
+            if (payload != null) {
+                if (type != null && actualTopic == null) {
+                    actualTopic = type;
+                }
+                if (payload.containsKey("data") && payload.get("data") instanceof Map) {
+                    @SuppressWarnings("unchecked")
+                    Map<String, Object> data = (Map<String, Object>) payload.get("data");
+                    if (data.containsKey("id") && actualId == null) {
+                        actualId = data.get("id").toString();
+                    }
+                }
+                if (payload.containsKey("action") && actualTopic == null) {
+                    actualTopic = payload.get("action").toString();
+                }
+            }
+
+            if (actualTopic != null && actualId != null) {
+                faturaWebhookService.processarWebhook(actualTopic, actualId, payload);
+                log.info("Webhook MP Fatura processado com sucesso - topic: {}, id: {}", actualTopic, actualId);
+            } else {
+                log.warn("Webhook MP Fatura com dados incompletos - topic: {}, id: {}", actualTopic, actualId);
+            }
+
+            return ResponseEntity.ok("OK");
+
+        } catch (Exception e) {
+            log.error("Erro ao processar webhook MP Fatura: {}", e.getMessage(), e);
+            return ResponseEntity.ok("PROCESSED_WITH_ERROR");
+        }
     }
 
     /**

@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Seu período trial expirou</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background-color: #ffffff;
+            border-radius: 8px;
+            padding: 40px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .logo {
+            font-size: 32px;
+            font-weight: bold;
+            color: #2563eb;
+        }
+        h1 {
+            color: #1f2937;
+            font-size: 24px;
+        }
+        .alert-danger {
+            background-color: #fef2f2;
+            padding: 20px;
+            border-left: 4px solid #ef4444;
+            margin: 20px 0;
+            border-radius: 4px;
+        }
+        .highlight {
+            background-color: #dbeafe;
+            padding: 20px;
+            border-radius: 4px;
+            margin: 20px 0;
+        }
+        .button {
+            display: inline-block;
+            padding: 14px 28px;
+            background-color: #2563eb;
+            color: #ffffff !important;
+            text-decoration: none;
+            border-radius: 6px;
+            margin: 20px 0;
+            font-weight: 600;
+        }
+        .button-secondary {
+            display: inline-block;
+            padding: 12px 24px;
+            background-color: #6b7280;
+            color: #ffffff !important;
+            text-decoration: none;
+            border-radius: 6px;
+            margin: 10px;
+            font-weight: 600;
+        }
+        .footer {
+            margin-top: 40px;
+            padding-top: 20px;
+            border-top: 1px solid #e5e7eb;
+            text-align: center;
+            font-size: 14px;
+            color: #6b7280;
+        }
+        .plan-card {
+            border: 2px solid #e5e7eb;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 15px 0;
+        }
+        .plan-card.recommended {
+            border-color: #2563eb;
+            background-color: #eff6ff;
+        }
+        .urgency-box {
+            background-color: #fef3c7;
+            border: 2px dashed #f59e0b;
+            padding: 20px;
+            border-radius: 8px;
+            text-align: center;
+            margin: 20px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="logo">🚗 PitStop</div>
+        </div>
+
+        <h1>⛔ Seu período de teste expirou</h1>
+
+        <p>Olá <strong th:text="${nomeOficina}">Oficina</strong>,</p>
+
+        <div class="alert-danger">
+            <p><strong>🔒 Sua conta foi temporariamente suspensa</strong></p>
+            <p>O período de teste gratuito de 14 dias expirou em <strong th:text="${dataVencimento}">15/01/2025</strong>.</p>
+            <p>Para continuar usando o PitStop, é necessário escolher um plano.</p>
+        </div>
+
+        <div class="urgency-box">
+            <p><strong>🎁 Oferta Especial de Reativação!</strong></p>
+            <p>Assine agora e ganhe <strong>15% de desconto</strong> no primeiro mês!</p>
+            <p><small>Oferta válida por 48 horas</small></p>
+        </div>
+
+        <p>Não perca tudo que você construiu durante o teste! Seus dados estão seguros e serão mantidos por 30 dias.</p>
+
+        <h3>Escolha o plano ideal para sua oficina:</h3>
+
+        <div class="plan-card">
+            <h3>📦 Plano Econômico</h3>
+            <p><strong>R$ 149,90/mês</strong></p>
+            <ul>
+                <li>Até 30 ordens de serviço/mês</li>
+                <li>Controle de estoque básico</li>
+                <li>2 usuários</li>
+            </ul>
+        </div>
+
+        <div class="plan-card recommended">
+            <h3>⭐ Plano Profissional (Mais Popular)</h3>
+            <p><strong>R$ 299,90/mês</strong></p>
+            <ul>
+                <li>Ordens de serviço ilimitadas</li>
+                <li>Controle de estoque completo</li>
+                <li>5 usuários</li>
+                <li>Relatórios avançados</li>
+                <li>Suporte prioritário</li>
+            </ul>
+        </div>
+
+        <div class="plan-card">
+            <h3>🚀 Plano Turbinado</h3>
+            <p><strong>R$ 499,90/mês</strong></p>
+            <ul>
+                <li>Tudo do Profissional</li>
+                <li>Usuários ilimitados</li>
+                <li>Integração com WhatsApp</li>
+                <li>API personalizada</li>
+                <li>Suporte 24/7</li>
+            </ul>
+        </div>
+
+        <div style="text-align: center;">
+            <a th:href="${pagamentoUrl}" class="button">Reativar Minha Conta</a>
+            <br>
+            <a th:href="${planosUrl}" class="button-secondary">Ver Todos os Planos</a>
+        </div>
+
+        <div class="highlight">
+            <p><strong>💼 O que você perde sem o PitStop?</strong></p>
+            <ul>
+                <li>❌ Gestão desorganizada de ordens de serviço</li>
+                <li>❌ Falta de controle de estoque</li>
+                <li>❌ Perda de clientes por falta de acompanhamento</li>
+                <li>❌ Dificuldade em gerar relatórios financeiros</li>
+            </ul>
+        </div>
+
+        <p>Precisa de ajuda para decidir? Fale conosco:</p>
+        <ul>
+            <li>📧 Email: <a th:href="'mailto:' + ${contatoEmail}" th:text="${contatoEmail}">contato@pitstopai.com.br</a></li>
+            <li>💬 WhatsApp: (11) 99999-9999</li>
+        </ul>
+
+        <p>
+            Atenciosamente,<br>
+            <strong>Equipe PitStop</strong>
+        </p>
+
+        <div class="footer">
+            <p>Este é um email automático. Por favor, não responda.</p>
+            <p>
+                <strong>PitStop - Sistema de Gestão para Oficinas Mecânicas</strong><br>
+                <a href="https://pitstopai.com.br" style="color: #2563eb;">www.pitstopai.com.br</a>
+            </p>
+            <p><small>Seus dados serão mantidos por 30 dias. Após este período, poderão ser removidos.</small></p>
+        </div>
+    </div>
+</body>
+</html>

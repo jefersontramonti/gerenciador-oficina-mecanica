@@ -186,4 +186,62 @@ public interface FaturaRepository extends JpaRepository<Fatura, UUID> {
      */
     @Query("SELECT COUNT(f) FROM Fatura f WHERE f.oficina.id = :oficinaId AND f.status = 'PAGO'")
     long countPagasByOficina(@Param("oficinaId") UUID oficinaId);
+
+    // =====================================
+    // MINHA CONTA (Workshop Portal)
+    // =====================================
+
+    /**
+     * Count invoices by workshop and status.
+     */
+    @Query("SELECT COUNT(f) FROM Fatura f WHERE f.oficina.id = :oficinaId AND f.status = :status")
+    int countByOficinaIdAndStatus(
+        @Param("oficinaId") UUID oficinaId,
+        @Param("status") StatusFatura status
+    );
+
+    /**
+     * Sum invoice values by workshop and status.
+     */
+    @Query("""
+        SELECT COALESCE(SUM(f.valorTotal), 0) FROM Fatura f
+        WHERE f.oficina.id = :oficinaId
+        AND f.status = :status
+        """)
+    BigDecimal sumValorTotalByOficinaIdAndStatus(
+        @Param("oficinaId") UUID oficinaId,
+        @Param("status") StatusFatura status
+    );
+
+    /**
+     * Sum paid invoices in the last 12 months for a workshop.
+     */
+    @Query("""
+        SELECT COALESCE(SUM(f.valorTotal), 0) FROM Fatura f
+        WHERE f.oficina.id = :oficinaId
+        AND f.status = 'PAGO'
+        AND f.dataPagamento >= :dataInicio
+        """)
+    BigDecimal sumValorPagoUltimos12Meses(
+        @Param("oficinaId") UUID oficinaId,
+        @Param("dataInicio") LocalDateTime dataInicio
+    );
+
+    /**
+     * Find next pending invoice for a workshop (closest to due date).
+     * Uses Spring Data JPA findFirst to automatically limit to 1 result.
+     */
+    Optional<Fatura> findFirstByOficinaIdAndStatusInOrderByDataVencimentoAsc(
+        UUID oficinaId,
+        List<StatusFatura> status
+    );
+
+    /**
+     * Find invoices by workshop and status (paginated).
+     */
+    Page<Fatura> findByOficinaIdAndStatus(
+        UUID oficinaId,
+        StatusFatura status,
+        Pageable pageable
+    );
 }

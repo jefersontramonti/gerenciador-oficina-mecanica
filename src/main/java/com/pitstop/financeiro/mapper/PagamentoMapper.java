@@ -33,6 +33,8 @@ public interface PagamentoMapper {
     @Mapping(target = "oficina", ignore = true) // Auto-populado via @PrePersist JPA hook
     @Mapping(target = "createdAt", ignore = true)
     @Mapping(target = "updatedAt", ignore = true)
+    @Mapping(target = "conciliado", ignore = true)
+    @Mapping(target = "transacaoExtratoId", ignore = true)
     Pagamento toEntity(PagamentoRequestDTO dto);
 
     /**
@@ -60,5 +62,7 @@ public interface PagamentoMapper {
     @Mapping(target = "oficina", ignore = true) // Auto-populado via @PrePersist JPA hook
     @Mapping(target = "createdAt", ignore = true)
     @Mapping(target = "updatedAt", ignore = true)
+    @Mapping(target = "conciliado", ignore = true)
+    @Mapping(target = "transacaoExtratoId", ignore = true)
     void updateEntity(PagamentoRequestDTO dto, @MappingTarget Pagamento pagamento);
 }

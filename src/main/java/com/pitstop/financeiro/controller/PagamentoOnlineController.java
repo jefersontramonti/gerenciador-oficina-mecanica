@@ -4,6 +4,7 @@ import com.pitstop.financeiro.domain.PagamentoOnline;
 import com.pitstop.financeiro.dto.*;
 import com.pitstop.financeiro.repository.PagamentoOnlineRepository;
 import com.pitstop.financeiro.service.MercadoPagoService;
+import com.pitstop.shared.security.feature.RequiresFeature;
 import com.pitstop.shared.security.tenant.TenantContext;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -28,6 +29,7 @@ import java.util.stream.Collectors;
 @RequestMapping("/api/pagamentos-online")
 @RequiredArgsConstructor
 @Tag(name = "Pagamentos Online", description = "Gerenciamento de pagamentos via gateway")
+@RequiresFeature("INTEGRACAO_MERCADO_PAGO")
 public class PagamentoOnlineController {
 
     private final PagamentoOnlineRepository repository;

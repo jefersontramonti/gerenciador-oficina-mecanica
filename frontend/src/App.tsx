@@ -57,6 +57,20 @@ const NotasFiscaisListPage = lazy(() => import('./features/financeiro/pages/Nota
 const NotaFiscalFormPage = lazy(() => import('./features/financeiro/pages/NotaFiscalFormPage').then(m => ({ default: m.NotaFiscalFormPage })));
 const NotaFiscalDetailPage = lazy(() => import('./features/financeiro/pages/NotaFiscalDetailPage').then(m => ({ default: m.NotaFiscalDetailPage })));
 const ConfiguracaoGatewayPage = lazy(() => import('./features/financeiro/pages/ConfiguracaoGatewayPage').then(m => ({ default: m.ConfiguracaoGatewayPage })));
+const ConfiguracaoParcelamentoPage = lazy(() => import('./features/financeiro/pages/ConfiguracaoParcelamentoPage').then(m => ({ default: m.ConfiguracaoParcelamentoPage })));
+const FluxoCaixaPage = lazy(() => import('./features/financeiro/pages/FluxoCaixaPage'));
+const DREPage = lazy(() => import('./features/financeiro/pages/DREPage'));
+const ProjecaoPage = lazy(() => import('./features/financeiro/pages/ProjecaoPage'));
+const ConciliacaoPage = lazy(() => import('./features/financeiro/pages/ConciliacaoPage'));
+const ExtratoDetalhePage = lazy(() => import('./features/financeiro/pages/ExtratoDetalhePage'));
+const PlanosAssinaturaPage = lazy(() => import('./features/financeiro/pages/PlanosAssinaturaPage'));
+const AssinaturasPage = lazy(() => import('./features/financeiro/pages/AssinaturasPage'));
+const AssinaturaDetalhePage = lazy(() => import('./features/financeiro/pages/AssinaturaDetalhePage'));
+const FaturasAssinaturaPage = lazy(() => import('./features/financeiro/pages/FaturasAssinaturaPage'));
+
+// Despesas
+const DespesasPage = lazy(() => import('./features/financeiro/pages/DespesasPage').then(m => ({ default: m.DespesasPage })));
+const DespesaFormPage = lazy(() => import('./features/financeiro/pages/DespesaFormPage').then(m => ({ default: m.DespesaFormPage })));
 
 // Configurações
 const ConfiguracoesPage = lazy(() => import('./features/configuracoes/pages').then(m => ({ default: m.ConfiguracoesPage })));
@@ -64,9 +78,19 @@ const ConfiguracoesPage = lazy(() => import('./features/configuracoes/pages').th
 // Meu Plano (oficinas)
 const MeuPlanoPage = lazy(() => import('./features/plano/pages').then(m => ({ default: m.MeuPlanoPage })));
 
+// Minha Conta (oficinas) - Faturas e Pagamentos SaaS
+const MinhaContaPage = lazy(() => import('./features/minha-conta').then(m => ({ default: m.MinhaContaPage })));
+const MinhasFaturasPage = lazy(() => import('./features/minha-conta').then(m => ({ default: m.MinhasFaturasPage })));
+const MinhaContaFaturaDetalhePage = lazy(() => import('./features/minha-conta').then(m => ({ default: m.FaturaDetalhePage })));
+
 // Notificações
 const ConfiguracaoNotificacoesPage = lazy(() => import('./features/notificacoes/pages/ConfiguracaoNotificacoesPage').then(m => ({ default: m.ConfiguracaoNotificacoesPage })));
 const HistoricoNotificacoesPage = lazy(() => import('./features/notificacoes/pages/HistoricoNotificacoesPage').then(m => ({ default: m.HistoricoNotificacoesPage })));
+
+// Webhooks
+const WebhooksListPage = lazy(() => import('./features/webhooks/pages').then(m => ({ default: m.WebhooksListPage })));
+const WebhookFormPage = lazy(() => import('./features/webhooks/pages').then(m => ({ default: m.WebhookFormPage })));
+const WebhookLogsPage = lazy(() => import('./features/webhooks/pages').then(m => ({ default: m.WebhookLogsPage })));
 
 // Comunicados (para oficinas)
 const ComunicadosOficinaPage = lazy(() => import('./features/comunicados').then(m => ({ default: m.ComunicadosPage })));
@@ -100,6 +124,7 @@ const PlanosListPage = lazy(() => import('./features/admin/pages').then(m => ({ 
 const PlanoFormPage = lazy(() => import('./features/admin/pages').then(m => ({ default: m.PlanoFormPage })));
 const FaturasListPage = lazy(() => import('./features/admin/pages').then(m => ({ default: m.FaturasListPage })));
 const FaturaDetailPage = lazy(() => import('./features/admin/pages').then(m => ({ default: m.FaturaDetailPage })));
+const FaturaFormPage = lazy(() => import('./features/admin/pages').then(m => ({ default: m.FaturaFormPage })));
 const InadimplenciaPage = lazy(() => import('./features/admin/pages').then(m => ({ default: m.InadimplenciaPage })));
 const RelatoriosPage = lazy(() => import('./features/admin/pages').then(m => ({ default: m.RelatoriosPage })));
 const TicketsListPage = lazy(() => import('./features/admin/pages').then(m => ({ default: m.TicketsListPage })));
@@ -108,6 +133,7 @@ const ComunicadosListPage = lazy(() => import('./features/admin/pages').then(m =
 const ComunicadoFormPage = lazy(() => import('./features/admin/pages').then(m => ({ default: m.ComunicadoFormPage })));
 const ComunicadoDetailPage = lazy(() => import('./features/admin/pages').then(m => ({ default: m.ComunicadoDetailPage })));
 const FeatureFlagsPage = lazy(() => import('./features/admin/pages').then(m => ({ default: m.FeatureFlagsPage })));
+const SaasConfiguracaoGatewayPage = lazy(() => import('./features/admin/pages').then(m => ({ default: m.ConfiguracaoGatewayPage })));
 
 function App() {
   return (
@@ -495,6 +521,130 @@ function App() {
                 </ProtectedRoute>
               }
             />
+
+            {/* Configuração de Parcelamento */}
+            <Route
+              path="parcelamento"
+              element={
+                <ProtectedRoute requiredRoles={[PerfilUsuario.ADMIN]}>
+                  <ConfiguracaoParcelamentoPage />
+                </ProtectedRoute>
+              }
+            />
+
+            {/* Fluxo de Caixa Avançado */}
+            <Route
+              path="fluxo-caixa"
+              element={
+                <ProtectedRoute requiredRoles={[PerfilUsuario.ADMIN, PerfilUsuario.GERENTE]}>
+                  <FluxoCaixaPage />
+                </ProtectedRoute>
+              }
+            />
+
+            {/* DRE Simplificado */}
+            <Route
+              path="dre"
+              element={
+                <ProtectedRoute requiredRoles={[PerfilUsuario.ADMIN, PerfilUsuario.GERENTE]}>
+                  <DREPage />
+                </ProtectedRoute>
+              }
+            />
+
+            {/* Projeção Financeira */}
+            <Route
+              path="projecao"
+              element={
+                <ProtectedRoute requiredRoles={[PerfilUsuario.ADMIN, PerfilUsuario.GERENTE]}>
+                  <ProjecaoPage />
+                </ProtectedRoute>
+              }
+            />
+
+            {/* Conciliação Bancária */}
+            <Route path="conciliacao">
+              <Route
+                index
+                element={
+                  <ProtectedRoute requiredRoles={[PerfilUsuario.ADMIN, PerfilUsuario.GERENTE]}>
+                    <ConciliacaoPage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path=":id"
+                element={
+                  <ProtectedRoute requiredRoles={[PerfilUsuario.ADMIN, PerfilUsuario.GERENTE]}>
+                    <ExtratoDetalhePage />
+                  </ProtectedRoute>
+                }
+              />
+            </Route>
+
+            {/* Cobrança Recorrente - Assinaturas */}
+            <Route path="assinaturas">
+              <Route
+                index
+                element={
+                  <ProtectedRoute requiredRoles={[PerfilUsuario.ADMIN, PerfilUsuario.GERENTE, PerfilUsuario.ATENDENTE]}>
+                    <AssinaturasPage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="planos"
+                element={
+                  <ProtectedRoute requiredRoles={[PerfilUsuario.ADMIN, PerfilUsuario.GERENTE]}>
+                    <PlanosAssinaturaPage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="faturas"
+                element={
+                  <ProtectedRoute requiredRoles={[PerfilUsuario.ADMIN, PerfilUsuario.GERENTE, PerfilUsuario.ATENDENTE]}>
+                    <FaturasAssinaturaPage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path=":id"
+                element={
+                  <ProtectedRoute requiredRoles={[PerfilUsuario.ADMIN, PerfilUsuario.GERENTE, PerfilUsuario.ATENDENTE]}>
+                    <AssinaturaDetalhePage />
+                  </ProtectedRoute>
+                }
+              />
+            </Route>
+
+            {/* Despesas Operacionais */}
+            <Route path="despesas">
+              <Route
+                index
+                element={
+                  <ProtectedRoute requiredRoles={[PerfilUsuario.ADMIN, PerfilUsuario.GERENTE, PerfilUsuario.ATENDENTE]}>
+                    <DespesasPage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="nova"
+                element={
+                  <ProtectedRoute requiredRoles={[PerfilUsuario.ADMIN, PerfilUsuario.GERENTE, PerfilUsuario.ATENDENTE]}>
+                    <DespesaFormPage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path=":id/editar"
+                element={
+                  <ProtectedRoute requiredRoles={[PerfilUsuario.ADMIN, PerfilUsuario.GERENTE, PerfilUsuario.ATENDENTE]}>
+                    <DespesaFormPage />
+                  </ProtectedRoute>
+                }
+              />
+            </Route>
           </Route>
 
           {/* Configurações - Todos podem acessar suas próprias configurações */}
@@ -521,6 +671,50 @@ function App() {
             }
           />
 
+          {/* Minha Conta - Oficinas gerenciam faturas e pagamentos SaaS */}
+          <Route path="minha-conta">
+            <Route
+              index
+              element={
+                <ProtectedRoute
+                  requiredRoles={[PerfilUsuario.ADMIN, PerfilUsuario.GERENTE]}
+                >
+                  <MinhaContaPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="faturas"
+              element={
+                <ProtectedRoute
+                  requiredRoles={[PerfilUsuario.ADMIN, PerfilUsuario.GERENTE]}
+                >
+                  <MinhasFaturasPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="faturas/:id"
+              element={
+                <ProtectedRoute
+                  requiredRoles={[PerfilUsuario.ADMIN, PerfilUsuario.GERENTE]}
+                >
+                  <MinhaContaFaturaDetalhePage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="pagamentos"
+              element={
+                <ProtectedRoute
+                  requiredRoles={[PerfilUsuario.ADMIN, PerfilUsuario.GERENTE]}
+                >
+                  <MinhasFaturasPage />
+                </ProtectedRoute>
+              }
+            />
+          </Route>
+
           {/* Notificações - ADMIN e GERENTE */}
           <Route path="notificacoes">
             <Route
@@ -540,6 +734,50 @@ function App() {
                   requiredRoles={[PerfilUsuario.ADMIN, PerfilUsuario.GERENTE]}
                 >
                   <HistoricoNotificacoesPage />
+                </ProtectedRoute>
+              }
+            />
+          </Route>
+
+          {/* Webhooks - ADMIN e GERENTE */}
+          <Route path="webhooks">
+            <Route
+              index
+              element={
+                <ProtectedRoute
+                  requiredRoles={[PerfilUsuario.ADMIN, PerfilUsuario.GERENTE]}
+                >
+                  <WebhooksListPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="novo"
+              element={
+                <ProtectedRoute
+                  requiredRoles={[PerfilUsuario.ADMIN, PerfilUsuario.GERENTE]}
+                >
+                  <WebhookFormPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="logs"
+              element={
+                <ProtectedRoute
+                  requiredRoles={[PerfilUsuario.ADMIN, PerfilUsuario.GERENTE]}
+                >
+                  <WebhookLogsPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path=":id"
+              element={
+                <ProtectedRoute
+                  requiredRoles={[PerfilUsuario.ADMIN, PerfilUsuario.GERENTE]}
+                >
+                  <WebhookFormPage />
                 </ProtectedRoute>
               }
             />
@@ -802,6 +1040,14 @@ function App() {
                 }
               />
               <Route
+                path="nova"
+                element={
+                  <ProtectedRoute requiredRoles={[PerfilUsuario.SUPER_ADMIN]}>
+                    <FaturaFormPage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
                 path=":id"
                 element={
                   <ProtectedRoute requiredRoles={[PerfilUsuario.SUPER_ADMIN]}>
@@ -883,6 +1129,14 @@ function App() {
               element={
                 <ProtectedRoute requiredRoles={[PerfilUsuario.SUPER_ADMIN]}>
                   <FeatureFlagsPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="configuracoes/gateway"
+              element={
+                <ProtectedRoute requiredRoles={[PerfilUsuario.SUPER_ADMIN]}>
+                  <SaasConfiguracaoGatewayPage />
                 </ProtectedRoute>
               }
             />

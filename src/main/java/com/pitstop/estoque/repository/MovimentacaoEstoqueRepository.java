@@ -10,6 +10,7 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
@@ -254,4 +255,95 @@ public interface MovimentacaoEstoqueRepository extends JpaRepository<Movimentaca
      */
     @Query("SELECT m FROM MovimentacaoEstoque m WHERE m.oficina.id = :oficinaId ORDER BY m.dataMovimentacao DESC")
     Page<MovimentacaoEstoque> findByOficinaId(@Param("oficinaId") UUID oficinaId, Pageable pageable);
+
+    // ==================== QUERIES PARA FLUXO DE CAIXA ====================
+
+    /**
+     * Busca movimentações de ENTRADA (compras) agrupadas por dia.
+     * Usado para despesas no fluxo de caixa.
+     * Retorna [data, valorTotal].
+     */
+    @Query(value = """
+        SELECT DATE(m.data_movimentacao), COALESCE(SUM(m.valor_total), 0)
+        FROM movimentacao_estoque m
+        WHERE m.oficina_id = :oficinaId
+        AND m.tipo = 'ENTRADA'
+        AND DATE(m.data_movimentacao) BETWEEN :dataInicio AND :dataFim
+        GROUP BY DATE(m.data_movimentacao)
+        ORDER BY DATE(m.data_movimentacao)
+        """, nativeQuery = true)
+    List<Object[]> findComprasDiariasByPeriodo(
+        @Param("oficinaId") UUID oficinaId,
+        @Param("dataInicio") LocalDate dataInicio,
+        @Param("dataFim") LocalDate dataFim
+    );
+
+    /**
+     * Busca movimentações de BAIXA_OS (custo das peças vendidas) agrupadas por dia.
+     * Usado para calcular CMV real no fluxo de caixa.
+     * Retorna [data, valorTotal].
+     */
+    @Query(value = """
+        SELECT DATE(m.data_movimentacao), COALESCE(SUM(m.valor_total), 0)
+        FROM movimentacao_estoque m
+        WHERE m.oficina_id = :oficinaId
+        AND m.tipo = 'BAIXA_OS'
+        AND DATE(m.data_movimentacao) BETWEEN :dataInicio AND :dataFim
+        GROUP BY DATE(m.data_movimentacao)
+        ORDER BY DATE(m.data_movimentacao)
+        """, nativeQuery = true)
+    List<Object[]> findCMVDiarioByPeriodo(
+        @Param("oficinaId") UUID oficinaId,
+        @Param("dataInicio") LocalDate dataInicio,
+        @Param("dataFim") LocalDate dataFim
+    );
+
+    /**
+     * Soma total de compras (ENTRADA) em um período.
+     */
+    @Query("""
+        SELECT COALESCE(SUM(m.valorTotal), 0)
+        FROM MovimentacaoEstoque m
+        WHERE m.oficina.id = :oficinaId
+        AND m.tipo = 'ENTRADA'
+        AND CAST(m.dataMovimentacao AS localdate) BETWEEN :dataInicio AND :dataFim
+        """)
+    BigDecimal sumComprasByPeriodo(
+        @Param("oficinaId") UUID oficinaId,
+        @Param("dataInicio") LocalDate dataInicio,
+        @Param("dataFim") LocalDate dataFim
+    );
+
+    /**
+     * Soma total de CMV (BAIXA_OS) em um período.
+     * CMV = Custo das Mercadorias Vendidas (peças usadas nas OS).
+     */
+    @Query("""
+        SELECT COALESCE(SUM(m.valorTotal), 0)
+        FROM MovimentacaoEstoque m
+        WHERE m.oficina.id = :oficinaId
+        AND m.tipo = 'BAIXA_OS'
+        AND CAST(m.dataMovimentacao AS localdate) BETWEEN :dataInicio AND :dataFim
+        """)
+    BigDecimal sumCMVByPeriodo(
+        @Param("oficinaId") UUID oficinaId,
+        @Param("dataInicio") LocalDate dataInicio,
+        @Param("dataFim") LocalDate dataFim
+    );
+
+    /**
+     * Soma total de devoluções em um período.
+     */
+    @Query("""
+        SELECT COALESCE(SUM(m.valorTotal), 0)
+        FROM MovimentacaoEstoque m
+        WHERE m.oficina.id = :oficinaId
+        AND m.tipo = 'DEVOLUCAO'
+        AND CAST(m.dataMovimentacao AS localdate) BETWEEN :dataInicio AND :dataFim
+        """)
+    BigDecimal sumDevolucoesByPeriodo(
+        @Param("oficinaId") UUID oficinaId,
+        @Param("dataInicio") LocalDate dataInicio,
+        @Param("dataFim") LocalDate dataFim
+    );
 }

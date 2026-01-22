@@ -6,6 +6,7 @@ import com.pitstop.financeiro.dto.ConfiguracaoGatewayDTO;
 import com.pitstop.financeiro.dto.ConfiguracaoGatewayRequestDTO;
 import com.pitstop.financeiro.repository.ConfiguracaoGatewayRepository;
 import com.pitstop.financeiro.service.MercadoPagoService;
+import com.pitstop.shared.security.feature.RequiresFeature;
 import com.pitstop.shared.security.tenant.TenantContext;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -29,6 +30,7 @@ import java.util.stream.Collectors;
 @RequestMapping("/api/configuracoes/gateways")
 @RequiredArgsConstructor
 @Tag(name = "Configuração de Gateways", description = "Gerenciamento de gateways de pagamento")
+@RequiresFeature("INTEGRACAO_MERCADO_PAGO")
 public class ConfiguracaoGatewayController {
 
     private final ConfiguracaoGatewayRepository repository;

@@ -164,6 +164,20 @@ public class Pagamento implements Serializable {
     private UUID notaFiscalId;
 
     /**
+     * Indica se o pagamento foi conciliado com extrato bancário.
+     * Utilizado na conciliação bancária automática/manual.
+     */
+    @Column(name = "conciliado", nullable = false)
+    @Builder.Default
+    private Boolean conciliado = false;
+
+    /**
+     * ID da transação do extrato bancário vinculada (se conciliado).
+     */
+    @Column(name = "transacao_extrato_id")
+    private UUID transacaoExtratoId;
+
+    /**
      * Data e hora de criação do registro (auditoria).
      */
     @CreatedDate

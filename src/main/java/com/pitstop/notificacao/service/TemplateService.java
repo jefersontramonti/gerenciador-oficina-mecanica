@@ -139,6 +139,11 @@ public class TemplateService {
             case LEMBRETE_AGENDAMENTO -> criarCorpoLembreteAgendamento(tipoNotificacao);
             case CONFIRMACAO_AGENDAMENTO -> criarCorpoConfirmacaoAgendamento(tipoNotificacao);
             case TEST -> criarCorpoTeste(tipoNotificacao);
+            // Templates de Faturamento (Minha Conta)
+            case NOVA_FATURA -> criarCorpoNovaFatura(tipoNotificacao);
+            case LEMBRETE_PAGAMENTO -> criarCorpoLembretePagamento(tipoNotificacao);
+            case FATURA_VENCIDA -> criarCorpoFaturaVencida(tipoNotificacao);
+            case FATURA_PAGA -> criarCorpoFaturaPaga(tipoNotificacao);
         };
 
         return TemplateCustomizado.builder()
@@ -689,6 +694,144 @@ public class TemplateService {
             Se voce recebeu esta mensagem, a configuracao esta funcionando corretamente!
 
             ✅ {nomeOficina}
+            """;
+    }
+
+    // ===== TEMPLATES DE FATURAMENTO (MINHA CONTA) =====
+
+    private String criarCorpoNovaFatura(TipoNotificacao tipo) {
+        if (tipo == TipoNotificacao.EMAIL) {
+            return """
+                <h1>Nova Fatura Disponível - {mesReferencia}</h1>
+                <p>Olá {nomeOficina},</p>
+                <p>Sua fatura referente ao mês de <strong>{mesReferencia}</strong> está disponível.</p>
+                <p><strong>Número da Fatura:</strong> {numeroFatura}</p>
+                <p><strong>Plano:</strong> {plano}</p>
+                <p><strong>Valor:</strong> R$ {valor}</p>
+                <p><strong>Vencimento:</strong> {dataVencimento}</p>
+                <div style="margin: 30px 0; text-align: center;">
+                    <a href="{linkPagamento}" style="display: inline-block; padding: 16px 40px; background: linear-gradient(135deg, #28a745 0%, #20c997 100%); color: #ffffff; text-decoration: none; border-radius: 6px; font-size: 16px; font-weight: 600; box-shadow: 0 4px 6px rgba(40, 167, 69, 0.4);">Pagar Agora</a>
+                </div>
+                <p style="font-size: 14px; color: #666;">Acesse o sistema para visualizar os detalhes da fatura e realizar o pagamento.</p>
+                <p>Atenciosamente,<br/>Equipe PitStop</p>
+                """;
+        }
+        return """
+            📄 *Nova Fatura Disponível*
+
+            Olá {nomeOficina}!
+
+            Sua fatura de *{mesReferencia}* está disponível.
+
+            📋 Número: {numeroFatura}
+            📦 Plano: {plano}
+            💰 Valor: R$ {valor}
+            📅 Vencimento: {dataVencimento}
+
+            Acesse o sistema para pagar: {linkPagamento}
+
+            Equipe PitStop
+            """;
+    }
+
+    private String criarCorpoLembretePagamento(TipoNotificacao tipo) {
+        if (tipo == TipoNotificacao.EMAIL) {
+            return """
+                <h1>Lembrete: Sua Fatura Vence em Breve</h1>
+                <p>Olá {nomeOficina},</p>
+                <p>Este é um lembrete amigável de que sua fatura vence em <strong>{diasParaVencimento} dias</strong>.</p>
+                <p><strong>Número da Fatura:</strong> {numeroFatura}</p>
+                <p><strong>Valor:</strong> R$ {valor}</p>
+                <p><strong>Vencimento:</strong> {dataVencimento}</p>
+                <div style="margin: 30px 0; text-align: center;">
+                    <a href="{linkPagamento}" style="display: inline-block; padding: 16px 40px; background: linear-gradient(135deg, #007bff 0%, #0056b3 100%); color: #ffffff; text-decoration: none; border-radius: 6px; font-size: 16px; font-weight: 600;">Pagar Agora</a>
+                </div>
+                <p>Evite a suspensão dos serviços realizando o pagamento antes do vencimento.</p>
+                <p>Atenciosamente,<br/>Equipe PitStop</p>
+                """;
+        }
+        return """
+            ⏰ *Lembrete: Fatura Vence em Breve*
+
+            Olá {nomeOficina}!
+
+            Sua fatura vence em *{diasParaVencimento} dias*.
+
+            📋 Número: {numeroFatura}
+            💰 Valor: R$ {valor}
+            📅 Vencimento: {dataVencimento}
+
+            Pague agora: {linkPagamento}
+
+            Equipe PitStop
+            """;
+    }
+
+    private String criarCorpoFaturaVencida(TipoNotificacao tipo) {
+        if (tipo == TipoNotificacao.EMAIL) {
+            return """
+                <h1>⚠️ Fatura em Atraso - Ação Necessária</h1>
+                <p>Olá {nomeOficina},</p>
+                <p>Identificamos que a fatura abaixo está <strong>vencida há {diasAtraso} dias</strong>.</p>
+                <p><strong>Número da Fatura:</strong> {numeroFatura}</p>
+                <p><strong>Valor:</strong> R$ {valor}</p>
+                <p><strong>Vencimento:</strong> {dataVencimento}</p>
+                <p style="color: #dc3545; font-weight: bold;">⚠️ O não pagamento pode resultar na suspensão dos serviços.</p>
+                <div style="margin: 30px 0; text-align: center;">
+                    <a href="{linkPagamento}" style="display: inline-block; padding: 16px 40px; background: linear-gradient(135deg, #dc3545 0%, #c82333 100%); color: #ffffff; text-decoration: none; border-radius: 6px; font-size: 16px; font-weight: 600;">Regularizar Agora</a>
+                </div>
+                <p>Se você já realizou o pagamento, por favor desconsidere este aviso.</p>
+                <p>Atenciosamente,<br/>Equipe PitStop</p>
+                """;
+        }
+        return """
+            🔴 *FATURA EM ATRASO*
+
+            Olá {nomeOficina}!
+
+            Sua fatura está vencida há *{diasAtraso} dias*!
+
+            📋 Número: {numeroFatura}
+            💰 Valor: R$ {valor}
+            📅 Vencimento: {dataVencimento}
+
+            ⚠️ O não pagamento pode resultar na suspensão dos serviços.
+
+            Regularize agora: {linkPagamento}
+
+            Equipe PitStop
+            """;
+    }
+
+    private String criarCorpoFaturaPaga(TipoNotificacao tipo) {
+        if (tipo == TipoNotificacao.EMAIL) {
+            return """
+                <h1>✅ Pagamento Confirmado!</h1>
+                <p>Olá {nomeOficina},</p>
+                <p>Confirmamos o recebimento do pagamento da sua fatura.</p>
+                <p><strong>Número da Fatura:</strong> {numeroFatura}</p>
+                <p><strong>Valor Pago:</strong> R$ {valor}</p>
+                <p><strong>Data do Pagamento:</strong> {dataPagamento}</p>
+                <p><strong>Forma de Pagamento:</strong> {formaPagamento}</p>
+                <p style="color: #28a745;">Obrigado por manter sua conta em dia! 🎉</p>
+                <p>Atenciosamente,<br/>Equipe PitStop</p>
+                """;
+        }
+        return """
+            ✅ *Pagamento Confirmado!*
+
+            Olá {nomeOficina}!
+
+            Seu pagamento foi confirmado com sucesso!
+
+            📋 Fatura: {numeroFatura}
+            💰 Valor: R$ {valor}
+            📅 Data: {dataPagamento}
+            💳 Forma: {formaPagamento}
+
+            Obrigado por manter sua conta em dia! 🎉
+
+            Equipe PitStop
             """;
     }
 }

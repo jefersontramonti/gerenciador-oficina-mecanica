@@ -52,6 +52,28 @@ public enum TemplateNotificacao {
      */
     SYSTEM_ALERT("system-alert", "Alerta do Sistema"),
 
+    // ===== TEMPLATES DE FATURA (SaaS Billing) =====
+
+    /**
+     * Nova fatura gerada.
+     */
+    NOVA_FATURA("nova-fatura", "Nova Fatura - {{mesReferencia}}"),
+
+    /**
+     * Lembrete de pagamento (fatura próxima de vencer).
+     */
+    LEMBRETE_PAGAMENTO("lembrete-pagamento", "Lembrete: Sua fatura vence em breve"),
+
+    /**
+     * Fatura vencida - cobrança em atraso.
+     */
+    FATURA_VENCIDA("fatura-vencida", "Fatura em atraso - Ação necessária"),
+
+    /**
+     * Confirmação de pagamento de fatura SaaS.
+     */
+    FATURA_PAGA("fatura-paga", "Pagamento confirmado - Fatura {{numeroFatura}}"),
+
     // ===== TEMPLATES DE ORDEM DE SERVIÇO =====
 
     /**

@@ -10,9 +10,9 @@ package com.pitstop.oficina.domain;
 public enum StatusOficina {
 
     /**
-     * Trial period - Free 30-day trial for new workshops.
+     * Trial period - Free 14-day trial for new workshops.
      */
-    TRIAL("Trial", "Período de teste gratuito (30 dias)"),
+    TRIAL("Trial", "Período de teste gratuito (14 dias)"),
 
     /**
      * Active workshop - In normal operation with valid subscription.

@@ -100,8 +100,8 @@ public class PlanoManutencaoPreventiva implements Serializable {
     private Integer antecedenciaKm = 1000;
 
     /** Canais de notificação habilitados */
-    @JdbcTypeCode(SqlTypes.ARRAY)
-    @Column(name = "canais_notificacao", columnDefinition = "varchar(100)[]")
+    @JdbcTypeCode(SqlTypes.JSON)
+    @Column(name = "canais_notificacao", columnDefinition = "jsonb")
     @Builder.Default
     private List<String> canaisNotificacao = List.of("WHATSAPP", "EMAIL");
 

@@ -499,6 +499,67 @@ public interface OrdemServicoRepository extends JpaRepository<OrdemServico, UUID
     @Query("SELECT os FROM OrdemServico os WHERE os.tokenAprovacao = :tokenAprovacao")
     Optional<OrdemServico> findByTokenAprovacao(@Param("tokenAprovacao") String tokenAprovacao);
 
+    // ========== QUERIES PARA FLUXO DE CAIXA E DRE ==========
+
+    /**
+     * Soma o valor de peças das OS pagas (entregues) em um período.
+     * Usado para o DRE simplificado.
+     *
+     * @param oficinaId ID da oficina (tenant)
+     * @param inicio data inicial
+     * @param fim data final
+     * @return soma dos valores de peças
+     */
+    @Query("SELECT COALESCE(SUM(os.valorPecas), 0) FROM OrdemServico os WHERE os.oficina.id = :oficinaId AND os.status = 'ENTREGUE' AND CAST(os.dataEntrega AS localdate) BETWEEN :inicio AND :fim")
+    BigDecimal sumValorPecasPagasByOficinaAndPeriodo(@Param("oficinaId") UUID oficinaId, @Param("inicio") LocalDate inicio, @Param("fim") LocalDate fim);
+
+    /**
+     * Soma o valor de mão de obra das OS entregues em um período.
+     * Usado para o DRE simplificado - Receita de Serviços.
+     *
+     * @param oficinaId ID da oficina (tenant)
+     * @param inicio data inicial
+     * @param fim data final
+     * @return soma dos valores de mão de obra
+     */
+    @Query("SELECT COALESCE(SUM(os.valorMaoObra), 0) FROM OrdemServico os WHERE os.oficina.id = :oficinaId AND os.status = 'ENTREGUE' AND CAST(os.dataEntrega AS localdate) BETWEEN :inicio AND :fim")
+    BigDecimal sumValorMaoObraByOficinaAndPeriodo(@Param("oficinaId") UUID oficinaId, @Param("inicio") LocalDate inicio, @Param("fim") LocalDate fim);
+
+    /**
+     * Soma os descontos concedidos nas OS entregues em um período.
+     * Desconto = valorTotal - valorFinal (quando valorFinal < valorTotal).
+     * Usado para o DRE simplificado - Deduções.
+     *
+     * @param oficinaId ID da oficina (tenant)
+     * @param inicio data inicial
+     * @param fim data final
+     * @return soma dos descontos concedidos
+     */
+    @Query("SELECT COALESCE(SUM(os.valorTotal - os.valorFinal), 0) FROM OrdemServico os WHERE os.oficina.id = :oficinaId AND os.status = 'ENTREGUE' AND CAST(os.dataEntrega AS localdate) BETWEEN :inicio AND :fim AND os.valorFinal < os.valorTotal")
+    BigDecimal sumDescontosConcedidosByOficinaAndPeriodo(@Param("oficinaId") UUID oficinaId, @Param("inicio") LocalDate inicio, @Param("fim") LocalDate fim);
+
+    /**
+     * Soma o valor das OS canceladas em um período (para registro de perdas).
+     * Usado para o DRE simplificado - Cancelamentos.
+     *
+     * @param oficinaId ID da oficina (tenant)
+     * @param inicio data inicial
+     * @param fim data final
+     * @return soma dos valores das OS canceladas
+     */
+    @Query("SELECT COALESCE(SUM(os.valorTotal), 0) FROM OrdemServico os WHERE os.oficina.id = :oficinaId AND os.status = 'CANCELADO' AND CAST(os.updatedAt AS localdate) BETWEEN :inicio AND :fim")
+    BigDecimal sumValorCanceladosByOficinaAndPeriodo(@Param("oficinaId") UUID oficinaId, @Param("inicio") LocalDate inicio, @Param("fim") LocalDate fim);
+
+    /**
+     * Busca OS pendentes (não finalizadas/entregues/canceladas) com seus valores.
+     * Usado para projeção de receitas esperadas.
+     *
+     * @param oficinaId ID da oficina (tenant)
+     * @return lista de [numero, status, valorFinal]
+     */
+    @Query("SELECT CAST(os.numero AS string), CAST(os.status AS string), os.valorFinal FROM OrdemServico os WHERE os.oficina.id = :oficinaId AND os.status NOT IN ('ENTREGUE', 'CANCELADO')")
+    List<Object[]> findOSPendentesByOficinaWithValor(@Param("oficinaId") UUID oficinaId);
+
     // ========== QUERIES OTIMIZADAS PARA LISTAGEM ==========
 
     /**

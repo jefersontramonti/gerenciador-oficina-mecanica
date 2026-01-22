@@ -28,7 +28,7 @@ spring:
   jpa:
     # database-platform: org.hibernate.dialect.PostgreSQLDialect  # Auto-detected, not needed
     hibernate:
-      ddl-auto: validate
+      ddl-auto: none  # Using Liquibase for schema management
       naming:
         physical-strategy: org.hibernate.boot.model.naming.CamelCaseToUnderscoresNamingStrategy
         implicit-strategy: org.springframework.boot.orm.jpa.hibernate.SpringImplicitNamingStrategy
@@ -244,6 +244,10 @@ pitstop:
 
 # Mercado Pago Configuration
 mercadopago:
+  # Access token for API calls
+  # Get this from: Mercado Pago > Credenciais > Credenciais de produção > Access Token
+  # Leave empty in development to disable payment features
+  access-token: ${MERCADOPAGO_ACCESS_TOKEN:}
   # Webhook secret for signature validation
   # Get this from: Mercado Pago > Integrações > Webhooks > Configurar
   # Leave empty in development to skip signature validation

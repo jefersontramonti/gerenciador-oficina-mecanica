@@ -27,7 +27,7 @@ import java.time.LocalDateTime;
  * This service orchestrates the registration of a new workshop (oficina) in the PitStop SaaS platform,
  * including:
  * 1. Validation of unique constraints (CNPJ/CPF and admin email)
- * 2. Creation of the Oficina entity with a 30-day free trial (ECONOMICO plan)
+ * 2. Creation of the Oficina entity with a 14-day free trial (ECONOMICO plan)
  * 3. Creation of the first admin user with encrypted password
  * 4. Generation of JWT authentication tokens for immediate login
  *
@@ -53,7 +53,7 @@ import java.time.LocalDateTime;
 @RequiredArgsConstructor
 public class OficinaRegistrationService {
 
-    private static final int TRIAL_DAYS = 30;
+    private static final int TRIAL_DAYS = 14;
     private static final BigDecimal TRIAL_MONTHLY_VALUE = BigDecimal.ZERO;
 
     private final OficinaRepository oficinaRepository;
@@ -147,7 +147,7 @@ public class OficinaRegistrationService {
     /**
      * Creates the Oficina entity from registration request data.
      * Sets up the oficina with:
-     * - ECONOMICO plan (30-day free trial)
+     * - ECONOMICO plan (14-day free trial)
      * - ATIVA status
      * - Zero monthly value during trial
      * - Automatic expiration date (today + 30 days)
@@ -176,7 +176,7 @@ public class OficinaRegistrationService {
                 .cep(request.cep())
                 .build();
 
-        // Build Oficina entity with trial plan
+        // Build Oficina entity with trial status
         return Oficina.builder()
                 .cnpjCpf(request.cnpjCpf())
                 .tipoPessoa(request.tipoPessoa())
@@ -188,7 +188,7 @@ public class OficinaRegistrationService {
                 .contato(contato)
                 .endereco(endereco)
                 .plano(PlanoAssinatura.ECONOMICO)
-                .status(StatusOficina.ATIVA)
+                .status(StatusOficina.TRIAL)  // Start in TRIAL status (14 days free)
                 .valorMensalidade(TRIAL_MONTHLY_VALUE)
                 .dataAssinatura(today)
                 .dataVencimentoPlano(trialExpiration)

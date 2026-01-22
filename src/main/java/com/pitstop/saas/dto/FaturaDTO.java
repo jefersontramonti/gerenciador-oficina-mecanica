@@ -35,6 +35,8 @@ public record FaturaDTO(
     BigDecimal valorDesconto,
     BigDecimal valorAcrescimos,
     BigDecimal valorTotal,
+    BigDecimal desconto,      // Alias for frontend compatibility
+    BigDecimal valorFinal,    // Alias for frontend compatibility (same as valorTotal)
 
     // Dates
     LocalDate mesReferencia,
@@ -85,6 +87,8 @@ public record FaturaDTO(
             fatura.getValorDesconto(),
             fatura.getValorAcrescimos(),
             fatura.getValorTotal(),
+            fatura.getValorDesconto(),  // desconto (alias)
+            fatura.getValorTotal(),     // valorFinal (alias)
             fatura.getMesReferencia(),
             fatura.getMesReferenciaFormatado(),
             fatura.getDataEmissao(),

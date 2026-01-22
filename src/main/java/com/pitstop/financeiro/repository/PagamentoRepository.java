@@ -441,4 +441,106 @@ public interface PagamentoRepository extends JpaRepository<Pagamento, UUID> {
         ORDER BY SUM(p.valor) DESC
         """)
     List<Object[]> estatisticasPorTipoNoMes(@Param("oficinaId") UUID oficinaId);
+
+    // ==================== MÉTODOS PARA FLUXO DE CAIXA ====================
+
+    /**
+     * Busca pagamentos diários agrupados por data em um período.
+     * Retorna [data, valorTotal].
+     */
+    @Query(value = """
+        SELECT DATE(p.data_pagamento), COALESCE(SUM(p.valor), 0)
+        FROM pagamentos p
+        WHERE p.oficina_id = :oficinaId
+        AND p.status = 'PAGO'
+        AND p.data_pagamento BETWEEN :dataInicio AND :dataFim
+        GROUP BY DATE(p.data_pagamento)
+        ORDER BY DATE(p.data_pagamento)
+        """, nativeQuery = true)
+    List<Object[]> findPagamentosDiariosByOficinaAndPeriodo(
+        @Param("oficinaId") UUID oficinaId,
+        @Param("dataInicio") LocalDate dataInicio,
+        @Param("dataFim") LocalDate dataFim
+    );
+
+    /**
+     * Busca receitas agrupadas por tipo de pagamento em um período.
+     * Retorna [tipoPagamento, valorTotal, quantidade].
+     */
+    @Query(value = """
+        SELECT p.tipo, COALESCE(SUM(p.valor), 0), COUNT(p.id)
+        FROM pagamentos p
+        WHERE p.oficina_id = :oficinaId
+        AND p.status = 'PAGO'
+        AND p.data_pagamento BETWEEN :dataInicio AND :dataFim
+        GROUP BY p.tipo
+        ORDER BY SUM(p.valor) DESC
+        """, nativeQuery = true)
+    List<Object[]> findReceitasPorTipoPagamento(
+        @Param("oficinaId") UUID oficinaId,
+        @Param("dataInicio") LocalDate dataInicio,
+        @Param("dataFim") LocalDate dataFim
+    );
+
+    /**
+     * Soma total de pagamentos em um período.
+     */
+    @Query("""
+        SELECT COALESCE(SUM(p.valor), 0)
+        FROM Pagamento p
+        WHERE p.oficina.id = :oficinaId
+        AND p.status = 'PAGO'
+        AND p.dataPagamento BETWEEN :dataInicio AND :dataFim
+        """)
+    BigDecimal sumPagamentosByOficinaAndPeriodo(
+        @Param("oficinaId") UUID oficinaId,
+        @Param("dataInicio") LocalDate dataInicio,
+        @Param("dataFim") LocalDate dataFim
+    );
+
+    // ==================== MÉTODOS PARA CONCILIAÇÃO BANCÁRIA ====================
+
+    /**
+     * Busca pagamentos para conciliação bancária.
+     * Retorna pagamentos PAGOS que não foram conciliados, dentro de uma faixa de valor e período.
+     * Retorna [pagamentoId, dataPagamento, valor, tipoPagamento, osNumero, clienteNome].
+     *
+     * @param oficinaId ID da oficina (tenant)
+     * @param valorMin valor mínimo para matching
+     * @param valorMax valor máximo para matching
+     * @param dataInicio data inicial do período
+     * @param dataFim data final do período
+     * @return lista de arrays com dados dos pagamentos para conciliação
+     */
+    @Query(value = """
+        SELECT p.id, p.data_pagamento, p.valor, p.tipo, os.numero, c.nome
+        FROM pagamentos p
+        JOIN ordem_servico os ON p.ordem_servico_id = os.id
+        JOIN veiculos v ON os.veiculo_id = v.id
+        JOIN clientes c ON v.cliente_id = c.id
+        WHERE p.oficina_id = :oficinaId
+        AND p.status = 'PAGO'
+        AND p.conciliado = false
+        AND p.valor BETWEEN :valorMin AND :valorMax
+        AND p.data_pagamento BETWEEN :dataInicio AND :dataFim
+        ORDER BY ABS(p.valor - (:valorMin + :valorMax) / 2)
+        LIMIT 10
+        """, nativeQuery = true)
+    List<Object[]> findPagamentosParaConciliacao(
+        @Param("oficinaId") UUID oficinaId,
+        @Param("valorMin") BigDecimal valorMin,
+        @Param("valorMax") BigDecimal valorMax,
+        @Param("dataInicio") LocalDate dataInicio,
+        @Param("dataFim") LocalDate dataFim
+    );
+
+    /**
+     * Busca pagamento por ID para conciliação.
+     *
+     * @param oficinaId ID da oficina (tenant)
+     * @param pagamentoId ID do pagamento
+     * @return Optional contendo o pagamento se encontrado
+     */
+    @Query("SELECT p FROM Pagamento p WHERE p.oficina.id = :oficinaId AND p.id = :pagamentoId AND p.status = 'PAGO'")
+    Optional<Pagamento> findPagamentoParaConciliacao(@Param("oficinaId") UUID oficinaId, @Param("pagamentoId") UUID pagamentoId);
 }
