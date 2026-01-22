@@ -8,7 +8,6 @@ import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import {
   ArrowLeft,
-  FileText,
   Download,
   CreditCard,
   QrCode,

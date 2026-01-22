@@ -61,7 +61,7 @@ export function ConfiguracaoGatewayPage() {
   const [ativo, setAtivo] = useState(false);
   const [sandbox, setSandbox] = useState(true);
 
-  const { data: config, isLoading, error, refetch } = useConfigMercadoPago();
+  const { data: config, isLoading, error } = useConfigMercadoPago();
   const salvarMutation = useSalvarMercadoPago();
   const validarMutation = useValidarMercadoPago();
 

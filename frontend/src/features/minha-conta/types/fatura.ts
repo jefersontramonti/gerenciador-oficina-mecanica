@@ -2,12 +2,14 @@
  * Types para o módulo Minha Conta - Faturas SaaS
  */
 
-export enum StatusFatura {
-  PENDENTE = 'PENDENTE',
-  VENCIDO = 'VENCIDO',
-  PAGO = 'PAGO',
-  CANCELADO = 'CANCELADO',
-}
+export const StatusFatura = {
+  PENDENTE: 'PENDENTE',
+  VENCIDO: 'VENCIDO',
+  PAGO: 'PAGO',
+  CANCELADO: 'CANCELADO',
+} as const;
+
+export type StatusFatura = (typeof StatusFatura)[keyof typeof StatusFatura];
 
 export const StatusFaturaLabels: Record<StatusFatura, string> = {
   [StatusFatura.PENDENTE]: 'Pendente',
