@@ -221,3 +221,6 @@ databaseChangeLog:
   - include:
       file: db/changelog/migrations/V078__rename_saas_configuracao_gateway.sql
       relativeToChangelogFile: false
+  - include:
+      file: db/changelog/migrations/V079__add_agendamento_to_alertas_manutencao.sql
+      relativeToChangelogFile: false

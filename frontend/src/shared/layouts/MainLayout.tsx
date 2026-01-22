@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { Link, useLocation, Outlet } from 'react-router-dom';
 import { useAuth } from '@/features/auth/hooks/useAuth';
 import { PerfilUsuario } from '@/features/auth/types';
@@ -38,6 +38,8 @@ import {
   Repeat,
   ChevronDown,
   ChevronRight,
+  PanelLeftClose,
+  PanelLeft,
   Briefcase,
   Wallet,
   FileCheck,
@@ -353,6 +355,7 @@ interface NavigationItemLinkProps {
   badgeVariant?: 'orange' | 'red';
   onClick?: () => void;
   isSubItem?: boolean;
+  isCollapsed?: boolean;
 }
 
 const NavigationItemLink = ({
@@ -363,6 +366,7 @@ const NavigationItemLink = ({
   badgeVariant = 'orange',
   onClick,
   isSubItem = false,
+  isCollapsed = false,
 }: NavigationItemLinkProps) => {
   const isFeatureEnabled = useFeatureFlag(item.requiredFeature || '');
 
@@ -375,17 +379,19 @@ const NavigationItemLink = ({
     <Link
       to={item.href}
       onClick={onClick}
+      title={isCollapsed ? item.name : undefined}
       className={cn(
-        'flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors',
-        isSubItem && 'pl-10',
+        'group relative flex items-center rounded-lg text-sm font-medium transition-colors',
+        isCollapsed ? 'justify-center px-2 py-2' : 'gap-3 px-3 py-2',
+        isSubItem && !isCollapsed && 'pl-10',
         isActive
           ? 'bg-primary-50 text-primary-700 dark:bg-primary-900/30 dark:text-primary-400'
           : 'text-gray-700 hover:bg-gray-50 hover:text-gray-900 dark:text-gray-300 dark:hover:bg-gray-700 dark:hover:text-white'
       )}
     >
       <item.icon className="h-5 w-5 flex-shrink-0" />
-      <span className="flex-1 truncate">{item.name}</span>
-      {showBadge && badgeCount && badgeCount > 0 && (
+      {!isCollapsed && <span className="flex-1">{item.name}</span>}
+      {!isCollapsed && showBadge && badgeCount && badgeCount > 0 && (
         <span
           className={cn(
             'inline-flex items-center justify-center rounded-full px-2 py-0.5 text-xs font-medium',
@@ -396,6 +402,20 @@ const NavigationItemLink = ({
         >
           {badgeCount > 99 ? '99+' : badgeCount}
         </span>
+      )}
+      {isCollapsed && showBadge && badgeCount && badgeCount > 0 && (
+        <span className="absolute -right-1 -top-1 flex h-4 w-4 items-center justify-center rounded-full bg-red-500 text-[10px] font-bold text-white">
+          {badgeCount > 9 ? '9+' : badgeCount}
+        </span>
+      )}
+      {/* Tooltip para modo colapsado */}
+      {isCollapsed && (
+        <div className="pointer-events-none absolute left-full z-50 ml-2 hidden whitespace-nowrap rounded-md bg-gray-900 px-2 py-1 text-xs text-white opacity-0 shadow-lg transition-opacity group-hover:block group-hover:opacity-100 dark:bg-gray-700">
+          {item.name}
+          {showBadge && badgeCount && badgeCount > 0 && (
+            <span className="ml-1 text-orange-300">({badgeCount})</span>
+          )}
+        </div>
       )}
     </Link>
   );
@@ -415,6 +435,7 @@ interface NavigationSectionProps {
   alertasFluxo?: number;
   alertasAssinaturas?: number;
   onItemClick?: () => void;
+  isCollapsed?: boolean;
 }
 
 const NavigationSection = ({
@@ -428,6 +449,7 @@ const NavigationSection = ({
   alertasFluxo,
   alertasAssinaturas,
   onItemClick,
+  isCollapsed = false,
 }: NavigationSectionProps) => {
   // Filtrar itens baseado em permissões
   const visibleItems = group.items.filter((item) => {
@@ -471,6 +493,56 @@ const NavigationSection = ({
     return count;
   }, 0);
 
+  // Modo colapsado: mostrar apenas ícone do grupo com tooltip contendo os itens
+  if (isCollapsed) {
+    return (
+      <div className="group relative">
+        <button
+          className={cn(
+            'flex w-full items-center justify-center rounded-lg p-2 text-sm font-medium transition-colors',
+            isGroupActive
+              ? 'bg-primary-50 text-primary-700 dark:bg-primary-900/30 dark:text-primary-400'
+              : 'text-gray-700 hover:bg-gray-50 hover:text-gray-900 dark:text-gray-300 dark:hover:bg-gray-700 dark:hover:text-white'
+          )}
+        >
+          <group.icon className="h-5 w-5" />
+          {groupBadgeCount > 0 && (
+            <span className="absolute -right-1 -top-1 flex h-4 w-4 items-center justify-center rounded-full bg-red-500 text-[10px] font-bold text-white">
+              {groupBadgeCount > 9 ? '9+' : groupBadgeCount}
+            </span>
+          )}
+        </button>
+        {/* Tooltip com lista de itens */}
+        <div className="pointer-events-none absolute left-full top-0 z-50 ml-2 hidden min-w-[180px] rounded-md bg-gray-900 p-2 opacity-0 shadow-lg transition-opacity group-hover:pointer-events-auto group-hover:block group-hover:opacity-100 dark:bg-gray-700">
+          <div className="mb-1 border-b border-gray-700 pb-1 text-xs font-semibold text-gray-300 dark:border-gray-600">
+            {group.name}
+          </div>
+          <div className="space-y-1">
+            {visibleItems.map((item) => {
+              const isActive = currentPath === item.href;
+              return (
+                <Link
+                  key={item.href}
+                  to={item.href}
+                  onClick={onItemClick}
+                  className={cn(
+                    'flex items-center gap-2 rounded px-2 py-1 text-xs transition-colors',
+                    isActive
+                      ? 'bg-primary-600 text-white'
+                      : 'text-gray-300 hover:bg-gray-800 hover:text-white dark:hover:bg-gray-600'
+                  )}
+                >
+                  <item.icon className="h-3.5 w-3.5" />
+                  <span>{item.name}</span>
+                </Link>
+              );
+            })}
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-1">
       {/* Header do grupo */}
@@ -484,7 +556,7 @@ const NavigationSection = ({
         )}
       >
         <group.icon className="h-5 w-5 flex-shrink-0" />
-        <span className="flex-1 text-left truncate">{group.name}</span>
+        <span className="flex-1 text-left">{group.name}</span>
         {groupBadgeCount > 0 && (
           <span className="inline-flex items-center justify-center rounded-full bg-orange-100 px-2 py-0.5 text-xs font-medium text-orange-800 dark:bg-orange-900/30 dark:text-orange-400">
             {groupBadgeCount > 99 ? '99+' : groupBadgeCount}
@@ -543,10 +615,23 @@ const NavigationSection = ({
   );
 };
 
+const SIDEBAR_COLLAPSED_KEY = 'pitstop_sidebar_collapsed';
+
 export const MainLayout = () => {
   const location = useLocation();
   const { user, logout } = useAuth();
   const [sidebarOpen, setSidebarOpen] = useState(false);
+
+  // Estado de colapso da sidebar desktop (persistido em localStorage)
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(() => {
+    const saved = localStorage.getItem(SIDEBAR_COLLAPSED_KEY);
+    return saved === 'true';
+  });
+
+  // Persistir estado de colapso
+  useEffect(() => {
+    localStorage.setItem(SIDEBAR_COLLAPSED_KEY, String(sidebarCollapsed));
+  }, [sidebarCollapsed]);
 
   // Check if user is SUPER_ADMIN - needed before calling hooks
   const isSuperAdmin = user?.perfil === PerfilUsuario.SUPER_ADMIN;
@@ -632,11 +717,11 @@ export const MainLayout = () => {
     }
   };
 
-  const renderSidebarContent = (onItemClick?: () => void) => (
+  const renderSidebarContent = (onItemClick?: () => void, isCollapsed = false) => (
     <>
       {/* SUPER_ADMIN navigation (flat list) */}
       {isSuperAdmin && (
-        <nav className="flex-1 space-y-1 overflow-y-auto p-4">
+        <nav className={cn('flex-1 space-y-1 overflow-y-auto', isCollapsed ? 'p-2' : 'p-4')}>
           {superAdminNavigation.map((item) => {
             const isActive = location.pathname === item.href;
             return (
@@ -645,6 +730,7 @@ export const MainLayout = () => {
                 item={item}
                 isActive={isActive}
                 onClick={onItemClick}
+                isCollapsed={isCollapsed}
               />
             );
           })}
@@ -653,13 +739,14 @@ export const MainLayout = () => {
 
       {/* Regular user navigation (grouped) */}
       {!isSuperAdmin && (
-        <nav className="flex-1 space-y-1 overflow-y-auto p-4">
+        <nav className={cn('flex-1 space-y-1 overflow-y-auto', isCollapsed ? 'p-2' : 'p-4')}>
           {/* Dashboard (standalone) */}
           {showDashboard && (
             <NavigationItemLink
               item={dashboardItem}
               isActive={location.pathname === dashboardItem.href}
               onClick={onItemClick}
+              isCollapsed={isCollapsed}
             />
           )}
 
@@ -682,6 +769,7 @@ export const MainLayout = () => {
               alertasFluxo={alertasFluxo}
               alertasAssinaturas={alertasAssinaturas}
               onItemClick={onItemClick}
+              isCollapsed={isCollapsed}
             />
           ))}
         </nav>
@@ -695,35 +783,94 @@ export const MainLayout = () => {
       <WebSocketNotificationHandler />
 
       {/* Sidebar - Desktop */}
-      <aside className="hidden w-64 flex-col border-r border-gray-200 bg-white dark:border-gray-700 dark:bg-gray-800 lg:flex">
-        <div className="flex h-16 items-center gap-2 border-b border-gray-200 px-6 dark:border-gray-700">
-          <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary-600 dark:bg-primary-500">
+      <aside
+        className={cn(
+          'hidden flex-col border-r border-gray-200 bg-white transition-all duration-300 dark:border-gray-700 dark:bg-gray-800 lg:flex',
+          sidebarCollapsed ? 'w-16' : 'w-72'
+        )}
+      >
+        {/* Header */}
+        <div
+          className={cn(
+            'flex h-16 items-center border-b border-gray-200 dark:border-gray-700',
+            sidebarCollapsed ? 'justify-center px-2' : 'gap-2 px-6'
+          )}
+        >
+          <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-lg bg-primary-600 dark:bg-primary-500">
             <Wrench className="h-6 w-6 text-white" />
           </div>
-          <span className="text-xl font-bold text-gray-900 dark:text-white">PitStop</span>
+          {!sidebarCollapsed && (
+            <span className="text-xl font-bold text-gray-900 dark:text-white">PitStop</span>
+          )}
         </div>
 
-        {renderSidebarContent()}
-
-        <div className="border-t border-gray-200 p-4 dark:border-gray-700">
-          <div className="mb-3 flex items-center gap-3 px-3">
-            <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary-100 text-sm font-medium text-primary-700 dark:bg-primary-900/30 dark:text-primary-400">
-              {user?.nome.charAt(0).toUpperCase()}
-            </div>
-            <div className="flex-1 min-w-0">
-              <p className="truncate text-sm font-medium text-gray-900 dark:text-white">
-                {user?.nome}
-              </p>
-              <p className="truncate text-xs text-gray-500 dark:text-gray-400">{user?.perfil}</p>
-            </div>
-          </div>
+        {/* Botão de toggle expandir/recolher */}
+        <div className={cn('flex border-b border-gray-200 dark:border-gray-700', sidebarCollapsed ? 'justify-center p-2' : 'justify-end p-2 pr-4')}>
           <button
-            onClick={handleLogout}
-            className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50 hover:text-gray-900 dark:text-gray-300 dark:hover:bg-gray-700 dark:hover:text-white"
+            onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
+            className="flex items-center justify-center rounded-lg p-1.5 text-gray-500 transition-colors hover:bg-gray-100 hover:text-gray-700 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-gray-200"
+            title={sidebarCollapsed ? 'Expandir menu' : 'Recolher menu'}
           >
-            <LogOut className="h-5 w-5" />
-            Sair
+            {sidebarCollapsed ? (
+              <PanelLeft className="h-5 w-5" />
+            ) : (
+              <PanelLeftClose className="h-5 w-5" />
+            )}
           </button>
+        </div>
+
+        {renderSidebarContent(undefined, sidebarCollapsed)}
+
+        {/* Footer com usuário */}
+        <div className={cn('border-t border-gray-200 dark:border-gray-700', sidebarCollapsed ? 'p-2' : 'p-4')}>
+          {sidebarCollapsed ? (
+            /* Modo colapsado: apenas avatar com tooltip */
+            <div className="flex flex-col items-center gap-2">
+              <div
+                className="group relative flex h-8 w-8 cursor-default items-center justify-center rounded-full bg-primary-100 text-sm font-medium text-primary-700 dark:bg-primary-900/30 dark:text-primary-400"
+                title={`${user?.nome} (${user?.perfil})`}
+              >
+                {user?.nome.charAt(0).toUpperCase()}
+                <div className="pointer-events-none absolute left-full z-50 ml-2 hidden whitespace-nowrap rounded-md bg-gray-900 px-2 py-1 text-xs text-white opacity-0 shadow-lg transition-opacity group-hover:block group-hover:opacity-100 dark:bg-gray-700">
+                  {user?.nome}
+                  <br />
+                  <span className="text-gray-400">{user?.perfil}</span>
+                </div>
+              </div>
+              <button
+                onClick={handleLogout}
+                className="group relative flex items-center justify-center rounded-lg p-2 text-gray-700 transition-colors hover:bg-gray-50 hover:text-gray-900 dark:text-gray-300 dark:hover:bg-gray-700 dark:hover:text-white"
+                title="Sair"
+              >
+                <LogOut className="h-5 w-5" />
+                <div className="pointer-events-none absolute left-full z-50 ml-2 hidden whitespace-nowrap rounded-md bg-gray-900 px-2 py-1 text-xs text-white opacity-0 shadow-lg transition-opacity group-hover:block group-hover:opacity-100 dark:bg-gray-700">
+                  Sair
+                </div>
+              </button>
+            </div>
+          ) : (
+            /* Modo expandido */
+            <>
+              <div className="mb-3 flex items-center gap-3 px-3">
+                <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-primary-100 text-sm font-medium text-primary-700 dark:bg-primary-900/30 dark:text-primary-400">
+                  {user?.nome.charAt(0).toUpperCase()}
+                </div>
+                <div className="min-w-0 flex-1">
+                  <p className="truncate text-sm font-medium text-gray-900 dark:text-white">
+                    {user?.nome}
+                  </p>
+                  <p className="truncate text-xs text-gray-500 dark:text-gray-400">{user?.perfil}</p>
+                </div>
+              </div>
+              <button
+                onClick={handleLogout}
+                className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50 hover:text-gray-900 dark:text-gray-300 dark:hover:bg-gray-700 dark:hover:text-white"
+              >
+                <LogOut className="h-5 w-5" />
+                Sair
+              </button>
+            </>
+          )}
         </div>
       </aside>
 

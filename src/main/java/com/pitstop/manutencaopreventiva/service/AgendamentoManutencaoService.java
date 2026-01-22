@@ -6,7 +6,10 @@ import com.pitstop.manutencaopreventiva.domain.*;
 import com.pitstop.manutencaopreventiva.dto.*;
 import com.pitstop.manutencaopreventiva.mapper.ManutencaoMapper;
 import com.pitstop.manutencaopreventiva.repository.*;
+import com.pitstop.notificacao.domain.ConfiguracaoNotificacao;
+import com.pitstop.notificacao.repository.ConfiguracaoNotificacaoRepository;
 import com.pitstop.oficina.domain.Oficina;
+import com.pitstop.oficina.repository.OficinaRepository;
 import com.pitstop.shared.exception.ResourceNotFoundException;
 import com.pitstop.shared.security.tenant.TenantContext;
 import com.pitstop.veiculo.domain.Veiculo;
@@ -20,7 +23,10 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 @Service
@@ -34,6 +40,9 @@ public class AgendamentoManutencaoService {
     private final VeiculoRepository veiculoRepository;
     private final ClienteRepository clienteRepository;
     private final ManutencaoMapper mapper;
+    private final ConfiguracaoNotificacaoRepository configuracaoNotificacaoRepository;
+    private final AlertaManutencaoRepository alertaManutencaoRepository;
+    private final OficinaRepository oficinaRepository;
 
     /**
      * Lista agendamentos com filtros.
@@ -131,8 +140,8 @@ public class AgendamentoManutencaoService {
                 .orElseThrow(() -> new ResourceNotFoundException("Plano não encontrado"));
         }
 
-        Oficina oficina = new Oficina();
-        oficina.setId(oficinaId);
+        Oficina oficina = oficinaRepository.findById(oficinaId)
+            .orElseThrow(() -> new ResourceNotFoundException("Oficina não encontrada"));
 
         AgendamentoManutencao agendamento = AgendamentoManutencao.builder()
             .oficina(oficina)
@@ -152,6 +161,9 @@ public class AgendamentoManutencaoService {
 
         log.info("Agendamento criado: {} para {} em {}",
             agendamento.getId(), veiculo.getPlaca(), request.dataAgendamento());
+
+        // Envia notificações de confirmação pelos canais habilitados
+        enviarNotificacoesAgendamento(agendamento, cliente, veiculo, oficina);
 
         return mapper.toAgendamentoResponse(agendamento);
     }
@@ -289,6 +301,148 @@ public class AgendamentoManutencaoService {
     public long contarAgendamentosDoDia() {
         UUID oficinaId = TenantContext.getTenantId();
         return agendamentoRepository.countAgendamentosDoDia(oficinaId, LocalDate.now());
+    }
+
+    /**
+     * Envia notificações de confirmação de agendamento pelos canais habilitados.
+     */
+    private void enviarNotificacoesAgendamento(
+            AgendamentoManutencao agendamento,
+            Cliente cliente,
+            Veiculo veiculo,
+            Oficina oficina) {
+
+        UUID oficinaId = oficina.getId();
+
+        // Busca configuração de notificações da oficina
+        ConfiguracaoNotificacao config = configuracaoNotificacaoRepository
+            .findByOficinaIdAndAtivoTrue(oficinaId)
+            .orElse(null);
+
+        if (config == null) {
+            log.debug("Configuração de notificação não encontrada para oficina {}", oficinaId);
+            return;
+        }
+
+        String nomeOficina = oficina.getNomeFantasia() != null
+            ? oficina.getNomeFantasia()
+            : oficina.getRazaoSocial();
+
+        DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("dd/MM/yyyy");
+        DateTimeFormatter timeFormatter = DateTimeFormatter.ofPattern("HH:mm");
+
+        String dataFormatada = agendamento.getDataAgendamento().format(dateFormatter);
+        String horaFormatada = agendamento.getHoraAgendamento().format(timeFormatter);
+
+        // Mensagem de confirmação
+        String mensagem = String.format(
+            "✅ Agendamento Confirmado!\n\n" +
+            "Olá %s,\n\n" +
+            "Seu agendamento foi realizado com sucesso!\n\n" +
+            "📅 Data: %s\n" +
+            "🕐 Horário: %s\n" +
+            "🔧 Serviço: %s\n" +
+            "🚗 Veículo: %s %s (%s)\n\n" +
+            "Aguardamos você!\n\n" +
+            "%s",
+            cliente.getNome(),
+            dataFormatada,
+            horaFormatada,
+            agendamento.getTipoManutencao(),
+            veiculo.getMarca(),
+            veiculo.getModelo(),
+            veiculo.getPlacaFormatada(),
+            nomeOficina
+        );
+
+        Map<String, Object> dadosExtras = new HashMap<>();
+        dadosExtras.put("nomeCliente", cliente.getNome());
+        dadosExtras.put("dataAgendamento", dataFormatada);
+        dadosExtras.put("horaAgendamento", horaFormatada);
+        dadosExtras.put("tipoManutencao", agendamento.getTipoManutencao());
+        dadosExtras.put("veiculoPlaca", veiculo.getPlacaFormatada());
+        dadosExtras.put("veiculoModelo", veiculo.getModelo());
+        dadosExtras.put("veiculoMarca", veiculo.getMarca());
+        dadosExtras.put("nomeOficina", nomeOficina);
+
+        int alertasCriados = 0;
+
+        // WhatsApp
+        if (Boolean.TRUE.equals(config.getWhatsappHabilitado()) && config.temEvolutionApiConfigurada()) {
+            String telefone = cliente.getTelefone();
+            if (telefone != null && !telefone.isBlank()) {
+                AlertaManutencao alerta = AlertaManutencao.builder()
+                    .oficina(oficina)
+                    .agendamento(agendamento)
+                    .plano(agendamento.getPlano())
+                    .veiculo(veiculo)
+                    .cliente(cliente)
+                    .tipoAlerta(TipoAlerta.CONFIRMACAO)
+                    .canal(CanalNotificacao.WHATSAPP)
+                    .destinatario(telefone)
+                    .titulo("Confirmação de Agendamento")
+                    .mensagem(mensagem)
+                    .dadosExtras(dadosExtras)
+                    .build();
+
+                alertaManutencaoRepository.save(alerta);
+                alertasCriados++;
+                log.debug("Alerta WhatsApp criado para agendamento {}", agendamento.getId());
+            }
+        }
+
+        // Email
+        if (Boolean.TRUE.equals(config.getEmailHabilitado())) {
+            String email = cliente.getEmail();
+            if (email != null && !email.isBlank()) {
+                AlertaManutencao alerta = AlertaManutencao.builder()
+                    .oficina(oficina)
+                    .agendamento(agendamento)
+                    .plano(agendamento.getPlano())
+                    .veiculo(veiculo)
+                    .cliente(cliente)
+                    .tipoAlerta(TipoAlerta.CONFIRMACAO)
+                    .canal(CanalNotificacao.EMAIL)
+                    .destinatario(email)
+                    .titulo("Confirmação de Agendamento - " + nomeOficina)
+                    .mensagem(mensagem)
+                    .dadosExtras(dadosExtras)
+                    .build();
+
+                alertaManutencaoRepository.save(alerta);
+                alertasCriados++;
+                log.debug("Alerta Email criado para agendamento {}", agendamento.getId());
+            }
+        }
+
+        // Telegram
+        if (Boolean.TRUE.equals(config.getTelegramHabilitado()) && config.temTelegramConfigurado()) {
+            String chatId = config.getTelegramChatId();
+            if (chatId != null && !chatId.isBlank()) {
+                AlertaManutencao alerta = AlertaManutencao.builder()
+                    .oficina(oficina)
+                    .agendamento(agendamento)
+                    .plano(agendamento.getPlano())
+                    .veiculo(veiculo)
+                    .cliente(cliente)
+                    .tipoAlerta(TipoAlerta.CONFIRMACAO)
+                    .canal(CanalNotificacao.TELEGRAM)
+                    .destinatario(chatId)
+                    .titulo("Confirmação de Agendamento")
+                    .mensagem(mensagem)
+                    .dadosExtras(dadosExtras)
+                    .build();
+
+                alertaManutencaoRepository.save(alerta);
+                alertasCriados++;
+                log.debug("Alerta Telegram criado para agendamento {}", agendamento.getId());
+            }
+        }
+
+        if (alertasCriados > 0) {
+            log.info("Criados {} alertas de confirmação para agendamento {}",
+                alertasCriados, agendamento.getId());
+        }
     }
 
     private void validarTenant(AgendamentoManutencao agendamento) {

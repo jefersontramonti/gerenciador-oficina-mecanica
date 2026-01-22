@@ -51,9 +51,12 @@ public class AlertaManutencao implements Serializable {
     private Oficina oficina;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "plano_id", nullable = false)
-    @NotNull(message = "Plano é obrigatório")
+    @JoinColumn(name = "plano_id")
     private PlanoManutencaoPreventiva plano;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "agendamento_id")
+    private AgendamentoManutencao agendamento;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "veiculo_id", nullable = false)
