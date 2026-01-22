@@ -221,6 +221,8 @@ export interface AgendamentoManutencaoRequest {
   observacoes?: string;
   observacoesInternas?: string;
   enviarConfirmacao?: boolean;
+  /** Canais de notificacao: WHATSAPP, EMAIL, TELEGRAM */
+  canaisNotificacao?: string[];
 }
 
 export interface RemarcarAgendamentoRequest {

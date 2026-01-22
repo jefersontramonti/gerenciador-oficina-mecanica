@@ -4,6 +4,7 @@ import jakarta.validation.constraints.*;
 
 import java.time.LocalDate;
 import java.time.LocalTime;
+import java.util.List;
 import java.util.UUID;
 
 /**
@@ -37,5 +38,12 @@ public record AgendamentoManutencaoRequestDTO(
 
     String observacoesInternas,
 
-    Boolean enviarConfirmacao
+    Boolean enviarConfirmacao,
+
+    /**
+     * Canais de notificação selecionados pela oficina.
+     * Valores possíveis: WHATSAPP, EMAIL, TELEGRAM
+     * Se null ou vazio, usa os canais configurados na oficina.
+     */
+    List<String> canaisNotificacao
 ) {}

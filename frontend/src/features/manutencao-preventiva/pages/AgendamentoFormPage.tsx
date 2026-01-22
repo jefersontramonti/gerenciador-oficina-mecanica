@@ -3,26 +3,33 @@ import { useParams, useNavigate, Link } from 'react-router-dom';
 import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { ArrowLeft, Save, Search } from 'lucide-react';
+import { ArrowLeft, Save, Search, MessageCircle, Mail, Send, Bell } from 'lucide-react';
 import { useCriarAgendamento } from '../hooks/useManutencaoPreventiva';
 import { api } from '@/shared/services/api';
 import { showSuccess, showError } from '@/shared/utils/notifications';
 import type { AgendamentoManutencaoRequest } from '../types';
 
 const agendamentoSchema = z.object({
-  veiculoId: z.string().min(1, 'Selecione um veículo'),
+  veiculoId: z.string().min(1, 'Selecione um veiculo'),
   clienteId: z.string().min(1, 'Selecione um cliente'),
   planoId: z.string().optional(),
   dataAgendamento: z.string().min(1, 'Informe a data'),
   horaAgendamento: z.string().min(1, 'Informe a hora'),
-  duracaoEstimadaMinutos: z.number().min(15, 'Mínimo 15 minutos'),
-  tipoManutencao: z.string().min(1, 'Informe o tipo de manutenção'),
+  duracaoEstimadaMinutos: z.number().min(15, 'Minimo 15 minutos'),
+  tipoManutencao: z.string().min(1, 'Informe o tipo de manutencao'),
   descricao: z.string().optional(),
   observacoes: z.string().optional(),
   observacoesInternas: z.string().optional(),
+  canaisNotificacao: z.array(z.string()).optional(),
 });
 
 type AgendamentoFormData = z.infer<typeof agendamentoSchema>;
+
+const CANAIS_NOTIFICACAO = [
+  { id: 'WHATSAPP', label: 'WhatsApp', icon: MessageCircle, color: 'text-green-600 dark:text-green-400' },
+  { id: 'EMAIL', label: 'Email', icon: Mail, color: 'text-blue-600 dark:text-blue-400' },
+  { id: 'TELEGRAM', label: 'Telegram', icon: Send, color: 'text-sky-600 dark:text-sky-400' },
+];
 
 export default function AgendamentoFormPage() {
   const { id } = useParams<{ id: string }>();
@@ -41,13 +48,17 @@ export default function AgendamentoFormPage() {
     handleSubmit,
     control,
     setValue,
+    watch,
     formState: { errors },
   } = useForm<AgendamentoFormData>({
     resolver: zodResolver(agendamentoSchema),
     defaultValues: {
       duracaoEstimadaMinutos: 60,
+      canaisNotificacao: ['WHATSAPP'], // WhatsApp selecionado por padrao
     },
   });
+
+  const canaisSelecionados = watch('canaisNotificacao') || [];
 
   // Search vehicles using API
   const handleVeiculoSearch = async (search: string) => {
@@ -58,13 +69,22 @@ export default function AgendamentoFormPage() {
         const response = await api.get(`/veiculos?placa=${search}&size=10`);
         setVeiculoResults(response.data.content || []);
       } catch (error) {
-        console.error('Erro ao buscar veículos:', error);
+        console.error('Erro ao buscar veiculos:', error);
         setVeiculoResults([]);
       } finally {
         setSearchLoading(false);
       }
     } else {
       setVeiculoResults([]);
+    }
+  };
+
+  const toggleCanal = (canalId: string) => {
+    const current = canaisSelecionados || [];
+    if (current.includes(canalId)) {
+      setValue('canaisNotificacao', current.filter(c => c !== canalId));
+    } else {
+      setValue('canaisNotificacao', [...current, canalId]);
     }
   };
 
@@ -81,10 +101,13 @@ export default function AgendamentoFormPage() {
         descricao: data.descricao || undefined,
         observacoes: data.observacoes || undefined,
         observacoesInternas: data.observacoesInternas || undefined,
+        canaisNotificacao: data.canaisNotificacao && data.canaisNotificacao.length > 0
+          ? data.canaisNotificacao
+          : undefined,
       };
 
       await criarMutation.mutateAsync(request);
-      showSuccess('Agendamento criado com sucesso');
+      showSuccess('Agendamento criado com sucesso! Notificacao enviada ao cliente.');
       navigate('/manutencao-preventiva/agendamentos');
     } catch (error) {
       console.error('Erro ao salvar agendamento:', error);
@@ -107,7 +130,7 @@ export default function AgendamentoFormPage() {
             {isEditing ? 'Editar Agendamento' : 'Novo Agendamento'}
           </h1>
           <p className="text-sm text-gray-600 dark:text-gray-400 hidden sm:block">
-            {isEditing ? 'Atualize as informações do agendamento' : 'Agende uma manutenção preventiva'}
+            {isEditing ? 'Atualize as informacoes do agendamento' : 'Agende uma manutencao preventiva'}
           </p>
         </div>
       </div>
@@ -116,9 +139,9 @@ export default function AgendamentoFormPage() {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {/* Left Column */}
           <div className="space-y-6">
-            {/* Veículo Selection */}
+            {/* Veiculo Selection */}
             <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-4">
-              <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Veículo</h2>
+              <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Veiculo</h2>
 
               {selectedVeiculo ? (
                 <div className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
@@ -198,7 +221,7 @@ export default function AgendamentoFormPage() {
                   )}
                   {veiculoSearch.length >= 2 && veiculoResults.length === 0 && !searchLoading && (
                     <p className="mt-2 text-sm text-gray-500 dark:text-gray-400">
-                      Nenhum veículo encontrado
+                      Nenhum veiculo encontrado
                     </p>
                   )}
                   {veiculoSearch.length < 2 && (
@@ -249,7 +272,7 @@ export default function AgendamentoFormPage() {
 
               <div className="mt-4">
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                  Duração Estimada (minutos)
+                  Duracao Estimada (minutos)
                 </label>
                 <Controller
                   name="duracaoEstimadaMinutos"
@@ -272,30 +295,81 @@ export default function AgendamentoFormPage() {
                 />
               </div>
             </div>
+
+            {/* Notificacao ao Cliente */}
+            <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-4">
+              <div className="flex items-center gap-2 mb-4">
+                <Bell className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+                <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Notificar Cliente</h2>
+              </div>
+
+              <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
+                Selecione os canais para enviar a notificacao de confirmacao ao cliente:
+              </p>
+
+              <div className="flex flex-wrap gap-3">
+                {CANAIS_NOTIFICACAO.map((canal) => {
+                  const Icon = canal.icon;
+                  const isSelected = canaisSelecionados.includes(canal.id);
+                  return (
+                    <button
+                      key={canal.id}
+                      type="button"
+                      onClick={() => toggleCanal(canal.id)}
+                      className={`flex items-center gap-2 px-4 py-2.5 rounded-lg border-2 transition-all ${
+                        isSelected
+                          ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300'
+                          : 'border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:border-gray-300 dark:hover:border-gray-500'
+                      }`}
+                    >
+                      <Icon className={`h-5 w-5 ${isSelected ? 'text-blue-600 dark:text-blue-400' : canal.color}`} />
+                      <span className="font-medium">{canal.label}</span>
+                      {isSelected && (
+                        <span className="ml-1 text-xs bg-blue-200 dark:bg-blue-800 text-blue-800 dark:text-blue-200 px-1.5 py-0.5 rounded">
+                          Ativo
+                        </span>
+                      )}
+                    </button>
+                  );
+                })}
+              </div>
+
+              {canaisSelecionados.length === 0 && (
+                <p className="mt-3 text-sm text-amber-600 dark:text-amber-400">
+                  Nenhum canal selecionado. O cliente nao recebera notificacao automatica.
+                </p>
+              )}
+
+              {canaisSelecionados.length > 0 && (
+                <p className="mt-3 text-sm text-green-600 dark:text-green-400">
+                  O cliente recebera um link para confirmar ou cancelar o agendamento via {canaisSelecionados.join(', ')}.
+                </p>
+              )}
+            </div>
           </div>
 
           {/* Right Column */}
           <div className="space-y-6">
-            {/* Informações da Manutenção */}
+            {/* Informacoes da Manutencao */}
             <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-4">
-              <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Manutenção</h2>
+              <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Manutencao</h2>
 
               <div className="space-y-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                    Tipo de Manutenção *
+                    Tipo de Manutencao *
                   </label>
                   <select
                     {...register('tipoManutencao')}
                     className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
                   >
                     <option value="">Selecione...</option>
-                    <option value="TROCA_OLEO">Troca de Óleo</option>
-                    <option value="REVISAO">Revisão</option>
+                    <option value="TROCA_OLEO">Troca de Oleo</option>
+                    <option value="REVISAO">Revisao</option>
                     <option value="ALINHAMENTO">Alinhamento</option>
                     <option value="BALANCEAMENTO">Balanceamento</option>
                     <option value="FREIOS">Freios</option>
-                    <option value="SUSPENSAO">Suspensão</option>
+                    <option value="SUSPENSAO">Suspensao</option>
                     <option value="AR_CONDICIONADO">Ar Condicionado</option>
                     <option value="CORREIA_DENTADA">Correia Dentada</option>
                     <option value="FILTROS">Filtros</option>
@@ -308,31 +382,31 @@ export default function AgendamentoFormPage() {
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                    Descrição
+                    Descricao
                   </label>
                   <textarea
                     {...register('descricao')}
                     rows={2}
-                    placeholder="Descrição do serviço a ser realizado..."
+                    placeholder="Descricao do servico a ser realizado..."
                     className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
                   />
                 </div>
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                    Observações (visíveis ao cliente)
+                    Observacoes (visiveis ao cliente)
                   </label>
                   <textarea
                     {...register('observacoes')}
                     rows={2}
-                    placeholder="Informações para o cliente..."
+                    placeholder="Informacoes para o cliente..."
                     className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
                   />
                 </div>
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                    Observações Internas
+                    Observacoes Internas
                   </label>
                   <textarea
                     {...register('observacoesInternas')}
@@ -360,7 +434,7 @@ export default function AgendamentoFormPage() {
             className="flex items-center justify-center gap-2 w-full sm:w-auto px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50"
           >
             <Save className="h-4 w-4" />
-            {criarMutation.isPending ? 'Salvando...' : 'Salvar Agendamento'}
+            {criarMutation.isPending ? 'Salvando...' : 'Salvar e Notificar'}
           </button>
         </div>
       </form>

@@ -109,8 +109,9 @@ const ManutencaoAgendamentoDetailPage = lazy(() => import('./features/manutencao
 const ManutencaoCalendarioPage = lazy(() => import('./features/manutencao-preventiva/pages').then(m => ({ default: m.CalendarioPage })));
 const ManutencaoVencidosListPage = lazy(() => import('./features/manutencao-preventiva/pages').then(m => ({ default: m.VencidosListPage })));
 
-// Paginas Publicas (aprovacao de orcamento)
+// Paginas Publicas (aprovacao de orcamento e confirmacao de agendamento)
 const AprovarOrcamentoPage = lazy(() => import('./features/ordens-servico/pages/AprovarOrcamentoPage').then(m => ({ default: m.AprovarOrcamentoPage })));
+const ConfirmarAgendamentoPage = lazy(() => import('./features/manutencao-preventiva/pages/ConfirmarAgendamentoPage').then(m => ({ default: m.ConfirmarAgendamentoPage })));
 
 // Admin (SUPER_ADMIN) pages
 const SaasDashboardPage = lazy(() => import('./features/admin/pages').then(m => ({ default: m.SaasDashboardPage })));
@@ -150,6 +151,9 @@ function App() {
 
             {/* Aprovacao de orcamento (rota publica - cliente acessa via email) */}
             <Route path="/orcamento/aprovar" element={<AprovarOrcamentoPage />} />
+
+            {/* Confirmacao de agendamento (rota publica - cliente acessa via WhatsApp/Email/Telegram) */}
+            <Route path="/agendamento/confirmar" element={<ConfirmarAgendamentoPage />} />
 
             {/* Protected routes */}
             <Route
