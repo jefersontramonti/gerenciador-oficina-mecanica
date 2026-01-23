@@ -47,7 +47,13 @@ public record AgendamentoManutencaoResponseDTO(
     Boolean passado,
 
     @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss")
-    LocalDateTime createdAt
+    LocalDateTime createdAt,
+
+    /**
+     * Feedback sobre o status das notificações.
+     * Presente apenas quando o agendamento é criado ou quando notificações são reenviadas.
+     */
+    NotificacaoFeedbackDTO notificacaoFeedback
 ) {
     public record PlanoResumoDTO(
         UUID id,

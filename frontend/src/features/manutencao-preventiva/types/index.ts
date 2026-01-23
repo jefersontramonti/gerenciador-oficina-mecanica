@@ -207,6 +207,8 @@ export interface AgendamentoManutencao {
   hoje: boolean;
   passado: boolean;
   createdAt: string;
+  /** Feedback sobre o status das notificações (presente na criação do agendamento). */
+  notificacaoFeedback?: NotificacaoFeedback;
 }
 
 export interface AgendamentoManutencaoRequest {
@@ -296,4 +298,38 @@ export interface TemplateFilters {
   busca?: string;
   page?: number;
   size?: number;
+}
+
+// ==================== FEEDBACK DE NOTIFICAÇÃO ====================
+
+/**
+ * Feedback detalhado por canal de notificação.
+ */
+export interface CanalFeedback {
+  canal: string;
+  criado: boolean;
+  destinatario?: string;
+  status: string;
+  motivo?: string;
+}
+
+/**
+ * Feedback sobre o status das notificações após criar um agendamento.
+ * Informa ao usuário o que aconteceu com cada canal de notificação.
+ */
+export interface NotificacaoFeedback {
+  /** Indica se pelo menos uma notificação foi criada. */
+  notificacoesCriadas: boolean;
+  /** Indica se as notificações serão enviadas imediatamente. */
+  envioImediato: boolean;
+  /** Motivo pelo qual o envio não é imediato (ex: "Fora do horário comercial"). */
+  motivoAtraso?: string;
+  /** Horário em que as notificações agendadas serão enviadas. */
+  horarioPrevistaEnvio?: string;
+  /** Quantidade total de notificações criadas. */
+  totalNotificacoes: number;
+  /** Detalhes de cada canal de notificação. */
+  canais: CanalFeedback[];
+  /** Mensagem resumida para exibir ao usuário. */
+  mensagemUsuario: string;
 }

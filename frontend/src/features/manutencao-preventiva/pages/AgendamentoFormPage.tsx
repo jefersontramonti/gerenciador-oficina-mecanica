@@ -6,8 +6,8 @@ import { z } from 'zod';
 import { ArrowLeft, Save, Search, MessageCircle, Mail, Send, Bell } from 'lucide-react';
 import { useCriarAgendamento } from '../hooks/useManutencaoPreventiva';
 import { api } from '@/shared/services/api';
-import { showSuccess, showError } from '@/shared/utils/notifications';
-import type { AgendamentoManutencaoRequest } from '../types';
+import { showSuccess, showError, showWarning, showInfo } from '@/shared/utils/notifications';
+import type { AgendamentoManutencaoRequest, NotificacaoFeedback } from '../types';
 
 const agendamentoSchema = z.object({
   veiculoId: z.string().min(1, 'Selecione um veiculo'),
@@ -106,8 +106,29 @@ export default function AgendamentoFormPage() {
           : undefined,
       };
 
-      await criarMutation.mutateAsync(request);
-      showSuccess('Agendamento criado com sucesso! Notificacao enviada ao cliente.');
+      const response = await criarMutation.mutateAsync(request);
+
+      // Processa o feedback de notificacao
+      const feedback = response.notificacaoFeedback as NotificacaoFeedback | undefined;
+
+      if (feedback) {
+        if (feedback.notificacoesCriadas) {
+          if (feedback.envioImediato) {
+            showSuccess(`Agendamento criado! ${feedback.mensagemUsuario}`);
+          } else {
+            // Notificacoes agendadas - usa toast warning para destacar
+            showWarning(feedback.mensagemUsuario);
+            showSuccess('Agendamento criado com sucesso!');
+          }
+        } else {
+          // Nenhuma notificacao criada
+          showInfo(feedback.mensagemUsuario);
+          showSuccess('Agendamento criado com sucesso!');
+        }
+      } else {
+        showSuccess('Agendamento criado com sucesso!');
+      }
+
       navigate('/manutencao-preventiva/agendamentos');
     } catch (error) {
       console.error('Erro ao salvar agendamento:', error);

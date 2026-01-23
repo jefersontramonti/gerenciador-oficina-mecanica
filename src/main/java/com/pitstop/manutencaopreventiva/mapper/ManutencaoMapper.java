@@ -124,6 +124,19 @@ public class ManutencaoMapper {
     // ==================== AGENDAMENTO ====================
 
     public AgendamentoManutencaoResponseDTO toAgendamentoResponse(AgendamentoManutencao agendamento) {
+        return toAgendamentoResponse(agendamento, null);
+    }
+
+    /**
+     * Converte AgendamentoManutencao para DTO incluindo feedback de notificação.
+     *
+     * @param agendamento O agendamento
+     * @param notificacaoFeedback Feedback sobre as notificações (opcional)
+     * @return DTO de resposta
+     */
+    public AgendamentoManutencaoResponseDTO toAgendamentoResponse(
+            AgendamentoManutencao agendamento,
+            NotificacaoFeedbackDTO notificacaoFeedback) {
         if (agendamento == null) return null;
 
         return new AgendamentoManutencaoResponseDTO(
@@ -147,7 +160,8 @@ public class ManutencaoMapper {
             agendamento.getObservacoes(),
             agendamento.isHoje(),
             agendamento.isPassado(),
-            agendamento.getCreatedAt()
+            agendamento.getCreatedAt(),
+            notificacaoFeedback
         );
     }
 

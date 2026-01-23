@@ -170,9 +170,10 @@ public class AgendamentoManutencaoService {
             agendamento.getId(), veiculo.getPlaca(), request.dataAgendamento());
 
         // Envia notificações solicitando confirmação pelos canais selecionados
-        enviarNotificacoesAgendamento(agendamento, cliente, veiculo, oficina, request.canaisNotificacao());
+        NotificacaoFeedbackDTO feedbackNotificacao = enviarNotificacoesAgendamento(
+            agendamento, cliente, veiculo, oficina, request.canaisNotificacao());
 
-        return mapper.toAgendamentoResponse(agendamento);
+        return mapper.toAgendamentoResponse(agendamento, feedbackNotificacao);
     }
 
     /**
@@ -319,14 +320,16 @@ public class AgendamentoManutencaoService {
      * @param veiculo O veículo
      * @param oficina A oficina
      * @param canaisSelecionados Canais selecionados pelo usuário (null = usa config da oficina)
+     * @return Feedback detalhado sobre o status das notificações
      */
-    private void enviarNotificacoesAgendamento(
+    private NotificacaoFeedbackDTO enviarNotificacoesAgendamento(
             AgendamentoManutencao agendamento,
             Cliente cliente,
             Veiculo veiculo,
             Oficina oficina,
             List<String> canaisSelecionados) {
 
+        NotificacaoFeedbackDTO.Builder feedbackBuilder = NotificacaoFeedbackDTO.builder();
         UUID oficinaId = oficina.getId();
 
         // Busca configuração de notificações da oficina
@@ -336,7 +339,21 @@ public class AgendamentoManutencaoService {
 
         if (config == null) {
             log.debug("Configuração de notificação não encontrada para oficina {}", oficinaId);
-            return;
+            return feedbackBuilder
+                .notificacoesCriadas(false)
+                .mensagemUsuario("Configuração de notificações não encontrada. Configure as notificações em Configurações > Notificações.")
+                .build();
+        }
+
+        // Verifica se estamos no horário comercial para determinar se o envio será imediato
+        boolean envioImediato = config.podeEnviarAgora();
+        feedbackBuilder.envioImediato(envioImediato);
+
+        if (!envioImediato) {
+            // Determina o motivo do atraso
+            String motivoAtraso = determinarMotivoAtraso(config);
+            feedbackBuilder.motivoAtraso(motivoAtraso);
+            feedbackBuilder.horarioPrevistaEnvio(config.getHorarioInicio());
         }
 
         // Determina quais canais usar
@@ -427,10 +444,26 @@ public class AgendamentoManutencaoService {
                 // Envio imediato assíncrono
                 alertaManutencaoService.enviarAlertaAsync(alerta.getId());
                 alertasCriados++;
-                log.debug("Alerta WhatsApp criado e enviado para agendamento {}", agendamento.getId());
+                feedbackBuilder.addCanal(new NotificacaoFeedbackDTO.CanalFeedbackDTO(
+                    "WhatsApp", true, telefone,
+                    envioImediato ? "Enviando" : "Agendado",
+                    null
+                ));
+                log.debug("Alerta WhatsApp criado para agendamento {}", agendamento.getId());
             } else {
+                feedbackBuilder.addCanal(new NotificacaoFeedbackDTO.CanalFeedbackDTO(
+                    "WhatsApp", false, null,
+                    "Não criado",
+                    "Cliente não possui telefone cadastrado"
+                ));
                 log.warn("Cliente {} não tem telefone para WhatsApp", cliente.getId());
             }
+        } else if (usarWhatsApp) {
+            feedbackBuilder.addCanal(new NotificacaoFeedbackDTO.CanalFeedbackDTO(
+                "WhatsApp", false, null,
+                "Não configurado",
+                "Evolution API não configurada na oficina"
+            ));
         }
 
         // Email
@@ -455,8 +488,18 @@ public class AgendamentoManutencaoService {
                 // Envio imediato assíncrono
                 alertaManutencaoService.enviarAlertaAsync(alerta.getId());
                 alertasCriados++;
-                log.debug("Alerta Email criado e enviado para agendamento {}", agendamento.getId());
+                feedbackBuilder.addCanal(new NotificacaoFeedbackDTO.CanalFeedbackDTO(
+                    "Email", true, email,
+                    envioImediato ? "Enviando" : "Agendado",
+                    null
+                ));
+                log.debug("Alerta Email criado para agendamento {}", agendamento.getId());
             } else {
+                feedbackBuilder.addCanal(new NotificacaoFeedbackDTO.CanalFeedbackDTO(
+                    "Email", false, null,
+                    "Não criado",
+                    "Cliente não possui email cadastrado"
+                ));
                 log.warn("Cliente {} não tem email", cliente.getId());
             }
         }
@@ -483,9 +526,24 @@ public class AgendamentoManutencaoService {
                 // Envio imediato assíncrono
                 alertaManutencaoService.enviarAlertaAsync(alerta.getId());
                 alertasCriados++;
-                log.debug("Alerta Telegram criado e enviado para agendamento {}", agendamento.getId());
+                feedbackBuilder.addCanal(new NotificacaoFeedbackDTO.CanalFeedbackDTO(
+                    "Telegram", true, "Chat da oficina",
+                    envioImediato ? "Enviando" : "Agendado",
+                    null
+                ));
+                log.debug("Alerta Telegram criado para agendamento {}", agendamento.getId());
             }
+        } else if (usarTelegram) {
+            feedbackBuilder.addCanal(new NotificacaoFeedbackDTO.CanalFeedbackDTO(
+                "Telegram", false, null,
+                "Não configurado",
+                "Telegram não configurado na oficina"
+            ));
         }
+
+        feedbackBuilder
+            .notificacoesCriadas(alertasCriados > 0)
+            .totalNotificacoes(alertasCriados);
 
         if (alertasCriados > 0) {
             log.info("Criados {} alertas de confirmação para agendamento {}",
@@ -494,6 +552,36 @@ public class AgendamentoManutencaoService {
             log.warn("Nenhum alerta criado para agendamento {} - verifique os canais e dados do cliente",
                 agendamento.getId());
         }
+
+        return feedbackBuilder.build();
+    }
+
+    /**
+     * Determina o motivo pelo qual as notificações não serão enviadas imediatamente.
+     */
+    private String determinarMotivoAtraso(ConfiguracaoNotificacao config) {
+        if (!config.getRespeitarHorarioComercial()) {
+            return null;
+        }
+
+        java.time.LocalTime agora = java.time.LocalTime.now();
+        java.time.DayOfWeek dia = java.time.LocalDate.now().getDayOfWeek();
+
+        if (dia == java.time.DayOfWeek.SUNDAY && !config.getEnviarDomingos()) {
+            return "Domingo - envio não habilitado";
+        }
+        if (dia == java.time.DayOfWeek.SATURDAY && !config.getEnviarSabados()) {
+            return "Sábado - envio não habilitado";
+        }
+
+        if (agora.isBefore(config.getHorarioInicio())) {
+            return "Antes do horário comercial (início às " + config.getHorarioInicio() + ")";
+        }
+        if (agora.isAfter(config.getHorarioFim())) {
+            return "Após o horário comercial (encerrou às " + config.getHorarioFim() + ")";
+        }
+
+        return "Fora do horário comercial";
     }
 
     private void validarTenant(AgendamentoManutencao agendamento) {
