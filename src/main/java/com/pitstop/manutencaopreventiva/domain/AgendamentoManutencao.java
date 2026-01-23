@@ -17,7 +17,6 @@ import java.security.SecureRandom;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
-import java.util.Base64;
 import java.util.UUID;
 
 /**
@@ -171,11 +170,17 @@ public class AgendamentoManutencao implements Serializable {
 
     /**
      * Gera token único para confirmação pelo cliente.
+     * Usa apenas caracteres alfanuméricos para evitar problemas com
+     * Markdown do Telegram/WhatsApp que interpreta _ como itálico.
      */
     public void gerarTokenConfirmacao(int horasValidade) {
-        byte[] bytes = new byte[48];
-        RANDOM.nextBytes(bytes);
-        this.tokenConfirmacao = Base64.getUrlEncoder().withoutPadding().encodeToString(bytes);
+        // Caracteres seguros para URLs e que não são interpretados como formatação
+        String chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+        StringBuilder token = new StringBuilder(64);
+        for (int i = 0; i < 64; i++) {
+            token.append(chars.charAt(RANDOM.nextInt(chars.length())));
+        }
+        this.tokenConfirmacao = token.toString();
         this.tokenExpiraEm = LocalDateTime.now().plusHours(horasValidade);
     }
 
