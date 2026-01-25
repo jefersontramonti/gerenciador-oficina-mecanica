@@ -497,15 +497,17 @@ export const useFaturas = (filters: FaturaFilters = {}) => {
     queryKey: saasKeys.faturasList(filters),
     queryFn: () => faturasService.findAll(filters),
     staleTime: 30 * 1000,
+    refetchInterval: 30 * 1000, // Refresh a cada 30 segundos para ver pagamentos em tempo real
   });
 };
 
-export const useFaturaDetail = (id?: string) => {
+export const useFaturaDetail = (id?: string, pollingEnabled: boolean = false) => {
   return useQuery({
     queryKey: saasKeys.faturaDetail(id || ''),
     queryFn: () => faturasService.findById(id!),
     enabled: !!id,
-    staleTime: 60 * 1000,
+    staleTime: pollingEnabled ? 0 : 60 * 1000,
+    refetchInterval: pollingEnabled ? 5000 : 30 * 1000, // Poll a cada 5s se habilitado, senão 30s
   });
 };
 

@@ -46,13 +46,16 @@ export const useMinhasFaturas = (
 
 /**
  * Hook para buscar detalhes de uma fatura.
+ * @param id - ID da fatura
+ * @param pollingEnabled - Se true, faz polling a cada 5 segundos (útil quando aguardando pagamento)
  */
-export const useFaturaDetalhe = (id?: string) => {
+export const useFaturaDetalhe = (id?: string, pollingEnabled: boolean = false) => {
   return useQuery({
     queryKey: minhaContaKeys.faturaDetail(id || ''),
     queryFn: () => minhaContaService.getFatura(id!),
     enabled: !!id,
-    staleTime: 2 * 60 * 1000,
+    staleTime: pollingEnabled ? 0 : 2 * 60 * 1000, // Sem cache quando polling
+    refetchInterval: pollingEnabled ? 5000 : false, // Poll a cada 5 segundos quando habilitado
   });
 };
 

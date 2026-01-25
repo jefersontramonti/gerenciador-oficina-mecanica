@@ -2,7 +2,7 @@
  * Página de detalhes de uma fatura com opção de pagamento
  */
 
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
@@ -17,6 +17,7 @@ import {
   Clock,
   ExternalLink,
   Loader2,
+  PartyPopper,
 } from 'lucide-react';
 import {
   useFaturaDetalhe,
@@ -64,10 +65,36 @@ export function FaturaDetalhePage() {
   const { id } = useParams<{ id: string }>();
   const [showPixModal, setShowPixModal] = useState(false);
   const [pixCopied, setPixCopied] = useState(false);
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
 
-  const { data: fatura, isLoading, error } = useFaturaDetalhe(id);
+  // Referência para o status anterior da fatura (para detectar mudança)
+  const previousStatusRef = useRef<StatusFatura | null>(null);
+
+  // Habilita polling quando o modal PIX está aberto (verifica a cada 5s se pagou)
+  const { data: fatura, isLoading, error } = useFaturaDetalhe(id, showPixModal);
   const iniciarPagamentoMutation = useIniciarPagamento();
   const downloadPdfMutation = useDownloadFaturaPdf();
+
+  // Detecta quando a fatura muda de PENDENTE para PAGO
+  useEffect(() => {
+    if (!fatura) return;
+
+    const currentStatus = fatura.status as StatusFatura;
+    const previousStatus = previousStatusRef.current;
+
+    // Se mudou de PENDENTE/VENCIDO para PAGO
+    if (
+      previousStatus !== null &&
+      previousStatus !== StatusFatura.PAGO &&
+      currentStatus === StatusFatura.PAGO
+    ) {
+      // Pagamento confirmado! Fechar modal PIX e mostrar sucesso
+      setShowPixModal(false);
+      setShowSuccessModal(true);
+    }
+
+    previousStatusRef.current = currentStatus;
+  }, [fatura?.status]);
 
   const handlePagar = async (metodo: 'PIX' | 'CHECKOUT') => {
     if (!id) return;
@@ -545,6 +572,12 @@ export function FaturaDetalhePage() {
                       )}
                     </p>
                   )}
+
+                  {/* Indicador de verificação automática */}
+                  <div className="mt-4 flex items-center justify-center gap-2 text-xs text-blue-600 dark:text-blue-400">
+                    <Loader2 className="h-3 w-3 animate-spin" />
+                    <span>Verificando pagamento automaticamente...</span>
+                  </div>
                 </>
               ) : (
                 <p className="text-gray-500 dark:text-gray-400">
@@ -557,6 +590,55 @@ export function FaturaDetalhePage() {
                 className="mt-6 w-full px-4 py-2 bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600"
               >
                 Fechar
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal de Sucesso - Pagamento Confirmado */}
+      {showSuccessModal && (
+        <div className="fixed inset-0 bg-black/50 dark:bg-black/70 z-50 flex items-center justify-center p-4">
+          <div className="bg-white dark:bg-gray-800 rounded-lg p-6 max-w-md w-full shadow-xl">
+            <div className="text-center">
+              <div className="mb-4 flex justify-center">
+                <div className="relative">
+                  <CheckCircle className="h-16 w-16 text-green-500" />
+                  <PartyPopper className="h-8 w-8 text-yellow-500 absolute -top-2 -right-2 animate-bounce" />
+                </div>
+              </div>
+
+              <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2">
+                Pagamento Confirmado!
+              </h3>
+
+              <p className="text-gray-600 dark:text-gray-400 mb-4">
+                Sua fatura foi paga com sucesso. Obrigado!
+              </p>
+
+              <div className="bg-green-50 dark:bg-green-900/30 rounded-lg p-4 mb-6">
+                <p className="text-sm text-green-800 dark:text-green-400">
+                  <strong>Fatura:</strong> {fatura?.numero}
+                </p>
+                <p className="text-sm text-green-800 dark:text-green-400 mt-1">
+                  <strong>Valor:</strong> {fatura ? formatCurrency(fatura.valorFinal) : '-'}
+                </p>
+                {fatura?.dataPagamento && (
+                  <p className="text-sm text-green-800 dark:text-green-400 mt-1">
+                    <strong>Pago em:</strong> {formatDateTime(fatura.dataPagamento)}
+                  </p>
+                )}
+              </div>
+
+              <p className="text-xs text-gray-500 dark:text-gray-400 mb-4">
+                Sua assinatura foi renovada automaticamente.
+              </p>
+
+              <button
+                onClick={() => setShowSuccessModal(false)}
+                className="w-full px-4 py-3 bg-green-600 dark:bg-green-700 text-white rounded-lg hover:bg-green-700 dark:hover:bg-green-600 font-medium"
+              >
+                Entendido
               </button>
             </div>
           </div>
