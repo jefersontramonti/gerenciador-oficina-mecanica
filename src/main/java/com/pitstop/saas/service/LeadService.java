@@ -247,7 +247,7 @@ public class LeadService {
                 notificationWhatsApp,
                 "Equipe PitStop",
                 mensagem,
-                EventoNotificacao.OUTROS,
+                EventoNotificacao.TESTE,
                 null,
                 null,
                 null,
