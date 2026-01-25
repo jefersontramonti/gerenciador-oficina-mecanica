@@ -230,3 +230,6 @@ databaseChangeLog:
   - include:
       file: db/changelog/migrations/V081__add_diagnostico_ia_feature_flag.sql
       relativeToChangelogFile: false
+  - include:
+      file: db/changelog/migrations/V082__align_feature_flags_with_marketing.sql
+      relativeToChangelogFile: false
