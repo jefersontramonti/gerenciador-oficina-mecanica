@@ -310,6 +310,7 @@ const navigationGroups: NavigationGroup[] = [
         href: '/webhooks',
         icon: Webhook,
         requiredRoles: [PerfilUsuario.ADMIN, PerfilUsuario.GERENTE],
+        requiredFeature: 'WEBHOOK_NOTIFICATIONS',
       },
     ],
   },

@@ -50,6 +50,16 @@ const formatDateTime = (dateString?: string): string => {
   }
 };
 
+/**
+ * Converte Base64 puro para data URI de imagem PNG
+ * O Mercado Pago retorna o QR Code como Base64 puro, sem o prefixo
+ */
+const getBase64ImageSrc = (base64: string | undefined): string => {
+  if (!base64) return '';
+  if (base64.startsWith('data:image')) return base64;
+  return `data:image/png;base64,${base64}`;
+};
+
 export function FaturaDetalhePage() {
   const { id } = useParams<{ id: string }>();
   const [showPixModal, setShowPixModal] = useState(false);
@@ -477,7 +487,7 @@ export function FaturaDetalhePage() {
               <div className="p-4 text-center">
                 <div className="bg-white p-4 rounded-lg inline-block mb-4">
                   <img
-                    src={fatura.qrCodePix}
+                    src={getBase64ImageSrc(fatura.qrCodePix)}
                     alt="QR Code PIX"
                     className="w-48 h-48"
                   />
@@ -504,7 +514,7 @@ export function FaturaDetalhePage() {
                 <>
                   <div className="bg-white p-4 rounded-lg inline-block mb-4">
                     <img
-                      src={iniciarPagamentoMutation.data.pixQrCode}
+                      src={getBase64ImageSrc(iniciarPagamentoMutation.data.pixQrCode)}
                       alt="QR Code PIX"
                       className="w-48 h-48"
                     />
