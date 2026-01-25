@@ -1,5 +1,5 @@
-import api from '@/shared/services/api';
-import {
+import { api } from '@/shared/services/api';
+import type {
   Lead,
   LeadResumo,
   CreateLeadRequest,
@@ -7,7 +7,7 @@ import {
   LeadStats,
   LeadFilters,
 } from '../types/lead';
-import { Page } from '@/shared/types/pagination';
+import type { PaginatedResponse } from '@/shared/types/api';
 
 const BASE_URL = '/saas/leads';
 
@@ -19,7 +19,7 @@ export const leadService = {
     filters: LeadFilters = {},
     page = 0,
     size = 20
-  ): Promise<Page<LeadResumo>> {
+  ): Promise<PaginatedResponse<LeadResumo>> {
     const params = new URLSearchParams({
       page: page.toString(),
       size: size.toString(),
@@ -30,7 +30,7 @@ export const leadService = {
     if (filters.nome) params.append('nome', filters.nome);
     if (filters.email) params.append('email', filters.email);
 
-    const response = await api.get<Page<LeadResumo>>(`${BASE_URL}?${params}`);
+    const response = await api.get<PaginatedResponse<LeadResumo>>(`${BASE_URL}?${params}`);
     return response.data;
   },
 

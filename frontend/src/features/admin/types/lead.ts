@@ -1,10 +1,12 @@
-export enum StatusLead {
-  NOVO = 'NOVO',
-  CONTATADO = 'CONTATADO',
-  QUALIFICADO = 'QUALIFICADO',
-  CONVERTIDO = 'CONVERTIDO',
-  PERDIDO = 'PERDIDO',
-}
+export const StatusLead = {
+  NOVO: 'NOVO',
+  CONTATADO: 'CONTATADO',
+  QUALIFICADO: 'QUALIFICADO',
+  CONVERTIDO: 'CONVERTIDO',
+  PERDIDO: 'PERDIDO',
+} as const;
+
+export type StatusLead = (typeof StatusLead)[keyof typeof StatusLead];
 
 export interface Lead {
   id: string;

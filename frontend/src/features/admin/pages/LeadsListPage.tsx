@@ -13,36 +13,36 @@ import {
   TrendingUp,
   XCircle,
 } from 'lucide-react';
-import { useLeads, useLeadStats, useUpdateLead } from '../hooks/useLeads';
-import type { LeadFilters, StatusLead } from '../types/lead';
-import { StatusLead as StatusLeadEnum } from '../types/lead';
+import { useLeads, useLeadStats } from '../hooks/useLeads';
+import type { LeadFilters, LeadResumo } from '../types/lead';
+import { StatusLead } from '../types/lead';
 import toast from 'react-hot-toast';
 
-const statusLabels: Record<StatusLead, string> = {
-  [StatusLeadEnum.NOVO]: 'Novo',
-  [StatusLeadEnum.CONTATADO]: 'Contatado',
-  [StatusLeadEnum.QUALIFICADO]: 'Qualificado',
-  [StatusLeadEnum.CONVERTIDO]: 'Convertido',
-  [StatusLeadEnum.PERDIDO]: 'Perdido',
+const statusLabels: Record<string, string> = {
+  [StatusLead.NOVO]: 'Novo',
+  [StatusLead.CONTATADO]: 'Contatado',
+  [StatusLead.QUALIFICADO]: 'Qualificado',
+  [StatusLead.CONVERTIDO]: 'Convertido',
+  [StatusLead.PERDIDO]: 'Perdido',
 };
 
-const statusColors: Record<StatusLead, string> = {
-  [StatusLeadEnum.NOVO]: 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400',
-  [StatusLeadEnum.CONTATADO]:
+const statusColors: Record<string, string> = {
+  [StatusLead.NOVO]: 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400',
+  [StatusLead.CONTATADO]:
     'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400',
-  [StatusLeadEnum.QUALIFICADO]:
+  [StatusLead.QUALIFICADO]:
     'bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-400',
-  [StatusLeadEnum.CONVERTIDO]:
+  [StatusLead.CONVERTIDO]:
     'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400',
-  [StatusLeadEnum.PERDIDO]: 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400',
+  [StatusLead.PERDIDO]: 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400',
 };
 
-const statusIcons: Record<StatusLead, React.ElementType> = {
-  [StatusLeadEnum.NOVO]: Star,
-  [StatusLeadEnum.CONTATADO]: Clock,
-  [StatusLeadEnum.QUALIFICADO]: TrendingUp,
-  [StatusLeadEnum.CONVERTIDO]: CheckCircle,
-  [StatusLeadEnum.PERDIDO]: XCircle,
+const statusIcons: Record<string, React.ElementType> = {
+  [StatusLead.NOVO]: Star,
+  [StatusLead.CONTATADO]: Clock,
+  [StatusLead.QUALIFICADO]: TrendingUp,
+  [StatusLead.CONVERTIDO]: CheckCircle,
+  [StatusLead.PERDIDO]: XCircle,
 };
 
 export function LeadsListPage() {
@@ -50,12 +50,23 @@ export function LeadsListPage() {
     page: 0,
   });
   const [showFilters, setShowFilters] = useState(false);
-  const [selectedLead, setSelectedLead] = useState<string | null>(null);
-  const [modalAction, setModalAction] = useState<'status' | 'observacoes' | null>(null);
+  const [isRefreshing, setIsRefreshing] = useState(false);
 
   const { data: leadsData, isLoading, refetch } = useLeads(filters, filters.page, 20);
-  const { data: stats } = useLeadStats();
-  const updateLead = useUpdateLead();
+  const { data: stats, refetch: refetchStats } = useLeadStats();
+
+  const handleRefresh = async () => {
+    setIsRefreshing(true);
+    toast.loading('Atualizando leads...', { id: 'refresh-leads' });
+    try {
+      await Promise.all([refetch(), refetchStats()]);
+      toast.success('Leads atualizados com sucesso!', { id: 'refresh-leads' });
+    } catch {
+      toast.error('Erro ao atualizar leads', { id: 'refresh-leads' });
+    } finally {
+      setIsRefreshing(false);
+    }
+  };
 
   const handleSearch = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -97,6 +108,75 @@ export function LeadsListPage() {
     }).format(new Date(date));
   };
 
+  const renderLeadRow = (lead: LeadResumo) => {
+    const StatusIcon = statusIcons[lead.status] || Star;
+    return (
+      <tr key={lead.id} className="hover:bg-gray-50 dark:hover:bg-gray-700/50">
+        <td className="px-4 sm:px-6 py-4">
+          <div>
+            <div className="text-sm font-medium text-gray-900 dark:text-white">
+              {lead.nome}
+            </div>
+            <div className="text-xs text-gray-500 dark:text-gray-400 lg:hidden">
+              {lead.email}
+            </div>
+          </div>
+        </td>
+        <td className="hidden lg:table-cell px-6 py-4">
+          <div className="space-y-1">
+            <div className="flex items-center gap-2 text-sm text-gray-900 dark:text-gray-100">
+              <Mail className="h-3 w-3 text-gray-400" />
+              {lead.email}
+            </div>
+            <div className="flex items-center gap-2 text-sm text-gray-900 dark:text-gray-100">
+              <Phone className="h-3 w-3 text-gray-400" />
+              {lead.whatsapp}
+            </div>
+          </div>
+        </td>
+        <td className="px-4 sm:px-6 py-4">
+          <span
+            className={`inline-flex items-center gap-1 rounded-full px-2 py-1 text-xs font-medium ${statusColors[lead.status] || ''}`}
+          >
+            <StatusIcon className="h-3 w-3" />
+            {statusLabels[lead.status] || lead.status}
+          </span>
+        </td>
+        <td className="hidden md:table-cell px-6 py-4 text-sm text-gray-500 dark:text-gray-400">
+          {lead.origem}
+        </td>
+        <td className="hidden xl:table-cell px-6 py-4 text-sm text-gray-500 dark:text-gray-400">
+          {formatDate(lead.createdAt)}
+        </td>
+        <td className="px-4 sm:px-6 py-4 text-right">
+          <div className="flex items-center justify-end gap-1 sm:gap-2">
+            <button
+              onClick={() => openWhatsApp(lead.whatsapp)}
+              title="Abrir WhatsApp"
+              className="rounded p-1 text-green-600 dark:text-green-400 hover:bg-green-50 dark:hover:bg-green-900/30"
+            >
+              <Phone className="h-4 w-4" />
+            </button>
+            <button
+              onClick={() => copyToClipboard(lead.email, 'Email')}
+              title="Copiar email"
+              className="rounded p-1 text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700"
+            >
+              <Mail className="h-4 w-4" />
+            </button>
+            <button
+              onClick={() => copyToClipboard(lead.whatsapp, 'WhatsApp')}
+              title="Copiar telefone"
+              className="rounded p-1 text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700"
+            >
+              <Copy className="h-4 w-4" />
+            </button>
+          </div>
+        </td>
+      </tr>
+    );
+  };
+
   return (
     <div className="min-h-screen bg-gray-50 p-4 sm:p-6 dark:bg-gray-900">
       <div className="mx-auto max-w-7xl">
@@ -111,11 +191,12 @@ export function LeadsListPage() {
             </p>
           </div>
           <button
-            onClick={() => refetch()}
-            className="flex items-center justify-center gap-2 rounded-lg border border-gray-300 dark:border-gray-600 px-3 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700"
+            onClick={handleRefresh}
+            disabled={isRefreshing || isLoading}
+            className="flex items-center justify-center gap-2 rounded-lg border border-gray-300 dark:border-gray-600 px-3 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200"
           >
-            <RefreshCw className={`h-4 w-4 ${isLoading ? 'animate-spin' : ''}`} />
-            Atualizar
+            <RefreshCw className={`h-4 w-4 transition-transform duration-500 ${isRefreshing || isLoading ? 'animate-spin' : ''}`} />
+            {isRefreshing ? 'Atualizando...' : 'Atualizar'}
           </button>
         </div>
 
@@ -248,7 +329,7 @@ export function LeadsListPage() {
                 <select
                   value={filters.status || ''}
                   onChange={(e) =>
-                    handleFilterChange('status', e.target.value as StatusLead | undefined)
+                    handleFilterChange('status', e.target.value || undefined)
                   }
                   className="w-full rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 px-3 py-2 text-sm text-gray-900 dark:text-white focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
                 >
@@ -318,74 +399,7 @@ export function LeadsListPage() {
                     </td>
                   </tr>
                 ) : (
-                  leadsData?.content.map((lead) => {
-                    const StatusIcon = statusIcons[lead.status];
-                    return (
-                      <tr key={lead.id} className="hover:bg-gray-50 dark:hover:bg-gray-700/50">
-                        <td className="px-4 sm:px-6 py-4">
-                          <div>
-                            <div className="text-sm font-medium text-gray-900 dark:text-white">
-                              {lead.nome}
-                            </div>
-                            <div className="text-xs text-gray-500 dark:text-gray-400 lg:hidden">
-                              {lead.email}
-                            </div>
-                          </div>
-                        </td>
-                        <td className="hidden lg:table-cell px-6 py-4">
-                          <div className="space-y-1">
-                            <div className="flex items-center gap-2 text-sm text-gray-900 dark:text-gray-100">
-                              <Mail className="h-3 w-3 text-gray-400" />
-                              {lead.email}
-                            </div>
-                            <div className="flex items-center gap-2 text-sm text-gray-900 dark:text-gray-100">
-                              <Phone className="h-3 w-3 text-gray-400" />
-                              {lead.whatsapp}
-                            </div>
-                          </div>
-                        </td>
-                        <td className="px-4 sm:px-6 py-4">
-                          <span
-                            className={`inline-flex items-center gap-1 rounded-full px-2 py-1 text-xs font-medium ${statusColors[lead.status]}`}
-                          >
-                            <StatusIcon className="h-3 w-3" />
-                            {statusLabels[lead.status]}
-                          </span>
-                        </td>
-                        <td className="hidden md:table-cell px-6 py-4 text-sm text-gray-500 dark:text-gray-400">
-                          {lead.origem}
-                        </td>
-                        <td className="hidden xl:table-cell px-6 py-4 text-sm text-gray-500 dark:text-gray-400">
-                          {formatDate(lead.createdAt)}
-                        </td>
-                        <td className="px-4 sm:px-6 py-4 text-right">
-                          <div className="flex items-center justify-end gap-1 sm:gap-2">
-                            <button
-                              onClick={() => openWhatsApp(lead.whatsapp)}
-                              title="Abrir WhatsApp"
-                              className="rounded p-1 text-green-600 dark:text-green-400 hover:bg-green-50 dark:hover:bg-green-900/30"
-                            >
-                              <Phone className="h-4 w-4" />
-                            </button>
-                            <button
-                              onClick={() => copyToClipboard(lead.email, 'Email')}
-                              title="Copiar email"
-                              className="rounded p-1 text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700"
-                            >
-                              <Mail className="h-4 w-4" />
-                            </button>
-                            <button
-                              onClick={() => copyToClipboard(lead.whatsapp, 'WhatsApp')}
-                              title="Copiar telefone"
-                              className="rounded p-1 text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700"
-                            >
-                              <Copy className="h-4 w-4" />
-                            </button>
-                          </div>
-                        </td>
-                      </tr>
-                    );
-                  })
+                  leadsData?.content.map(renderLeadRow)
                 )}
               </tbody>
             </table>

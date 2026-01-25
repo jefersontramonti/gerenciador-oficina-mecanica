@@ -103,7 +103,13 @@ public class LeadService {
         log.debug("Listando leads com filtros - status: {}, origem: {}, nome: {}, email: {}",
             status, origem, nome, email);
 
-        Page<Lead> leads = leadRepository.findWithFilters(status, origem, nome, email, pageable);
+        String statusStr = status != null ? status.name() : null;
+        // Use PageRequest sem sort para evitar conflito com ORDER BY da native query
+        Pageable unsortedPageable = org.springframework.data.domain.PageRequest.of(
+            pageable.getPageNumber(),
+            pageable.getPageSize()
+        );
+        Page<Lead> leads = leadRepository.findWithFilters(statusStr, origem, nome, email, unsortedPageable);
 
         return leads.map(this::toResumoDTO);
     }

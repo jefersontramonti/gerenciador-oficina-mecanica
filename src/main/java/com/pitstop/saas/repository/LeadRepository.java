@@ -43,17 +43,26 @@ public interface LeadRepository extends JpaRepository<Lead, UUID> {
 
     /**
      * Find leads with filters.
+     * Usa native query para evitar problema com lower(bytea).
      */
-    @Query("""
-        SELECT l FROM Lead l
-        WHERE (:status IS NULL OR l.status = :status)
-        AND (:origem IS NULL OR l.origem = :origem)
-        AND (:nome IS NULL OR LOWER(l.nome) LIKE LOWER(CONCAT('%', :nome, '%')))
-        AND (:email IS NULL OR LOWER(l.email) LIKE LOWER(CONCAT('%', :email, '%')))
-        ORDER BY l.createdAt DESC
-    """)
+    @Query(value = """
+        SELECT * FROM leads l
+        WHERE (:status IS NULL OR l.status = CAST(:status AS VARCHAR))
+          AND (:origem IS NULL OR l.origem = CAST(:origem AS VARCHAR))
+          AND (:nome IS NULL OR LOWER(CAST(l.nome AS VARCHAR)) LIKE LOWER(CONCAT('%', CAST(:nome AS VARCHAR), '%')))
+          AND (:email IS NULL OR LOWER(CAST(l.email AS VARCHAR)) LIKE LOWER(CONCAT('%', CAST(:email AS VARCHAR), '%')))
+        ORDER BY l.created_at DESC
+        """,
+        countQuery = """
+        SELECT COUNT(*) FROM leads l
+        WHERE (:status IS NULL OR l.status = CAST(:status AS VARCHAR))
+          AND (:origem IS NULL OR l.origem = CAST(:origem AS VARCHAR))
+          AND (:nome IS NULL OR LOWER(CAST(l.nome AS VARCHAR)) LIKE LOWER(CONCAT('%', CAST(:nome AS VARCHAR), '%')))
+          AND (:email IS NULL OR LOWER(CAST(l.email AS VARCHAR)) LIKE LOWER(CONCAT('%', CAST(:email AS VARCHAR), '%')))
+        """,
+        nativeQuery = true)
     Page<Lead> findWithFilters(
-        @Param("status") StatusLead status,
+        @Param("status") String status,
         @Param("origem") String origem,
         @Param("nome") String nome,
         @Param("email") String email,

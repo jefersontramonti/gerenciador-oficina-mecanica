@@ -1,13 +1,13 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { leadService } from '../services/leadService';
-import {
+import type {
   Lead,
   LeadResumo,
   UpdateLeadRequest,
   LeadStats,
   LeadFilters,
 } from '../types/lead';
-import { Page } from '@/shared/types/pagination';
+import type { PaginatedResponse } from '@/shared/types/api';
 import { toast } from 'react-hot-toast';
 
 const QUERY_KEYS = {
@@ -20,7 +20,7 @@ const QUERY_KEYS = {
  * Hook para listar leads com paginação
  */
 export function useLeads(filters: LeadFilters = {}, page = 0, size = 20) {
-  return useQuery<Page<LeadResumo>>({
+  return useQuery<PaginatedResponse<LeadResumo>>({
     queryKey: QUERY_KEYS.leads(filters, page),
     queryFn: () => leadService.listar(filters, page, size),
     staleTime: 1000 * 60 * 2, // 2 minutes
@@ -64,7 +64,7 @@ export function useUpdateLead() {
       queryClient.invalidateQueries({ queryKey: QUERY_KEYS.stats() });
       toast.success('Lead atualizado com sucesso!');
     },
-    onError: (error: any) => {
+    onError: (error: Error & { response?: { data?: { message?: string } } }) => {
       toast.error(error?.response?.data?.message || 'Erro ao atualizar lead');
     },
   });
