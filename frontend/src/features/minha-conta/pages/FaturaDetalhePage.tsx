@@ -476,28 +476,6 @@ export function FaturaDetalhePage() {
             </div>
           </div>
 
-          {/* QR Code PIX existente */}
-          {fatura.qrCodePix && fatura.pagavel && (
-            <div className="rounded-lg bg-white dark:bg-gray-800 shadow border border-gray-200 dark:border-gray-700 overflow-hidden">
-              <div className="px-4 py-4 border-b border-gray-200 dark:border-gray-700">
-                <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
-                  PIX
-                </h2>
-              </div>
-              <div className="p-4 text-center">
-                <div className="bg-white p-4 rounded-lg inline-block mb-4">
-                  <img
-                    src={getBase64ImageSrc(fatura.qrCodePix)}
-                    alt="QR Code PIX"
-                    className="w-48 h-48"
-                  />
-                </div>
-                <p className="text-sm text-gray-500 dark:text-gray-400 mb-2">
-                  Escaneie o QR Code para pagar
-                </p>
-              </div>
-            </div>
-          )}
         </div>
       </div>
 

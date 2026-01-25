@@ -649,17 +649,21 @@ export const MainLayout = () => {
   // Badge de comunicados não lidos (apenas para usuários de oficina, não SUPER_ADMIN)
   const { data: comunicadosNaoLidos } = useComunicadosNaoLidos();
 
-  // Badge de alertas do DRE (críticos + warnings) - apenas para oficinas
-  const { total: alertasDRE } = useContadorAlertasDRE(!isSuperAdmin);
+  // Feature flags para funcionalidades premium
+  const hasFluxoCaixaFeature = useFeatureFlag('FLUXO_CAIXA_AVANCADO');
+  const hasCobrancaRecorrenteFeature = useFeatureFlag('COBRANCA_RECORRENTE');
+
+  // Badge de alertas do DRE (críticos + warnings) - apenas para oficinas com feature habilitada
+  const { total: alertasDRE } = useContadorAlertasDRE(!isSuperAdmin && hasFluxoCaixaFeature);
 
   // Badge de alertas de Despesas (críticos + warnings) - apenas para oficinas
   const { total: alertasDespesas } = useContadorAlertasDespesas(!isSuperAdmin);
 
-  // Badge de alertas de Fluxo de Caixa (críticos + warnings) - apenas para oficinas
-  const { total: alertasFluxo } = useContadorAlertasFluxo(!isSuperAdmin);
+  // Badge de alertas de Fluxo de Caixa (críticos + warnings) - apenas para oficinas com feature habilitada
+  const { total: alertasFluxo } = useContadorAlertasFluxo(!isSuperAdmin && hasFluxoCaixaFeature);
 
-  // Badge de alertas de Assinaturas (críticos + warnings) - apenas para oficinas
-  const { total: alertasAssinaturas } = useContadorAlertasAssinaturas(!isSuperAdmin);
+  // Badge de alertas de Assinaturas (críticos + warnings) - apenas para oficinas com feature habilitada
+  const { total: alertasAssinaturas } = useContadorAlertasAssinaturas(!isSuperAdmin && hasCobrancaRecorrenteFeature);
 
   // Get flat navigation for SUPER_ADMIN
   const superAdminNavigation = useMemo(() => {
