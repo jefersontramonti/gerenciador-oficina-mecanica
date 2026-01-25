@@ -53,12 +53,24 @@ public class FaturaWebhookService {
     public void processarWebhook(String topic, String id, Map<String, Object> payload) {
         log.info("Processing fatura webhook - topic: {}, id: {}", topic, id);
 
-        if (!"payment".equals(topic) && !"merchant_order".equals(topic)) {
+        // Mercado Pago pode enviar:
+        // - topic: "payment" (via query param)
+        // - action: "payment.updated", "payment.created" (via body JSON)
+        // Devemos aceitar qualquer variação que comece com "payment" ou "merchant_order"
+        boolean isPaymentTopic = topic != null && (
+            topic.equals("payment") ||
+            topic.startsWith("payment.") ||
+            topic.equals("merchant_order") ||
+            topic.startsWith("merchant_order.")
+        );
+
+        if (!isPaymentTopic) {
             log.info("Webhook ignored - topic not payment or merchant_order: {}", topic);
             return;
         }
 
-        if ("payment".equals(topic)) {
+        // Processar pagamento para qualquer tópico de pagamento
+        if (topic.startsWith("payment")) {
             processarPagamento(id);
         }
     }
@@ -196,6 +208,9 @@ public class FaturaWebhookService {
      * Adds 30 days to the current expiration date (or from today if already expired).
      * Also reactivates the workshop if it was suspended due to non-payment.
      *
+     * Uses direct UPDATE queries to avoid entity validation issues with legacy data
+     * (e.g., invalid CEP format in embedded Endereco).
+     *
      * @param fatura The paid invoice
      */
     private void extenderAssinaturaOficina(Fatura fatura) {
@@ -223,17 +238,31 @@ public class FaturaWebhookService {
             log.info("Setting new subscription expiration to {} (30 days from today)", novaDataVencimento);
         }
 
-        oficina.setDataVencimentoPlano(novaDataVencimento);
-
-        // Reactivate workshop if it was suspended due to non-payment
+        // Use direct UPDATE queries to avoid triggering entity validation
+        // This is necessary because some legacy oficinas may have invalid data (e.g., CEP format)
+        int rowsUpdated;
         if (oficina.getStatus() == StatusOficina.SUSPENSA) {
-            oficina.setStatus(StatusOficina.ATIVA);
+            // Update both subscription date and reactivate
+            rowsUpdated = oficinaRepository.updateAssinaturaEStatus(
+                oficina.getId(),
+                novaDataVencimento,
+                StatusOficina.ATIVA
+            );
             log.info("Oficina {} reactivated after payment - was SUSPENSA, now ATIVA", oficina.getId());
+        } else {
+            // Update only subscription date
+            rowsUpdated = oficinaRepository.updateDataVencimentoPlano(
+                oficina.getId(),
+                novaDataVencimento
+            );
         }
 
-        oficinaRepository.save(oficina);
-        log.info("Oficina {} subscription extended to {} after payment of fatura {}",
-            oficina.getId(), novaDataVencimento, fatura.getNumero());
+        if (rowsUpdated > 0) {
+            log.info("Oficina {} subscription extended to {} after payment of fatura {}",
+                oficina.getId(), novaDataVencimento, fatura.getNumero());
+        } else {
+            log.error("Failed to update subscription for oficina {} - no rows affected", oficina.getId());
+        }
     }
 
     /**

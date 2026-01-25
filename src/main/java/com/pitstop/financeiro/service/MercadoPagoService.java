@@ -12,6 +12,8 @@ import com.pitstop.financeiro.dto.*;
 import com.pitstop.financeiro.repository.*;
 import com.pitstop.ordemservico.domain.OrdemServico;
 import com.pitstop.ordemservico.repository.OrdemServicoRepository;
+import com.pitstop.saas.repository.SaasConfigGatewayRepository;
+import com.pitstop.saas.service.FaturaWebhookService;
 import com.pitstop.shared.security.tenant.TenantContext;
 import com.pitstop.veiculo.domain.Veiculo;
 import com.pitstop.veiculo.repository.VeiculoRepository;
@@ -19,7 +21,9 @@ import com.pitstop.cliente.domain.Cliente;
 import com.pitstop.cliente.repository.ClienteRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -44,6 +48,12 @@ public class MercadoPagoService {
     private final OrdemServicoRepository ordemServicoRepository;
     private final VeiculoRepository veiculoRepository;
     private final ClienteRepository clienteRepository;
+    private final SaasConfigGatewayRepository saasConfigGatewayRepository;
+
+    // Lazy injection to avoid circular dependency
+    @Autowired
+    @Lazy
+    private FaturaWebhookService faturaWebhookService;
 
     @Value("${app.base-url:http://localhost:8080}")
     private String baseUrl;
@@ -207,6 +217,8 @@ public class MercadoPagoService {
 
     /**
      * Consulta e processa um pagamento no Mercado Pago.
+     * Detecta automaticamente se é um pagamento de OS ou de Fatura SaaS
+     * baseado no external_reference (FAT- prefix = fatura SaaS).
      */
     @Transactional
     public void processarPagamento(String paymentId) {
@@ -218,14 +230,41 @@ public class MercadoPagoService {
         if (optPagamento.isEmpty()) {
             // Tentar consultar no MP para pegar external_reference
             try {
-                // Precisamos de um token para consultar
-                // Vamos buscar qualquer configuração ativa
+                // PRIMEIRO: Tentar com a configuração SaaS (para faturas de assinatura)
+                Optional<com.pitstop.saas.domain.ConfiguracaoGateway> saasConfigOpt =
+                    saasConfigGatewayRepository.findByTipoAndAtivoTrue(com.pitstop.saas.domain.TipoGateway.MERCADO_PAGO);
+
+                if (saasConfigOpt.isPresent()) {
+                    com.pitstop.saas.domain.ConfiguracaoGateway saasConfig = saasConfigOpt.get();
+                    if (saasConfig.isConfigurado()) {
+                        try {
+                            MercadoPagoConfig.setAccessToken(saasConfig.getAccessToken());
+                            PaymentClient paymentClient = new PaymentClient();
+                            Payment payment = paymentClient.get(Long.parseLong(paymentId));
+
+                            if (payment != null && payment.getExternalReference() != null) {
+                                String externalRef = payment.getExternalReference();
+
+                                // Verificar se é uma Fatura SaaS (external_reference começa com "FAT-")
+                                if (externalRef.startsWith("FAT-")) {
+                                    log.info("Pagamento {} é de Fatura SaaS - delegando para FaturaWebhookService", paymentId);
+                                    faturaWebhookService.processarPagamento(paymentId);
+                                    return;
+                                }
+                            }
+                        } catch (Exception e) {
+                            log.debug("Não foi possível consultar com config SaaS: {}", e.getMessage());
+                        }
+                    }
+                }
+
+                // SEGUNDO: Tentar com configurações das oficinas (para pagamentos de OS)
                 List<ConfiguracaoGateway> configs = configuracaoGatewayRepository.findAll()
                     .stream()
                     .filter(c -> c.getTipoGateway() == TipoGateway.MERCADO_PAGO && c.getAtivo())
                     .toList();
 
-                if (configs.isEmpty()) {
+                if (configs.isEmpty() && saasConfigOpt.isEmpty()) {
                     log.warn("Nenhuma configuração MP ativa encontrada para processar webhook");
                     return;
                 }
@@ -237,7 +276,10 @@ public class MercadoPagoService {
                         Payment payment = paymentClient.get(Long.parseLong(paymentId));
 
                         if (payment != null && payment.getExternalReference() != null) {
-                            UUID osId = UUID.fromString(payment.getExternalReference());
+                            String externalRef = payment.getExternalReference();
+
+                            // É pagamento de Ordem de Serviço
+                            UUID osId = UUID.fromString(externalRef);
 
                             // Buscar por OS
                             List<PagamentoOnline> pagamentos = pagamentoOnlineRepository
@@ -249,6 +291,9 @@ public class MercadoPagoService {
                                 return;
                             }
                         }
+                    } catch (IllegalArgumentException e) {
+                        // UUID parse failed - might be a different format
+                        log.debug("External reference não é UUID válido: {}", e.getMessage());
                     } catch (Exception e) {
                         log.debug("Não foi possível consultar com config {}: {}", config.getId(), e.getMessage());
                     }

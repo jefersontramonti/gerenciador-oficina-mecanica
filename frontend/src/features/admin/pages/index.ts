@@ -3,7 +3,6 @@ export { OficinasPage } from './OficinasPage';
 export { OficinaDetailPage } from './OficinaDetailPage';
 export { CreateOficinaPage } from './CreateOficinaPage';
 export { EditOficinaPage } from './EditOficinaPage';
-export { PagamentosPage } from './PagamentosPage';
 export { AuditPage } from './AuditPage';
 export { PlanosListPage } from './PlanosListPage';
 export { PlanoFormPage } from './PlanoFormPage';

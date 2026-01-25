@@ -17,6 +17,7 @@ import { showSuccess, showError } from '@/shared/utils/notifications';
 import { useOficina, useUpdateOficinaBasico, useCurrentOficinaId } from '../hooks/useOficina';
 import { oficinaBasicoSchema, type OficinaBasicoFormData } from '../utils/validation';
 import { InputMask } from '@/shared/components/forms/InputMask';
+import { CepInput } from '@/shared/components/forms/CepInput';
 import { tipoPessoaLabels, ESTADOS_BRASIL } from '../types';
 
 export const OficinaBasicoForm = () => {
@@ -29,6 +30,7 @@ export const OficinaBasicoForm = () => {
     handleSubmit,
     control,
     reset,
+    setValue,
     formState: { errors, isDirty },
   } = useForm<OficinaBasicoFormData>({
     resolver: zodResolver(oficinaBasicoSchema),
@@ -328,29 +330,23 @@ export const OficinaBasicoForm = () => {
 
         <div className="grid gap-4 sm:grid-cols-6">
           <div className="sm:col-span-2">
-            <label
-              htmlFor="cep"
-              className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300"
-            >
-              CEP
-            </label>
             <Controller
               name="cep"
               control={control}
               render={({ field }) => (
-                <InputMask
+                <CepInput
                   {...field}
-                  mask="cep"
-                  placeholder="00000-000"
-                  className="w-full rounded-lg border border-gray-300 px-3 py-2 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 dark:border-gray-600 dark:bg-gray-900 dark:text-white"
+                  label="CEP"
+                  error={errors.cep?.message}
+                  onAddressFound={(endereco) => {
+                    setValue('logradouro', endereco.logradouro, { shouldDirty: true });
+                    setValue('bairro', endereco.bairro, { shouldDirty: true });
+                    setValue('cidade', endereco.cidade, { shouldDirty: true });
+                    setValue('estado', endereco.estado, { shouldDirty: true });
+                  }}
                 />
               )}
             />
-            {errors.cep && (
-              <p className="mt-1 text-sm text-red-600 dark:text-red-400">
-                {errors.cep.message}
-              </p>
-            )}
           </div>
 
           <div className="sm:col-span-4">

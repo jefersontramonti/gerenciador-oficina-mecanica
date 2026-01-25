@@ -24,9 +24,20 @@ public record ConfiguracaoGatewayDTO(
     Boolean validacaoSucesso,
     String mensagemValidacao,
     boolean configurado,
-    LocalDateTime updatedAt
+    LocalDateTime updatedAt,
+    // Diagnostic info for debugging webhook issues
+    boolean notificationUrlAtiva,
+    String baseUrlConfigurada
 ) {
     public static ConfiguracaoGatewayDTO fromEntity(ConfiguracaoGateway config) {
+        return fromEntity(config, null);
+    }
+
+    public static ConfiguracaoGatewayDTO fromEntity(ConfiguracaoGateway config, String baseUrl) {
+        boolean notificationAtiva = baseUrl != null &&
+            !baseUrl.contains("localhost") &&
+            !baseUrl.contains("127.0.0.1");
+
         return new ConfiguracaoGatewayDTO(
             config.getId(),
             config.getTipo(),
@@ -41,7 +52,9 @@ public record ConfiguracaoGatewayDTO(
             config.getValidacaoSucesso(),
             config.getMensagemValidacao(),
             config.isConfigurado(),
-            config.getUpdatedAt()
+            config.getUpdatedAt(),
+            notificationAtiva,
+            baseUrl
         );
     }
 }

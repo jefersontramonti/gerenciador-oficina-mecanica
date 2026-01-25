@@ -4,10 +4,11 @@
 
 import { useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
-import { useForm } from 'react-hook-form';
+import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { ArrowLeft, Save, Loader2, RefreshCw, Check, AlertCircle } from 'lucide-react';
+import { CepInput } from '@/shared/components/forms/CepInput';
 import { useOficinaDetail, useUpdateOficina, usePlanosActive } from '../hooks/useSaas';
 import { showSuccess, showError } from '@/shared/utils/notifications';
 import { formatCurrency } from '@/shared/utils/formatters';
@@ -19,7 +20,7 @@ const editSchema = z.object({
   telefone: z.string().regex(/^\d{10,11}$/, 'Telefone deve ter 10 ou 11 dígitos'),
   plano: z.string().min(1, 'Selecione um plano'),
   valorMensalidade: z.number().min(0, 'Valor deve ser positivo'),
-  cep: z.string().regex(/^\d{8}$/, 'CEP deve ter 8 dígitos'),
+  cep: z.string().regex(/^\d{5}-?\d{3}$/, 'CEP inválido'),
   logradouro: z.string().min(3, 'Logradouro é obrigatório'),
   numero: z.string().min(1, 'Número é obrigatório'),
   complemento: z.string().optional(),
@@ -42,6 +43,8 @@ export const EditOficinaPage = () => {
     handleSubmit,
     watch,
     reset,
+    setValue,
+    control,
     formState: { errors, isDirty },
   } = useForm<EditFormData>({
     resolver: zodResolver(editSchema),
@@ -197,17 +200,23 @@ export const EditOficinaPage = () => {
 
             <div className="grid gap-4 md:grid-cols-3">
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                  CEP *
-                </label>
-                <input
-                  {...register('cep')}
-                  className="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
-                  maxLength={8}
+                <Controller
+                  name="cep"
+                  control={control}
+                  render={({ field }) => (
+                    <CepInput
+                      {...field}
+                      label="CEP *"
+                      error={errors.cep?.message}
+                      onAddressFound={(endereco) => {
+                        setValue('logradouro', endereco.logradouro, { shouldDirty: true });
+                        setValue('bairro', endereco.bairro, { shouldDirty: true });
+                        setValue('cidade', endereco.cidade, { shouldDirty: true });
+                        setValue('estado', endereco.estado, { shouldDirty: true });
+                      }}
+                    />
+                  )}
                 />
-                {errors.cep && (
-                  <p className="mt-1 text-sm text-red-500">{errors.cep.message}</p>
-                )}
               </div>
 
               <div className="md:col-span-2">

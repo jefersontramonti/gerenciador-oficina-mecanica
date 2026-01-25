@@ -119,7 +119,6 @@ const AdminOficinasPage = lazy(() => import('./features/admin/pages').then(m => 
 const OficinaDetailPage = lazy(() => import('./features/admin/pages').then(m => ({ default: m.OficinaDetailPage })));
 const CreateOficinaPage = lazy(() => import('./features/admin/pages').then(m => ({ default: m.CreateOficinaPage })));
 const EditOficinaPage = lazy(() => import('./features/admin/pages').then(m => ({ default: m.EditOficinaPage })));
-const AdminPagamentosPage = lazy(() => import('./features/admin/pages').then(m => ({ default: m.PagamentosPage })));
 const AuditPage = lazy(() => import('./features/admin/pages').then(m => ({ default: m.AuditPage })));
 const PlanosListPage = lazy(() => import('./features/admin/pages').then(m => ({ default: m.PlanosListPage })));
 const PlanoFormPage = lazy(() => import('./features/admin/pages').then(m => ({ default: m.PlanoFormPage })));
@@ -992,14 +991,6 @@ function App() {
                 }
               />
             </Route>
-            <Route
-              path="pagamentos"
-              element={
-                <ProtectedRoute requiredRoles={[PerfilUsuario.SUPER_ADMIN]}>
-                  <AdminPagamentosPage />
-                </ProtectedRoute>
-              }
-            />
             <Route
               path="audit"
               element={

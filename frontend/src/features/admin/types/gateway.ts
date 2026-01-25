@@ -19,6 +19,9 @@ export interface ConfiguracaoGateway {
   mensagemValidacao: string | null;
   configurado: boolean;
   updatedAt: string | null;
+  // Diagnostic info
+  notificationUrlAtiva: boolean;
+  baseUrlConfigurada: string | null;
 }
 
 export interface ConfiguracaoGatewayRequest {

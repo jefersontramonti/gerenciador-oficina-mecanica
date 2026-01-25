@@ -92,10 +92,10 @@ public class SaasPagamentoService {
 
         // Audit log
         auditService.log(
-            "REGISTER_PAYMENT",
+            "REGISTRAR_PAGAMENTO",
             "SaasPagamento",
             pagamento.getId(),
-            String.format("Registered payment for %s - %s: R$ %.2f",
+            String.format("Pagamento registrado para %s - %s: R$ %.2f",
                 oficina.getNomeFantasia(), request.mesReferencia(), request.valor())
         );
 
@@ -225,10 +225,10 @@ public class SaasPagamentoService {
                 oficina.getNomeFantasia(), oldStatus);
 
             auditService.log(
-                "AUTO_ACTIVATE_OFICINA",
+                "ATIVAR_OFICINA_AUTOMATICO",
                 "Oficina",
                 oficina.getId(),
-                String.format("Status automatically changed from %s to ATIVA after payment",
+                String.format("Status alterado automaticamente de %s para ATIVA após pagamento",
                     oldStatus)
             );
         }

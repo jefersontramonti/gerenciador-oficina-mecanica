@@ -149,6 +149,29 @@ export function ConfiguracaoGatewayPage() {
         </div>
       </div>
 
+      {/* Alert - Webhook URL not active */}
+      {config && !config.notificationUrlAtiva && (
+        <div className="rounded-lg bg-red-50 dark:bg-red-900/30 border border-red-300 dark:border-red-800 p-4">
+          <div className="flex items-start gap-3">
+            <XCircle className="h-5 w-5 text-red-600 dark:text-red-400 shrink-0 mt-0.5" />
+            <div>
+              <h3 className="font-semibold text-red-800 dark:text-red-300">
+                Webhook não está funcionando!
+              </h3>
+              <p className="mt-1 text-sm text-red-700 dark:text-red-400">
+                A variável <code className="px-1 py-0.5 bg-red-100 dark:bg-red-900/50 rounded">APP_BASE_URL</code> não está configurada corretamente no servidor.
+              </p>
+              <p className="mt-2 text-sm text-red-700 dark:text-red-400">
+                <strong>URL atual:</strong> <code className="px-1 py-0.5 bg-red-100 dark:bg-red-900/50 rounded">{config.baseUrlConfigurada || 'não definida'}</code>
+              </p>
+              <p className="mt-2 text-sm text-red-700 dark:text-red-400">
+                Para corrigir, defina <code className="px-1 py-0.5 bg-red-100 dark:bg-red-900/50 rounded">APP_BASE_URL=https://app.pitstopai.com.br</code> no arquivo <code>.env</code> do servidor e reinicie o backend.
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Status Card */}
       <div className="rounded-lg bg-white dark:bg-gray-800 shadow border border-gray-200 dark:border-gray-700 p-4 sm:p-6">
         <div className="flex items-center justify-between">
@@ -176,6 +199,15 @@ export function ConfiguracaoGatewayPage() {
             </div>
           </div>
           <div className="flex items-center gap-2">
+            {config?.notificationUrlAtiva ? (
+              <span className="px-2 py-1 text-xs font-medium rounded-full bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400">
+                Webhook OK
+              </span>
+            ) : (
+              <span className="px-2 py-1 text-xs font-medium rounded-full bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400">
+                Webhook OFF
+              </span>
+            )}
             {config?.sandbox && (
               <span className="px-2 py-1 text-xs font-medium rounded-full bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-400">
                 Sandbox

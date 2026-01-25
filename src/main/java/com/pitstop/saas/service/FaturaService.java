@@ -178,10 +178,10 @@ public class FaturaService {
             numero, oficina.getNomeFantasia(), mesRef, fatura.getValorTotal());
 
         auditService.log(
-            "GENERATE_INVOICE",
+            "GERAR_FATURA",
             "Fatura",
             fatura.getId(),
-            String.format("Invoice %s generated for %s (R$ %s)",
+            String.format("Fatura %s gerada para %s (R$ %s)",
                 numero, oficina.getNomeFantasia(), fatura.getValorTotal())
         );
 
@@ -238,10 +238,10 @@ public class FaturaService {
         log.info("Manual invoice {} created for workshop {}", numero, oficina.getNomeFantasia());
 
         auditService.log(
-            "CREATE_INVOICE_MANUAL",
+            "CRIAR_FATURA_MANUAL",
             "Fatura",
             fatura.getId(),
-            String.format("Manual invoice %s created for %s (R$ %s)",
+            String.format("Fatura manual %s criada para %s (R$ %s)",
                 numero, oficina.getNomeFantasia(), fatura.getValorTotal())
         );
 
@@ -286,10 +286,10 @@ public class FaturaService {
             fatura.getNumero(), fatura.getValorTotal(), request.metodoPagamento());
 
         auditService.log(
-            "REGISTER_PAYMENT",
+            "REGISTRAR_PAGAMENTO",
             "Fatura",
             fatura.getId(),
-            String.format("Payment R$ %s registered via %s",
+            String.format("Pagamento R$ %s registrado via %s",
                 fatura.getValorTotal(), request.metodoPagamento())
         );
 
@@ -314,10 +314,10 @@ public class FaturaService {
         log.info("Invoice {} cancelled: {}", fatura.getNumero(), motivo);
 
         auditService.log(
-            "CANCEL_INVOICE",
+            "CANCELAR_FATURA",
             "Fatura",
             fatura.getId(),
-            String.format("Invoice %s cancelled: %s", fatura.getNumero(), motivo)
+            String.format("Fatura %s cancelada: %s", fatura.getNumero(), motivo)
         );
 
         return FaturaDTO.fromEntity(fatura);

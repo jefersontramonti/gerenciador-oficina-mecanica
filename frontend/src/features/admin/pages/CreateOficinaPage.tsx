@@ -4,9 +4,10 @@
 
 import { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { useForm } from 'react-hook-form';
+import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
+import { CepInput } from '@/shared/components/forms/CepInput';
 import {
   ArrowLeft,
   ArrowRight,
@@ -33,7 +34,7 @@ const dadosBasicosSchema = z.object({
 });
 
 const enderecoSchema = z.object({
-  cep: z.string().regex(/^\d{8}$/, 'CEP deve ter 8 dígitos'),
+  cep: z.string().regex(/^\d{5}-?\d{3}$/, 'CEP inválido'),
   logradouro: z.string().min(3, 'Logradouro é obrigatório'),
   numero: z.string().min(1, 'Número é obrigatório'),
   complemento: z.string().optional(),
@@ -80,6 +81,7 @@ export const CreateOficinaPage = () => {
     watch,
     trigger,
     setValue,
+    control,
     formState: { errors },
   } = useForm<FullFormData>({
     resolver: zodResolver(fullSchema),
@@ -304,18 +306,23 @@ export const CreateOficinaPage = () => {
 
               <div className="grid grid-cols-3 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                    CEP * (apenas números)
-                  </label>
-                  <input
-                    {...register('cep')}
-                    className="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
-                    placeholder="01234567"
-                    maxLength={8}
+                  <Controller
+                    name="cep"
+                    control={control}
+                    render={({ field }) => (
+                      <CepInput
+                        {...field}
+                        label="CEP *"
+                        error={errors.cep?.message}
+                        onAddressFound={(endereco) => {
+                          setValue('logradouro', endereco.logradouro);
+                          setValue('bairro', endereco.bairro);
+                          setValue('cidade', endereco.cidade);
+                          setValue('estado', endereco.estado);
+                        }}
+                      />
+                    )}
                   />
-                  {errors.cep && (
-                    <p className="mt-1 text-sm text-red-500">{errors.cep.message}</p>
-                  )}
                 </div>
 
                 <div className="col-span-2">

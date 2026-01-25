@@ -237,10 +237,10 @@ public class SaasOficinaService {
 
         // Audit log
         auditService.log(
-            "CREATE_OFICINA",
+            "CRIAR_OFICINA",
             "Oficina",
             oficina.getId(),
-            String.format("Created workshop: %s (CNPJ: %s, Plan: %s)",
+            String.format("Oficina criada: %s (CNPJ: %s, Plano: %s)",
                 oficina.getNomeFantasia(), oficina.getCnpjCpf(), oficina.getPlano())
         );
 
@@ -305,10 +305,10 @@ public class SaasOficinaService {
 
         // Audit log
         auditService.log(
-            "UPDATE_OFICINA",
+            "ATUALIZAR_OFICINA",
             "Oficina",
             id,
-            String.format("Updated workshop: %s (Plan: %s, Value: R$ %.2f)",
+            String.format("Oficina atualizada: %s (Plano: %s, Valor: R$ %.2f)",
                 request.nomeFantasia(), request.plano(), request.valorMensalidade())
         );
 
@@ -369,10 +369,10 @@ public class SaasOficinaService {
         jdbcTemplate.update(sql, StatusOficina.ATIVA.name(), true, LocalDateTime.now(), id);
 
         auditService.log(
-            "ACTIVATE_OFICINA",
+            "ATIVAR_OFICINA",
             "Oficina",
             id,
-            String.format("Activated workshop: %s", oficina.getNomeFantasia())
+            String.format("Oficina ativada: %s", oficina.getNomeFantasia())
         );
 
         // Reload entity to get updated state (clear cache first to get fresh data)
@@ -407,10 +407,10 @@ public class SaasOficinaService {
         jdbcTemplate.update(sql, StatusOficina.SUSPENSA.name(), false, LocalDateTime.now(), id);
 
         auditService.log(
-            "SUSPEND_OFICINA",
+            "SUSPENDER_OFICINA",
             "Oficina",
             id,
-            String.format("Suspended workshop: %s", oficina.getNomeFantasia())
+            String.format("Oficina suspensa: %s", oficina.getNomeFantasia())
         );
 
         // Reload entity to get updated state (clear cache first to get fresh data)
@@ -445,10 +445,10 @@ public class SaasOficinaService {
         jdbcTemplate.update(sql, StatusOficina.CANCELADA.name(), false, LocalDateTime.now(), id);
 
         auditService.log(
-            "CANCEL_OFICINA",
+            "CANCELAR_OFICINA",
             "Oficina",
             id,
-            String.format("Cancelled workshop: %s", oficina.getNomeFantasia())
+            String.format("Oficina cancelada: %s", oficina.getNomeFantasia())
         );
 
         // Reload entity to get updated state (clear cache first to get fresh data)
@@ -680,7 +680,7 @@ public class SaasOficinaService {
         );
 
         auditService.log(
-            "UPDATE_LIMITES",
+            "ATUALIZAR_LIMITES",
             "Oficina",
             oficina.getId(),
             changes + (request.motivo() != null ? " | Motivo: " + request.motivo() : "")

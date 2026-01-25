@@ -107,12 +107,6 @@ const superAdminNavigationItems: NavigationItem[] = [
     requiredRoles: [PerfilUsuario.SUPER_ADMIN],
   },
   {
-    name: 'Pagamentos',
-    href: '/admin/pagamentos',
-    icon: CreditCard,
-    requiredRoles: [PerfilUsuario.SUPER_ADMIN],
-  },
-  {
     name: 'Relatórios',
     href: '/admin/relatorios',
     icon: BarChart3,

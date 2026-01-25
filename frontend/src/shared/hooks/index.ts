@@ -7,3 +7,6 @@ export { useFeatureFlag, useFeatureFlagMultiple, useFeatureFlagsReady } from './
 
 // Real-time updates
 export { useRealtimeUpdates, useQueryInvalidationOnWebSocket, useManualRefresh } from './useRealtimeUpdates';
+
+// Address/CEP lookup
+export { useBuscaCep, type BuscaCepResult } from './useBuscaCep';

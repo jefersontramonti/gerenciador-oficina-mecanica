@@ -6,6 +6,7 @@ import { ArrowLeft, Save } from 'lucide-react';
 import { useCliente, useCreateCliente, useUpdateCliente } from '../hooks/useClientes';
 import { createClienteSchema, updateClienteSchema } from '../utils/validation';
 import { InputMask } from '@/shared/components/forms/InputMask';
+import { CepInput } from '@/shared/components/forms/CepInput';
 import { showError } from '@/shared/utils/notifications';
 import { TipoCliente } from '../types';
 import type { CreateClienteFormData, UpdateClienteFormData } from '../utils/validation';
@@ -247,12 +248,16 @@ export const ClienteFormPage = () => {
                   name="cep"
                   control={control}
                   render={({ field }) => (
-                    <InputMask
+                    <CepInput
                       {...field}
-                      mask="cep"
                       label="CEP"
-                      placeholder="00000-000"
                       error={errors.cep?.message}
+                      onAddressFound={(endereco) => {
+                        setValue('logradouro', endereco.logradouro);
+                        setValue('bairro', endereco.bairro);
+                        setValue('cidade', endereco.cidade);
+                        setValue('estado', endereco.estado);
+                      }}
                     />
                   )}
                 />

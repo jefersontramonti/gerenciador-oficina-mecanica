@@ -89,11 +89,11 @@ public class ImpersonationService {
 
         // Log the impersonation action
         auditService.log(
-            "IMPERSONATE_START",
+            "INICIAR_IMPERSONACAO",
             "Oficina",
             oficinaId,
             String.format(
-                "SUPER_ADMIN %s started impersonation session for oficina %s (as user %s)",
+                "SUPER_ADMIN %s iniciou sessão de impersonação na oficina %s (como usuário %s)",
                 superAdminEmail,
                 oficina.getNomeFantasia(),
                 adminUser.getEmail()

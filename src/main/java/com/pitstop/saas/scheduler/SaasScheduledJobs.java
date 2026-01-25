@@ -77,10 +77,10 @@ public class SaasScheduledJobs {
 
                 // Audit log
                 auditService.log(
-                    "AUTO_SUSPEND_OFICINA",
+                    "SUSPENSAO_AUTOMATICA",
                     "Oficina",
                     oficina.getId(),
-                    String.format("Workshop automatically suspended due to overdue payment (due date: %s)",
+                    String.format("Oficina suspensa automaticamente por pagamento em atraso (vencimento: %s)",
                         oficina.getDataVencimentoPlano())
                 );
 
@@ -128,10 +128,10 @@ public class SaasScheduledJobs {
 
             // Audit log
             auditService.log(
-                "TRIAL_EXPIRING_ALERT",
+                "ALERTA_TRIAL_EXPIRANDO",
                 "Oficina",
                 oficina.getId(),
-                String.format("Trial expiring alert: %d days remaining", diasRestantes)
+                String.format("Alerta trial expirando: %d dias restantes", diasRestantes)
             );
         }
 
@@ -172,10 +172,10 @@ public class SaasScheduledJobs {
 
             // Audit log
             auditService.log(
-                "TRIAL_EXPIRED_SUSPEND",
+                "TRIAL_EXPIRADO_SUSPENSAO",
                 "Oficina",
                 oficina.getId(),
-                String.format("Trial expired and workshop suspended (expired: %s)",
+                String.format("Trial expirado e oficina suspensa (expirou em: %s)",
                     oficina.getDataVencimentoPlano())
             );
 
@@ -229,10 +229,10 @@ public class SaasScheduledJobs {
 
         // Audit log
         auditService.log(
-            "DAILY_METRICS",
-            "System",
+            "METRICAS_DIARIAS",
+            "Sistema",
             null,
-            String.format("Daily metrics: Total=%d, Active=%d, Trial=%d, MRR=%.2f",
+            String.format("Métricas diárias: Total=%d, Ativas=%d, Trial=%d, MRR=R$ %.2f",
                 totalOficinas, oficinasAtivas, oficinasTrial, mrr != null ? mrr : 0.0)
         );
 
@@ -258,10 +258,10 @@ public class SaasScheduledJobs {
             log.info("Scheduled job completed: {} invoices generated", count);
 
             auditService.log(
-                "AUTO_GENERATE_INVOICES",
-                "System",
+                "GERACAO_FATURAS_MENSAL",
+                "Sistema",
                 null,
-                String.format("Monthly invoice generation: %d invoices created", count)
+                String.format("Geração de faturas mensal: %d faturas criadas", count)
             );
         } catch (Exception e) {
             log.error("Error generating monthly invoices: {}", e.getMessage(), e);
@@ -284,10 +284,10 @@ public class SaasScheduledJobs {
 
             if (count > 0) {
                 auditService.log(
-                    "AUTO_MARK_OVERDUE",
-                    "System",
+                    "MARCAR_FATURAS_VENCIDAS",
+                    "Sistema",
                     null,
-                    String.format("Marked %d invoices as overdue", count)
+                    String.format("Marcadas %d faturas como vencidas", count)
                 );
             }
         } catch (Exception e) {

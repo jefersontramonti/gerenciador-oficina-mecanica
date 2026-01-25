@@ -6,6 +6,7 @@ import com.pitstop.oficina.domain.StatusOficina;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
@@ -327,4 +328,31 @@ public interface OficinaRepository extends JpaRepository<Oficina, UUID> {
      * @return Lista de oficinas com os status informados
      */
     List<Oficina> findByStatusIn(List<StatusOficina> statuses);
+
+    // ===== ATUALIZAÇÕES DIRETAS (sem validação de entidade) =====
+
+    /**
+     * Atualiza a data de vencimento do plano diretamente no banco.
+     * Evita validação de entidade (útil quando dados legados têm CEP inválido).
+     *
+     * @param id ID da oficina
+     * @param novaDataVencimento Nova data de vencimento do plano
+     * @return Número de linhas afetadas (1 se sucesso, 0 se não encontrou)
+     */
+    @Modifying
+    @Query("UPDATE Oficina o SET o.dataVencimentoPlano = :novaDataVencimento, o.updatedAt = CURRENT_TIMESTAMP WHERE o.id = :id")
+    int updateDataVencimentoPlano(@Param("id") UUID id, @Param("novaDataVencimento") LocalDate novaDataVencimento);
+
+    /**
+     * Atualiza a data de vencimento do plano e status diretamente no banco.
+     * Usado para reativar oficinas suspensas após pagamento.
+     *
+     * @param id ID da oficina
+     * @param novaDataVencimento Nova data de vencimento do plano
+     * @param novoStatus Novo status da oficina
+     * @return Número de linhas afetadas (1 se sucesso, 0 se não encontrou)
+     */
+    @Modifying
+    @Query("UPDATE Oficina o SET o.dataVencimentoPlano = :novaDataVencimento, o.status = :novoStatus, o.updatedAt = CURRENT_TIMESTAMP WHERE o.id = :id")
+    int updateAssinaturaEStatus(@Param("id") UUID id, @Param("novaDataVencimento") LocalDate novaDataVencimento, @Param("novoStatus") StatusOficina novoStatus);
 }

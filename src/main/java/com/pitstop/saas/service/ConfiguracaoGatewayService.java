@@ -41,7 +41,7 @@ public class ConfiguracaoGatewayService {
     @Transactional(readOnly = true)
     public List<ConfiguracaoGatewayDTO> listarTodos() {
         return repository.findAll().stream()
-            .map(ConfiguracaoGatewayDTO::fromEntity)
+            .map(config -> ConfiguracaoGatewayDTO.fromEntity(config, baseUrl))
             .toList();
     }
 
@@ -51,7 +51,7 @@ public class ConfiguracaoGatewayService {
     @Transactional(readOnly = true)
     public ConfiguracaoGatewayDTO getByTipo(TipoGateway tipo) {
         return repository.findByTipo(tipo)
-            .map(ConfiguracaoGatewayDTO::fromEntity)
+            .map(config -> ConfiguracaoGatewayDTO.fromEntity(config, baseUrl))
             .orElse(null);
     }
 
@@ -63,8 +63,13 @@ public class ConfiguracaoGatewayService {
         Optional<ConfiguracaoGateway> config = repository.findByTipo(TipoGateway.MERCADO_PAGO);
 
         if (config.isPresent()) {
-            return ConfiguracaoGatewayDTO.fromEntity(config.get());
+            return ConfiguracaoGatewayDTO.fromEntity(config.get(), baseUrl);
         }
+
+        // Check if notification URL will be active
+        boolean notificationAtiva = baseUrl != null &&
+            !baseUrl.contains("localhost") &&
+            !baseUrl.contains("127.0.0.1");
 
         // Return empty config
         return new ConfiguracaoGatewayDTO(
@@ -81,7 +86,9 @@ public class ConfiguracaoGatewayService {
             null,
             null,
             false,
-            null
+            null,
+            notificationAtiva,
+            baseUrl
         );
     }
 
@@ -122,7 +129,7 @@ public class ConfiguracaoGatewayService {
 
         log.info("Gateway {} configuration updated by user {}", request.tipo(), usuarioId);
 
-        return ConfiguracaoGatewayDTO.fromEntity(config);
+        return ConfiguracaoGatewayDTO.fromEntity(config, baseUrl);
     }
 
     /**
@@ -168,7 +175,7 @@ public class ConfiguracaoGatewayService {
         config.setUpdatedBy(usuarioId);
         repository.save(config);
 
-        return ConfiguracaoGatewayDTO.fromEntity(config);
+        return ConfiguracaoGatewayDTO.fromEntity(config, baseUrl);
     }
 
     /**
