@@ -18,3 +18,4 @@ export { ComunicadoFormPage } from './ComunicadoFormPage';
 export { ComunicadoDetailPage } from './ComunicadoDetailPage';
 export { FeatureFlagsPage } from './FeatureFlagsPage';
 export { ConfiguracaoGatewayPage } from './ConfiguracaoGatewayPage';
+export { LeadsListPage } from './LeadsListPage';

@@ -1141,7 +1141,9 @@
 
         const nome = document.getElementById('nome').value;
         const email = document.getElementById('email').value;
-        const whatsapp = document.getElementById('whatsapp').value;
+        const whatsappRaw = document.getElementById('whatsapp').value;
+        // Remove mask from WhatsApp (keep only digits)
+        const whatsapp = '55' + whatsappRaw.replace(/\D/g, '');
 
         // Show loading state
         btnText.textContent = 'Enviando...';

@@ -198,6 +198,8 @@ jobs:
           MAIL_SMTP_AUTH=${{ secrets.MAIL_SMTP_AUTH }}
           MAIL_SMTP_SSL_ENABLE=${{ secrets.MAIL_SMTP_SSL_ENABLE }}
           MAIL_SMTP_STARTTLS_ENABLE=${{ secrets.MAIL_SMTP_STARTTLS_ENABLE }}
+          APP_LEADS_NOTIFICATION_EMAIL=${{ secrets.APP_LEADS_NOTIFICATION_EMAIL }}
+          APP_LEADS_NOTIFICATION_WHATSAPP=${{ secrets.APP_LEADS_NOTIFICATION_WHATSAPP }}
           ENVFILE
 
           # Remover indentação do arquivo

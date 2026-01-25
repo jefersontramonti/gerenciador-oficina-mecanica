@@ -134,6 +134,7 @@ const ComunicadoFormPage = lazy(() => import('./features/admin/pages').then(m =>
 const ComunicadoDetailPage = lazy(() => import('./features/admin/pages').then(m => ({ default: m.ComunicadoDetailPage })));
 const FeatureFlagsPage = lazy(() => import('./features/admin/pages').then(m => ({ default: m.FeatureFlagsPage })));
 const SaasConfiguracaoGatewayPage = lazy(() => import('./features/admin/pages').then(m => ({ default: m.ConfiguracaoGatewayPage })));
+const LeadsListPage = lazy(() => import('./features/admin/pages').then(m => ({ default: m.LeadsListPage })));
 
 function App() {
   return (
@@ -1124,6 +1125,14 @@ function App() {
               element={
                 <ProtectedRoute requiredRoles={[PerfilUsuario.SUPER_ADMIN]}>
                   <FeatureFlagsPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="leads"
+              element={
+                <ProtectedRoute requiredRoles={[PerfilUsuario.SUPER_ADMIN]}>
+                  <LeadsListPage />
                 </ProtectedRoute>
               }
             />
