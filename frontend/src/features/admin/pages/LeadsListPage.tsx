@@ -98,14 +98,21 @@ export function LeadsListPage() {
     window.open(`https://wa.me/${cleanPhone}`, '_blank');
   };
 
-  const formatDate = (date: string) => {
-    return new Intl.DateTimeFormat('pt-BR', {
-      day: '2-digit',
-      month: '2-digit',
-      year: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit',
-    }).format(new Date(date));
+  const formatDate = (date: string | null | undefined) => {
+    if (!date) return '-';
+    try {
+      const parsed = new Date(date);
+      if (isNaN(parsed.getTime())) return '-';
+      return new Intl.DateTimeFormat('pt-BR', {
+        day: '2-digit',
+        month: '2-digit',
+        year: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit',
+      }).format(parsed);
+    } catch {
+      return '-';
+    }
   };
 
   const renderLeadRow = (lead: LeadResumo) => {
