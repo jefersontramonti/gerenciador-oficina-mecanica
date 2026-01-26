@@ -173,9 +173,9 @@ export const PlanoLimitesCard = memo(() => {
           Limites de OS renovam todo dia 1º
         </p>
 
-        {/* Link para configurações */}
+        {/* Link para Meu Plano */}
         <Link
-          to="/configuracoes"
+          to="/meu-plano"
           className="flex items-center justify-center gap-1 text-xs sm:text-sm font-medium text-purple-600 dark:text-purple-400 hover:underline"
         >
           Ver detalhes do plano
