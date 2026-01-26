@@ -1,5 +1,6 @@
 package com.pitstop.usuario.service;
 
+import com.pitstop.saas.service.PlanoLimiteService;
 import com.pitstop.shared.security.tenant.TenantContext;
 import com.pitstop.usuario.domain.PerfilUsuario;
 import com.pitstop.usuario.domain.Usuario;
@@ -43,6 +44,7 @@ public class UsuarioService {
     private final UsuarioRepository usuarioRepository;
     private final UsuarioMapper usuarioMapper;
     private final PasswordEncoder passwordEncoder;
+    private final PlanoLimiteService planoLimiteService;
 
     /**
      * Cria um novo usuário no sistema.
@@ -62,6 +64,9 @@ public class UsuarioService {
         log.debug("Criando novo usuário com email: {}", request.email());
 
         UUID oficinaId = TenantContext.getTenantId();
+
+        // Validar limite de usuários do plano
+        planoLimiteService.validarLimiteUsuarios(oficinaId);
 
         // Validar email único (case-insensitive)
         // Email é globalmente único (não filtra por oficinaId)

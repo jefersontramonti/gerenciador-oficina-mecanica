@@ -234,8 +234,8 @@ databaseChangeLog:
       file: db/changelog/migrations/V082__align_feature_flags_with_marketing.sql
       relativeToChangelogFile: false
   - include:
-      file: db/changelog/migrations/V083__create_super_admin_local.sql
+      file: db/changelog/migrations/V084__create_leads_table.sql
       relativeToChangelogFile: false
   - include:
-      file: db/changelog/migrations/V084__create_leads_table.sql
+      file: db/changelog/migrations/V085__update_planos_limites.sql
       relativeToChangelogFile: false

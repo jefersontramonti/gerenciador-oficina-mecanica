@@ -197,6 +197,20 @@ public interface UsuarioRepository extends JpaRepository<Usuario, UUID> {
     Optional<Usuario> findFirstByOficinaIdAndPerfilAndAtivoTrue(@Param("oficinaId") UUID oficinaId, @Param("perfil") PerfilUsuario perfil);
 
     // =====================================
+    // CONTAGEM PARA LIMITES DE PLANO
+    // =====================================
+
+    /**
+     * Count active users in a specific workshop.
+     * Used for plan limit validation.
+     *
+     * @param oficinaId ID da oficina (tenant)
+     * @return Count of active users
+     */
+    @Query("SELECT COUNT(u) FROM Usuario u WHERE u.oficina.id = :oficinaId AND u.ativo = TRUE")
+    long countByOficinaIdAndAtivoTrue(@Param("oficinaId") UUID oficinaId);
+
+    // =====================================
     // SUPER_ADMIN QUERIES (No oficina filter)
     // =====================================
 

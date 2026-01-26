@@ -499,6 +499,26 @@ public interface OrdemServicoRepository extends JpaRepository<OrdemServico, UUID
     @Query("SELECT os FROM OrdemServico os WHERE os.tokenAprovacao = :tokenAprovacao")
     Optional<OrdemServico> findByTokenAprovacao(@Param("tokenAprovacao") String tokenAprovacao);
 
+    // ========== QUERIES PARA LIMITES DE PLANO ==========
+
+    /**
+     * Count service orders created in a period, excluding CANCELADO status.
+     * Used for monthly plan limit validation.
+     *
+     * @param oficinaId ID da oficina (tenant)
+     * @param inicio data inicial do período
+     * @param fim data final do período
+     * @return Count of non-canceled OS in the period
+     */
+    @Query("SELECT COUNT(os) FROM OrdemServico os WHERE os.oficina.id = :oficinaId " +
+           "AND os.dataAbertura BETWEEN :inicio AND :fim " +
+           "AND os.status <> 'CANCELADO'")
+    long countByOficinaIdAndDataAberturaBetweenExcluindoCanceladas(
+        @Param("oficinaId") UUID oficinaId,
+        @Param("inicio") LocalDateTime inicio,
+        @Param("fim") LocalDateTime fim
+    );
+
     // ========== QUERIES PARA FLUXO DE CAIXA E DRE ==========
 
     /**

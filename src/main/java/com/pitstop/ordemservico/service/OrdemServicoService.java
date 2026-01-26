@@ -31,6 +31,7 @@ import com.pitstop.ordemservico.event.OrdemServicoCanceladaEvent;
 import com.pitstop.notificacao.service.NotificacaoEventPublisher;
 import com.pitstop.oficina.domain.Oficina;
 import com.pitstop.oficina.repository.OficinaRepository;
+import com.pitstop.saas.service.PlanoLimiteService;
 import com.pitstop.shared.security.tenant.TenantContext;
 import com.pitstop.shared.security.CustomUserDetails;
 import lombok.RequiredArgsConstructor;
@@ -88,6 +89,7 @@ public class OrdemServicoService {
     private final NotificacaoEventPublisher notificacaoEventPublisher;
     private final OrdemServicoPDFService pdfService;
     private final com.pitstop.notificacao.service.EmailService emailService;
+    private final PlanoLimiteService planoLimiteService;
 
     // ===== CREATE =====
 
@@ -105,6 +107,9 @@ public class OrdemServicoService {
         log.info("Criando nova OS para veículo ID: {}, mecânico ID: {}", dto.veiculoId(), dto.usuarioId());
 
         UUID oficinaId = TenantContext.getTenantId();
+
+        // Validar limite de OS/mês do plano
+        planoLimiteService.validarLimiteOsMes(oficinaId);
 
         // Valida veículo existe
         Veiculo veiculo = veiculoRepository.findByOficinaIdAndId(oficinaId, dto.veiculoId())

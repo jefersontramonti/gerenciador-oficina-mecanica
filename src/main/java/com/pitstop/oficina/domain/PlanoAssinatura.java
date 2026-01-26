@@ -5,18 +5,28 @@ import java.math.BigDecimal;
 /**
  * Subscription plans available for workshops in PitStop system.
  *
+ * <p><b>IMPORTANTE:</b> Os limites reais são configurados na tabela `planos` do banco de dados.
+ * Este enum serve apenas para referência. Use {@link com.pitstop.saas.service.PlanoLimiteService}
+ * para validar limites.</p>
+ *
  * <p><b>Plan Features Comparison:</b></p>
  * <table border="1">
  *   <tr>
  *     <th>Feature</th>
  *     <th>Econômico (R$ 160)</th>
- *     <th>Profissional (R$ 250)</th>
- *     <th>Turbinado (Custom)</th>
+ *     <th>Profissional (R$ 260)</th>
+ *     <th>Turbinado (R$ 600+)</th>
  *   </tr>
  *   <tr>
  *     <td>Users</td>
- *     <td>1</td>
  *     <td>3</td>
+ *     <td>10</td>
+ *     <td>Unlimited</td>
+ *   </tr>
+ *   <tr>
+ *     <td>OS/Month</td>
+ *     <td>100</td>
+ *     <td>500</td>
  *     <td>Unlimited</td>
  *   </tr>
  *   <tr>
@@ -56,7 +66,8 @@ public enum PlanoAssinatura {
     /**
      * Economic plan - R$ 160.00/month
      * <ul>
-     *   <li>1 user</li>
+     *   <li>3 users</li>
+     *   <li>100 OS/month</li>
      *   <li>NO invoice emission</li>
      *   <li>NO WhatsApp automation</li>
      *   <li>NO preventive maintenance</li>
@@ -67,8 +78,8 @@ public enum PlanoAssinatura {
     ECONOMICO(
         "Econômico",
         new BigDecimal("160.00"),
-        1,              // maxUsuarios
-        -1,             // maxOrdensServico (unlimited)
+        3,              // maxUsuarios
+        100,            // maxOrdensServico
         -1,             // maxClientes (unlimited)
         false,          // emiteNotaFiscal
         false,          // whatsappAutomatizado
@@ -77,9 +88,10 @@ public enum PlanoAssinatura {
     ),
 
     /**
-     * Professional plan - R$ 250.00/month (Most Popular)
+     * Professional plan - R$ 260.00/month (Most Popular)
      * <ul>
-     *   <li>3 users</li>
+     *   <li>10 users</li>
+     *   <li>500 OS/month</li>
      *   <li>WITH invoice emission (NF-e, NFS-e, NFC-e)</li>
      *   <li>NO WhatsApp automation</li>
      *   <li>NO preventive maintenance</li>
@@ -89,9 +101,9 @@ public enum PlanoAssinatura {
      */
     PROFISSIONAL(
         "Profissional",
-        new BigDecimal("250.00"),
-        3,              // maxUsuarios
-        -1,             // maxOrdensServico (unlimited)
+        new BigDecimal("260.00"),
+        10,             // maxUsuarios
+        500,            // maxOrdensServico
         -1,             // maxClientes (unlimited)
         true,           // emiteNotaFiscal
         false,          // whatsappAutomatizado
@@ -100,9 +112,10 @@ public enum PlanoAssinatura {
     ),
 
     /**
-     * Turbinado plan - Custom pricing (contact sales)
+     * Turbinado plan - R$ 600.00/month
      * <ul>
      *   <li>Unlimited users</li>
+     *   <li>Unlimited OS/month</li>
      *   <li>WITH invoice emission (NF-e, NFS-e, NFC-e)</li>
      *   <li>WITH WhatsApp automation</li>
      *   <li>WITH preventive maintenance</li>
@@ -112,7 +125,7 @@ public enum PlanoAssinatura {
      */
     TURBINADO(
         "Turbinado",
-        BigDecimal.ZERO, // Custom pricing - to be negotiated
+        new BigDecimal("600.00"),
         -1,             // maxUsuarios (unlimited)
         -1,             // maxOrdensServico (unlimited)
         -1,             // maxClientes (unlimited)

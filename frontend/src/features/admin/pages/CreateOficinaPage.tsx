@@ -86,7 +86,23 @@ export const CreateOficinaPage = () => {
   } = useForm<FullFormData>({
     resolver: zodResolver(fullSchema),
     defaultValues: {
+      razaoSocial: '',
+      nomeFantasia: '',
+      cnpj: '',
+      email: '',
+      telefone: '',
+      cep: '',
+      logradouro: '',
+      numero: '',
+      complemento: '',
+      bairro: '',
+      cidade: '',
+      estado: '',
       plano: '',
+      nomeAdmin: '',
+      emailAdmin: '',
+      senhaAdmin: '',
+      confirmarSenha: '',
     },
   });
 

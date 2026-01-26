@@ -22,6 +22,7 @@ import { FaturamentoBarChart } from '../components/FaturamentoBarChart';
 import { PagamentosPorTipoChart } from '../components/PagamentosPorTipoChart';
 import { RecentOSTable } from '../components/RecentOSTable';
 import { ComunicadoAlert } from '@/features/comunicados';
+import { PlanoLimitesCard } from '@/features/configuracoes/components/PlanoLimitesCard';
 
 export const DashboardPage = () => {
   const { user } = useAuth();
@@ -151,10 +152,11 @@ export const DashboardPage = () => {
 
       {/* Mini-Widgets Expansíveis */}
       {showFinancial && (
-        <div className="mb-4 sm:mb-6 grid gap-3 sm:gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="mb-4 sm:mb-6 grid gap-3 sm:gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
           <PagamentosWidget />
           <ManutencaoWidget />
           {isGerente && <NotasFiscaisWidget />}
+          {isGerente && <PlanoLimitesCard />}
         </div>
       )}
 
