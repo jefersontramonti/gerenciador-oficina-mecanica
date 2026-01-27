@@ -239,3 +239,6 @@ databaseChangeLog:
   - include:
       file: db/changelog/migrations/V085__update_planos_limites.sql
       relativeToChangelogFile: false
+  - include:
+      file: db/changelog/migrations/V086__add_manutencao_events_to_historico.sql
+      relativeToChangelogFile: false
