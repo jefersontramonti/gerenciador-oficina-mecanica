@@ -71,9 +71,14 @@ public interface AlertaManutencaoRepository extends JpaRepository<AlertaManutenc
     );
 
     /**
-     * Conta alertas pendentes.
+     * Conta alertas pendentes (exclui alertas de planos inativos/finalizados).
      */
-    @Query("SELECT COUNT(a) FROM AlertaManutencao a WHERE a.oficina.id = :oficinaId AND a.status = 'PENDENTE'")
+    @Query("""
+        SELECT COUNT(a) FROM AlertaManutencao a
+        WHERE a.oficina.id = :oficinaId
+        AND a.status = 'PENDENTE'
+        AND (a.plano IS NULL OR (a.plano.ativo = true AND a.plano.status = 'ATIVO'))
+        """)
     long countPendentes(@Param("oficinaId") UUID oficinaId);
 
     /**

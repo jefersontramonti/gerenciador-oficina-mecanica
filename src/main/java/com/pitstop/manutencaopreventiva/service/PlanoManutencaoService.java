@@ -32,6 +32,7 @@ public class PlanoManutencaoService {
     private final PlanoManutencaoRepository planoRepository;
     private final TemplateManutencaoRepository templateRepository;
     private final HistoricoManutencaoRepository historicoRepository;
+    private final AlertaManutencaoRepository alertaManutencaoRepository;
     private final VeiculoRepository veiculoRepository;
     private final ManutencaoMapper mapper;
     private final OrdemServicoRepository ordemServicoRepository;
@@ -249,7 +250,10 @@ public class PlanoManutencaoService {
         plano.pausar(motivo);
         plano = planoRepository.save(plano);
 
-        log.info("Plano de manutenção pausado: {}", plano.getId());
+        // Cancela alertas pendentes associados ao plano pausado
+        alertaManutencaoRepository.cancelarAlertasPendentes(id);
+
+        log.info("Plano de manutenção pausado: {} - alertas pendentes cancelados", plano.getId());
         return mapper.toPlanoResponse(plano);
     }
 
@@ -264,7 +268,10 @@ public class PlanoManutencaoService {
         plano.concluir();
         plano = planoRepository.save(plano);
 
-        log.info("Plano de manutenção concluído: {}", plano.getId());
+        // Cancela alertas pendentes associados ao plano concluído
+        alertaManutencaoRepository.cancelarAlertasPendentes(id);
+
+        log.info("Plano de manutenção concluído: {} - alertas pendentes cancelados", plano.getId());
         return mapper.toPlanoResponse(plano);
     }
 
@@ -309,7 +316,10 @@ public class PlanoManutencaoService {
         historicoRepository.save(historico);
         plano = planoRepository.save(plano);
 
-        log.info("Execução registrada para plano: {}", plano.getId());
+        // Cancela alertas pendentes pois a manutenção foi executada
+        alertaManutencaoRepository.cancelarAlertasPendentes(id);
+
+        log.info("Execução registrada para plano: {} - alertas pendentes cancelados", plano.getId());
         return mapper.toPlanoResponse(plano);
     }
 
@@ -324,7 +334,10 @@ public class PlanoManutencaoService {
         plano.setAtivo(false);
         planoRepository.save(plano);
 
-        log.info("Plano de manutenção deletado (soft): {}", id);
+        // Cancela alertas pendentes associados ao plano deletado
+        alertaManutencaoRepository.cancelarAlertasPendentes(id);
+
+        log.info("Plano de manutenção deletado (soft): {} - alertas pendentes cancelados", id);
     }
 
     private void validarTenant(PlanoManutencaoPreventiva plano) {

@@ -6,6 +6,7 @@ import com.pitstop.financeiro.domain.TipoPagamento;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
@@ -315,24 +316,39 @@ public interface PagamentoRepository extends JpaRepository<Pagamento, UUID> {
 
     /**
      * Conta pagamentos pendentes (não pagos) em uma oficina.
+     * Exclui pagamentos de OS canceladas.
      *
      * @param oficinaId ID da oficina (tenant)
      * @return quantidade de pagamentos pendentes
      */
-    @Query("SELECT COUNT(p) FROM Pagamento p WHERE p.oficina.id = :oficinaId AND p.status IN ('PENDENTE', 'VENCIDO')")
+    @Query("""
+        SELECT COUNT(p) FROM Pagamento p
+        JOIN OrdemServico os ON os.id = p.ordemServicoId
+        WHERE p.oficina.id = :oficinaId
+        AND p.status IN ('PENDENTE', 'VENCIDO')
+        AND os.status <> 'CANCELADO'
+        """)
     long countPendentes(@Param("oficinaId") UUID oficinaId);
 
     /**
      * Soma valor de pagamentos pendentes em uma oficina.
+     * Exclui pagamentos de OS canceladas.
      *
      * @param oficinaId ID da oficina (tenant)
      * @return valor total pendente
      */
-    @Query("SELECT COALESCE(SUM(p.valor), 0) FROM Pagamento p WHERE p.oficina.id = :oficinaId AND p.status IN ('PENDENTE', 'VENCIDO')")
+    @Query("""
+        SELECT COALESCE(SUM(p.valor), 0) FROM Pagamento p
+        JOIN OrdemServico os ON os.id = p.ordemServicoId
+        WHERE p.oficina.id = :oficinaId
+        AND p.status IN ('PENDENTE', 'VENCIDO')
+        AND os.status <> 'CANCELADO'
+        """)
     BigDecimal sumPendentes(@Param("oficinaId") UUID oficinaId);
 
     /**
      * Conta pagamentos vencidos (data vencimento antes de hoje e status PENDENTE) em uma oficina.
+     * Exclui pagamentos de OS canceladas.
      *
      * @param oficinaId ID da oficina (tenant)
      * @param dataReferencia data de referência (geralmente hoje)
@@ -340,14 +356,17 @@ public interface PagamentoRepository extends JpaRepository<Pagamento, UUID> {
      */
     @Query("""
         SELECT COUNT(p) FROM Pagamento p
+        JOIN OrdemServico os ON os.id = p.ordemServicoId
         WHERE p.oficina.id = :oficinaId
         AND p.status = 'PENDENTE'
         AND p.dataVencimento < :dataReferencia
+        AND os.status <> 'CANCELADO'
         """)
     long countVencidos(@Param("oficinaId") UUID oficinaId, @Param("dataReferencia") LocalDate dataReferencia);
 
     /**
      * Soma valor de pagamentos vencidos em uma oficina.
+     * Exclui pagamentos de OS canceladas.
      *
      * @param oficinaId ID da oficina (tenant)
      * @param dataReferencia data de referência
@@ -355,9 +374,11 @@ public interface PagamentoRepository extends JpaRepository<Pagamento, UUID> {
      */
     @Query("""
         SELECT COALESCE(SUM(p.valor), 0) FROM Pagamento p
+        JOIN OrdemServico os ON os.id = p.ordemServicoId
         WHERE p.oficina.id = :oficinaId
         AND p.status = 'PENDENTE'
         AND p.dataVencimento < :dataReferencia
+        AND os.status <> 'CANCELADO'
         """)
     BigDecimal sumVencidos(@Param("oficinaId") UUID oficinaId, @Param("dataReferencia") LocalDate dataReferencia);
 
@@ -543,4 +564,26 @@ public interface PagamentoRepository extends JpaRepository<Pagamento, UUID> {
      */
     @Query("SELECT p FROM Pagamento p WHERE p.oficina.id = :oficinaId AND p.id = :pagamentoId AND p.status = 'PAGO'")
     Optional<Pagamento> findPagamentoParaConciliacao(@Param("oficinaId") UUID oficinaId, @Param("pagamentoId") UUID pagamentoId);
+
+    // ==================== MÉTODOS PARA CANCELAMENTO DE OS ====================
+
+    /**
+     * Cancela todos os pagamentos pendentes de uma ordem de serviço.
+     * Usado quando uma OS é cancelada para evitar pagamentos órfãos no dashboard.
+     *
+     * @param ordemServicoId ID da ordem de serviço
+     * @return quantidade de pagamentos cancelados
+     */
+    @Modifying
+    @Query("UPDATE Pagamento p SET p.status = 'CANCELADO' WHERE p.ordemServicoId = :ordemServicoId AND p.status IN ('PENDENTE', 'VENCIDO')")
+    int cancelarPagamentosPendentesPorOS(@Param("ordemServicoId") UUID ordemServicoId);
+
+    /**
+     * Busca pagamentos pendentes de uma ordem de serviço.
+     *
+     * @param ordemServicoId ID da ordem de serviço
+     * @return lista de pagamentos pendentes
+     */
+    @Query("SELECT p FROM Pagamento p WHERE p.ordemServicoId = :ordemServicoId AND p.status IN ('PENDENTE', 'VENCIDO')")
+    List<Pagamento> findPendentesByOrdemServicoId(@Param("ordemServicoId") UUID ordemServicoId);
 }
