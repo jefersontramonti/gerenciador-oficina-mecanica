@@ -6,7 +6,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { CheckCircle, Play, XCircle, TruckIcon, Edit, AlertCircle, Clock, PlayCircle } from 'lucide-react';
-import { showError, showSuccess, showWarning } from '@/shared/utils/notifications';
 import { useAuth } from '@/features/auth/hooks/useAuth';
 import type { OrdemServico } from '../types';
 import type { ResumoFinanceiro } from '@/features/financeiro/types/pagamento';
@@ -22,6 +21,12 @@ import {
 } from '../hooks/useOrdensServico';
 import { FinalizarOSModal } from './FinalizarOSModal';
 
+type ToastState = {
+  visible: boolean;
+  type: 'success' | 'error' | 'warning';
+  message: string;
+};
+
 interface ActionButtonsProps {
   ordemServico: OrdemServico;
   resumoFinanceiro?: ResumoFinanceiro;
@@ -36,6 +41,15 @@ export const ActionButtons: React.FC<ActionButtonsProps> = ({ ordemServico, resu
   const [showAguardandoPecaModal, setShowAguardandoPecaModal] = useState(false);
   const [cancelMotivo, setCancelMotivo] = useState('');
   const [descricaoPeca, setDescricaoPeca] = useState('');
+  const [toast, setToast] = useState<ToastState>({ visible: false, type: 'success', message: '' });
+
+  const showToast = (type: 'success' | 'error' | 'warning', message: string) => {
+    setToast({ visible: true, type, message });
+  };
+
+  const handleCloseToast = () => {
+    setToast(prev => ({ ...prev, visible: false }));
+  };
 
   // Mutations
   const aprovarMutation = useAprovarOrdemServico();
@@ -56,7 +70,7 @@ export const ActionButtons: React.FC<ActionButtonsProps> = ({ ordemServico, resu
   const handleAction = async (action: ActionType) => {
     // Validação de pagamento para entrega
     if (action === 'entregar' && !resumoFinanceiro?.quitada) {
-      showError('A OS deve estar quitada antes da entrega');
+      showToast('error', 'A OS deve estar quitada antes da entrega');
       return;
     }
 
@@ -92,36 +106,42 @@ export const ActionButtons: React.FC<ActionButtonsProps> = ({ ordemServico, resu
     }
 
     try {
+      let successMessage = 'Ação realizada com sucesso!';
+
       switch (action) {
         case 'aprovar':
           await aprovarMutation.mutateAsync({
             id: ordemServico.id,
             aprovadoPeloCliente: true,
           });
+          successMessage = `OS #${ordemServico.numero} aprovada com sucesso!`;
           break;
         case 'iniciar':
           await iniciarMutation.mutateAsync(ordemServico.id);
+          successMessage = `OS #${ordemServico.numero} iniciada com sucesso!`;
           break;
         case 'retomar':
           await retomarMutation.mutateAsync(ordemServico.id);
+          successMessage = `OS #${ordemServico.numero} retomada com sucesso!`;
           break;
         case 'entregar':
           await entregarMutation.mutateAsync(ordemServico.id);
+          successMessage = `Veículo entregue! OS #${ordemServico.numero} concluída.`;
           break;
       }
 
-      showSuccess('Ação realizada com sucesso!');
+      showToast('success', successMessage);
       onActionComplete?.();
     } catch (error: any) {
       const errorMessage =
         error.response?.data?.message || error.message || 'Erro ao realizar ação';
-      showError(`Erro: ${errorMessage}`);
+      showToast('error', `Erro: ${errorMessage}`);
     }
   };
 
   const handleAguardarPecaConfirm = async () => {
     if (!descricaoPeca.trim()) {
-      showWarning('Informe a descrição da peça aguardada');
+      showToast('warning', 'Informe a descrição da peça aguardada');
       return;
     }
 
@@ -131,20 +151,20 @@ export const ActionButtons: React.FC<ActionButtonsProps> = ({ ordemServico, resu
         data: { descricaoPeca },
       });
 
-      showSuccess('OS em aguardando peça!');
+      showToast('success', 'OS em aguardando peça!');
       setShowAguardandoPecaModal(false);
       setDescricaoPeca('');
       onActionComplete?.();
     } catch (error: any) {
       const errorMessage =
         error.response?.data?.message || error.message || 'Erro ao atualizar status';
-      showError(`Erro: ${errorMessage}`);
+      showToast('error', `Erro: ${errorMessage}`);
     }
   };
 
   const handleCancelConfirm = async () => {
     if (!cancelMotivo.trim()) {
-      showWarning('Informe o motivo do cancelamento');
+      showToast('warning', 'Informe o motivo do cancelamento');
       return;
     }
 
@@ -154,14 +174,14 @@ export const ActionButtons: React.FC<ActionButtonsProps> = ({ ordemServico, resu
         data: { motivo: cancelMotivo },
       });
 
-      showSuccess('OS cancelada com sucesso!');
+      showToast('success', 'OS cancelada com sucesso!');
       setShowCancelModal(false);
       setCancelMotivo('');
       onActionComplete?.();
     } catch (error: any) {
       const errorMessage =
         error.response?.data?.message || error.message || 'Erro ao cancelar OS';
-      showError(`Erro: ${errorMessage}`);
+      showToast('error', `Erro: ${errorMessage}`);
     }
   };
 
@@ -324,9 +344,84 @@ export const ActionButtons: React.FC<ActionButtonsProps> = ({ ordemServico, resu
         isOpen={showFinalizarModal}
         onClose={() => setShowFinalizarModal(false)}
         onSuccess={() => {
-          showSuccess(`OS #${ordemServico.numero} finalizada com sucesso!`);
+          showToast('success', `OS #${ordemServico.numero} finalizada com sucesso!`);
           onActionComplete?.();
         }}
+      />
+
+      {/* Toast Notification - Novo estilo centralizado */}
+      <div
+        className={`fixed inset-0 flex items-start justify-center z-50 pointer-events-none px-4 pt-4 transition-all duration-500 ease-out ${
+          toast.visible ? 'opacity-100' : 'opacity-0'
+        }`}
+      >
+        <div
+          className={`pointer-events-auto transform transition-all duration-500 ease-out w-full max-w-xs sm:max-w-sm ${
+            toast.visible
+              ? 'translate-y-[30vh] sm:translate-y-[40vh] scale-100'
+              : '-translate-y-full scale-90'
+          }`}
+        >
+          <div className={`
+            flex flex-col items-center gap-2 sm:gap-3 px-5 sm:px-8 py-5 sm:py-6 rounded-xl sm:rounded-2xl shadow-2xl backdrop-blur-sm
+            border text-center
+            ${toast.type === 'success'
+              ? 'bg-slate-800/95 border-slate-700'
+              : toast.type === 'warning'
+              ? 'bg-slate-800/95 border-yellow-800'
+              : 'bg-slate-800/95 border-red-800'
+            }
+          `}>
+            {/* Ícone */}
+            <div className={`
+              w-12 h-12 sm:w-16 sm:h-16 rounded-full flex items-center justify-center
+              ${toast.type === 'success'
+                ? 'bg-green-500/20 text-green-400'
+                : toast.type === 'warning'
+                ? 'bg-yellow-500/20 text-yellow-400'
+                : 'bg-red-500/20 text-red-400'
+              }
+            `}>
+              {toast.type === 'success' && <CheckCircle className="h-6 w-6 sm:h-8 sm:w-8" />}
+              {toast.type === 'warning' && <AlertCircle className="h-6 w-6 sm:h-8 sm:w-8" />}
+              {toast.type === 'error' && <XCircle className="h-6 w-6 sm:h-8 sm:w-8" />}
+            </div>
+
+            {/* Título */}
+            <h3 className="text-lg sm:text-xl font-bold text-white">
+              {toast.type === 'success' ? 'Sucesso!' : toast.type === 'warning' ? 'Atenção!' : 'Erro!'}
+            </h3>
+
+            {/* Mensagem */}
+            <p className="text-sm sm:text-base text-gray-400 mb-2 sm:mb-4">
+              {toast.message}
+            </p>
+
+            {/* Botão OK */}
+            <button
+              onClick={handleCloseToast}
+              className={`
+                w-full py-2 sm:py-2.5 px-6 rounded-lg font-semibold text-sm sm:text-base transition-colors
+                ${toast.type === 'success'
+                  ? 'bg-green-600 hover:bg-green-700 active:bg-green-800 text-white'
+                  : toast.type === 'warning'
+                  ? 'bg-yellow-600 hover:bg-yellow-700 active:bg-yellow-800 text-white'
+                  : 'bg-red-600 hover:bg-red-700 active:bg-red-800 text-white'
+                }
+              `}
+            >
+              OK
+            </button>
+          </div>
+        </div>
+      </div>
+
+      {/* Backdrop quando toast está visível */}
+      <div
+        className={`fixed inset-0 bg-black/50 backdrop-blur-sm z-40 transition-opacity duration-300 ${
+          toast.visible ? 'opacity-100' : 'opacity-0 pointer-events-none'
+        }`}
+        onClick={handleCloseToast}
       />
     </>
   );

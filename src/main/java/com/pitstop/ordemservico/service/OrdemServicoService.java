@@ -87,8 +87,7 @@ public class OrdemServicoService {
     private final ApplicationEventPublisher applicationEventPublisher;
     private final com.pitstop.financeiro.service.PagamentoService pagamentoService;
     private final NotificacaoEventPublisher notificacaoEventPublisher;
-    private final OrdemServicoPDFService pdfService;
-    private final com.pitstop.notificacao.service.EmailService emailService;
+    private final AsyncPdfMailService asyncPdfMailService;
     private final PlanoLimiteService planoLimiteService;
 
     // ===== CREATE =====
@@ -1062,91 +1061,18 @@ public class OrdemServicoService {
                 nomeOficina
             );
 
-            // Envia PDF por email para o cliente (se tiver email)
-            enviarPdfFinalizacaoPorEmail(os, cliente, veiculo, nomeOficina);
-
-        } catch (Exception e) {
-            log.warn("Falha ao publicar notificacao de OS finalizada: {}", e.getMessage());
-        }
-    }
-
-    /**
-     * Gera e envia PDF da OS finalizada para o email do cliente.
-     *
-     * @param os ordem de serviço finalizada
-     * @param cliente cliente da OS
-     * @param veiculo veículo da OS
-     * @param nomeOficina nome da oficina
-     */
-    private void enviarPdfFinalizacaoPorEmail(OrdemServico os, Cliente cliente, Veiculo veiculo, String nomeOficina) {
-        if (cliente.getEmail() == null || cliente.getEmail().isBlank()) {
-            log.debug("Cliente {} não possui email. PDF não será enviado.", cliente.getNome());
-            return;
-        }
-
-        try {
-            // Gera PDF da OS
-            byte[] pdfBytes = pdfService.gerarPDF(os.getId());
-
-            // Monta assunto e corpo do email
-            String assunto = String.format("OS #%d Finalizada - %s", os.getNumero(), nomeOficina);
-
-            String corpo = String.format("""
-                <h2>Serviço Concluído!</h2>
-
-                <p>Prezado(a) <strong>%s</strong>,</p>
-
-                <p>Informamos que o serviço do seu veículo <strong>%s %s</strong> (placa %s) foi concluído com sucesso.</p>
-
-                <div style="background-color: #f0f9ff; padding: 15px; border-radius: 8px; margin: 20px 0;">
-                    <p><strong>Resumo:</strong></p>
-                    <p>OS: #%d</p>
-                    <p>Veículo: %s %s - %s</p>
-                    <p>Valor Final: <strong>R$ %s</strong></p>
-                </div>
-
-                <p>Em anexo você encontra a <strong>Ordem de Serviço</strong> completa com todos os detalhes do serviço realizado.</p>
-
-                <p>Por favor, entre em contato conosco para agendar a retirada do veículo e efetuar o pagamento.</p>
-
-                <p>Agradecemos a preferência!</p>
-
-                <p>Atenciosamente,<br/>
-                <strong>%s</strong></p>
-                """,
-                cliente.getNome(),
-                veiculo.getMarca(),
-                veiculo.getModelo(),
-                veiculo.getPlacaFormatada(),
+            // Envia PDF por email de forma assíncrona (não bloqueia a resposta)
+            asyncPdfMailService.enviarPdfFinalizacaoAsync(
+                os.getId(),
                 os.getNumero(),
-                veiculo.getMarca(),
-                veiculo.getModelo(),
-                veiculo.getPlacaFormatada(),
-                java.text.NumberFormat.getCurrencyInstance(new java.util.Locale("pt", "BR")).format(os.getValorFinal()),
+                cliente,
+                veiculo,
+                os.getValorFinal(),
                 nomeOficina
             );
 
-            // Nome do arquivo PDF
-            String nomePdf = String.format("OS_%d_%s.pdf",
-                os.getNumero(),
-                veiculo.getPlacaFormatada().replace("-", "").replace(" ", "")
-            );
-
-            // Envia email com PDF anexo
-            emailService.enviarComPdf(
-                cliente.getEmail(),
-                assunto,
-                corpo,
-                pdfBytes,
-                nomePdf
-            );
-
-            log.info("PDF da OS #{} enviado por email para {}", os.getNumero(), cliente.getEmail());
-
         } catch (Exception e) {
-            // Log do erro mas não interrompe o fluxo (email é secundário)
-            log.warn("Falha ao enviar PDF da OS #{} por email para {}: {}",
-                os.getNumero(), cliente.getEmail(), e.getMessage());
+            log.warn("Falha ao publicar notificacao de OS finalizada: {}", e.getMessage());
         }
     }
 

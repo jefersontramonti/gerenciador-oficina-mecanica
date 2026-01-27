@@ -142,6 +142,34 @@ public class WebSocketNotificationService {
     }
 
     /**
+     * Envia notificação quando um email é agendado por estar fora do horário comercial.
+     */
+    public void notifyEmailAgendado(Long osNumero, String destinatario, LocalDateTime agendadoPara) {
+        try {
+            Map<String, Object> notification = new HashMap<>();
+            notification.put("tipo", "EMAIL_AGENDADO");
+            notification.put("titulo", "Email Agendado");
+            notification.put("mensagem", String.format(
+                "O email para a OS #%d será enviado às %s (fora do horário comercial)",
+                osNumero,
+                agendadoPara.format(DateTimeFormatter.ofPattern("dd/MM HH:mm"))
+            ));
+            notification.put("timestamp", LocalDateTime.now().format(DATETIME_FORMATTER));
+
+            Map<String, Object> dados = new HashMap<>();
+            dados.put("osNumero", osNumero);
+            dados.put("agendadoPara", agendadoPara.format(DATETIME_FORMATTER));
+            notification.put("dados", dados);
+
+            messagingTemplate.convertAndSend("/topic/os-updates", notification);
+            log.info("Email agendado notification sent for OS #{}", osNumero);
+
+        } catch (Exception e) {
+            log.error("Error sending email agendado notification: {}", e.getMessage(), e);
+        }
+    }
+
+    /**
      * Envia notificação de plano de manutenção.
      */
     public void notifyManutencaoPlanoUpdate(UUID oficinaId, UUID planoId, String tipo, String mensagem) {

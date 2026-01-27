@@ -71,6 +71,7 @@ public class EmailService {
 
     /**
      * Envia email com rastreamento de historico.
+     * Otimizado para não bloquear conexão de banco durante envio SMTP.
      *
      * @param destinatario Email do destinatario
      * @param nomeDestinatario Nome do destinatario
@@ -83,7 +84,6 @@ public class EmailService {
      * @param usuarioId ID do usuario que disparou (null = automatico)
      * @return Historico da notificacao
      */
-    @Transactional
     public HistoricoNotificacao enviarComHistorico(
         String destinatario,
         String nomeDestinatario,
@@ -134,7 +134,10 @@ public class EmailService {
             return historicoRepository.save(historico);
         }
 
-        // Envia o email
+        // Salva historico como PENDENTE primeiro (rápido)
+        historico = historicoRepository.save(historico);
+
+        // Envia o email (fora de transação para não bloquear)
         try {
             boolean isHtml = contemHtml(mensagem);
 
@@ -164,13 +167,14 @@ public class EmailService {
             historico.marcarComoFalha(erroMsg, "MAIL_ERROR");
         }
 
+        // Atualiza status final
         return historicoRepository.save(historico);
     }
 
     /**
      * Envia email com PDF anexo e rastreamento de historico.
+     * Otimizado para não bloquear conexão de banco durante envio SMTP.
      */
-    @Transactional
     public HistoricoNotificacao enviarComPdfEHistorico(
         String destinatario,
         String nomeDestinatario,
@@ -214,7 +218,10 @@ public class EmailService {
             return historicoRepository.save(historico);
         }
 
-        // Envia o email com anexo
+        // Salva historico como PENDENTE primeiro (rápido)
+        historico = historicoRepository.save(historico);
+
+        // Envia o email com anexo (fora de transação)
         try {
             String nomeCompleto = nomePdf.endsWith(".pdf") ? nomePdf : nomePdf + ".pdf";
 
@@ -245,6 +252,7 @@ public class EmailService {
             historico.marcarComoFalha(erroMsg, "MAIL_PDF_ERROR");
         }
 
+        // Atualiza status final
         return historicoRepository.save(historico);
     }
 

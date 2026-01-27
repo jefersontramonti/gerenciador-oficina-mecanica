@@ -47,6 +47,7 @@ public class NotificacaoOrchestrator {
     private final TemplateService templateService;
     private final OrdemServicoPDFService ordemServicoPDFService;
     private final TempFileService tempFileService;
+    private final WebSocketNotificationService webSocketNotificationService;
 
     @Value("${app.base-url:http://localhost:8080}")
     private String baseUrl;
@@ -143,7 +144,6 @@ public class NotificacaoOrchestrator {
      * @param ordemServicoId ID da OS
      * @param clienteId ID do cliente
      */
-    @Transactional
     public void notificarEventoOS(
         EventoNotificacao evento,
         String destinatarioEmail,
@@ -157,12 +157,25 @@ public class NotificacaoOrchestrator {
 
         log.info("Processando notificacao de evento {} para OS {}", evento, ordemServicoId);
 
+        // Busca configuracao existente (qualquer status)
         ConfiguracaoNotificacao config = configuracaoRepository
-            .findByOficinaIdAndAtivoTrue(oficinaId)
-            .orElse(null);
+            .findByOficinaId(oficinaId)
+            .orElseGet(() -> {
+                log.info("Criando configuracao de notificacao padrao para oficina: {}", oficinaId);
+                ConfiguracaoNotificacao nova = ConfiguracaoNotificacao.builder()
+                    .oficinaId(oficinaId)
+                    .emailHabilitado(true)
+                    .whatsappHabilitado(false)
+                    .smsHabilitado(false)
+                    .telegramHabilitado(false)
+                    .ativo(true)
+                    .build();
+                return configuracaoRepository.save(nova);
+            });
 
-        if (config == null) {
-            log.warn("Configuracao de notificacao nao encontrada para oficina {}", oficinaId);
+        // Se configuracao existe mas nao esta ativa, nao envia notificacoes
+        if (!config.getAtivo()) {
+            log.warn("Configuracao de notificacao inativa para oficina {}", oficinaId);
             return;
         }
 
@@ -199,8 +212,14 @@ public class NotificacaoOrchestrator {
         }
 
         // Envia por email se habilitado
-        if (config.isEventoHabilitado(evento, TipoNotificacao.EMAIL) && destinatarioEmail != null) {
+        boolean emailHabilitado = config.isEventoHabilitado(evento, TipoNotificacao.EMAIL);
+        log.info("Verificando email: habilitado={}, destinatario={}, evento={}",
+            emailHabilitado, destinatarioEmail, evento);
+
+        if (emailHabilitado && destinatarioEmail != null && !destinatarioEmail.isBlank()) {
             try {
+                log.info("Preparando envio de email para {} (evento: {})", destinatarioEmail, evento);
+
                 var template = templateService.obterTemplate(
                     oficinaId,
                     evento.getTemplatePadrao(),
@@ -209,9 +228,23 @@ public class NotificacaoOrchestrator {
                 String assunto = templateService.processarAssunto(template, variaveis);
                 String corpo = templateService.processarCorpo(template, variaveis);
 
+                log.info("Template processado. Assunto: {}", assunto);
+
+                // Extrai numeroOS das variáveis para notificação WebSocket
+                Long numeroOS = null;
+                if (variaveis.get("numeroOS") != null) {
+                    try {
+                        numeroOS = Long.valueOf(variaveis.get("numeroOS").toString());
+                    } catch (NumberFormatException e) {
+                        log.debug("Não foi possível extrair numeroOS das variáveis");
+                    }
+                }
+
+                HistoricoNotificacao historico;
+
                 // Se tem PDF, envia com anexo e historico
                 if (pdfBytes != null && evento == EventoNotificacao.OS_ENTREGUE) {
-                    emailService.enviarComPdfEHistorico(
+                    historico = emailService.enviarComPdfEHistorico(
                         destinatarioEmail,
                         nomeDestinatario,
                         assunto,
@@ -224,10 +257,11 @@ public class NotificacaoOrchestrator {
                         clienteId,
                         null // automatico
                     );
-                    log.info("Email com PDF enviado para {} (evento: {})", destinatarioEmail, evento);
+                    log.info("Email com PDF processado para {} (evento: {}, status: {})",
+                        destinatarioEmail, evento, historico.getStatus());
                 } else {
                     // Envia com historico
-                    emailService.enviarComHistorico(
+                    historico = emailService.enviarComHistorico(
                         destinatarioEmail,
                         nomeDestinatario,
                         assunto,
@@ -238,16 +272,38 @@ public class NotificacaoOrchestrator {
                         clienteId,
                         null // automatico
                     );
-                    log.info("Email enviado para {} (evento: {})", destinatarioEmail, evento);
+                    log.info("Email processado para {} (evento: {}, status: {})",
+                        destinatarioEmail, evento, historico.getStatus());
+                }
+
+                // Notifica via WebSocket se email foi agendado
+                if (historico.getStatus() == StatusNotificacao.AGENDADO && numeroOS != null) {
+                    webSocketNotificationService.notifyEmailAgendado(
+                        numeroOS,
+                        destinatarioEmail,
+                        historico.getDataAgendada()
+                    );
                 }
             } catch (Exception e) {
-                log.error("Erro ao enviar email para {}: {}", destinatarioEmail, e.getMessage());
+                log.error("Erro ao enviar email para {}: {}", destinatarioEmail, e.getMessage(), e);
             }
+        } else {
+            log.warn("Email NAO enviado: habilitado={}, destinatario={}", emailHabilitado, destinatarioEmail);
         }
 
         // Envia por WhatsApp se habilitado
-        if (config.isEventoHabilitado(evento, TipoNotificacao.WHATSAPP) && destinatarioTelefone != null) {
+        boolean whatsappEventoHabilitado = config.isEventoHabilitado(evento, TipoNotificacao.WHATSAPP);
+        boolean whatsappGlobalHabilitado = config.getWhatsappHabilitado();
+        boolean evolutionConfigurada = config.temEvolutionApiConfigurada();
+
+        log.info("Verificando WhatsApp: eventoHabilitado={}, globalHabilitado={}, evolutionConfigurada={}, telefone={}",
+            whatsappEventoHabilitado, whatsappGlobalHabilitado, evolutionConfigurada, destinatarioTelefone);
+
+        if (whatsappEventoHabilitado && whatsappGlobalHabilitado && evolutionConfigurada
+                && destinatarioTelefone != null && !destinatarioTelefone.isBlank()) {
             try {
+                log.info("Preparando envio de WhatsApp para {} (evento: {})", destinatarioTelefone, evento);
+
                 // Se tem PDF, envia documento
                 if (pdfUrl != null && evento == EventoNotificacao.OS_ENTREGUE) {
                     String legenda = "Ola " + nomeDestinatario + "! Segue o comprovante da sua Ordem de Servico.";
@@ -276,8 +332,11 @@ public class NotificacaoOrchestrator {
                     log.info("WhatsApp enviado para {} (evento: {})", destinatarioTelefone, evento);
                 }
             } catch (Exception e) {
-                log.error("Erro ao enviar WhatsApp para {}: {}", destinatarioTelefone, e.getMessage());
+                log.error("Erro ao enviar WhatsApp para {}: {}", destinatarioTelefone, e.getMessage(), e);
             }
+        } else {
+            log.warn("WhatsApp NAO enviado: eventoHabilitado={}, globalHabilitado={}, evolutionConfigurada={}, telefone={}",
+                whatsappEventoHabilitado, whatsappGlobalHabilitado, evolutionConfigurada, destinatarioTelefone);
         }
 
         // Envia por Telegram SEMPRE (se configurado globalmente)

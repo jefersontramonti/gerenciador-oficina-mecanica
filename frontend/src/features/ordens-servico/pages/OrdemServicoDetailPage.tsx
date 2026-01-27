@@ -4,8 +4,7 @@
  */
 
 import { Link, useParams } from 'react-router-dom';
-import { ArrowLeft, Edit, Car, User, Phone, Mail, FileText, FileDown, DollarSign, Clock, Timer } from 'lucide-react';
-import { showError } from '@/shared/utils/notifications';
+import { ArrowLeft, Edit, Car, User, Phone, Mail, FileText, FileDown, DollarSign, Clock, Timer, CheckCircle, XCircle } from 'lucide-react';
 import { useOrdemServico, useGerarPDF } from '../hooks/useOrdensServico';
 import { useAuth } from '@/features/auth/hooks/useAuth';
 import { PerfilUsuario } from '@/features/auth/types';
@@ -48,6 +47,12 @@ const formatWhatsAppLink = (phone: string): string => {
   return `https://wa.me/${phoneWithCountry}`;
 };
 
+type ToastState = {
+  visible: boolean;
+  type: 'success' | 'error';
+  message: string;
+};
+
 export const OrdemServicoDetailPage = () => {
   const { id } = useParams<{ id: string }>();
   const { user } = useAuth();
@@ -55,6 +60,15 @@ export const OrdemServicoDetailPage = () => {
   const { data: resumoFinanceiro } = useResumoFinanceiro(id || '');
   const gerarPDFMutation = useGerarPDF();
   const [mostrarModalPagamento, setMostrarModalPagamento] = useState(false);
+  const [toast, setToast] = useState<ToastState>({ visible: false, type: 'success', message: '' });
+
+  const showToast = (type: 'success' | 'error', message: string) => {
+    setToast({ visible: true, type, message });
+  };
+
+  const handleCloseToast = () => {
+    setToast(prev => ({ ...prev, visible: false }));
+  };
 
   // MECANICO não pode ver seção de pagamentos
   const canViewPayments = user?.perfil !== PerfilUsuario.MECANICO;
@@ -78,9 +92,9 @@ export const OrdemServicoDetailPage = () => {
       // Limpar
       document.body.removeChild(link);
       window.URL.revokeObjectURL(url);
-    } catch (error: any) {
-      const errorMessage = error.response?.data?.message || error.message || 'Erro ao gerar PDF';
-      showError(`Erro: ${errorMessage}`);
+    } catch (err: any) {
+      const errorMessage = err.response?.data?.message || err.message || 'Erro ao gerar PDF';
+      showToast('error', `Erro: ${errorMessage}`);
     }
   };
 
@@ -520,6 +534,76 @@ export const OrdemServicoDetailPage = () => {
           valorDefault={ordemServico.valorFinal}
         />
       )}
+
+      {/* Toast Notification - Novo estilo centralizado */}
+      <div
+        className={`fixed inset-0 flex items-start justify-center z-50 pointer-events-none px-4 pt-4 transition-all duration-500 ease-out ${
+          toast.visible ? 'opacity-100' : 'opacity-0'
+        }`}
+      >
+        <div
+          className={`pointer-events-auto transform transition-all duration-500 ease-out w-full max-w-xs sm:max-w-sm ${
+            toast.visible
+              ? 'translate-y-[30vh] sm:translate-y-[40vh] scale-100'
+              : '-translate-y-full scale-90'
+          }`}
+        >
+          <div className={`
+            flex flex-col items-center gap-2 sm:gap-3 px-5 sm:px-8 py-5 sm:py-6 rounded-xl sm:rounded-2xl shadow-2xl backdrop-blur-sm
+            border text-center
+            ${toast.type === 'success'
+              ? 'bg-slate-800/95 border-slate-700'
+              : 'bg-slate-800/95 border-red-800'
+            }
+          `}>
+            {/* Ícone */}
+            <div className={`
+              w-12 h-12 sm:w-16 sm:h-16 rounded-full flex items-center justify-center
+              ${toast.type === 'success'
+                ? 'bg-green-500/20 text-green-400'
+                : 'bg-red-500/20 text-red-400'
+              }
+            `}>
+              {toast.type === 'success'
+                ? <CheckCircle className="h-6 w-6 sm:h-8 sm:w-8" />
+                : <XCircle className="h-6 w-6 sm:h-8 sm:w-8" />
+              }
+            </div>
+
+            {/* Título */}
+            <h3 className="text-lg sm:text-xl font-bold text-white">
+              {toast.type === 'success' ? 'Sucesso!' : 'Erro!'}
+            </h3>
+
+            {/* Mensagem */}
+            <p className="text-sm sm:text-base text-gray-400 mb-2 sm:mb-4">
+              {toast.message}
+            </p>
+
+            {/* Botão OK */}
+            <button
+              onClick={handleCloseToast}
+              className={`
+                w-full py-2 sm:py-2.5 px-6 rounded-lg font-semibold text-sm sm:text-base transition-colors
+                ${toast.type === 'success'
+                  ? 'bg-green-600 hover:bg-green-700 active:bg-green-800 text-white'
+                  : 'bg-red-600 hover:bg-red-700 active:bg-red-800 text-white'
+                }
+              `}
+            >
+              OK
+            </button>
+          </div>
+        </div>
+      </div>
+
+      {/* Backdrop quando toast está visível */}
+      <div
+        className={`fixed inset-0 bg-black/50 backdrop-blur-sm z-40 transition-opacity duration-300 ${
+          toast.visible ? 'opacity-100' : 'opacity-0 pointer-events-none'
+        }`}
+        onClick={handleCloseToast}
+      />
     </div>
   );
 };

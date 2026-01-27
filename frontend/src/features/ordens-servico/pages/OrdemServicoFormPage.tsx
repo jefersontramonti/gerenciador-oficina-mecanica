@@ -7,8 +7,8 @@ import { useEffect, useState, useRef } from 'react';
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { useForm, useFieldArray, Controller, type Resolver } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { ArrowLeft, Save, Plus, Trash2, Package, AlertCircle, Clock, DollarSign, Camera, X, Eye, Loader2 } from 'lucide-react';
-import { showError, showSuccess } from '@/shared/utils/notifications';
+import { ArrowLeft, Save, Plus, Trash2, Package, AlertCircle, Clock, DollarSign, Camera, X, Eye } from 'lucide-react';
+import { ButtonShine } from '@/shared/components/ui/ButtonShine';
 import { useOrdemServico, useCreateOrdemServico, useUpdateOrdemServico } from '../hooks/useOrdensServico';
 import { useOficina } from '@/features/configuracoes/hooks/useOficina';
 import { ordemServicoFormSchema } from '../utils/validation';
@@ -51,6 +51,7 @@ export const OrdemServicoFormPage = () => {
   // Estado para arquivos pendentes de upload (apenas para criação)
   const [pendingFiles, setPendingFiles] = useState<PendingFile[]>([]);
   const [uploadingFiles, setUploadingFiles] = useState(false);
+  const [fileError, setFileError] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const {
@@ -59,6 +60,7 @@ export const OrdemServicoFormPage = () => {
     control,
     watch,
     setValue,
+    trigger,
     formState: { errors },
   } = useForm<OrdemServicoFormData>({
     resolver: zodResolver(ordemServicoFormSchema) as Resolver<OrdemServicoFormData>,
@@ -204,10 +206,9 @@ export const OrdemServicoFormPage = () => {
   // Load OS data when editing
   useEffect(() => {
     if (ordemServico && isEditMode) {
-      // Verificar se pode editar
+      // Verificar se pode editar - redireciona para detalhes se não puder
       if (!canEdit(ordemServico.status)) {
-        showError('Esta OS não pode ser editada neste status.');
-        navigate(`/ordens-servico/${id}`);
+        navigate(`/ordens-servico/${id}`, { replace: true });
         return;
       }
 
@@ -255,92 +256,95 @@ export const OrdemServicoFormPage = () => {
     }
   }, [ordemServico, isEditMode, setValue, navigate, id]);
 
+  // Flag para controlar se a criação foi bem-sucedida (usada pelo onSuccess do ButtonShine)
+  const [submitSuccess, setSubmitSuccess] = useState(false);
+
   const onSubmit = async (data: OrdemServicoFormData) => {
-    console.log('[OrdemServicoForm] Iniciando submit...');
-    console.log('[OrdemServicoForm] Dados do formulário:', data);
-    console.log('[OrdemServicoForm] veiculoId tipo:', typeof data.veiculoId);
-    console.log('[OrdemServicoForm] veiculoId valor:', data.veiculoId);
-    console.log('[OrdemServicoForm] veiculoId é string?', typeof data.veiculoId === 'string');
+    const payload = {
+      veiculoId: data.veiculoId,
+      usuarioId: data.usuarioId,
+      problemasRelatados: data.problemasRelatados,
+      diagnostico: data.diagnostico || undefined,
+      observacoes: data.observacoes || undefined,
+      dataPrevisao: data.dataPrevisao || undefined,
+      // Modelo híbrido de mão de obra
+      tipoCobrancaMaoObra: data.tipoCobrancaMaoObra,
+      valorMaoObra: data.tipoCobrancaMaoObra === TipoCobrancaMaoObra.VALOR_FIXO ? data.valorMaoObra : undefined,
+      tempoEstimadoHoras: data.tipoCobrancaMaoObra === TipoCobrancaMaoObra.POR_HORA ? data.tempoEstimadoHoras : undefined,
+      limiteHorasAprovado: data.tipoCobrancaMaoObra === TipoCobrancaMaoObra.POR_HORA ? data.limiteHorasAprovado : undefined,
+      descontoPercentual: data.descontoPercentual || 0,
+      descontoValor: data.descontoValor || 0,
+      itens: data.itens.map((item) => ({
+        tipo: item.tipo,
+        origemPeca: item.tipo === TipoItem.PECA ? (item.origemPeca || OrigemPeca.ESTOQUE) : undefined,
+        pecaId: item.pecaId || undefined,
+        descricao: item.descricao,
+        quantidade: item.quantidade,
+        valorUnitario: item.valorUnitario,
+        desconto: item.desconto || 0,
+      })),
+    };
 
-    try {
-      const payload = {
-        veiculoId: data.veiculoId,
-        usuarioId: data.usuarioId,
-        problemasRelatados: data.problemasRelatados,
-        diagnostico: data.diagnostico || undefined,
-        observacoes: data.observacoes || undefined,
-        dataPrevisao: data.dataPrevisao || undefined,
-        // Modelo híbrido de mão de obra
-        tipoCobrancaMaoObra: data.tipoCobrancaMaoObra,
-        valorMaoObra: data.tipoCobrancaMaoObra === TipoCobrancaMaoObra.VALOR_FIXO ? data.valorMaoObra : undefined,
-        tempoEstimadoHoras: data.tipoCobrancaMaoObra === TipoCobrancaMaoObra.POR_HORA ? data.tempoEstimadoHoras : undefined,
-        limiteHorasAprovado: data.tipoCobrancaMaoObra === TipoCobrancaMaoObra.POR_HORA ? data.limiteHorasAprovado : undefined,
-        descontoPercentual: data.descontoPercentual || 0,
-        descontoValor: data.descontoValor || 0,
-        itens: data.itens.map((item) => ({
-          tipo: item.tipo,
-          origemPeca: item.tipo === TipoItem.PECA ? (item.origemPeca || OrigemPeca.ESTOQUE) : undefined,
-          pecaId: item.pecaId || undefined,
-          descricao: item.descricao,
-          quantidade: item.quantidade,
-          valorUnitario: item.valorUnitario,
-          desconto: item.desconto || 0,
-        })),
-      };
+    if (isEditMode) {
+      await updateMutation.mutateAsync({
+        id: id!,
+        data: payload,
+      });
+    } else {
+      // Criar a OS primeiro
+      const novaOS = await createMutation.mutateAsync(payload);
 
-      console.log('[OrdemServicoForm] Payload para envio:', payload);
+      // Se há arquivos pendentes, fazer upload
+      if (pendingFiles.length > 0) {
+        setUploadingFiles(true);
 
-      if (isEditMode) {
-        await updateMutation.mutateAsync({
-          id: id!,
-          data: payload,
-        });
-        navigate('/ordens-servico');
-      } else {
-        // Criar a OS primeiro
-        const novaOS = await createMutation.mutateAsync(payload);
+        try {
+          // Fazer upload de todos os arquivos
+          for (const pendingFile of pendingFiles) {
+            try {
+              // Upload do arquivo
+              const anexoResponse = await anexoService.upload({
+                file: pendingFile.file,
+                entidadeTipo: 'ORDEM_SERVICO',
+                entidadeId: novaOS.id,
+                categoria: pendingFile.categoria,
+              });
 
-        // Se há arquivos pendentes, fazer upload
-        if (pendingFiles.length > 0) {
-          setUploadingFiles(true);
-
-          try {
-            // Fazer upload de todos os arquivos
-            for (const pendingFile of pendingFiles) {
-              try {
-                // Upload do arquivo
-                const anexoResponse = await anexoService.upload({
-                  file: pendingFile.file,
-                  entidadeTipo: 'ORDEM_SERVICO',
-                  entidadeId: novaOS.id,
-                  categoria: pendingFile.categoria,
-                });
-
-                // Marcar como visível para cliente
-                await anexoService.alterarVisibilidade(anexoResponse.id, {
-                  visivelParaCliente: true,
-                });
-              } catch (uploadError) {
-                console.error('Erro ao fazer upload de arquivo:', uploadError);
-                // Continua com os outros arquivos mesmo se um falhar
-              }
+              // Marcar como visível para cliente
+              await anexoService.alterarVisibilidade(anexoResponse.id, {
+                visivelParaCliente: true,
+              });
+            } catch (uploadError) {
+              console.error('Erro ao fazer upload de arquivo:', uploadError);
+              // Continua com os outros arquivos mesmo se um falhar
             }
-
-            showSuccess(`OS criada com ${pendingFiles.length} anexo(s)!`);
-          } catch (uploadError) {
-            console.error('Erro geral no upload de arquivos:', uploadError);
-            showError('OS criada, mas houve erro ao enviar alguns anexos.');
-          } finally {
-            setUploadingFiles(false);
           }
+        } finally {
+          setUploadingFiles(false);
         }
-
-        navigate('/ordens-servico');
       }
-    } catch (error: any) {
-      const errorMessage = error.response?.data?.message || error.message || 'Erro ao salvar OS';
-      showError(`Erro: ${errorMessage}`);
     }
+
+    // Marca como sucesso para permitir navegação no onSuccess do toast
+    setSubmitSuccess(true);
+  };
+
+  const handleFormSubmit = async () => {
+    // Reseta flag de sucesso antes de tentar submeter
+    setSubmitSuccess(false);
+
+    // Primeiro valida o form - isso mostra os erros nos campos
+    const isValid = await trigger();
+
+    // Se não passou na validação, lança erro para ButtonShine mostrar toast
+    if (!isValid) {
+      // Rola até o topo do form para mostrar o resumo de erros
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+      throw new Error('Verifique os campos destacados em vermelho');
+    }
+
+    // Se passou na validação, submete o form
+    await handleSubmit(onSubmit)();
   };
 
   const handleAddItem = () => {
@@ -363,17 +367,18 @@ export const OrdemServicoFormPage = () => {
     const maxSize = 5 * 1024 * 1024; // 5MB
 
     const newFiles: PendingFile[] = [];
+    const errors: string[] = [];
 
     Array.from(files).forEach((file) => {
       // Validar tipo
       if (!allowedTypes.includes(file.type)) {
-        showError(`Tipo de arquivo não suportado: ${file.name}`);
+        errors.push(`Tipo não suportado: ${file.name}`);
         return;
       }
 
       // Validar tamanho
       if (file.size > maxSize) {
-        showError(`Arquivo muito grande (máx 5MB): ${file.name}`);
+        errors.push(`Arquivo muito grande (máx 5MB): ${file.name}`);
         return;
       }
 
@@ -391,6 +396,13 @@ export const OrdemServicoFormPage = () => {
     });
 
     setPendingFiles((prev) => [...prev, ...newFiles]);
+
+    // Mostrar erros se houver
+    if (errors.length > 0) {
+      setFileError(errors.join(' • '));
+      // Limpar erro após 5 segundos
+      setTimeout(() => setFileError(null), 5000);
+    }
 
     // Limpar input
     if (fileInputRef.current) {
@@ -457,7 +469,7 @@ export const OrdemServicoFormPage = () => {
       </div>
 
       {/* Form */}
-      <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+      <form className="space-y-6">
         {/* Validation Error Summary */}
         {Object.keys(errors).length > 0 && (
           <div className="rounded-lg border-2 border-red-500 dark:border-red-700 bg-red-50 dark:bg-red-900/30 p-4">
@@ -661,6 +673,21 @@ export const OrdemServicoFormPage = () => {
                 <Plus className="h-5 w-5" />
                 <span>Adicionar fotos ou documentos</span>
               </button>
+
+              {/* Erro de arquivo (inline) */}
+              {fileError && (
+                <div className="mt-3 rounded-lg border border-red-500 dark:border-red-700 bg-red-50 dark:bg-red-900/30 p-3 flex items-center gap-2">
+                  <AlertCircle className="h-5 w-5 flex-shrink-0 text-red-600 dark:text-red-400" />
+                  <p className="text-sm text-red-700 dark:text-red-400">{fileError}</p>
+                  <button
+                    type="button"
+                    onClick={() => setFileError(null)}
+                    className="ml-auto text-red-600 dark:text-red-400 hover:text-red-800 dark:hover:text-red-300"
+                  >
+                    <X className="h-4 w-4" />
+                  </button>
+                </div>
+              )}
 
               {/* Preview dos arquivos selecionados */}
               {pendingFiles.length > 0 && (
@@ -1210,22 +1237,24 @@ export const OrdemServicoFormPage = () => {
           >
             Cancelar
           </button>
-          <button
-            type="submit"
+          <ButtonShine
+            onClick={handleFormSubmit}
+            loadingText={uploadingFiles ? 'Enviando fotos...' : (isEditMode ? 'Atualizando...' : 'Salvando...')}
+            successMessage={isEditMode ? 'OS atualizada com sucesso!' : `OS criada com sucesso!${pendingFiles.length > 0 ? ` (${pendingFiles.length} anexo${pendingFiles.length > 1 ? 's' : ''})` : ''}`}
+            errorMessage="Verifique os campos destacados em vermelho"
+            onSuccess={() => {
+              // Só navega se a criação/edição foi realmente bem-sucedida
+              if (submitSuccess) {
+                navigate('/ordens-servico');
+              }
+            }}
+            color="blue"
+            size="md"
             disabled={isSubmitting}
-            className="w-full sm:w-auto flex items-center justify-center gap-2 rounded-lg bg-blue-600 dark:bg-blue-700 px-6 py-2.5 text-white hover:bg-blue-700 dark:hover:bg-blue-600 disabled:opacity-50"
           >
-            {isSubmitting ? (
-              <Loader2 className="h-5 w-5 animate-spin" />
-            ) : (
-              <Save className="h-5 w-5" />
-            )}
-            {uploadingFiles
-              ? 'Enviando fotos...'
-              : createMutation.isPending || updateMutation.isPending
-                ? 'Salvando...'
-                : `Salvar OS${pendingFiles.length > 0 ? ` (${pendingFiles.length} foto${pendingFiles.length > 1 ? 's' : ''})` : ''}`}
-          </button>
+            <Save className="h-5 w-5" />
+            {`Salvar OS${pendingFiles.length > 0 ? ` (${pendingFiles.length} foto${pendingFiles.length > 1 ? 's' : ''})` : ''}`}
+          </ButtonShine>
         </div>
       </form>
     </div>

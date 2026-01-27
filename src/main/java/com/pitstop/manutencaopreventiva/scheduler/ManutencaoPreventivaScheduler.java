@@ -107,14 +107,17 @@ public class ManutencaoPreventivaScheduler {
         log.info("Iniciando verificação de manutenções vencidas...");
 
         LocalDate hoje = LocalDate.now();
-        LocalDateTime seteDiasAtras = LocalDateTime.now().minusDays(7);
+        // Aumentado de 7 para 30 dias para evitar spam de alertas de vencimento
+        LocalDateTime trintaDiasAtras = LocalDateTime.now().minusDays(30);
 
         // Buscar planos vencidos que não receberam alerta de vencimento recentemente
+        // NOTA: Alertas de vencimento são enviados NO MÁXIMO 1x por mês
         List<PlanoManutencaoPreventiva> planosVencidos = planoRepository.findAll().stream()
             .filter(p -> p.getStatus() == StatusPlanoManutencao.ATIVO)
             .filter(p -> p.isVencido())
+            // Só reenvia se nunca enviou OU se passou mais de 30 dias
             .filter(p -> p.getUltimoAlertaEnviadoEm() == null ||
-                        p.getUltimoAlertaEnviadoEm().isBefore(seteDiasAtras))
+                        p.getUltimoAlertaEnviadoEm().isBefore(trintaDiasAtras))
             .toList();
 
         int alertasGerados = 0;
@@ -241,18 +244,22 @@ public class ManutencaoPreventivaScheduler {
                     continue;
                 }
 
-                // Verifica se está na janela de envio
-                if (!dataHoraAgendada.isBefore(inicio) || dataHoraAgendada.isAfter(fim)) {
-                    // Ainda não está na hora ou já passou muito tempo
-                    if (dataHoraAgendada.isAfter(fim)) {
-                        continue; // Ainda não chegou a hora
-                    }
-                    if (dataHoraAgendada.isBefore(inicio.minusMinutes(30))) {
-                        // Passou mais de 30 min, marca como erro
-                        agendamento.marcarComoFalha("Horário de envio perdido");
-                        continue;
-                    }
+                // Pula se está FORA da janela de envio (antes do início OU depois do fim)
+                if (dataHoraAgendada.isAfter(fim)) {
+                    // Ainda não chegou a hora de enviar
+                    continue;
                 }
+
+                if (dataHoraAgendada.isBefore(inicio)) {
+                    // Passou da janela - verifica se perdeu o horário
+                    if (dataHoraAgendada.isBefore(inicio.minusMinutes(30))) {
+                        // Passou mais de 30 min da janela, marca como erro
+                        agendamento.marcarComoFalha("Horário de envio perdido");
+                    }
+                    continue;
+                }
+
+                // Está dentro da janela de envio (entre inicio e fim)
 
                 try {
                     // Envia a notificação criando uma OS
@@ -353,6 +360,17 @@ public class ManutencaoPreventivaScheduler {
                 if (os != null) {
                     plano.registrarExecucao(null, null, os);
                 }
+
+                // IMPORTANTE: Marca todos os agendamentos de notificação como enviados
+                // para evitar duplicação (já que a OS dispara notificações)
+                if (plano.getAgendamentosNotificacao() != null) {
+                    for (AgendamentoNotificacao agendamento : plano.getAgendamentosNotificacao()) {
+                        if (!Boolean.TRUE.equals(agendamento.getEnviado())) {
+                            agendamento.marcarComoEnviado();
+                            log.debug("Agendamento de notificação marcado como enviado (OS criada automaticamente)");
+                        }
+                    }
+                }
             }
             // A OS já dispara notificações automaticamente (OS_CRIADA)
             // Não precisamos mais gerar alertas separados para os canais
@@ -440,6 +458,13 @@ public class ManutencaoPreventivaScheduler {
         Veiculo veiculo = agendamento.getVeiculo();
 
         if (cliente == null || veiculo == null) {
+            return;
+        }
+
+        // Verifica se já existe alerta pendente para este agendamento/plano
+        if (agendamento.getPlano() != null &&
+            alertaRepository.existsAlertaPendente(agendamento.getPlano().getId(), TipoAlerta.LEMBRETE_AGENDAMENTO)) {
+            log.debug("Alerta de lembrete já existe para agendamento {}", agendamento.getId());
             return;
         }
 
