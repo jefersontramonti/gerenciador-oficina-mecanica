@@ -33,7 +33,7 @@ export default function VencidosListPage() {
         </div>
 
         <Button3DRetro
-          onClick={() => refetch()}
+          onClick={() => { refetch(); }}
           label="Recarregar"
           toastMessage="Lista atualizada!"
         />

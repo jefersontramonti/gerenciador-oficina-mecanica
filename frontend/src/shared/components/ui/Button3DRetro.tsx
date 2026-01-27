@@ -1,4 +1,5 @@
-import { useState, useEffect, ReactNode } from 'react';
+import { useState, useEffect } from 'react';
+import type { ReactNode } from 'react';
 import { RefreshCw, CheckCircle } from 'lucide-react';
 
 interface Button3DRetroProps {
