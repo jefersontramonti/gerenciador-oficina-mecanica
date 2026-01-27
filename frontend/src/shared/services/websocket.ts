@@ -14,6 +14,7 @@ export const NotificationType = {
   PAYMENT_RECEIVED: 'PAYMENT_RECEIVED',
   STOCK_ALERT: 'STOCK_ALERT',
   DASHBOARD_UPDATE: 'DASHBOARD_UPDATE',
+  EMAIL_AGENDADO: 'EMAIL_AGENDADO',
 } as const;
 
 export type NotificationType = typeof NotificationType[keyof typeof NotificationType];
