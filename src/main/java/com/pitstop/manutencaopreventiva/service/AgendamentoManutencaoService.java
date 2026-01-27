@@ -441,8 +441,13 @@ public class AgendamentoManutencaoService {
                     .build();
 
                 alerta = alertaManutencaoRepository.save(alerta);
-                // Envio imediato assíncrono
-                alertaManutencaoService.enviarAlertaAsync(alerta.getId());
+                // Envio síncrono para evitar race condition com transação
+                try {
+                    alertaManutencaoService.enviarAlerta(alerta);
+                } catch (Exception e) {
+                    log.warn("Envio imediato WhatsApp falhou para alerta {}, será tentado pelo scheduler: {}",
+                        alerta.getId(), e.getMessage());
+                }
                 alertasCriados++;
                 feedbackBuilder.addCanal(new NotificacaoFeedbackDTO.CanalFeedbackDTO(
                     "WhatsApp", true, telefone,
@@ -485,8 +490,13 @@ public class AgendamentoManutencaoService {
                     .build();
 
                 alerta = alertaManutencaoRepository.save(alerta);
-                // Envio imediato assíncrono
-                alertaManutencaoService.enviarAlertaAsync(alerta.getId());
+                // Envio síncrono para evitar race condition com transação
+                try {
+                    alertaManutencaoService.enviarAlerta(alerta);
+                } catch (Exception e) {
+                    log.warn("Envio imediato Email falhou para alerta {}, será tentado pelo scheduler: {}",
+                        alerta.getId(), e.getMessage());
+                }
                 alertasCriados++;
                 feedbackBuilder.addCanal(new NotificacaoFeedbackDTO.CanalFeedbackDTO(
                     "Email", true, email,
@@ -523,8 +533,13 @@ public class AgendamentoManutencaoService {
                     .build();
 
                 alerta = alertaManutencaoRepository.save(alerta);
-                // Envio imediato assíncrono
-                alertaManutencaoService.enviarAlertaAsync(alerta.getId());
+                // Envio síncrono para evitar race condition com transação
+                try {
+                    alertaManutencaoService.enviarAlerta(alerta);
+                } catch (Exception e) {
+                    log.warn("Envio imediato Telegram falhou para alerta {}, será tentado pelo scheduler: {}",
+                        alerta.getId(), e.getMessage());
+                }
                 alertasCriados++;
                 feedbackBuilder.addCanal(new NotificacaoFeedbackDTO.CanalFeedbackDTO(
                     "Telegram", true, "Chat da oficina",

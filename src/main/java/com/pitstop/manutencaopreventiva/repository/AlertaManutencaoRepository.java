@@ -12,6 +12,7 @@ import org.springframework.stereotype.Repository;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 @Repository
@@ -19,6 +20,8 @@ public interface AlertaManutencaoRepository extends JpaRepository<AlertaManutenc
 
     /**
      * Lista alertas pendentes para envio (imediato ou agendado).
+     * Exclui alertas de agendamentos já confirmados/cancelados/realizados/remarcados
+     * e alertas de planos inativos/finalizados.
      */
     @Query("""
         SELECT a FROM AlertaManutencao a
@@ -26,12 +29,64 @@ public interface AlertaManutencaoRepository extends JpaRepository<AlertaManutenc
         LEFT JOIN FETCH a.plano p
         LEFT JOIN FETCH a.veiculo v
         LEFT JOIN FETCH a.cliente c
+        LEFT JOIN FETCH a.agendamento ag
         WHERE a.status = 'PENDENTE'
         AND (a.proximaTentativa IS NULL OR a.proximaTentativa <= :agora)
         AND (a.agendarPara IS NULL OR a.agendarPara <= :agora)
+        AND (
+            a.agendamento IS NULL
+            OR (a.tipoAlerta = 'CONFIRMACAO' AND a.agendamento.status = 'AGENDADO')
+            OR (a.tipoAlerta = 'LEMBRETE_AGENDAMENTO' AND a.agendamento.status IN ('AGENDADO', 'CONFIRMADO'))
+            OR a.tipoAlerta NOT IN ('CONFIRMACAO', 'LEMBRETE_AGENDAMENTO')
+        )
+        AND (
+            a.plano IS NULL
+            OR a.tipoAlerta IN ('CONFIRMACAO', 'LEMBRETE_AGENDAMENTO')
+            OR (a.plano.ativo = true AND a.plano.status = 'ATIVO')
+        )
         ORDER BY a.createdAt
         """)
     List<AlertaManutencao> findPendentesParaEnvio(@Param("agora") LocalDateTime agora);
+
+    /**
+     * Retorna apenas os IDs dos alertas pendentes para envio.
+     * Usado para processamento com transações individuais por alerta.
+     */
+    @Query("""
+        SELECT a.id FROM AlertaManutencao a
+        LEFT JOIN a.agendamento ag
+        LEFT JOIN a.plano p
+        WHERE a.status = 'PENDENTE'
+        AND (a.proximaTentativa IS NULL OR a.proximaTentativa <= :agora)
+        AND (a.agendarPara IS NULL OR a.agendarPara <= :agora)
+        AND (
+            a.agendamento IS NULL
+            OR (a.tipoAlerta = 'CONFIRMACAO' AND a.agendamento.status = 'AGENDADO')
+            OR (a.tipoAlerta = 'LEMBRETE_AGENDAMENTO' AND a.agendamento.status IN ('AGENDADO', 'CONFIRMADO'))
+            OR a.tipoAlerta NOT IN ('CONFIRMACAO', 'LEMBRETE_AGENDAMENTO')
+        )
+        AND (
+            a.plano IS NULL
+            OR a.tipoAlerta IN ('CONFIRMACAO', 'LEMBRETE_AGENDAMENTO')
+            OR (a.plano.ativo = true AND a.plano.status = 'ATIVO')
+        )
+        ORDER BY a.createdAt
+        """)
+    List<UUID> findIdsParaEnvio(@Param("agora") LocalDateTime agora);
+
+    /**
+     * Carrega alerta com todos os relacionamentos (para processamento individual).
+     */
+    @Query("""
+        SELECT a FROM AlertaManutencao a
+        LEFT JOIN FETCH a.oficina o
+        LEFT JOIN FETCH a.plano p
+        LEFT JOIN FETCH a.veiculo v
+        LEFT JOIN FETCH a.cliente c
+        LEFT JOIN FETCH a.agendamento ag
+        WHERE a.id = :id
+        """)
+    Optional<AlertaManutencao> findByIdComRelacionamentos(@Param("id") UUID id);
 
     /**
      * Lista alertas para retry (falharam mas podem tentar novamente).

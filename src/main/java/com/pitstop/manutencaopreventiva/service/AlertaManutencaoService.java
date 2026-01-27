@@ -2,6 +2,7 @@ package com.pitstop.manutencaopreventiva.service;
 
 import com.pitstop.manutencaopreventiva.domain.AlertaManutencao;
 import com.pitstop.manutencaopreventiva.domain.CanalNotificacao;
+import com.pitstop.manutencaopreventiva.domain.StatusAgendamento;
 import com.pitstop.manutencaopreventiva.domain.StatusAlerta;
 import com.pitstop.manutencaopreventiva.domain.TipoAlerta;
 import com.pitstop.manutencaopreventiva.repository.AlertaManutencaoRepository;
@@ -18,7 +19,9 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionTemplate;
 
 import java.time.LocalDateTime;
 import java.util.HashMap;
@@ -44,41 +47,69 @@ public class AlertaManutencaoService {
     private final WhatsAppService whatsAppService;
     private final EmailService emailService;
     private final TelegramService telegramService;
+    private final PlatformTransactionManager transactionManager;
 
     private static final int INTERVALO_RETRY_MINUTOS = 30;
 
     /**
      * Processa todos os alertas pendentes prontos para envio.
-     * Deve ser chamado pelo scheduler periodicamente.
+     * Cada alerta é processado em sua própria transação independente,
+     * para que a falha de um não cause rollback dos demais.
      *
      * @return Número de alertas processados
      */
-    @Transactional
     public int processarAlertasPendentes() {
         log.info("Iniciando processamento de alertas pendentes...");
 
-        List<AlertaManutencao> alertasPendentes = alertaRepository.findParaEnvio(LocalDateTime.now());
+        // 1. Lê os IDs dos alertas pendentes em transação read-only
+        TransactionTemplate readTx = new TransactionTemplate(transactionManager);
+        readTx.setReadOnly(true);
+        List<UUID> alertaIds = readTx.execute(status ->
+            alertaRepository.findIdsParaEnvio(LocalDateTime.now())
+        );
+
+        if (alertaIds == null || alertaIds.isEmpty()) {
+            log.info("Nenhum alerta pendente para processar.");
+            return 0;
+        }
+
+        log.info("Encontrados {} alertas pendentes para processar.", alertaIds.size());
 
         int enviados = 0;
         int falhas = 0;
 
-        for (AlertaManutencao alerta : alertasPendentes) {
+        // 2. Processa cada alerta em sua própria transação
+        for (UUID alertaId : alertaIds) {
             try {
-                // Define contexto do tenant
-                TenantContext.setTenantId(alerta.getOficina().getId());
+                TransactionTemplate writeTx = new TransactionTemplate(transactionManager);
+                Boolean resultado = writeTx.execute(status -> {
+                    AlertaManutencao alerta = alertaRepository.findByIdComRelacionamentos(alertaId).orElse(null);
+                    if (alerta == null) {
+                        log.warn("Alerta {} não encontrado, pode ter sido cancelado.", alertaId);
+                        return false;
+                    }
 
-                if (enviarAlerta(alerta)) {
+                    try {
+                        TenantContext.setTenantId(alerta.getOficina().getId());
+                        return enviarAlerta(alerta);
+                    } catch (Exception e) {
+                        log.error("Erro ao processar alerta {}: {}", alertaId, e.getMessage());
+                        alerta.marcarComoFalhou(e.getMessage(), INTERVALO_RETRY_MINUTOS);
+                        alertaRepository.save(alerta);
+                        return false;
+                    } finally {
+                        TenantContext.clear();
+                    }
+                });
+
+                if (Boolean.TRUE.equals(resultado)) {
                     enviados++;
                 } else {
                     falhas++;
                 }
             } catch (Exception e) {
-                log.error("Erro ao processar alerta {}: {}", alerta.getId(), e.getMessage());
-                alerta.marcarComoFalhou(e.getMessage(), INTERVALO_RETRY_MINUTOS);
-                alertaRepository.save(alerta);
+                log.error("Erro crítico ao processar alerta {}: {}", alertaId, e.getMessage());
                 falhas++;
-            } finally {
-                TenantContext.clear();
             }
         }
 
@@ -119,6 +150,30 @@ public class AlertaManutencaoService {
         if (!alerta.prontoParaEnvio()) {
             log.debug("Alerta {} não está pronto para envio", alerta.getId());
             return false;
+        }
+
+        // Verifica se o agendamento associado ainda está em estado válido para envio
+        if (alerta.getAgendamento() != null) {
+            StatusAgendamento statusAgendamento = alerta.getAgendamento().getStatus();
+
+            if (alerta.getTipoAlerta() == TipoAlerta.CONFIRMACAO
+                    && statusAgendamento != StatusAgendamento.AGENDADO) {
+                log.info("Agendamento {} já está {}, cancelando alerta de confirmação {}",
+                    alerta.getAgendamento().getId(), statusAgendamento, alerta.getId());
+                alerta.cancelar();
+                alertaRepository.save(alerta);
+                return false;
+            }
+
+            if (alerta.getTipoAlerta() == TipoAlerta.LEMBRETE_AGENDAMENTO
+                    && statusAgendamento != StatusAgendamento.AGENDADO
+                    && statusAgendamento != StatusAgendamento.CONFIRMADO) {
+                log.info("Agendamento {} já está {}, cancelando alerta de lembrete {}",
+                    alerta.getAgendamento().getId(), statusAgendamento, alerta.getId());
+                alerta.cancelar();
+                alertaRepository.save(alerta);
+                return false;
+            }
         }
 
         UUID oficinaId = alerta.getOficina().getId();
