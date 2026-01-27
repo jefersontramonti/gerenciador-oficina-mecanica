@@ -116,3 +116,6 @@ http-client.private.env.json
 *.key
 *.secret
 .env.production
+
+# Local migrations (not for production)
+src/main/resources/db/changelog/migrations/V083__create_super_admin_local.sql
