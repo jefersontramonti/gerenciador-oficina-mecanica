@@ -256,9 +256,6 @@ export const OrdemServicoFormPage = () => {
     }
   }, [ordemServico, isEditMode, setValue, navigate, id]);
 
-  // Flag para controlar se a criação foi bem-sucedida (usada pelo onSuccess do ButtonShine)
-  const [submitSuccess, setSubmitSuccess] = useState(false);
-
   const onSubmit = async (data: OrdemServicoFormData) => {
     const payload = {
       veiculoId: data.veiculoId,
@@ -324,15 +321,9 @@ export const OrdemServicoFormPage = () => {
         }
       }
     }
-
-    // Marca como sucesso para permitir navegação no onSuccess do toast
-    setSubmitSuccess(true);
   };
 
   const handleFormSubmit = async () => {
-    // Reseta flag de sucesso antes de tentar submeter
-    setSubmitSuccess(false);
-
     // Primeiro valida o form - isso mostra os erros nos campos
     const isValid = await trigger();
 
@@ -1240,14 +1231,9 @@ export const OrdemServicoFormPage = () => {
           <ButtonShine
             onClick={handleFormSubmit}
             loadingText={uploadingFiles ? 'Enviando fotos...' : (isEditMode ? 'Atualizando...' : 'Salvando...')}
-            successMessage={isEditMode ? 'OS atualizada com sucesso!' : `OS criada com sucesso!${pendingFiles.length > 0 ? ` (${pendingFiles.length} anexo${pendingFiles.length > 1 ? 's' : ''})` : ''}`}
+            successMessage={isEditMode ? 'OS atualizada com sucesso!' : 'OS criada com sucesso!'}
             errorMessage="Verifique os campos destacados em vermelho"
-            onSuccess={() => {
-              // Só navega se a criação/edição foi realmente bem-sucedida
-              if (submitSuccess) {
-                navigate('/ordens-servico');
-              }
-            }}
+            onSuccess={() => navigate('/ordens-servico')}
             color="blue"
             size="md"
             disabled={isSubmitting}
