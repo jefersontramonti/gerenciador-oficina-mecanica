@@ -1,6 +1,7 @@
 import { Link, useNavigate } from 'react-router-dom';
-import { ArrowLeft, AlertTriangle, Calendar, Car, ChevronRight, RefreshCw, Eye, Play } from 'lucide-react';
+import { ArrowLeft, AlertTriangle, Calendar, Car, ChevronRight, Eye, Play, CheckCircle } from 'lucide-react';
 import { usePlanosVencidos } from '../hooks/useManutencaoPreventiva';
+import { Button3DRetro } from '@/shared/components/ui/Button3DRetro';
 import type { PlanoManutencao } from '../types';
 
 export default function VencidosListPage() {
@@ -13,8 +14,9 @@ export default function VencidosListPage() {
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex items-center gap-3 sm:gap-4">
           <Link
-            to="/manutencao-preventiva"
+            to="/"
             className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700"
+            title="Voltar ao Dashboard"
           >
             <ArrowLeft className="h-5 w-5 text-gray-500 dark:text-gray-400" />
           </Link>
@@ -29,13 +31,12 @@ export default function VencidosListPage() {
             </p>
           </div>
         </div>
-        <button
+
+        <Button3DRetro
           onClick={() => refetch()}
-          className="flex items-center justify-center gap-2 px-4 py-2 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 w-full sm:w-auto"
-        >
-          <RefreshCw className="h-4 w-4" />
-          <span>Atualizar</span>
-        </button>
+          label="Recarregar"
+          toastMessage="Lista atualizada!"
+        />
       </div>
 
       {/* Content */}
@@ -51,7 +52,7 @@ export default function VencidosListPage() {
         <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-6 sm:p-8 text-center">
           <div className="flex justify-center mb-4">
             <div className="p-3 rounded-full bg-green-100 dark:bg-green-900/30">
-              <AlertTriangle className="h-6 w-6 sm:h-8 sm:w-8 text-green-600 dark:text-green-400" />
+              <CheckCircle className="h-6 w-6 sm:h-8 sm:w-8 text-green-600 dark:text-green-400" />
             </div>
           </div>
           <h3 className="text-base sm:text-lg font-medium text-gray-900 dark:text-white mb-2">
@@ -61,10 +62,10 @@ export default function VencidosListPage() {
             Todos os planos de manutenção estão em dia.
           </p>
           <Link
-            to="/manutencao-preventiva"
+            to="/"
             className="inline-flex items-center gap-2 text-blue-600 dark:text-blue-400 hover:underline text-sm"
           >
-            Voltar ao dashboard
+            Voltar ao Dashboard
             <ChevronRight className="h-4 w-4" />
           </Link>
         </div>

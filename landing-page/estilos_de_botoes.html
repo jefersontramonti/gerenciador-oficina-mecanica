@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Estilos de Botões de Recarregar</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #0f172a; /* Slate 900 */
+        }
+
+        /* --- Botão 1: Neon Pulse --- */
+        .btn-neon {
+            background-color: transparent;
+            color: #00ff88;
+            border: 2px solid #00ff88;
+            box-shadow: 0 0 5px #00ff88, 0 0 15px #00ff88 inset;
+            text-shadow: 0 0 10px #00ff88;
+            transition: all 0.3s ease;
+        }
+        .btn-neon:hover {
+            background-color: #00ff88;
+            color: #000;
+            box-shadow: 0 0 20px #00ff88, 0 0 40px #00ff88;
+            transform: scale(1.05);
+        }
+        .btn-neon:active {
+            transform: scale(0.95);
+        }
+
+        /* --- Botão 2: Spin Minimalista --- */
+        .btn-spin .icon-box {
+            transition: transform 0.6s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+        }
+        .btn-spin:hover .icon-box {
+            transform: rotate(360deg);
+        }
+
+        /* --- Botão 3: 3D Retro --- */
+        .btn-3d {
+            background-color: #3b82f6;
+            border-bottom: 6px solid #1d4ed8;
+            transition: all 0.1s;
+        }
+        .btn-3d:active {
+            transform: translateY(6px);
+            border-bottom: 0px solid #1d4ed8;
+            margin-bottom: 6px; /* Mantém o layout estável */
+        }
+
+        /* --- Botão 4: Slide Fill --- */
+        .btn-slide {
+            overflow: hidden;
+            position: relative;
+            z-index: 1;
+        }
+        .btn-slide::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 0;
+            height: 100%;
+            background-color: #ef4444;
+            transition: width 0.4s ease;
+            z-index: -1;
+        }
+        .btn-slide:hover::before {
+            width: 100%;
+        }
+        .btn-slide:hover {
+            color: white;
+            border-color: #ef4444;
+        }
+
+        /* --- Botão 5: Glitch Tech --- */
+        .btn-tech {
+            position: relative;
+            background: #222;
+            color: #fff;
+            letter-spacing: 2px;
+            overflow: hidden;
+        }
+        .btn-tech::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+            transition: left 0.5s;
+        }
+        .btn-tech:hover::before {
+            left: 100%;
+        }
+        .btn-tech:hover i {
+            animation: shake 0.5s;
+        }
+        @keyframes shake {
+            0% { transform: translate(1px, 1px) rotate(0deg); }
+            20% { transform: translate(-1px, -2px) rotate(-1deg); }
+            40% { transform: translate(-3px, 0px) rotate(1deg); }
+            60% { transform: translate(1px, 2px) rotate(0deg); }
+            80% { transform: translate(-1px, -1px) rotate(1deg); }
+            100% { transform: translate(1px, -2px) rotate(-1deg); }
+        }
+
+        /* --- Botão 6: Liquid Morph --- */
+        .btn-liquid {
+            background: linear-gradient(45deg, #f093fb 0%, #f5576c 100%);
+            background-size: 200% auto;
+            transition: 0.5s;
+        }
+        .btn-liquid:hover {
+            background-position: right center;
+            border-radius: 50px;
+        }
+        .btn-liquid .refresh-icon {
+            transition: transform 0.5s;
+        }
+        .btn-liquid:hover .refresh-icon {
+            transform: rotate(-180deg);
+        }
+
+    </style>
+</head>
+<body class="text-white min-h-screen flex flex-col items-center justify-center py-10">
+
+<div class="text-center mb-12">
+    <h1 class="text-3xl md:text-4xl font-bold mb-4 bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-purple-600">
+        Botões de Recarregar
+    </h1>
+    <p class="text-gray-400">Clique para simular um reload</p>
+</div>
+
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-12 max-w-6xl px-4">
+
+    <!-- 1. Neon Cyberpunk -->
+    <div class="flex flex-col items-center gap-4 p-6 rounded-xl bg-slate-800/50 border border-slate-700">
+        <h2 class="text-sm uppercase tracking-wider text-gray-400 font-semibold">Neon Cyberpunk</h2>
+        <button onclick="reloadPage(this)" class="btn-neon px-8 py-3 rounded font-bold uppercase tracking-widest flex items-center gap-2">
+            <i class="fa-solid fa-power-off"></i> Reboot
+        </button>
+    </div>
+
+    <!-- 2. Circular Spin -->
+    <div class="flex flex-col items-center gap-4 p-6 rounded-xl bg-slate-800/50 border border-slate-700">
+        <h2 class="text-sm uppercase tracking-wider text-gray-400 font-semibold">Minimalista Spin</h2>
+        <button onclick="reloadPage(this)" class="btn-spin group bg-white text-slate-900 w-16 h-16 rounded-full flex items-center justify-center shadow-lg hover:bg-slate-200 transition-colors">
+            <div class="icon-box text-2xl">
+                <i class="fa-solid fa-rotate-right"></i>
+            </div>
+        </button>
+    </div>
+
+    <!-- 3. 3D Retro Press -->
+    <div class="flex flex-col items-center gap-4 p-6 rounded-xl bg-slate-800/50 border border-slate-700">
+        <h2 class="text-sm uppercase tracking-wider text-gray-400 font-semibold">3D Retro</h2>
+        <button onclick="reloadPage(this)" class="btn-3d px-10 py-3 rounded-lg font-bold text-white uppercase tracking-wide flex items-center gap-2">
+            <i class="fa-solid fa-rotate"></i> Recarregar
+        </button>
+    </div>
+
+    <!-- 4. Slide Fill -->
+    <div class="flex flex-col items-center gap-4 p-6 rounded-xl bg-slate-800/50 border border-slate-700">
+        <h2 class="text-sm uppercase tracking-wider text-gray-400 font-semibold">Slide Outline</h2>
+        <button onclick="reloadPage(this)" class="btn-slide px-8 py-3 rounded border-2 border-gray-300 text-gray-300 font-bold flex items-center gap-3 transition-colors">
+            <i class="fa-solid fa-arrows-rotate"></i> Atualizar
+        </button>
+    </div>
+
+    <!-- 5. Tech Glitch -->
+    <div class="flex flex-col items-center gap-4 p-6 rounded-xl bg-slate-800/50 border border-slate-700">
+        <h2 class="text-sm uppercase tracking-wider text-gray-400 font-semibold">Tech Glitch</h2>
+        <button onclick="reloadPage(this)" class="btn-tech px-8 py-3 rounded border border-gray-600 font-mono font-bold text-sm flex items-center gap-3 shadow-lg">
+            <i class="fa-solid fa-bug"></i> RELOAD_SYSTEM
+        </button>
+    </div>
+
+    <!-- 6. Gradient Morph -->
+    <div class="flex flex-col items-center gap-4 p-6 rounded-xl bg-slate-800/50 border border-slate-700">
+        <h2 class="text-sm uppercase tracking-wider text-gray-400 font-semibold">Gradient Morph</h2>
+        <button onclick="reloadPage(this)" class="btn-liquid px-8 py-3 rounded-lg font-bold text-white shadow-lg flex items-center gap-2">
+            <i class="fa-solid fa-sync refresh-icon"></i> Sincronizar
+        </button>
+    </div>
+
+</div>
+
+<!-- Notification Toast -->
+<div id="toast" class="fixed bottom-5 left-1/2 transform -translate-x-1/2 bg-green-500 text-white px-6 py-3 rounded-full shadow-2xl translate-y-20 transition-transform duration-300 flex items-center gap-2 z-50">
+    <i class="fa-solid fa-circle-check"></i>
+    <span>Página Recarregada!</span>
+</div>
+
+<script>
+    function reloadPage(btn) {
+        // Salva o conteúdo original do botão
+        const originalContent = btn.innerHTML;
+
+        // Adiciona efeito de loading no botão (opcional)
+        btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i>';
+        btn.style.pointerEvents = 'none'; // Previne cliques múltiplos
+
+        // Simula um delay para ver o efeito visual (apenas para demonstração)
+        setTimeout(() => {
+            // Na vida real, você usaria apenas: window.location.reload();
+
+            // --- CÓDIGO DE DEMONSTRAÇÃO (REMOVER EM PRODUÇÃO) ---
+            btn.innerHTML = originalContent;
+            btn.style.pointerEvents = 'auto';
+
+            // Mostrar toast
+            const toast = document.getElementById('toast');
+            toast.classList.remove('translate-y-20');
+
+            // Realmente recarregar a página após mostrar o toast brevemente
+            setTimeout(() => {
+                window.location.reload();
+            }, 800);
+            // --- FIM DA DEMONSTRAÇÃO ---
+
+        }, 600);
+    }
+</script>
+</body>
+</html>

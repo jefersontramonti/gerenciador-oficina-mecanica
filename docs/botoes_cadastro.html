@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="pt-PT">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Estilos de Botões de Cadastro</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: #111827; /* Gray 900 */
+        }
+
+        /* --- Botão 1: Glow Gradient --- */
+        .btn-glow {
+            background-size: 200% auto;
+            background-image: linear-gradient(to right, #ec4899 0%, #8b5cf6 51%, #ec4899 100%);
+            transition: 0.5s;
+        }
+        .btn-glow:hover {
+            background-position: right center;
+            box-shadow: 0 0 20px #8b5cf6;
+            transform: translateY(-2px);
+        }
+
+        /* --- Botão 2: Arrow Reveal --- */
+        .btn-reveal span {
+            transition: margin-right 0.3s ease;
+        }
+        .btn-reveal .icon-arrow {
+            opacity: 0;
+            transform: translateX(-10px);
+            transition: all 0.3s ease;
+            position: absolute;
+            right: 20px;
+        }
+        .btn-reveal:hover span {
+            margin-right: 20px;
+        }
+        .btn-reveal:hover .icon-arrow {
+            opacity: 1;
+            transform: translateX(0);
+        }
+
+        /* --- Botão 3: Border Draw (SVG simulado com CSS) --- */
+        .btn-draw {
+            background: transparent;
+            color: #38bdf8;
+            position: relative;
+            transition: color 0.2s;
+        }
+        .btn-draw::before, .btn-draw::after {
+            content: '';
+            position: absolute;
+            width: 0;
+            height: 2px;
+            background: #38bdf8;
+            transition: width 0.3s ease-out;
+        }
+        .btn-draw::before { top: 0; left: 0; }
+        .btn-draw::after { bottom: 0; right: 0; }
+
+        .btn-draw span::before, .btn-draw span::after {
+            content: '';
+            position: absolute;
+            width: 2px;
+            height: 0;
+            background: #38bdf8;
+            transition: height 0.3s ease-out;
+        }
+        .btn-draw span::before { bottom: 0; left: 0; }
+        .btn-draw span::after { top: 0; right: 0; }
+
+        .btn-draw:hover::before, .btn-draw:hover::after { width: 100%; }
+        .btn-draw:hover span::before, .btn-draw:hover span::after { height: 100%; }
+        .btn-draw:hover { background: rgba(56, 189, 248, 0.1); }
+
+        /* --- Botão 4: Neumorphism Soft --- */
+        .btn-soft {
+            background: #1f2937;
+            box-shadow: 5px 5px 10px #161d27, -5px -5px 10px #283547;
+            color: #9ca3af;
+            transition: all 0.2s ease;
+        }
+        .btn-soft:hover {
+            color: #fff;
+            box-shadow: 2px 2px 5px #161d27, -2px -2px 5px #283547;
+            transform: scale(0.98);
+        }
+        .btn-soft:active {
+            box-shadow: inset 5px 5px 10px #161d27, inset -5px -5px 10px #283547;
+        }
+
+        /* --- Botão 5: Shine Sweep --- */
+        .btn-shine {
+            position: relative;
+            overflow: hidden;
+        }
+        .btn-shine::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent);
+            transition: 0.5s;
+        }
+        .btn-shine:hover::after {
+            left: 100%;
+        }
+
+        /* --- Botão 6: Floating Label / Material --- */
+        .btn-float {
+            transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+        }
+        .btn-float:hover {
+            box-shadow: 0 14px 28px rgba(0,0,0,0.25), 0 10px 10px rgba(0,0,0,0.22);
+            transform: translateY(-5px);
+        }
+    </style>
+</head>
+<body class="text-white min-h-screen flex flex-col items-center justify-center py-10">
+
+<div class="text-center mb-16">
+    <h1 class="text-4xl font-bold mb-4 bg-clip-text text-transparent bg-gradient-to-r from-teal-400 to-blue-500">
+        Botões de Cadastro
+    </h1>
+    <p class="text-gray-400">Interacções focadas em conversão (Sign Up)</p>
+</div>
+
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-16 max-w-6xl px-6">
+
+    <!-- 1. Gradient Glow -->
+    <div class="flex flex-col items-center gap-4">
+        <h2 class="text-xs uppercase tracking-widest text-gray-500">Atenção Máxima</h2>
+        <button onclick="registerAction(this)" class="btn-glow px-10 py-4 rounded-full font-bold text-white shadow-lg flex items-center gap-2">
+            <i class="fa-solid fa-rocket"></i> Começar Agora
+        </button>
+    </div>
+
+    <!-- 2. Arrow Reveal -->
+    <div class="flex flex-col items-center gap-4">
+        <h2 class="text-xs uppercase tracking-widest text-gray-500">Deslizante</h2>
+        <button onclick="registerAction(this)" class="btn-reveal relative px-8 py-3 rounded bg-emerald-500 hover:bg-emerald-600 text-white font-bold overflow-hidden flex items-center justify-center w-48 transition-colors">
+            <span>Criar Conta</span>
+            <i class="fa-solid fa-arrow-right icon-arrow"></i>
+        </button>
+    </div>
+
+    <!-- 3. Border Draw -->
+    <div class="flex flex-col items-center gap-4">
+        <h2 class="text-xs uppercase tracking-widest text-gray-500">Tech / Futurista</h2>
+        <button onclick="registerAction(this)" class="btn-draw px-8 py-3 font-mono font-bold tracking-wider relative group">
+            <span class="relative z-10 block px-4 py-1">REGISTAR_SE</span>
+        </button>
+    </div>
+
+    <!-- 4. Neumorphism -->
+    <div class="flex flex-col items-center gap-4">
+        <h2 class="text-xs uppercase tracking-widest text-gray-500">Neumórfico</h2>
+        <button onclick="registerAction(this)" class="btn-soft px-8 py-4 rounded-xl font-semibold flex items-center gap-3">
+            <i class="fa-regular fa-user"></i> Juntar-se à Equipa
+        </button>
+    </div>
+
+    <!-- 5. Shine Sweep -->
+    <div class="flex flex-col items-center gap-4">
+        <h2 class="text-xs uppercase tracking-widest text-gray-500">Efeito Brilho</h2>
+        <button onclick="registerAction(this)" class="btn-shine bg-blue-600 hover:bg-blue-700 px-10 py-3 rounded shadow-md font-bold tracking-wide transition-colors">
+            INSCREVER-SE
+        </button>
+    </div>
+
+    <!-- 6. Floating Material -->
+    <div class="flex flex-col items-center gap-4">
+        <h2 class="text-xs uppercase tracking-widest text-gray-500">Material Design</h2>
+        <button onclick="registerAction(this)" class="btn-float bg-orange-500 text-white px-8 py-4 rounded font-bold shadow-md flex items-center gap-2">
+            <i class="fa-solid fa-check-circle"></i> Cadastro Gratuito
+        </button>
+    </div>
+
+</div>
+
+<!-- Feedback UI -->
+<div id="modal" class="fixed inset-0 bg-black/80 hidden items-center justify-center z-50 backdrop-blur-sm opacity-0 transition-opacity duration-300">
+    <div class="bg-slate-800 p-8 rounded-2xl border border-slate-700 text-center max-w-sm transform scale-90 transition-transform duration-300" id="modal-content">
+        <div class="w-16 h-16 bg-green-500/20 rounded-full flex items-center justify-center mx-auto mb-4 text-green-400 text-3xl">
+            <i class="fa-solid fa-check"></i>
+        </div>
+        <h3 class="text-xl font-bold text-white mb-2">Sucesso!</h3>
+        <p class="text-gray-400 mb-6">A ação de cadastro foi simulada.</p>
+        <button onclick="closeModal()" class="w-full bg-slate-700 hover:bg-slate-600 text-white py-2 rounded-lg transition-colors">
+            Fechar
+        </button>
+    </div>
+</div>
+
+<script>
+    function registerAction(btn) {
+        // Efeito visual de clique
+        btn.style.transform = "scale(0.95)";
+        setTimeout(() => {
+            btn.style.transform = "";
+            showModal();
+        }, 150);
+    }
+
+    function showModal() {
+        const modal = document.getElementById('modal');
+        const modalContent = document.getElementById('modal-content');
+
+        modal.classList.remove('hidden');
+        // Pequeno delay para permitir a transição de opacidade
+        setTimeout(() => {
+            modal.classList.remove('opacity-0');
+            modalContent.classList.remove('scale-90');
+            modalContent.classList.add('scale-100');
+        }, 10);
+    }
+
+    function closeModal() {
+        const modal = document.getElementById('modal');
+        const modalContent = document.getElementById('modal-content');
+
+        modal.classList.add('opacity-0');
+        modalContent.classList.remove('scale-100');
+        modalContent.classList.add('scale-90');
+
+        setTimeout(() => {
+            modal.classList.add('hidden');
+        }, 300);
+    }
+</script>
+</body>
+</html>

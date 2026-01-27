@@ -3,11 +3,11 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { ArrowLeft, Save } from 'lucide-react';
+import { ButtonShine } from '@/shared/components/ui/ButtonShine';
 import { useCliente, useCreateCliente, useUpdateCliente } from '../hooks/useClientes';
 import { createClienteSchema, updateClienteSchema } from '../utils/validation';
 import { InputMask } from '@/shared/components/forms/InputMask';
 import { CepInput } from '@/shared/components/forms/CepInput';
-import { showError } from '@/shared/utils/notifications';
 import { TipoCliente } from '../types';
 import type { CreateClienteFormData, UpdateClienteFormData } from '../utils/validation';
 
@@ -32,11 +32,24 @@ export const ClienteFormPage = () => {
     control,
     watch,
     setValue,
+    trigger,
     formState: { errors },
   } = useForm<CreateClienteFormData | UpdateClienteFormData>({
     resolver: zodResolver(isEditMode ? updateClienteSchema : createClienteSchema),
     defaultValues: {
       tipo: TipoCliente.PESSOA_FISICA,
+      nome: '',
+      email: '',
+      telefone: '',
+      celular: '',
+      logradouro: '',
+      numero: '',
+      complemento: '',
+      bairro: '',
+      cidade: '',
+      estado: '',
+      cep: '',
+      ...(isEditMode ? {} : { cpfCnpj: '' }),
     },
   });
 
@@ -63,36 +76,28 @@ export const ClienteFormPage = () => {
   }, [cliente, isEditMode, setValue]);
 
   const onSubmit = async (data: CreateClienteFormData | UpdateClienteFormData) => {
-    try {
-      if (isEditMode) {
-        await updateMutation.mutateAsync({
-          id: id!,
-          data: data as UpdateClienteFormData,
-        });
-      } else {
-        await createMutation.mutateAsync(data as CreateClienteFormData);
-      }
-      navigate('/clientes');
-    } catch (error: any) {
-      // Trata erros específicos da API (RFC 7807 - ProblemDetail)
-      const status = error.status || error.response?.status;
-      const detail = error.detail || error.response?.data?.detail || error.message;
-      const fieldErrors = error.errors || error.response?.data?.errors;
-
-      if (status === 409) {
-        // CPF/CNPJ duplicado
-        showError(detail || 'Este CPF/CNPJ já está cadastrado no sistema');
-      } else if (status === 400 && fieldErrors) {
-        // Erros de validação de campos - mostra o primeiro erro encontrado
-        const firstError = Object.values(fieldErrors)[0];
-        showError(typeof firstError === 'string' ? firstError : String(firstError));
-      } else if (detail) {
-        // Mensagem específica da API
-        showError(detail);
-      } else {
-        showError('Erro ao salvar cliente. Verifique os dados e tente novamente.');
-      }
+    if (isEditMode) {
+      await updateMutation.mutateAsync({
+        id: id!,
+        data: data as UpdateClienteFormData,
+      });
+    } else {
+      await createMutation.mutateAsync(data as CreateClienteFormData);
     }
+  };
+
+  const handleFormSubmit = async () => {
+    // Primeiro valida o form - isso mostra os erros nos campos
+    const isValid = await trigger();
+
+    // Se não passou na validação, lança erro para ButtonShine mostrar toast
+    // Os erros de campo já estão visíveis
+    if (!isValid) {
+      throw new Error('Verifique os campos destacados em vermelho');
+    }
+
+    // Se passou na validação, submete o form
+    await handleSubmit(onSubmit)();
   };
 
   if (loadingCliente) {
@@ -126,7 +131,7 @@ export const ClienteFormPage = () => {
       </div>
 
       {/* Form */}
-      <form onSubmit={handleSubmit(onSubmit)} className="mx-auto max-w-4xl">
+      <form className="mx-auto max-w-4xl">
         <div className="space-y-4 sm:space-y-6">
           {/* Tipo e Dados Básicos */}
           <div className="rounded-lg bg-white dark:bg-gray-800 p-4 sm:p-6 shadow">
@@ -367,14 +372,18 @@ export const ClienteFormPage = () => {
             >
               Cancelar
             </button>
-            <button
-              type="submit"
-              disabled={createMutation.isPending || updateMutation.isPending}
-              className="flex items-center justify-center gap-2 rounded-lg bg-blue-600 dark:bg-blue-700 px-6 py-2 font-medium text-white hover:bg-blue-700 dark:hover:bg-blue-600 disabled:cursor-not-allowed disabled:opacity-50 w-full sm:w-auto"
+            <ButtonShine
+              onClick={handleFormSubmit}
+              loadingText={isEditMode ? 'Atualizando...' : 'Cadastrando...'}
+              successMessage={isEditMode ? 'Cliente atualizado com sucesso!' : 'Cliente cadastrado com sucesso!'}
+              errorMessage="Erro ao salvar. Verifique os dados e tente novamente."
+              onSuccess={() => navigate('/clientes')}
+              color="blue"
+              size="md"
             >
               <Save className="h-5 w-5" />
               {isEditMode ? 'Atualizar' : 'Cadastrar'}
-            </button>
+            </ButtonShine>
           </div>
         </div>
       </form>

@@ -1,0 +1,898 @@
+<!DOCTYPE html>
+<html lang="pt-BR" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Documentacao de Webhooks - PitStop API</title>
+
+    <!-- SEO Meta Tags -->
+    <meta name="description" content="Documentacao completa dos webhooks do PitStop. Aprenda a integrar seu sistema com notificacoes em tempo real de ordens de servico, clientes, pagamentos e estoque.">
+    <meta name="keywords" content="webhook, api, integracao, pitstop, oficina mecanica, ordem de servico">
+    <meta name="author" content="PitStop">
+    <meta name="robots" content="index, follow">
+
+    <!-- Favicon -->
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🔧</text></svg>">
+
+    <!-- Google Analytics 4 -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-C1YK3X5KTX"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        gtag('js', new Date());
+        gtag('config', 'G-C1YK3X5KTX');
+    </script>
+
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+
+        code, pre {
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        pre {
+            background: #1e293b;
+            border-radius: 0.5rem;
+            padding: 1rem;
+            overflow-x: auto;
+            font-size: 0.875rem;
+        }
+
+        pre code {
+            color: #e2e8f0;
+        }
+
+        .code-inline {
+            background: #f1f5f9;
+            padding: 0.125rem 0.375rem;
+            border-radius: 0.25rem;
+            font-size: 0.875rem;
+            color: #0f172a;
+        }
+
+        /* Syntax highlighting */
+        .json-key { color: #7dd3fc; }
+        .json-string { color: #86efac; }
+        .json-number { color: #fcd34d; }
+        .json-boolean { color: #c4b5fd; }
+        .json-null { color: #94a3b8; }
+
+        /* Smooth scroll offset for fixed header */
+        :target {
+            scroll-margin-top: 100px;
+        }
+
+        /* Event card hover */
+        .event-card {
+            transition: all 0.2s ease;
+        }
+        .event-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        /* Table of contents */
+        .toc-link {
+            transition: all 0.2s ease;
+        }
+        .toc-link:hover {
+            color: #2563eb;
+            padding-left: 0.5rem;
+        }
+    </style>
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#2563eb',
+                        secondary: '#f59e0b',
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="antialiased bg-gray-50">
+
+<!-- Navigation -->
+<nav class="fixed w-full bg-white/95 backdrop-blur-sm shadow-sm z-50">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="flex justify-between items-center h-16">
+            <a href="index.html" class="flex items-center space-x-2">
+                <div class="w-10 h-10 bg-blue-600 rounded-lg flex items-center justify-center">
+                    <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/>
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                    </svg>
+                </div>
+                <span class="text-xl font-bold text-gray-900">PitStop</span>
+                <span class="hidden sm:inline text-gray-400 text-sm ml-2">| Documentacao</span>
+            </a>
+
+            <div class="flex items-center space-x-4">
+                <a href="index.html" class="text-gray-600 hover:text-blue-600 transition font-medium text-sm">Voltar ao site</a>
+                <a href="https://app.pitstopai.com.br/login" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-medium transition text-sm">
+                    Acessar App
+                </a>
+            </div>
+        </div>
+    </div>
+</nav>
+
+<!-- Main Content -->
+<div class="pt-24 pb-16">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="lg:grid lg:grid-cols-12 lg:gap-8">
+
+            <!-- Sidebar - Table of Contents -->
+            <aside class="hidden lg:block lg:col-span-3">
+                <nav class="sticky top-24 space-y-1">
+                    <h3 class="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-4">Navegacao</h3>
+
+                    <a href="#introducao" class="toc-link block py-1.5 text-sm text-gray-600 hover:text-blue-600 border-l-2 border-transparent hover:border-blue-600 pl-3">Introducao</a>
+                    <a href="#autenticacao" class="toc-link block py-1.5 text-sm text-gray-600 hover:text-blue-600 border-l-2 border-transparent hover:border-blue-600 pl-3">Autenticacao</a>
+                    <a href="#payload" class="toc-link block py-1.5 text-sm text-gray-600 hover:text-blue-600 border-l-2 border-transparent hover:border-blue-600 pl-3">Estrutura do Payload</a>
+                    <a href="#eventos" class="toc-link block py-1.5 text-sm text-gray-600 hover:text-blue-600 border-l-2 border-transparent hover:border-blue-600 pl-3">Eventos Disponiveis</a>
+
+                    <div class="pl-6 space-y-1">
+                        <a href="#eventos-os" class="toc-link block py-1 text-xs text-gray-500 hover:text-blue-600">Ordens de Servico</a>
+                        <a href="#eventos-cliente" class="toc-link block py-1 text-xs text-gray-500 hover:text-blue-600">Clientes</a>
+                        <a href="#eventos-veiculo" class="toc-link block py-1 text-xs text-gray-500 hover:text-blue-600">Veiculos</a>
+                        <a href="#eventos-financeiro" class="toc-link block py-1 text-xs text-gray-500 hover:text-blue-600">Financeiro</a>
+                        <a href="#eventos-estoque" class="toc-link block py-1 text-xs text-gray-500 hover:text-blue-600">Estoque</a>
+                        <a href="#eventos-manutencao" class="toc-link block py-1 text-xs text-gray-500 hover:text-blue-600">Manutencao</a>
+                    </div>
+
+                    <a href="#exemplos" class="toc-link block py-1.5 text-sm text-gray-600 hover:text-blue-600 border-l-2 border-transparent hover:border-blue-600 pl-3">Exemplos de Codigo</a>
+                    <a href="#retry" class="toc-link block py-1.5 text-sm text-gray-600 hover:text-blue-600 border-l-2 border-transparent hover:border-blue-600 pl-3">Politica de Retry</a>
+                    <a href="#configuracao" class="toc-link block py-1.5 text-sm text-gray-600 hover:text-blue-600 border-l-2 border-transparent hover:border-blue-600 pl-3">Configuracao</a>
+                </nav>
+            </aside>
+
+            <!-- Main Content -->
+            <main class="lg:col-span-9">
+
+                <!-- Header -->
+                <div class="mb-12">
+                    <div class="flex items-center gap-2 mb-4">
+                        <span class="px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-xs font-semibold">API</span>
+                        <span class="px-3 py-1 bg-green-100 text-green-700 rounded-full text-xs font-semibold">v1.0</span>
+                    </div>
+                    <h1 class="text-4xl font-bold text-gray-900 mb-4">Documentacao de Webhooks</h1>
+                    <p class="text-xl text-gray-600">
+                        Integre seu sistema com o PitStop e receba notificacoes em tempo real sobre eventos importantes da sua oficina.
+                    </p>
+                </div>
+
+                <!-- Introduction -->
+                <section id="introducao" class="mb-16">
+                    <h2 class="text-2xl font-bold text-gray-900 mb-4">Introducao</h2>
+                    <div class="prose prose-gray max-w-none">
+                        <p class="text-gray-600 mb-4">
+                            Webhooks permitem que seu sistema receba notificacoes automaticas quando eventos importantes acontecem no PitStop.
+                            Em vez de consultar nossa API repetidamente, voce configura uma URL que recebera requisicoes HTTP POST sempre que um evento ocorrer.
+                        </p>
+
+                        <div class="bg-blue-50 border-l-4 border-blue-500 p-4 rounded-r-lg mb-6">
+                            <div class="flex items-start">
+                                <svg class="w-5 h-5 text-blue-500 mt-0.5 mr-3 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"/>
+                                </svg>
+                                <div>
+                                    <p class="font-medium text-blue-800">Recurso Premium</p>
+                                    <p class="text-blue-700 text-sm mt-1">Webhooks estao disponiveis nos planos Profissional e Turbinado.</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <h3 class="text-lg font-semibold text-gray-900 mt-8 mb-3">Como funciona</h3>
+                        <ol class="list-decimal list-inside space-y-2 text-gray-600">
+                            <li>Voce configura uma URL de endpoint no painel do PitStop</li>
+                            <li>Seleciona quais eventos deseja receber</li>
+                            <li>Opcionalmente, configura um secret para validar a assinatura</li>
+                            <li>Quando um evento ocorre, enviamos um POST para sua URL</li>
+                            <li>Seu servidor processa a requisicao e retorna status 2xx</li>
+                        </ol>
+                    </div>
+                </section>
+
+                <!-- Authentication -->
+                <section id="autenticacao" class="mb-16">
+                    <h2 class="text-2xl font-bold text-gray-900 mb-4">Autenticacao e Seguranca</h2>
+
+                    <p class="text-gray-600 mb-6">
+                        Para garantir que as requisicoes sao legitimamente enviadas pelo PitStop, utilizamos assinatura HMAC-SHA256.
+                        Quando voce configura um <code class="code-inline">secret</code>, todas as requisicoes incluirao headers de assinatura.
+                    </p>
+
+                    <h3 class="text-lg font-semibold text-gray-900 mb-3">Headers de Seguranca</h3>
+
+                    <div class="bg-white rounded-lg border border-gray-200 overflow-hidden mb-6">
+                        <table class="w-full">
+                            <thead class="bg-gray-50">
+                                <tr>
+                                    <th class="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Header</th>
+                                    <th class="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Descricao</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-gray-200">
+                                <tr>
+                                    <td class="px-4 py-3"><code class="code-inline">X-Webhook-Signature</code></td>
+                                    <td class="px-4 py-3 text-sm text-gray-600">Assinatura HMAC-SHA256 do payload em hexadecimal</td>
+                                </tr>
+                                <tr>
+                                    <td class="px-4 py-3"><code class="code-inline">X-Webhook-Timestamp</code></td>
+                                    <td class="px-4 py-3 text-sm text-gray-600">Timestamp Unix em milissegundos do momento do envio</td>
+                                </tr>
+                                <tr>
+                                    <td class="px-4 py-3"><code class="code-inline">Content-Type</code></td>
+                                    <td class="px-4 py-3 text-sm text-gray-600">Sempre <code class="code-inline">application/json</code></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <h3 class="text-lg font-semibold text-gray-900 mb-3">Validando a Assinatura</h3>
+                    <p class="text-gray-600 mb-4">
+                        Para validar que a requisicao e autentica, calcule o HMAC-SHA256 do body da requisicao usando seu secret e compare com o header <code class="code-inline">X-Webhook-Signature</code>.
+                    </p>
+
+                    <pre><code><span class="json-key">// Exemplo em Node.js</span>
+const crypto = require('crypto');
+
+function validarWebhook(payload, signature, secret) {
+    const hmac = crypto.createHmac('sha256', secret);
+    const calculado = hmac.update(payload).digest('hex');
+    return crypto.timingSafeEqual(
+        Buffer.from(signature),
+        Buffer.from(calculado)
+    );
+}</code></pre>
+                </section>
+
+                <!-- Payload Structure -->
+                <section id="payload" class="mb-16">
+                    <h2 class="text-2xl font-bold text-gray-900 mb-4">Estrutura do Payload</h2>
+
+                    <p class="text-gray-600 mb-6">
+                        Todos os webhooks seguem a mesma estrutura base, com dados especificos no campo <code class="code-inline">dados</code>.
+                    </p>
+
+                    <pre><code>{
+    <span class="json-key">"evento"</span>: <span class="json-string">"OS_CRIADA"</span>,
+    <span class="json-key">"eventoNome"</span>: <span class="json-string">"Ordem de Servico Criada"</span>,
+    <span class="json-key">"timestamp"</span>: <span class="json-string">"2026-01-25T14:30:00"</span>,
+    <span class="json-key">"entidadeId"</span>: <span class="json-string">"550e8400-e29b-41d4-a716-446655440000"</span>,
+    <span class="json-key">"entidadeTipo"</span>: <span class="json-string">"OrdemServico"</span>,
+    <span class="json-key">"dados"</span>: {
+        <span class="json-key">// Dados especificos do evento</span>
+    }
+}</code></pre>
+
+                    <div class="mt-6 bg-white rounded-lg border border-gray-200 overflow-hidden">
+                        <table class="w-full">
+                            <thead class="bg-gray-50">
+                                <tr>
+                                    <th class="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Campo</th>
+                                    <th class="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Tipo</th>
+                                    <th class="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Descricao</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-gray-200">
+                                <tr>
+                                    <td class="px-4 py-3"><code class="code-inline">evento</code></td>
+                                    <td class="px-4 py-3 text-sm text-gray-500">string</td>
+                                    <td class="px-4 py-3 text-sm text-gray-600">Codigo do evento (ex: OS_CRIADA)</td>
+                                </tr>
+                                <tr>
+                                    <td class="px-4 py-3"><code class="code-inline">eventoNome</code></td>
+                                    <td class="px-4 py-3 text-sm text-gray-500">string</td>
+                                    <td class="px-4 py-3 text-sm text-gray-600">Nome legivel do evento</td>
+                                </tr>
+                                <tr>
+                                    <td class="px-4 py-3"><code class="code-inline">timestamp</code></td>
+                                    <td class="px-4 py-3 text-sm text-gray-500">ISO 8601</td>
+                                    <td class="px-4 py-3 text-sm text-gray-600">Data/hora do evento</td>
+                                </tr>
+                                <tr>
+                                    <td class="px-4 py-3"><code class="code-inline">entidadeId</code></td>
+                                    <td class="px-4 py-3 text-sm text-gray-500">UUID</td>
+                                    <td class="px-4 py-3 text-sm text-gray-600">ID da entidade relacionada</td>
+                                </tr>
+                                <tr>
+                                    <td class="px-4 py-3"><code class="code-inline">entidadeTipo</code></td>
+                                    <td class="px-4 py-3 text-sm text-gray-500">string</td>
+                                    <td class="px-4 py-3 text-sm text-gray-600">Tipo da entidade (OrdemServico, Cliente, etc)</td>
+                                </tr>
+                                <tr>
+                                    <td class="px-4 py-3"><code class="code-inline">dados</code></td>
+                                    <td class="px-4 py-3 text-sm text-gray-500">object</td>
+                                    <td class="px-4 py-3 text-sm text-gray-600">Dados especificos do evento</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </section>
+
+                <!-- Events -->
+                <section id="eventos" class="mb-16">
+                    <h2 class="text-2xl font-bold text-gray-900 mb-4">Eventos Disponiveis</h2>
+                    <p class="text-gray-600 mb-8">
+                        O PitStop disponibiliza 16 tipos de eventos que voce pode assinar. Selecione apenas os eventos relevantes para sua integracao.
+                    </p>
+
+                    <!-- OS Events -->
+                    <div id="eventos-os" class="mb-10">
+                        <h3 class="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+                            <span class="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center mr-3">
+                                <svg class="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
+                                </svg>
+                            </span>
+                            Ordens de Servico
+                        </h3>
+
+                        <div class="grid gap-4">
+                            <div class="event-card bg-white rounded-lg border border-gray-200 p-4">
+                                <div class="flex items-start justify-between">
+                                    <div>
+                                        <code class="text-sm font-semibold text-blue-600">OS_CRIADA</code>
+                                        <p class="text-sm text-gray-600 mt-1">Disparado quando uma nova ordem de servico e criada.</p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="event-card bg-white rounded-lg border border-gray-200 p-4">
+                                <div class="flex items-start justify-between">
+                                    <div>
+                                        <code class="text-sm font-semibold text-blue-600">OS_STATUS_ALTERADO</code>
+                                        <p class="text-sm text-gray-600 mt-1">Disparado quando o status de uma OS muda (ex: ORCAMENTO para APROVADO).</p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="event-card bg-white rounded-lg border border-gray-200 p-4">
+                                <div class="flex items-start justify-between">
+                                    <div>
+                                        <code class="text-sm font-semibold text-blue-600">OS_APROVADA</code>
+                                        <p class="text-sm text-gray-600 mt-1">Disparado quando o cliente aprova o orcamento.</p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="event-card bg-white rounded-lg border border-gray-200 p-4">
+                                <div class="flex items-start justify-between">
+                                    <div>
+                                        <code class="text-sm font-semibold text-blue-600">OS_FINALIZADA</code>
+                                        <p class="text-sm text-gray-600 mt-1">Disparado quando o servico e finalizado.</p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="event-card bg-white rounded-lg border border-gray-200 p-4">
+                                <div class="flex items-start justify-between">
+                                    <div>
+                                        <code class="text-sm font-semibold text-blue-600">OS_ENTREGUE</code>
+                                        <p class="text-sm text-gray-600 mt-1">Disparado quando o veiculo e entregue ao cliente.</p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="event-card bg-white rounded-lg border border-gray-200 p-4">
+                                <div class="flex items-start justify-between">
+                                    <div>
+                                        <code class="text-sm font-semibold text-blue-600">OS_CANCELADA</code>
+                                        <p class="text-sm text-gray-600 mt-1">Disparado quando uma OS e cancelada.</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- OS Payload Example -->
+                        <div class="mt-4">
+                            <p class="text-sm font-medium text-gray-700 mb-2">Exemplo de payload (OS_CRIADA):</p>
+                            <pre><code>{
+    <span class="json-key">"evento"</span>: <span class="json-string">"OS_CRIADA"</span>,
+    <span class="json-key">"eventoNome"</span>: <span class="json-string">"Ordem de Servico Criada"</span>,
+    <span class="json-key">"timestamp"</span>: <span class="json-string">"2026-01-25T14:30:00"</span>,
+    <span class="json-key">"entidadeId"</span>: <span class="json-string">"550e8400-e29b-41d4-a716-446655440000"</span>,
+    <span class="json-key">"entidadeTipo"</span>: <span class="json-string">"OrdemServico"</span>,
+    <span class="json-key">"dados"</span>: {
+        <span class="json-key">"numero"</span>: <span class="json-number">1234</span>,
+        <span class="json-key">"status"</span>: <span class="json-string">"ORCAMENTO"</span>,
+        <span class="json-key">"valorTotal"</span>: <span class="json-number">1500.00</span>,
+        <span class="json-key">"cliente"</span>: {
+            <span class="json-key">"id"</span>: <span class="json-string">"..."</span>,
+            <span class="json-key">"nome"</span>: <span class="json-string">"Joao Silva"</span>,
+            <span class="json-key">"telefone"</span>: <span class="json-string">"11999998888"</span>
+        },
+        <span class="json-key">"veiculo"</span>: {
+            <span class="json-key">"id"</span>: <span class="json-string">"..."</span>,
+            <span class="json-key">"placa"</span>: <span class="json-string">"ABC1D23"</span>,
+            <span class="json-key">"modelo"</span>: <span class="json-string">"Civic"</span>
+        }
+    }
+}</code></pre>
+                        </div>
+                    </div>
+
+                    <!-- Cliente Events -->
+                    <div id="eventos-cliente" class="mb-10">
+                        <h3 class="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+                            <span class="w-8 h-8 bg-green-100 rounded-lg flex items-center justify-center mr-3">
+                                <svg class="w-4 h-4 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/>
+                                </svg>
+                            </span>
+                            Clientes
+                        </h3>
+
+                        <div class="grid gap-4">
+                            <div class="event-card bg-white rounded-lg border border-gray-200 p-4">
+                                <code class="text-sm font-semibold text-green-600">CLIENTE_CRIADO</code>
+                                <p class="text-sm text-gray-600 mt-1">Disparado quando um novo cliente e cadastrado.</p>
+                            </div>
+
+                            <div class="event-card bg-white rounded-lg border border-gray-200 p-4">
+                                <code class="text-sm font-semibold text-green-600">CLIENTE_ATUALIZADO</code>
+                                <p class="text-sm text-gray-600 mt-1">Disparado quando os dados do cliente sao atualizados.</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Veiculo Events -->
+                    <div id="eventos-veiculo" class="mb-10">
+                        <h3 class="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+                            <span class="w-8 h-8 bg-purple-100 rounded-lg flex items-center justify-center mr-3">
+                                <svg class="w-4 h-4 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
+                                </svg>
+                            </span>
+                            Veiculos
+                        </h3>
+
+                        <div class="grid gap-4">
+                            <div class="event-card bg-white rounded-lg border border-gray-200 p-4">
+                                <code class="text-sm font-semibold text-purple-600">VEICULO_CRIADO</code>
+                                <p class="text-sm text-gray-600 mt-1">Disparado quando um novo veiculo e cadastrado.</p>
+                            </div>
+
+                            <div class="event-card bg-white rounded-lg border border-gray-200 p-4">
+                                <code class="text-sm font-semibold text-purple-600">VEICULO_ATUALIZADO</code>
+                                <p class="text-sm text-gray-600 mt-1">Disparado quando os dados do veiculo sao atualizados.</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Financeiro Events -->
+                    <div id="eventos-financeiro" class="mb-10">
+                        <h3 class="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+                            <span class="w-8 h-8 bg-emerald-100 rounded-lg flex items-center justify-center mr-3">
+                                <svg class="w-4 h-4 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                </svg>
+                            </span>
+                            Financeiro
+                        </h3>
+
+                        <div class="grid gap-4">
+                            <div class="event-card bg-white rounded-lg border border-gray-200 p-4">
+                                <code class="text-sm font-semibold text-emerald-600">PAGAMENTO_RECEBIDO</code>
+                                <p class="text-sm text-gray-600 mt-1">Disparado quando um pagamento e confirmado.</p>
+                            </div>
+
+                            <div class="event-card bg-white rounded-lg border border-gray-200 p-4">
+                                <code class="text-sm font-semibold text-emerald-600">PAGAMENTO_CANCELADO</code>
+                                <p class="text-sm text-gray-600 mt-1">Disparado quando um pagamento e cancelado ou estornado.</p>
+                            </div>
+                        </div>
+
+                        <div class="mt-4">
+                            <p class="text-sm font-medium text-gray-700 mb-2">Exemplo de payload (PAGAMENTO_RECEBIDO):</p>
+                            <pre><code>{
+    <span class="json-key">"evento"</span>: <span class="json-string">"PAGAMENTO_RECEBIDO"</span>,
+    <span class="json-key">"timestamp"</span>: <span class="json-string">"2026-01-25T15:00:00"</span>,
+    <span class="json-key">"entidadeId"</span>: <span class="json-string">"..."</span>,
+    <span class="json-key">"entidadeTipo"</span>: <span class="json-string">"Pagamento"</span>,
+    <span class="json-key">"dados"</span>: {
+        <span class="json-key">"valor"</span>: <span class="json-number">1500.00</span>,
+        <span class="json-key">"tipo"</span>: <span class="json-string">"PIX"</span>,
+        <span class="json-key">"ordemServicoNumero"</span>: <span class="json-number">1234</span>,
+        <span class="json-key">"cliente"</span>: {
+            <span class="json-key">"nome"</span>: <span class="json-string">"Joao Silva"</span>
+        }
+    }
+}</code></pre>
+                        </div>
+                    </div>
+
+                    <!-- Estoque Events -->
+                    <div id="eventos-estoque" class="mb-10">
+                        <h3 class="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+                            <span class="w-8 h-8 bg-amber-100 rounded-lg flex items-center justify-center mr-3">
+                                <svg class="w-4 h-4 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/>
+                                </svg>
+                            </span>
+                            Estoque
+                        </h3>
+
+                        <div class="grid gap-4">
+                            <div class="event-card bg-white rounded-lg border border-gray-200 p-4">
+                                <code class="text-sm font-semibold text-amber-600">ESTOQUE_BAIXO</code>
+                                <p class="text-sm text-gray-600 mt-1">Disparado quando uma peca atinge o estoque minimo configurado.</p>
+                            </div>
+
+                            <div class="event-card bg-white rounded-lg border border-gray-200 p-4">
+                                <code class="text-sm font-semibold text-amber-600">ESTOQUE_MOVIMENTADO</code>
+                                <p class="text-sm text-gray-600 mt-1">Disparado quando ha entrada ou saida de pecas no estoque.</p>
+                            </div>
+                        </div>
+
+                        <div class="mt-4">
+                            <p class="text-sm font-medium text-gray-700 mb-2">Exemplo de payload (ESTOQUE_BAIXO):</p>
+                            <pre><code>{
+    <span class="json-key">"evento"</span>: <span class="json-string">"ESTOQUE_BAIXO"</span>,
+    <span class="json-key">"timestamp"</span>: <span class="json-string">"2026-01-25T16:00:00"</span>,
+    <span class="json-key">"entidadeId"</span>: <span class="json-string">"..."</span>,
+    <span class="json-key">"entidadeTipo"</span>: <span class="json-string">"Peca"</span>,
+    <span class="json-key">"dados"</span>: {
+        <span class="json-key">"sku"</span>: <span class="json-string">"OL-5W30-1L"</span>,
+        <span class="json-key">"nome"</span>: <span class="json-string">"Oleo Motor 5W30 1L"</span>,
+        <span class="json-key">"quantidadeAtual"</span>: <span class="json-number">3</span>,
+        <span class="json-key">"quantidadeMinima"</span>: <span class="json-number">5</span>
+    }
+}</code></pre>
+                        </div>
+                    </div>
+
+                    <!-- Manutencao Events -->
+                    <div id="eventos-manutencao" class="mb-10">
+                        <h3 class="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+                            <span class="w-8 h-8 bg-red-100 rounded-lg flex items-center justify-center mr-3">
+                                <svg class="w-4 h-4 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                </svg>
+                            </span>
+                            Manutencao Preventiva
+                        </h3>
+
+                        <div class="grid gap-4">
+                            <div class="event-card bg-white rounded-lg border border-gray-200 p-4">
+                                <code class="text-sm font-semibold text-red-600">MANUTENCAO_VENCIDA</code>
+                                <p class="text-sm text-gray-600 mt-1">Disparado quando uma manutencao preventiva vence.</p>
+                            </div>
+
+                            <div class="event-card bg-white rounded-lg border border-gray-200 p-4">
+                                <code class="text-sm font-semibold text-red-600">AGENDAMENTO_CRIADO</code>
+                                <p class="text-sm text-gray-600 mt-1">Disparado quando um agendamento de manutencao e criado.</p>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Code Examples -->
+                <section id="exemplos" class="mb-16">
+                    <h2 class="text-2xl font-bold text-gray-900 mb-4">Exemplos de Codigo</h2>
+
+                    <!-- Node.js Example -->
+                    <div class="mb-8">
+                        <h3 class="text-lg font-semibold text-gray-900 mb-3">Node.js / Express</h3>
+                        <pre><code>const express = require('express');
+const crypto = require('crypto');
+
+const app = express();
+app.use(express.json());
+
+const WEBHOOK_SECRET = process.env.WEBHOOK_SECRET;
+
+function validarAssinatura(req) {
+    const signature = req.headers['x-webhook-signature'];
+    const payload = JSON.stringify(req.body);
+
+    const hmac = crypto.createHmac('sha256', WEBHOOK_SECRET);
+    const calculado = hmac.update(payload).digest('hex');
+
+    return crypto.timingSafeEqual(
+        Buffer.from(signature || ''),
+        Buffer.from(calculado)
+    );
+}
+
+app.post('/webhook/pitstop', (req, res) => {
+    <span class="json-key">// Validar assinatura</span>
+    if (!validarAssinatura(req)) {
+        return res.status(401).json({ error: 'Assinatura invalida' });
+    }
+
+    const { evento, dados, entidadeId } = req.body;
+
+    console.log(`Evento recebido: ${evento}`);
+
+    switch (evento) {
+        case 'OS_CRIADA':
+            <span class="json-key">// Processar nova OS</span>
+            console.log(`Nova OS #${dados.numero} criada`);
+            break;
+
+        case 'PAGAMENTO_RECEBIDO':
+            <span class="json-key">// Processar pagamento</span>
+            console.log(`Pagamento de R$ ${dados.valor} recebido`);
+            break;
+
+        case 'ESTOQUE_BAIXO':
+            <span class="json-key">// Enviar alerta</span>
+            console.log(`Estoque baixo: ${dados.nome}`);
+            break;
+    }
+
+    <span class="json-key">// Sempre retornar 200 para confirmar recebimento</span>
+    res.status(200).json({ received: true });
+});
+
+app.listen(3000);</code></pre>
+                    </div>
+
+                    <!-- Python Example -->
+                    <div class="mb-8">
+                        <h3 class="text-lg font-semibold text-gray-900 mb-3">Python / Flask</h3>
+                        <pre><code>from flask import Flask, request, jsonify
+import hmac
+import hashlib
+
+app = Flask(__name__)
+WEBHOOK_SECRET = 'seu_secret_aqui'
+
+def validar_assinatura(payload, signature):
+    calculado = hmac.new(
+        WEBHOOK_SECRET.encode(),
+        payload,
+        hashlib.sha256
+    ).hexdigest()
+    return hmac.compare_digest(signature, calculado)
+
+@app.route('/webhook/pitstop', methods=['POST'])
+def webhook():
+    signature = request.headers.get('X-Webhook-Signature', '')
+
+    if not validar_assinatura(request.data, signature):
+        return jsonify({'error': 'Assinatura invalida'}), 401
+
+    data = request.json
+    evento = data.get('evento')
+    dados = data.get('dados', {})
+
+    if evento == 'OS_CRIADA':
+        print(f"Nova OS #{dados.get('numero')} criada")
+
+    elif evento == 'PAGAMENTO_RECEBIDO':
+        print(f"Pagamento de R$ {dados.get('valor')} recebido")
+
+    return jsonify({'received': True}), 200
+
+if __name__ == '__main__':
+    app.run(port=3000)</code></pre>
+                    </div>
+
+                    <!-- PHP Example -->
+                    <div class="mb-8">
+                        <h3 class="text-lg font-semibold text-gray-900 mb-3">PHP</h3>
+                        <pre><code>&lt;?php
+$webhookSecret = getenv('WEBHOOK_SECRET');
+
+$payload = file_get_contents('php://input');
+$signature = $_SERVER['HTTP_X_WEBHOOK_SIGNATURE'] ?? '';
+
+$calculado = hash_hmac('sha256', $payload, $webhookSecret);
+
+if (!hash_equals($calculado, $signature)) {
+    http_response_code(401);
+    echo json_encode(['error' => 'Assinatura invalida']);
+    exit;
+}
+
+$data = json_decode($payload, true);
+$evento = $data['evento'];
+$dados = $data['dados'];
+
+switch ($evento) {
+    case 'OS_CRIADA':
+        error_log("Nova OS #{$dados['numero']} criada");
+        break;
+
+    case 'PAGAMENTO_RECEBIDO':
+        error_log("Pagamento de R$ {$dados['valor']} recebido");
+        break;
+}
+
+http_response_code(200);
+echo json_encode(['received' => true]);
+?&gt;</code></pre>
+                    </div>
+                </section>
+
+                <!-- Retry Policy -->
+                <section id="retry" class="mb-16">
+                    <h2 class="text-2xl font-bold text-gray-900 mb-4">Politica de Retry</h2>
+
+                    <p class="text-gray-600 mb-6">
+                        Quando um webhook falha (timeout ou status HTTP diferente de 2xx), o PitStop tentara reenviar automaticamente.
+                    </p>
+
+                    <div class="bg-white rounded-lg border border-gray-200 p-6 mb-6">
+                        <h3 class="font-semibold text-gray-900 mb-4">Configuracoes de Retry</h3>
+                        <ul class="space-y-3 text-gray-600">
+                            <li class="flex items-start">
+                                <svg class="w-5 h-5 text-blue-500 mr-2 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+                                </svg>
+                                <span><strong>Maximo de tentativas:</strong> Configuravel (padrao: 3)</span>
+                            </li>
+                            <li class="flex items-start">
+                                <svg class="w-5 h-5 text-blue-500 mr-2 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+                                </svg>
+                                <span><strong>Intervalo entre retries:</strong> Exponencial (1min, 5min, 15min, 1h)</span>
+                            </li>
+                            <li class="flex items-start">
+                                <svg class="w-5 h-5 text-blue-500 mr-2 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+                                </svg>
+                                <span><strong>Timeout:</strong> Configuravel (padrao: 30 segundos)</span>
+                            </li>
+                            <li class="flex items-start">
+                                <svg class="w-5 h-5 text-blue-500 mr-2 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+                                </svg>
+                                <span><strong>Desativacao automatica:</strong> Apos 10 falhas consecutivas</span>
+                            </li>
+                        </ul>
+                    </div>
+
+                    <div class="bg-yellow-50 border-l-4 border-yellow-500 p-4 rounded-r-lg">
+                        <div class="flex items-start">
+                            <svg class="w-5 h-5 text-yellow-500 mt-0.5 mr-3 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
+                            </svg>
+                            <div>
+                                <p class="font-medium text-yellow-800">Importante</p>
+                                <p class="text-yellow-700 text-sm mt-1">
+                                    Seu endpoint deve responder com status 2xx em ate 30 segundos.
+                                    Para processamentos demorados, retorne 200 imediatamente e processe em background.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Configuration -->
+                <section id="configuracao" class="mb-16">
+                    <h2 class="text-2xl font-bold text-gray-900 mb-4">Configuracao</h2>
+
+                    <p class="text-gray-600 mb-6">
+                        Configure seus webhooks diretamente no painel do PitStop em <strong>Configuracoes &gt; Webhooks</strong>.
+                    </p>
+
+                    <div class="bg-white rounded-lg border border-gray-200 p-6">
+                        <h3 class="font-semibold text-gray-900 mb-4">Passos para configurar</h3>
+                        <ol class="space-y-4 text-gray-600">
+                            <li class="flex items-start">
+                                <span class="flex-shrink-0 w-6 h-6 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center text-sm font-semibold mr-3">1</span>
+                                <span>Acesse o painel do PitStop e va em <strong>Configuracoes &gt; Webhooks</strong></span>
+                            </li>
+                            <li class="flex items-start">
+                                <span class="flex-shrink-0 w-6 h-6 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center text-sm font-semibold mr-3">2</span>
+                                <span>Clique em <strong>Novo Webhook</strong></span>
+                            </li>
+                            <li class="flex items-start">
+                                <span class="flex-shrink-0 w-6 h-6 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center text-sm font-semibold mr-3">3</span>
+                                <span>Preencha a URL do seu endpoint (deve ser HTTPS em producao)</span>
+                            </li>
+                            <li class="flex items-start">
+                                <span class="flex-shrink-0 w-6 h-6 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center text-sm font-semibold mr-3">4</span>
+                                <span>Configure um <strong>Secret</strong> para validar assinaturas (recomendado)</span>
+                            </li>
+                            <li class="flex items-start">
+                                <span class="flex-shrink-0 w-6 h-6 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center text-sm font-semibold mr-3">5</span>
+                                <span>Selecione os <strong>eventos</strong> que deseja receber</span>
+                            </li>
+                            <li class="flex items-start">
+                                <span class="flex-shrink-0 w-6 h-6 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center text-sm font-semibold mr-3">6</span>
+                                <span>Use o botao <strong>Testar</strong> para verificar a configuracao</span>
+                            </li>
+                        </ol>
+                    </div>
+                </section>
+
+                <!-- CTA -->
+                <section class="bg-gradient-to-r from-blue-600 to-blue-700 rounded-2xl p-8 text-center">
+                    <h2 class="text-2xl font-bold text-white mb-4">Pronto para integrar?</h2>
+                    <p class="text-blue-100 mb-6 max-w-xl mx-auto">
+                        Comece a receber eventos em tempo real e automatize seus processos com webhooks do PitStop.
+                    </p>
+                    <div class="flex flex-col sm:flex-row gap-4 justify-center">
+                        <a href="https://app.pitstopai.com.br" class="bg-white text-blue-600 px-6 py-3 rounded-lg font-semibold hover:bg-blue-50 transition">
+                            Acessar o App
+                        </a>
+                        <a href="contato.html" class="border-2 border-white text-white px-6 py-3 rounded-lg font-semibold hover:bg-white/10 transition">
+                            Falar com Suporte
+                        </a>
+                    </div>
+                </section>
+
+            </main>
+        </div>
+    </div>
+</div>
+
+<!-- Footer -->
+<footer class="bg-gray-900 text-gray-300 py-12 px-4">
+    <div class="max-w-7xl mx-auto">
+        <div class="grid md:grid-cols-4 gap-8 mb-8">
+            <!-- Column 1 - Brand -->
+            <div>
+                <div class="flex items-center space-x-2 mb-4">
+                    <div class="w-10 h-10 bg-blue-600 rounded-lg flex items-center justify-center">
+                        <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/>
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                        </svg>
+                    </div>
+                    <span class="text-2xl font-bold text-white">PitStop</span>
+                </div>
+                <p class="text-gray-400 mb-4">Gestao agil para sua oficina</p>
+            </div>
+
+            <!-- Column 2 - Product -->
+            <div>
+                <h3 class="text-white font-semibold mb-4">Produto</h3>
+                <ul class="space-y-2 text-sm">
+                    <li><a href="index.html#funcionalidades" class="hover:text-white transition">Funcionalidades</a></li>
+                    <li><a href="index.html#precos" class="hover:text-white transition">Precos</a></li>
+                    <li><a href="integracoes.html" class="hover:text-white transition">Integracoes</a></li>
+                    <li><a href="docs-webhooks.html" class="hover:text-white transition">API & Webhooks</a></li>
+                </ul>
+            </div>
+
+            <!-- Column 3 - Company -->
+            <div>
+                <h3 class="text-white font-semibold mb-4">Empresa</h3>
+                <ul class="space-y-2 text-sm">
+                    <li><a href="sobre.html" class="hover:text-white transition">Sobre nos</a></li>
+                    <li><a href="blog.html" class="hover:text-white transition">Blog</a></li>
+                    <li><a href="contato.html" class="hover:text-white transition">Contato</a></li>
+                    <li><a href="index.html#faq" class="hover:text-white transition">FAQ</a></li>
+                </ul>
+            </div>
+
+            <!-- Column 4 - Legal -->
+            <div>
+                <h3 class="text-white font-semibold mb-4">Legal</h3>
+                <ul class="space-y-2 text-sm">
+                    <li><a href="termos.html" class="hover:text-white transition">Termos de uso</a></li>
+                    <li><a href="privacidade.html" class="hover:text-white transition">Privacidade</a></li>
+                    <li><a href="lgpd.html" class="hover:text-white transition">LGPD</a></li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="border-t border-gray-800 pt-8 text-center text-gray-400 text-sm">
+            <p>&copy; 2026 PitStop. Todos os direitos reservados.</p>
+        </div>
+    </div>
+</footer>
+
+</body>
+</html>

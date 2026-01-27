@@ -7,7 +7,7 @@ import { useVeiculo, useCreateVeiculo, useUpdateVeiculo } from '../hooks/useVeic
 import { useClientes } from '@/features/clientes/hooks/useClientes';
 import { createVeiculoSchema, updateVeiculoSchema } from '../utils/validation';
 import { InputMask } from '@/shared/components/forms/InputMask';
-import { showError } from '@/shared/utils/notifications';
+import { ButtonShine } from '@/shared/components/ui/ButtonShine';
 import type { CreateVeiculoFormData, UpdateVeiculoFormData } from '../utils/validation';
 
 const currentYear = new Date().getFullYear();
@@ -31,9 +31,19 @@ export const VeiculoFormPage = () => {
     handleSubmit,
     control,
     setValue,
+    trigger,
     formState: { errors },
   } = useForm<CreateVeiculoFormData | UpdateVeiculoFormData>({
     resolver: zodResolver(isEditMode ? updateVeiculoSchema : createVeiculoSchema),
+    defaultValues: {
+      marca: '',
+      modelo: '',
+      ano: undefined,
+      cor: '',
+      chassi: '',
+      quilometragem: undefined,
+      ...(isEditMode ? {} : { placa: '', clienteId: '' }),
+    },
   });
 
   // Load veiculo data when editing
@@ -49,25 +59,28 @@ export const VeiculoFormPage = () => {
   }, [veiculo, isEditMode, setValue]);
 
   const onSubmit = async (data: CreateVeiculoFormData | UpdateVeiculoFormData) => {
-    try {
-      if (isEditMode) {
-        await updateMutation.mutateAsync({
-          id: id!,
-          data: data as UpdateVeiculoFormData,
-        });
-      } else {
-        await createMutation.mutateAsync(data as CreateVeiculoFormData);
-      }
-      navigate('/veiculos');
-    } catch (error: any) {
-      if (error.response?.status === 409) {
-        showError('Esta placa já está cadastrada.');
-      } else if (error.response?.status === 404) {
-        showError('Cliente não encontrado.');
-      } else {
-        showError(error.message || 'Erro ao salvar veículo');
-      }
+    if (isEditMode) {
+      await updateMutation.mutateAsync({
+        id: id!,
+        data: data as UpdateVeiculoFormData,
+      });
+    } else {
+      await createMutation.mutateAsync(data as CreateVeiculoFormData);
     }
+  };
+
+  const handleFormSubmit = async () => {
+    // Primeiro valida o form - isso mostra os erros nos campos
+    const isValid = await trigger();
+
+    // Se não passou na validação, lança erro para ButtonShine mostrar toast
+    // Os erros de campo já estão visíveis
+    if (!isValid) {
+      throw new Error('Verifique os campos destacados em vermelho');
+    }
+
+    // Se passou na validação, submete o form
+    await handleSubmit(onSubmit)();
   };
 
   const handleClienteSelect = (clienteId: string, clienteNome: string) => {
@@ -109,7 +122,7 @@ export const VeiculoFormPage = () => {
       </div>
 
       {/* Form */}
-      <form onSubmit={handleSubmit(onSubmit)} className="mx-auto max-w-4xl">
+      <form className="mx-auto max-w-4xl">
         <div className="space-y-6">
           {/* Cliente e Placa */}
           <div className="rounded-lg bg-white dark:bg-gray-800 p-4 sm:p-6 shadow">
@@ -312,14 +325,18 @@ export const VeiculoFormPage = () => {
             >
               Cancelar
             </button>
-            <button
-              type="submit"
-              disabled={createMutation.isPending || updateMutation.isPending}
-              className="w-full sm:w-auto flex items-center justify-center gap-2 rounded-lg bg-blue-600 dark:bg-blue-700 px-6 py-2 font-medium text-white hover:bg-blue-700 dark:hover:bg-blue-600 disabled:cursor-not-allowed disabled:opacity-50"
+            <ButtonShine
+              onClick={handleFormSubmit}
+              loadingText={isEditMode ? 'Atualizando...' : 'Cadastrando...'}
+              successMessage={isEditMode ? 'Veículo atualizado com sucesso!' : 'Veículo cadastrado com sucesso!'}
+              errorMessage="Erro ao salvar. Verifique os dados e tente novamente."
+              onSuccess={() => navigate('/veiculos')}
+              color="blue"
+              size="md"
             >
               <Save className="h-5 w-5" />
               {isEditMode ? 'Atualizar' : 'Cadastrar'}
-            </button>
+            </ButtonShine>
           </div>
         </div>
       </form>
