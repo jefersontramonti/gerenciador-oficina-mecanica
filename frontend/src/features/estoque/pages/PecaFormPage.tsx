@@ -23,6 +23,7 @@ import {
   type CreatePecaFormData,
 } from '../utils/validation';
 import { UnidadeMedida, UnidadeMedidaLabel, CategoriaPeca, CategoriaPecaLabel, getMargemLucroStatus } from '../types';
+import type { CreatePecaRequest, UpdatePecaRequest } from '../types';
 import { LocalArmazenamentoSelect } from '../components';
 import { anexoService } from '@/features/anexos/services/anexoService';
 import type { CategoriaAnexo } from '@/features/anexos/types';
@@ -53,8 +54,9 @@ export const PecaFormPage = () => {
     setValue,
     control,
     formState: { errors, isSubmitting },
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   } = useForm<CreatePecaFormData>({
-    resolver: zodResolver(createPecaSchema),
+    resolver: zodResolver(createPecaSchema) as any,
     defaultValues: {
       codigo: '',
       nome: '',
@@ -185,7 +187,7 @@ export const PecaFormPage = () => {
       // Limpar campos opcionais vazios para não enviar strings vazias
       const cleanData = {
         ...data,
-        categoria: data.categoria || undefined,
+        categoria: (data.categoria || undefined) as CategoriaPeca | undefined,
         localArmazenamentoId: data.localArmazenamentoId || undefined,
         codigoOriginal: data.codigoOriginal || undefined,
         codigoFabricante: data.codigoFabricante || undefined,
@@ -203,10 +205,10 @@ export const PecaFormPage = () => {
       let pecaId: string;
 
       if (isEditMode && id) {
-        await updatePeca.mutateAsync({ id, data: cleanData });
+        await updatePeca.mutateAsync({ id, data: cleanData as UpdatePecaRequest });
         pecaId = id;
       } else {
-        const result = await createPeca.mutateAsync(cleanData);
+        const result = await createPeca.mutateAsync(cleanData as CreatePecaRequest);
         pecaId = result.id;
       }
 
