@@ -53,25 +53,93 @@ export const TipoMovimentacaoColor: Record<TipoMovimentacao, string> = {
   [TipoMovimentacao.BAIXA_OS]: 'gray',
 };
 
+// ==================== ENUM - CATEGORIA PEÇA ====================
+
+export const CategoriaPeca = {
+  FILTRO: 'FILTRO',
+  CORREIA: 'CORREIA',
+  PASTILHA_FREIO: 'PASTILHA_FREIO',
+  DISCO_FREIO: 'DISCO_FREIO',
+  AMORTECEDOR: 'AMORTECEDOR',
+  OLEO_LUBRIFICANTE: 'OLEO_LUBRIFICANTE',
+  FLUIDO: 'FLUIDO',
+  VELA_IGNICAO: 'VELA_IGNICAO',
+  BATERIA: 'BATERIA',
+  PNEU: 'PNEU',
+  LAMPADA: 'LAMPADA',
+  ROLAMENTO: 'ROLAMENTO',
+  JUNTA: 'JUNTA',
+  RETENTOR: 'RETENTOR',
+  SENSOR: 'SENSOR',
+  BOMBA: 'BOMBA',
+  EMBREAGEM: 'EMBREAGEM',
+  SUSPENSAO: 'SUSPENSAO',
+  POLIA: 'POLIA',
+  MANGUEIRA: 'MANGUEIRA',
+  ELETRICO: 'ELETRICO',
+  FUNILARIA: 'FUNILARIA',
+  ACESSORIO: 'ACESSORIO',
+  OUTROS: 'OUTROS',
+} as const;
+
+export type CategoriaPeca = (typeof CategoriaPeca)[keyof typeof CategoriaPeca];
+
+export const CategoriaPecaLabel: Record<CategoriaPeca, string> = {
+  [CategoriaPeca.FILTRO]: 'Filtro',
+  [CategoriaPeca.CORREIA]: 'Correia',
+  [CategoriaPeca.PASTILHA_FREIO]: 'Pastilha de Freio',
+  [CategoriaPeca.DISCO_FREIO]: 'Disco de Freio',
+  [CategoriaPeca.AMORTECEDOR]: 'Amortecedor',
+  [CategoriaPeca.OLEO_LUBRIFICANTE]: 'Oleo/Lubrificante',
+  [CategoriaPeca.FLUIDO]: 'Fluido',
+  [CategoriaPeca.VELA_IGNICAO]: 'Vela de Ignicao',
+  [CategoriaPeca.BATERIA]: 'Bateria',
+  [CategoriaPeca.PNEU]: 'Pneu',
+  [CategoriaPeca.LAMPADA]: 'Lampada',
+  [CategoriaPeca.ROLAMENTO]: 'Rolamento',
+  [CategoriaPeca.JUNTA]: 'Junta',
+  [CategoriaPeca.RETENTOR]: 'Retentor',
+  [CategoriaPeca.SENSOR]: 'Sensor',
+  [CategoriaPeca.BOMBA]: 'Bomba',
+  [CategoriaPeca.EMBREAGEM]: 'Embreagem',
+  [CategoriaPeca.SUSPENSAO]: 'Suspensao',
+  [CategoriaPeca.POLIA]: 'Polia',
+  [CategoriaPeca.MANGUEIRA]: 'Mangueira',
+  [CategoriaPeca.ELETRICO]: 'Eletrico',
+  [CategoriaPeca.FUNILARIA]: 'Funilaria',
+  [CategoriaPeca.ACESSORIO]: 'Acessorio',
+  [CategoriaPeca.OUTROS]: 'Outros',
+};
+
 // ==================== INTERFACES - PEÇA ====================
 
 export interface Peca {
   id: string;
   codigo: string;
+  nome: string;
   descricao: string;
   marca?: string;
   aplicacao?: string;
-  localizacao?: string; // Deprecated - usar localArmazenamento
+  codigoOriginal?: string;
+  codigoFabricante?: string;
+  codigoBarras?: string;
+  ncm?: string;
+  categoria?: CategoriaPeca;
   localArmazenamentoId?: string;
   localArmazenamento?: LocalArmazenamentoResumo;
   unidadeMedida: UnidadeMedida;
   quantidadeAtual: number;
   quantidadeMinima: number;
+  quantidadeMaxima?: number;
+  pontoPedido?: number;
   estoqueBaixo: boolean; // Calculado pelo backend
+  atingiuPontoPedido: boolean; // Calculado pelo backend
   valorCusto: number;
   valorVenda: number;
   margemLucro: number; // Calculado pelo backend
   valorTotalEstoque: number; // Calculado pelo backend
+  fornecedorPrincipal?: string;
+  observacoes?: string;
   ativo: boolean;
   createdAt: string;
   updatedAt: string;
@@ -89,28 +157,47 @@ export interface PecaResumo {
 
 export interface CreatePecaRequest {
   codigo: string;
+  nome: string;
   descricao: string;
   marca?: string;
   aplicacao?: string;
-  localizacao?: string;
   localArmazenamentoId?: string;
   unidadeMedida: UnidadeMedida;
+  codigoOriginal?: string;
+  codigoFabricante?: string;
+  codigoBarras?: string;
+  ncm?: string;
+  categoria?: CategoriaPeca;
   quantidadeMinima: number;
+  quantidadeMaxima?: number;
+  pontoPedido?: number;
   valorCusto: number;
   valorVenda: number;
+  fornecedorPrincipal?: string;
+  observacoes?: string;
+  quantidadeInicial?: number;
 }
 
 export interface UpdatePecaRequest {
   codigo?: string;
+  nome?: string;
   descricao?: string;
   marca?: string;
   aplicacao?: string;
-  localizacao?: string;
   localArmazenamentoId?: string;
   unidadeMedida?: UnidadeMedida;
+  codigoOriginal?: string;
+  codigoFabricante?: string;
+  codigoBarras?: string;
+  ncm?: string;
+  categoria?: CategoriaPeca;
   quantidadeMinima?: number;
+  quantidadeMaxima?: number;
+  pontoPedido?: number;
   valorCusto?: number;
   valorVenda?: number;
+  fornecedorPrincipal?: string;
+  observacoes?: string;
 }
 
 export interface PecaFilters {
@@ -118,6 +205,7 @@ export interface PecaFilters {
   descricao?: string;
   marca?: string;
   unidadeMedida?: UnidadeMedida;
+  categoria?: CategoriaPeca;
   ativo?: boolean;
   estoqueBaixo?: boolean;
   localArmazenamentoId?: string;

@@ -63,6 +63,7 @@ public interface PecaMapper {
     @Mapping(source = "localArmazenamento.id", target = "localArmazenamentoId")
     @Mapping(source = "localArmazenamento", target = "localArmazenamento", qualifiedByName = "toSimplificadoDTO")
     @Mapping(source = "estoqueBaixo", target = "estoqueBaixo")
+    @Mapping(source = "atingiuPontoPedido", target = "atingiuPontoPedido")
     @Mapping(source = "margemLucro", target = "margemLucro")
     @Mapping(source = "valorTotalEstoque", target = "valorTotalEstoque")
     PecaResponseDTO toResponseDTO(Peca peca);

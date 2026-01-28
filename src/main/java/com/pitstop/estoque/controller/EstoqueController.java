@@ -7,6 +7,8 @@ import com.pitstop.estoque.dto.PecaResponseDTO;
 import com.pitstop.estoque.dto.UpdatePecaDTO;
 import com.pitstop.estoque.mapper.PecaMapper;
 import com.pitstop.estoque.service.EstoqueService;
+import com.pitstop.estoque.service.MovimentacaoEstoqueService;
+import com.pitstop.shared.security.SecurityUtils;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -41,6 +43,7 @@ import java.util.UUID;
 public class EstoqueController {
 
     private final EstoqueService estoqueService;
+    private final MovimentacaoEstoqueService movimentacaoEstoqueService;
     private final PecaMapper pecaMapper;
 
     /**
@@ -59,6 +62,21 @@ public class EstoqueController {
         // Define localização se informada
         if (dto.localArmazenamentoId() != null) {
             pecaCriada = estoqueService.definirLocalizacaoPeca(pecaCriada.getId(), dto.localArmazenamentoId());
+        }
+
+        // Registra entrada inicial se quantidade informada
+        if (dto.quantidadeInicial() != null && dto.quantidadeInicial() > 0) {
+            UUID usuarioId = SecurityUtils.getCurrentUserId();
+            movimentacaoEstoqueService.registrarEntrada(
+                    pecaCriada.getId(),
+                    dto.quantidadeInicial(),
+                    pecaCriada.getValorCusto(),
+                    usuarioId,
+                    "Estoque inicial - cadastro da peça",
+                    null
+            );
+            // Recarrega a peça para refletir a quantidade atualizada
+            pecaCriada = estoqueService.buscarPorId(pecaCriada.getId());
         }
 
         PecaResponseDTO response = pecaMapper.toResponseDTO(pecaCriada);

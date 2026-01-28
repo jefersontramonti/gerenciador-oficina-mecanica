@@ -69,6 +69,12 @@ public class Peca {
     private String codigo;
 
     /**
+     * Nome curto da peça para identificação rápida.
+     */
+    @Column(nullable = false, length = 150)
+    private String nome;
+
+    /**
      * Descrição completa da peça.
      */
     @Column(nullable = false, length = 500)
@@ -86,6 +92,37 @@ public class Peca {
      */
     @Column(length = 500)
     private String aplicacao;
+
+    /**
+     * Código original da peça (referência do fabricante do veículo).
+     */
+    @Column(name = "codigo_original", length = 100)
+    private String codigoOriginal;
+
+    /**
+     * Código do fabricante da peça (aftermarket).
+     */
+    @Column(name = "codigo_fabricante", length = 100)
+    private String codigoFabricante;
+
+    /**
+     * Código de barras (EAN/UPC).
+     */
+    @Column(name = "codigo_barras", length = 50)
+    private String codigoBarras;
+
+    /**
+     * NCM - Nomenclatura Comum do Mercosul.
+     */
+    @Column(length = 20)
+    private String ncm;
+
+    /**
+     * Categoria da peça para classificação.
+     */
+    @Enumerated(EnumType.STRING)
+    @Column(length = 30)
+    private CategoriaPeca categoria;
 
     /**
      * Local de armazenamento físico (hierárquico).
@@ -122,6 +159,30 @@ public class Peca {
     @Column(name = "quantidade_minima", nullable = false)
     @Builder.Default
     private Integer quantidadeMinima = 1;
+
+    /**
+     * Quantidade máxima desejada em estoque.
+     */
+    @Column(name = "quantidade_maxima")
+    private Integer quantidadeMaxima;
+
+    /**
+     * Ponto de pedido - quantidade em que se deve reabastecer.
+     */
+    @Column(name = "ponto_pedido")
+    private Integer pontoPedido;
+
+    /**
+     * Fornecedor principal da peça.
+     */
+    @Column(name = "fornecedor_principal", length = 200)
+    private String fornecedorPrincipal;
+
+    /**
+     * Observações gerais sobre a peça.
+     */
+    @Column(columnDefinition = "TEXT")
+    private String observacoes;
 
     // ========== FINANCIAL ==========
 
@@ -195,6 +256,16 @@ public class Peca {
     }
 
     /**
+     * Verifica se atingiu o ponto de pedido (hora de reabastecer).
+     *
+     * @return true se pontoPedido definido e quantidadeAtual <= pontoPedido
+     */
+    public boolean isAtingiuPontoPedido() {
+        return quantidadeAtual != null && pontoPedido != null
+                && pontoPedido > 0 && quantidadeAtual <= pontoPedido;
+    }
+
+    /**
      * Verifica se há estoque disponível suficiente para uma quantidade requerida.
      *
      * @param quantidadeRequerida quantidade desejada
@@ -252,6 +323,15 @@ public class Peca {
         }
         if (descricao == null || descricao.trim().length() < 3) {
             throw new IllegalStateException("Descrição deve ter no mínimo 3 caracteres");
+        }
+        if (nome == null || nome.trim().length() < 2) {
+            throw new IllegalStateException("Nome deve ter no mínimo 2 caracteres");
+        }
+        if (quantidadeMaxima != null && quantidadeMaxima < 0) {
+            throw new IllegalStateException("Quantidade máxima não pode ser negativa");
+        }
+        if (pontoPedido != null && pontoPedido < 0) {
+            throw new IllegalStateException("Ponto de pedido não pode ser negativo");
         }
     }
 

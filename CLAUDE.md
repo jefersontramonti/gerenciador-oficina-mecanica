@@ -2,6 +2,39 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+## REGRAS OBRIGATÓRIAS
+
+**IMPORTANTE: Siga estas regras SEMPRE, sem exceção:**
+
+### 1. Commits e Git
+- **NUNCA** fazer commit sem o usuário pedir explicitamente
+- **NUNCA** fazer push sem o usuário pedir explicitamente
+- Sempre esperar o usuário testar as mudanças antes de commitar
+- Perguntar ao usuário antes de qualquer operação git
+
+### 2. VPS e Deploy
+- **NUNCA** acessar a VPS sem permissão explícita do usuário
+- **NUNCA** iniciar deploy sem o usuário pedir
+- **NUNCA** usar o agente pitstop-devops sem autorização
+
+### 3. Modificação de Código
+- **NUNCA** modificar código sem o usuário pedir ou aprovar
+- Sempre explicar as mudanças propostas ANTES de implementar
+- Aguardar confirmação do usuário antes de editar arquivos
+- Se o usuário pedir uma análise, apenas analisar - não modificar
+
+### 4. Fluxo de Trabalho
+1. Usuário pede uma mudança
+2. Claude propõe a solução e explica
+3. Usuário aprova
+4. Claude implementa
+5. Usuário testa
+6. Usuário pede commit (se quiser)
+7. Claude faz commit
+8. Usuário pede deploy (se quiser)
+
+---
+
 ## Development Commands
 
 ### Backend (Maven)

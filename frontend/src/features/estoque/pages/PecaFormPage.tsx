@@ -22,7 +22,7 @@ import {
   createPecaSchema,
   type CreatePecaFormData,
 } from '../utils/validation';
-import { UnidadeMedida, UnidadeMedidaLabel, getMargemLucroStatus } from '../types';
+import { UnidadeMedida, UnidadeMedidaLabel, CategoriaPeca, CategoriaPecaLabel, getMargemLucroStatus } from '../types';
 import { LocalArmazenamentoSelect } from '../components';
 import { anexoService } from '@/features/anexos/services/anexoService';
 import type { CategoriaAnexo } from '@/features/anexos/types';
@@ -57,15 +57,25 @@ export const PecaFormPage = () => {
     resolver: zodResolver(createPecaSchema),
     defaultValues: {
       codigo: '',
+      nome: '',
       descricao: '',
       marca: '',
       aplicacao: '',
-      localizacao: '',
       localArmazenamentoId: '',
       unidadeMedida: UnidadeMedida.UNIDADE,
+      codigoOriginal: '',
+      codigoFabricante: '',
+      codigoBarras: '',
+      ncm: '',
+      categoria: '',
       quantidadeMinima: 0,
+      quantidadeMaxima: undefined,
+      pontoPedido: undefined,
+      quantidadeInicial: undefined,
       valorCusto: 0,
       valorVenda: 0,
+      fornecedorPrincipal: '',
+      observacoes: '',
     },
   });
 
@@ -79,15 +89,24 @@ export const PecaFormPage = () => {
     if (peca) {
       reset({
         codigo: peca.codigo,
+        nome: peca.nome || '',
         descricao: peca.descricao,
         marca: peca.marca || '',
         aplicacao: peca.aplicacao || '',
-        localizacao: peca.localizacao || '',
         localArmazenamentoId: peca.localArmazenamentoId || '',
         unidadeMedida: peca.unidadeMedida,
+        codigoOriginal: peca.codigoOriginal || '',
+        codigoFabricante: peca.codigoFabricante || '',
+        codigoBarras: peca.codigoBarras || '',
+        ncm: peca.ncm || '',
+        categoria: peca.categoria || '',
         quantidadeMinima: peca.quantidadeMinima,
+        quantidadeMaxima: peca.quantidadeMaxima ?? undefined,
+        pontoPedido: peca.pontoPedido ?? undefined,
         valorCusto: peca.valorCusto,
         valorVenda: peca.valorVenda,
+        fornecedorPrincipal: peca.fornecedorPrincipal || '',
+        observacoes: peca.observacoes || '',
       });
     }
   }, [peca, reset]);
@@ -163,13 +182,31 @@ export const PecaFormPage = () => {
 
   const onSubmit = async (data: CreatePecaFormData) => {
     try {
+      // Limpar campos opcionais vazios para não enviar strings vazias
+      const cleanData = {
+        ...data,
+        categoria: data.categoria || undefined,
+        localArmazenamentoId: data.localArmazenamentoId || undefined,
+        codigoOriginal: data.codigoOriginal || undefined,
+        codigoFabricante: data.codigoFabricante || undefined,
+        codigoBarras: data.codigoBarras || undefined,
+        ncm: data.ncm || undefined,
+        marca: data.marca || undefined,
+        aplicacao: data.aplicacao || undefined,
+        fornecedorPrincipal: data.fornecedorPrincipal || undefined,
+        observacoes: data.observacoes || undefined,
+        quantidadeMaxima: data.quantidadeMaxima ?? undefined,
+        pontoPedido: data.pontoPedido ?? undefined,
+        quantidadeInicial: !isEditMode ? (data.quantidadeInicial ?? undefined) : undefined,
+      };
+
       let pecaId: string;
 
       if (isEditMode && id) {
-        await updatePeca.mutateAsync({ id, data });
+        await updatePeca.mutateAsync({ id, data: cleanData });
         pecaId = id;
       } else {
-        const result = await createPeca.mutateAsync(data);
+        const result = await createPeca.mutateAsync(cleanData);
         pecaId = result.id;
       }
 
@@ -220,12 +257,12 @@ export const PecaFormPage = () => {
         </button>
         <div>
           <h1 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-gray-100">
-            {isEditMode ? 'Editar Peça' : 'Nova Peça'}
+            {isEditMode ? 'Editar Peca' : 'Nova Peca'}
           </h1>
           <p className="mt-1 text-sm text-gray-600 dark:text-gray-400">
             {isEditMode
-              ? 'Atualize as informações da peça'
-              : 'Preencha os dados para cadastrar uma nova peça'}
+              ? 'Atualize as informacoes da peca'
+              : 'Preencha os dados para cadastrar uma nova peca'}
           </p>
         </div>
       </div>
@@ -233,15 +270,15 @@ export const PecaFormPage = () => {
       {/* Form */}
       <form onSubmit={handleSubmit(onSubmit)} className="mx-auto max-w-4xl">
         <div className="space-y-6">
-          {/* Informações Básicas */}
+          {/* Seção 1 - Identificação */}
           <div className="rounded-lg bg-white dark:bg-gray-800 p-6 shadow">
-            <h2 className="mb-4 text-lg font-semibold text-gray-900 dark:text-gray-100">Informações Básicas</h2>
+            <h2 className="mb-4 text-lg font-semibold text-gray-900 dark:text-gray-100">Identificacao</h2>
 
             <div className="grid gap-4 md:grid-cols-2">
               {/* Código */}
               <div>
                 <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
-                  Código (SKU) <span className="text-red-500 dark:text-red-400">*</span>
+                  Codigo (SKU) <span className="text-red-500 dark:text-red-400">*</span>
                 </label>
                 <input
                   {...register('codigo')}
@@ -251,6 +288,54 @@ export const PecaFormPage = () => {
                 />
                 {errors.codigo && (
                   <p className="mt-1 text-sm text-red-500 dark:text-red-400">{errors.codigo.message}</p>
+                )}
+              </div>
+
+              {/* Nome */}
+              <div>
+                <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                  Nome <span className="text-red-500 dark:text-red-400">*</span>
+                </label>
+                <input
+                  {...register('nome')}
+                  type="text"
+                  placeholder="Ex: Filtro de Oleo Motor"
+                  className="w-full rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 px-3 py-2 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+                />
+                {errors.nome && (
+                  <p className="mt-1 text-sm text-red-500 dark:text-red-400">{errors.nome.message}</p>
+                )}
+              </div>
+            </div>
+
+            {/* Descrição Técnica */}
+            <div className="mt-4">
+              <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                Descricao Tecnica <span className="text-red-500 dark:text-red-400">*</span>
+              </label>
+              <textarea
+                {...register('descricao')}
+                rows={3}
+                placeholder="Descreva a peca com detalhes tecnicos..."
+                className="w-full rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 px-3 py-2 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 resize-none"
+              />
+              {errors.descricao && (
+                <p className="mt-1 text-sm text-red-500 dark:text-red-400">{errors.descricao.message}</p>
+              )}
+            </div>
+
+            <div className="mt-4 grid gap-4 md:grid-cols-2">
+              {/* Marca */}
+              <div>
+                <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">Marca</label>
+                <input
+                  {...register('marca')}
+                  type="text"
+                  placeholder="Ex: Bosch, NGK..."
+                  className="w-full rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 px-3 py-2 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+                />
+                {errors.marca && (
+                  <p className="mt-1 text-sm text-red-500 dark:text-red-400">{errors.marca.message}</p>
                 )}
               </div>
 
@@ -280,35 +365,86 @@ export const PecaFormPage = () => {
               </div>
             </div>
 
-            {/* Descrição */}
-            <div className="mt-4">
-              <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
-                Descrição <span className="text-red-500 dark:text-red-400">*</span>
-              </label>
-              <textarea
-                {...register('descricao')}
-                rows={3}
-                placeholder="Descreva a peça..."
-                className="w-full rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 px-3 py-2 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 resize-none"
-              />
-              {errors.descricao && (
-                <p className="mt-1 text-sm text-red-500 dark:text-red-400">{errors.descricao.message}</p>
-              )}
+            <div className="mt-4 grid gap-4 md:grid-cols-2">
+              {/* Código Original */}
+              <div>
+                <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">Codigo Original</label>
+                <input
+                  {...register('codigoOriginal')}
+                  type="text"
+                  placeholder="Codigo do fabricante do veiculo"
+                  className="w-full rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 px-3 py-2 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+                />
+                {errors.codigoOriginal && (
+                  <p className="mt-1 text-sm text-red-500 dark:text-red-400">{errors.codigoOriginal.message}</p>
+                )}
+              </div>
+
+              {/* Código Fabricante */}
+              <div>
+                <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">Codigo do Fabricante</label>
+                <input
+                  {...register('codigoFabricante')}
+                  type="text"
+                  placeholder="Codigo aftermarket"
+                  className="w-full rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 px-3 py-2 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+                />
+                {errors.codigoFabricante && (
+                  <p className="mt-1 text-sm text-red-500 dark:text-red-400">{errors.codigoFabricante.message}</p>
+                )}
+              </div>
             </div>
 
             <div className="mt-4 grid gap-4 md:grid-cols-2">
-              {/* Marca */}
+              {/* Código de Barras */}
               <div>
-                <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">Marca</label>
+                <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">Codigo de Barras</label>
                 <input
-                  {...register('marca')}
+                  {...register('codigoBarras')}
                   type="text"
-                  placeholder="Ex: Bosch, NGK..."
+                  placeholder="EAN/UPC"
                   className="w-full rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 px-3 py-2 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
                 />
-                {errors.marca && (
-                  <p className="mt-1 text-sm text-red-500 dark:text-red-400">{errors.marca.message}</p>
+                {errors.codigoBarras && (
+                  <p className="mt-1 text-sm text-red-500 dark:text-red-400">{errors.codigoBarras.message}</p>
                 )}
+              </div>
+
+              {/* NCM */}
+              <div>
+                <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">NCM</label>
+                <input
+                  {...register('ncm')}
+                  type="text"
+                  placeholder="Ex: 8421.23.00"
+                  className="w-full rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 px-3 py-2 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+                />
+                {errors.ncm && (
+                  <p className="mt-1 text-sm text-red-500 dark:text-red-400">{errors.ncm.message}</p>
+                )}
+              </div>
+            </div>
+          </div>
+
+          {/* Seção 2 - Classificação e Localização */}
+          <div className="rounded-lg bg-white dark:bg-gray-800 p-6 shadow">
+            <h2 className="mb-4 text-lg font-semibold text-gray-900 dark:text-gray-100">Classificacao e Localizacao</h2>
+
+            <div className="grid gap-4 md:grid-cols-2">
+              {/* Categoria */}
+              <div>
+                <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">Categoria</label>
+                <select
+                  {...register('categoria')}
+                  className="w-full rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 px-3 py-2 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+                >
+                  <option value="">Selecione uma categoria</option>
+                  {Object.values(CategoriaPeca).map((cat) => (
+                    <option key={cat} value={cat}>
+                      {CategoriaPecaLabel[cat]}
+                    </option>
+                  ))}
+                </select>
               </div>
 
               {/* Local de Armazenamento */}
@@ -329,29 +465,13 @@ export const PecaFormPage = () => {
               </div>
             </div>
 
-            {/* Localização (legado) */}
-            <div className="mt-4">
-              <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
-                Localização (Texto Livre)
-              </label>
-              <input
-                {...register('localizacao')}
-                type="text"
-                placeholder="Ex: Observações adicionais"
-                className="w-full rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 px-3 py-2 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
-              />
-              <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
-                Campo opcional para observações adicionais sobre localização
-              </p>
-            </div>
-
             {/* Aplicação */}
             <div className="mt-4">
-              <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">Aplicação</label>
+              <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">Aplicacao</label>
               <textarea
                 {...register('aplicacao')}
                 rows={2}
-                placeholder="Ex: Veículos compatíveis, observações..."
+                placeholder="Ex: Veiculos compativeis, observacoes..."
                 className="w-full rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 px-3 py-2 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 resize-none"
               />
               {errors.aplicacao && (
@@ -360,33 +480,99 @@ export const PecaFormPage = () => {
             </div>
           </div>
 
-          {/* Controle de Estoque */}
+          {/* Seção 3 - Controle de Estoque */}
           <div className="rounded-lg bg-white dark:bg-gray-800 p-6 shadow">
             <h2 className="mb-4 text-lg font-semibold text-gray-900 dark:text-gray-100">Controle de Estoque</h2>
 
-            <div>
-              <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
-                Quantidade Mínima <span className="text-red-500 dark:text-red-400">*</span>
-              </label>
-              <input
-                {...register('quantidadeMinima', { valueAsNumber: true })}
-                type="number"
-                min="0"
-                step="1"
-                className="w-full rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 px-3 py-2 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
-              />
-              <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
-                Quantidade mínima para alerta de estoque baixo
-              </p>
-              {errors.quantidadeMinima && (
-                <p className="mt-1 text-sm text-red-500 dark:text-red-400">{errors.quantidadeMinima.message}</p>
-              )}
+            <div className="grid gap-4 md:grid-cols-3">
+              {/* Quantidade Mínima */}
+              <div>
+                <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                  Quantidade Minima <span className="text-red-500 dark:text-red-400">*</span>
+                </label>
+                <input
+                  {...register('quantidadeMinima', { valueAsNumber: true })}
+                  type="number"
+                  min="0"
+                  step="1"
+                  className="w-full rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 px-3 py-2 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+                />
+                <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                  Alerta de estoque baixo
+                </p>
+                {errors.quantidadeMinima && (
+                  <p className="mt-1 text-sm text-red-500 dark:text-red-400">{errors.quantidadeMinima.message}</p>
+                )}
+              </div>
+
+              {/* Quantidade Máxima */}
+              <div>
+                <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                  Quantidade Maxima
+                </label>
+                <input
+                  {...register('quantidadeMaxima', { valueAsNumber: true })}
+                  type="number"
+                  min="0"
+                  step="1"
+                  className="w-full rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 px-3 py-2 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+                />
+                <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                  Limite do estoque
+                </p>
+                {errors.quantidadeMaxima && (
+                  <p className="mt-1 text-sm text-red-500 dark:text-red-400">{errors.quantidadeMaxima.message}</p>
+                )}
+              </div>
+
+              {/* Ponto de Pedido */}
+              <div>
+                <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                  Ponto de Pedido
+                </label>
+                <input
+                  {...register('pontoPedido', { valueAsNumber: true })}
+                  type="number"
+                  min="0"
+                  step="1"
+                  className="w-full rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 px-3 py-2 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+                />
+                <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                  Quando reabastecer
+                </p>
+                {errors.pontoPedido && (
+                  <p className="mt-1 text-sm text-red-500 dark:text-red-400">{errors.pontoPedido.message}</p>
+                )}
+              </div>
             </div>
+
+            {/* Quantidade Inicial - apenas no modo criação */}
+            {!isEditMode && (
+              <div className="mt-4 rounded-lg border border-blue-200 dark:border-blue-800 bg-blue-50 dark:bg-blue-900/20 p-4">
+                <label className="mb-1 block text-sm font-medium text-blue-800 dark:text-blue-300">
+                  Quantidade Inicial (entrada)
+                </label>
+                <input
+                  {...register('quantidadeInicial', { valueAsNumber: true })}
+                  type="number"
+                  min="0"
+                  step="1"
+                  placeholder="0"
+                  className="w-full max-w-xs rounded-lg border border-blue-300 dark:border-blue-700 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 px-3 py-2 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+                />
+                <p className="mt-1 text-xs text-blue-600 dark:text-blue-400">
+                  Se informado, uma movimentacao de entrada sera registrada automaticamente ao cadastrar a peca.
+                </p>
+                {errors.quantidadeInicial && (
+                  <p className="mt-1 text-sm text-red-500 dark:text-red-400">{errors.quantidadeInicial.message}</p>
+                )}
+              </div>
+            )}
           </div>
 
-          {/* Precificação */}
+          {/* Seção 4 - Precificação */}
           <div className="rounded-lg bg-white dark:bg-gray-800 p-6 shadow">
-            <h2 className="mb-4 text-lg font-semibold text-gray-900 dark:text-gray-100">Precificação</h2>
+            <h2 className="mb-4 text-lg font-semibold text-gray-900 dark:text-gray-100">Precificacao</h2>
 
             <div className="grid gap-4 md:grid-cols-2">
               {/* Valor de Custo */}
@@ -447,15 +633,48 @@ export const PecaFormPage = () => {
             )}
           </div>
 
-          {/* Fotos da Peça */}
+          {/* Seção 5 - Fornecedor */}
+          <div className="rounded-lg bg-white dark:bg-gray-800 p-6 shadow">
+            <h2 className="mb-4 text-lg font-semibold text-gray-900 dark:text-gray-100">Fornecedor</h2>
+
+            <div>
+              <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">Fornecedor Principal</label>
+              <input
+                {...register('fornecedorPrincipal')}
+                type="text"
+                placeholder="Nome do fornecedor principal"
+                className="w-full rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 px-3 py-2 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+              />
+              {errors.fornecedorPrincipal && (
+                <p className="mt-1 text-sm text-red-500 dark:text-red-400">{errors.fornecedorPrincipal.message}</p>
+              )}
+            </div>
+          </div>
+
+          {/* Seção 6 - Informações Adicionais */}
+          <div className="rounded-lg bg-white dark:bg-gray-800 p-6 shadow">
+            <h2 className="mb-4 text-lg font-semibold text-gray-900 dark:text-gray-100">Informacoes Adicionais</h2>
+
+            <div>
+              <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">Observacoes</label>
+              <textarea
+                {...register('observacoes')}
+                rows={3}
+                placeholder="Observacoes gerais sobre a peca..."
+                className="w-full rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 px-3 py-2 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 resize-none"
+              />
+            </div>
+          </div>
+
+          {/* Seção 7 - Fotos da Peça */}
           <div className="rounded-lg bg-white dark:bg-gray-800 p-6 shadow">
             <h2 className="mb-4 text-lg font-semibold text-gray-900 dark:text-gray-100 flex items-center gap-2">
               <Image className="h-5 w-5 text-blue-600" />
-              Fotos da Peça
+              Fotos da Peca
             </h2>
 
             <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
-              Adicione fotos da peça para facilitar a identificação no estoque.
+              Adicione fotos da peca para facilitar a identificacao no estoque.
             </p>
 
             {/* Área de Upload */}
@@ -476,7 +695,7 @@ export const PecaFormPage = () => {
                 Clique para selecionar imagens
               </p>
               <p className="text-xs text-gray-500 dark:text-gray-500 mt-1">
-                JPEG, PNG ou WebP (máx. 5MB cada)
+                JPEG, PNG ou WebP (max. 5MB cada)
               </p>
             </div>
 

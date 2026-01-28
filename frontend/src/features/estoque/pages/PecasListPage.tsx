@@ -17,6 +17,7 @@ import {
   Settings,
   Search,
   FilterX,
+  ShoppingCart,
 } from 'lucide-react';
 import { Button } from '@/shared/components/ui/button';
 import {
@@ -37,7 +38,7 @@ import {
 import { formatCurrency } from '@/shared/utils/formatters';
 import { usePecas, useMarcas, useDesativarPeca, useReativarPeca } from '../hooks/usePecas';
 import { StockBadge, UnidadeMedidaBadge, MovimentacaoModal } from '../components';
-import { UnidadeMedida, type Peca, type PecaFilters } from '../types';
+import { UnidadeMedida, CategoriaPeca, CategoriaPecaLabel, type Peca, type PecaFilters } from '../types';
 
 const ITEMS_PER_PAGE = 20;
 
@@ -142,7 +143,7 @@ export const PecasListPage = () => {
 
       {/* Filtros */}
       <div className="mb-6 rounded-lg bg-white dark:bg-gray-800 p-4 shadow">
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-6">
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4 xl:grid-cols-7">
           {/* Código */}
           <div>
             <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
@@ -210,6 +211,25 @@ export const PecasListPage = () => {
               <option value={UnidadeMedida.LITRO}>Litro (L)</option>
               <option value={UnidadeMedida.METRO}>Metro (M)</option>
               <option value={UnidadeMedida.QUILO}>Quilograma (KG)</option>
+            </select>
+          </div>
+
+          {/* Categoria */}
+          <div>
+            <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
+              Categoria
+            </label>
+            <select
+              className="w-full rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 text-gray-900 dark:text-white px-3 py-2 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+              value={filters.categoria || ''}
+              onChange={(e) => handleFilterChange('categoria', e.target.value as CategoriaPeca)}
+            >
+              <option value="">Todas</option>
+              {Object.values(CategoriaPeca).map((cat) => (
+                <option key={cat} value={cat}>
+                  {CategoriaPecaLabel[cat]}
+                </option>
+              ))}
             </select>
           </div>
 
@@ -303,8 +323,14 @@ export const PecasListPage = () => {
                   <div className="flex items-center gap-2 flex-wrap">
                     <span className="font-mono text-sm font-medium text-gray-900 dark:text-white">{peca.codigo}</span>
                     <StockBadge quantidadeAtual={peca.quantidadeAtual} quantidadeMinima={peca.quantidadeMinima} />
+                    {peca.atingiuPontoPedido && (
+                      <span className="inline-flex items-center gap-1 rounded-full bg-orange-100 dark:bg-orange-900/30 px-2 py-0.5 text-xs font-medium text-orange-700 dark:text-orange-400">
+                        <ShoppingCart className="h-3 w-3" />
+                        Repor
+                      </span>
+                    )}
                   </div>
-                  <p className="mt-1 text-sm text-gray-700 dark:text-gray-300 truncate">{peca.descricao}</p>
+                  <p className="mt-1 text-sm text-gray-700 dark:text-gray-300 truncate">{peca.nome || peca.descricao}</p>
                   {peca.marca && <p className="mt-0.5 text-xs text-gray-500 dark:text-gray-400">{peca.marca}</p>}
                 </div>
                 <DropdownMenu>
@@ -386,7 +412,7 @@ export const PecasListPage = () => {
           <TableHeader>
             <TableRow className="bg-gray-50 dark:bg-gray-700">
               <TableHead className="text-gray-700 dark:text-gray-300">Código</TableHead>
-              <TableHead className="text-gray-700 dark:text-gray-300">Descrição</TableHead>
+              <TableHead className="text-gray-700 dark:text-gray-300">Nome</TableHead>
               <TableHead className="text-gray-700 dark:text-gray-300">Marca</TableHead>
               <TableHead className="text-center text-gray-700 dark:text-gray-300">Unidade</TableHead>
               <TableHead className="text-right text-gray-700 dark:text-gray-300">Qtd Atual</TableHead>
@@ -417,7 +443,7 @@ export const PecasListPage = () => {
               data.content.map((peca) => (
                 <TableRow key={peca.id} className={!peca.ativo ? 'opacity-50' : ''}>
                   <TableCell className="font-medium text-gray-900 dark:text-white">{peca.codigo}</TableCell>
-                  <TableCell className="max-w-xs truncate text-gray-700 dark:text-gray-300">{peca.descricao}</TableCell>
+                  <TableCell className="max-w-xs truncate text-gray-700 dark:text-gray-300">{peca.nome || peca.descricao}</TableCell>
                   <TableCell className="text-gray-700 dark:text-gray-300">{peca.marca || '-'}</TableCell>
                   <TableCell className="text-center">
                     <UnidadeMedidaBadge unidade={peca.unidadeMedida} />
@@ -427,10 +453,18 @@ export const PecasListPage = () => {
                   </TableCell>
                   <TableCell className="text-right text-gray-700 dark:text-gray-300">{peca.quantidadeMinima}</TableCell>
                   <TableCell className="text-center">
-                    <StockBadge
-                      quantidadeAtual={peca.quantidadeAtual}
-                      quantidadeMinima={peca.quantidadeMinima}
-                    />
+                    <div className="flex items-center justify-center gap-1">
+                      <StockBadge
+                        quantidadeAtual={peca.quantidadeAtual}
+                        quantidadeMinima={peca.quantidadeMinima}
+                      />
+                      {peca.atingiuPontoPedido && (
+                        <span className="inline-flex items-center gap-1 rounded-full bg-orange-100 dark:bg-orange-900/30 px-2 py-0.5 text-xs font-medium text-orange-700 dark:text-orange-400" title="Atingiu ponto de pedido - reabastecer!">
+                          <ShoppingCart className="h-3 w-3" />
+                          Repor
+                        </span>
+                      )}
+                    </div>
                   </TableCell>
                   <TableCell className="text-right text-gray-700 dark:text-gray-300">
                     {formatCurrency(peca.valorCusto)}

@@ -94,14 +94,24 @@ public class EstoqueService {
 
         // Atualiza apenas campos editáveis (NÃO atualiza quantidadeAtual nem localArmazenamento)
         pecaExistente.setCodigo(pecaAtualizada.getCodigo());
+        pecaExistente.setNome(pecaAtualizada.getNome());
         pecaExistente.setDescricao(pecaAtualizada.getDescricao());
         pecaExistente.setMarca(pecaAtualizada.getMarca());
         pecaExistente.setAplicacao(pecaAtualizada.getAplicacao());
+        pecaExistente.setCodigoOriginal(pecaAtualizada.getCodigoOriginal());
+        pecaExistente.setCodigoFabricante(pecaAtualizada.getCodigoFabricante());
+        pecaExistente.setCodigoBarras(pecaAtualizada.getCodigoBarras());
+        pecaExistente.setNcm(pecaAtualizada.getNcm());
+        pecaExistente.setCategoria(pecaAtualizada.getCategoria());
         // localArmazenamento é atualizado via definirLocalizacaoPeca()
         pecaExistente.setUnidadeMedida(pecaAtualizada.getUnidadeMedida());
         pecaExistente.setQuantidadeMinima(pecaAtualizada.getQuantidadeMinima());
+        pecaExistente.setQuantidadeMaxima(pecaAtualizada.getQuantidadeMaxima());
+        pecaExistente.setPontoPedido(pecaAtualizada.getPontoPedido());
         pecaExistente.setValorCusto(pecaAtualizada.getValorCusto());
         pecaExistente.setValorVenda(pecaAtualizada.getValorVenda());
+        pecaExistente.setFornecedorPrincipal(pecaAtualizada.getFornecedorPrincipal());
+        pecaExistente.setObservacoes(pecaAtualizada.getObservacoes());
         // quantidadeAtual NÃO é atualizado aqui!
 
         Peca pecaSalva = pecaRepository.save(pecaExistente);

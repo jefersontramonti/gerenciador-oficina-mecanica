@@ -13,6 +13,11 @@ export const createPecaSchema = z.object({
     .min(3, 'Código deve ter no mínimo 3 caracteres')
     .max(50, 'Código deve ter no máximo 50 caracteres')
     .trim(),
+  nome: z
+    .string()
+    .min(2, 'Nome deve ter no mínimo 2 caracteres')
+    .max(150, 'Nome deve ter no máximo 150 caracteres')
+    .trim(),
   descricao: z
     .string()
     .min(3, 'Descrição deve ter no mínimo 3 caracteres')
@@ -30,12 +35,6 @@ export const createPecaSchema = z.object({
     .trim()
     .optional()
     .or(z.literal('')),
-  localizacao: z
-    .string()
-    .max(100, 'Localização deve ter no máximo 100 caracteres')
-    .trim()
-    .optional()
-    .or(z.literal('')),
   localArmazenamentoId: z
     .string()
     .uuid('ID do local de armazenamento inválido')
@@ -49,16 +48,67 @@ export const createPecaSchema = z.object({
   ], {
     message: 'Selecione uma unidade de medida válida',
   }),
+  codigoOriginal: z
+    .string()
+    .max(100, 'Código original deve ter no máximo 100 caracteres')
+    .trim()
+    .optional()
+    .or(z.literal('')),
+  codigoFabricante: z
+    .string()
+    .max(100, 'Código do fabricante deve ter no máximo 100 caracteres')
+    .trim()
+    .optional()
+    .or(z.literal('')),
+  codigoBarras: z
+    .string()
+    .max(50, 'Código de barras deve ter no máximo 50 caracteres')
+    .trim()
+    .optional()
+    .or(z.literal('')),
+  ncm: z
+    .string()
+    .max(20, 'NCM deve ter no máximo 20 caracteres')
+    .trim()
+    .optional()
+    .or(z.literal('')),
+  categoria: z
+    .string()
+    .optional()
+    .or(z.literal('')),
   quantidadeMinima: z
     .number()
     .min(0, 'Quantidade mínima não pode ser negativa')
     .int('Quantidade mínima deve ser um número inteiro'),
+  quantidadeMaxima: z
+    .union([z.number().min(0, 'Quantidade máxima não pode ser negativa').int('Deve ser inteiro'), z.nan()])
+    .optional()
+    .transform((val) => (val !== undefined && !isNaN(val) ? val : undefined)),
+  pontoPedido: z
+    .union([z.number().min(0, 'Ponto de pedido não pode ser negativo').int('Deve ser inteiro'), z.nan()])
+    .optional()
+    .transform((val) => (val !== undefined && !isNaN(val) ? val : undefined)),
   valorCusto: z
     .number()
     .min(0, 'Valor de custo não pode ser negativo'),
   valorVenda: z
     .number()
     .min(0, 'Valor de venda não pode ser negativo'),
+  fornecedorPrincipal: z
+    .string()
+    .max(200, 'Fornecedor deve ter no máximo 200 caracteres')
+    .trim()
+    .optional()
+    .or(z.literal('')),
+  observacoes: z
+    .string()
+    .trim()
+    .optional()
+    .or(z.literal('')),
+  quantidadeInicial: z
+    .union([z.number().min(0, 'Quantidade inicial nao pode ser negativa').int('Deve ser inteiro'), z.nan()])
+    .optional()
+    .transform((val) => (val !== undefined && !isNaN(val) ? val : undefined)),
 }).refine(
   (data) => data.valorVenda >= data.valorCusto,
   {
