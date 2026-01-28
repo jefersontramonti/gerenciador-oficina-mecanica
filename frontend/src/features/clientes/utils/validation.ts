@@ -7,7 +7,8 @@ import { z } from 'zod';
 // Helper regex patterns
 const cpfPattern = /^\d{3}\.\d{3}\.\d{3}-\d{2}$/;
 const cnpjPattern = /^\d{2}\.\d{3}\.\d{3}\/\d{4}-\d{2}$/;
-const telefonePattern = /^(\(\d{2}\)\s?)?\d{4,5}-?\d{4}$/;
+const celularPattern = /^\(\d{2}\)\s?9\d{4}-\d{4}$/;
+const telefoneFixoPattern = /^\(\d{2}\)\s?\d{4}-\d{4}$/;
 const cepPattern = /^\d{5}-\d{3}$/;
 const ufPattern = /^[A-Z]{2}$/;
 
@@ -102,29 +103,18 @@ export const createClienteSchema = z.object({
   tipo: z.enum(['PESSOA_FISICA', 'PESSOA_JURIDICA'], {
     message: 'Tipo é obrigatório',
   }),
-  nome: z.string().min(3, 'Nome deve ter pelo menos 3 caracteres').max(150),
-  cpfCnpj: z
-    .string()
-    .min(1, 'CPF/CNPJ é obrigatório')
-    .refine(
-      (val) => cpfPattern.test(val) || cnpjPattern.test(val),
-      'Formato inválido. Use: 000.000.000-00 (CPF) ou 00.000.000/0000-00 (CNPJ)'
-    )
-    .refine(
-      (val) => isValidCpfCnpj(val),
-      'CPF/CNPJ inválido - os dígitos verificadores não conferem'
-    ),
+  nome: z.string().trim().min(3, 'Nome deve ter pelo menos 3 caracteres').max(150),
+  cpfCnpj: z.string().min(1, 'CPF/CNPJ é obrigatório'),
   email: z.string().email('Email inválido').max(100).optional().or(z.literal('')),
   telefone: z
     .string()
-    .regex(telefonePattern, 'Telefone inválido. Use formato: (00) 0000-0000')
+    .regex(telefoneFixoPattern, 'Telefone inválido. Use formato: (00) 0000-0000')
     .optional()
     .or(z.literal('')),
   celular: z
     .string()
-    .regex(telefonePattern, 'Celular inválido. Use formato: (00) 00000-0000')
-    .optional()
-    .or(z.literal('')),
+    .min(1, 'Celular é obrigatório')
+    .regex(celularPattern, 'Celular inválido. Use formato: (00) 90000-0000'),
   logradouro: z.string().max(200).optional().or(z.literal('')),
   numero: z.string().max(10).optional().or(z.literal('')),
   complemento: z.string().max(100).optional().or(z.literal('')),
@@ -140,22 +130,60 @@ export const createClienteSchema = z.object({
     .regex(cepPattern, 'CEP inválido. Use formato: 00000-000')
     .optional()
     .or(z.literal('')),
+}).superRefine((data, ctx) => {
+  // CPF/CNPJ format validation
+  if (data.cpfCnpj) {
+    if (!cpfPattern.test(data.cpfCnpj) && !cnpjPattern.test(data.cpfCnpj)) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: 'Formato inválido. Use: 000.000.000-00 (CPF) ou 00.000.000/0000-00 (CNPJ)',
+        path: ['cpfCnpj'],
+      });
+      return;
+    }
+
+    // CPF/CNPJ digit verification
+    if (!isValidCpfCnpj(data.cpfCnpj)) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: 'CPF/CNPJ inválido - os dígitos verificadores não conferem',
+        path: ['cpfCnpj'],
+      });
+      return;
+    }
+
+    // CPF/CNPJ must match tipo
+    const limpo = removeFormatacao(data.cpfCnpj);
+    if (data.tipo === 'PESSOA_FISICA' && limpo.length !== 11) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: 'Pessoa Física deve informar CPF (11 dígitos)',
+        path: ['cpfCnpj'],
+      });
+    }
+    if (data.tipo === 'PESSOA_JURIDICA' && limpo.length !== 14) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: 'Pessoa Jurídica deve informar CNPJ (14 dígitos)',
+        path: ['cpfCnpj'],
+      });
+    }
+  }
 });
 
 // Update cliente validation (same as create but without tipo and cpfCnpj)
 export const updateClienteSchema = z.object({
-  nome: z.string().min(3, 'Nome deve ter pelo menos 3 caracteres').max(150),
+  nome: z.string().trim().min(3, 'Nome deve ter pelo menos 3 caracteres').max(150),
   email: z.string().email('Email inválido').max(100).optional().or(z.literal('')),
   telefone: z
     .string()
-    .regex(telefonePattern, 'Telefone inválido. Use formato: (00) 0000-0000')
+    .regex(telefoneFixoPattern, 'Telefone inválido. Use formato: (00) 0000-0000')
     .optional()
     .or(z.literal('')),
   celular: z
     .string()
-    .regex(telefonePattern, 'Celular inválido. Use formato: (00) 00000-0000')
-    .optional()
-    .or(z.literal('')),
+    .min(1, 'Celular é obrigatório')
+    .regex(celularPattern, 'Celular inválido. Use formato: (00) 90000-0000'),
   logradouro: z.string().max(200).optional().or(z.literal('')),
   numero: z.string().max(10).optional().or(z.literal('')),
   complemento: z.string().max(100).optional().or(z.literal('')),

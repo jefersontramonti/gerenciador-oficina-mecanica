@@ -468,8 +468,11 @@ public class ManutencaoPreventivaScheduler {
             return;
         }
 
-        // WhatsApp
-        if (cliente.getTelefone() != null && !cliente.getTelefone().isBlank()) {
+        // WhatsApp - usa celular (preferencial) ou telefone como fallback
+        String celularWhatsApp = cliente.getCelular() != null && !cliente.getCelular().isBlank()
+            ? cliente.getCelular()
+            : cliente.getTelefone();
+        if (celularWhatsApp != null && !celularWhatsApp.isBlank()) {
             String mensagem = String.format(
                 "🔔 Lembrete!\n\n%s, sua manutenção é hoje às %s!\n\n%s - %s\n\nNos vemos em breve! 😊",
                 cliente.getNome(),
@@ -485,7 +488,7 @@ public class ManutencaoPreventivaScheduler {
                 .cliente(cliente)
                 .tipoAlerta(TipoAlerta.LEMBRETE_AGENDAMENTO)
                 .canal(CanalNotificacao.WHATSAPP)
-                .destinatario(cliente.getTelefone())
+                .destinatario(celularWhatsApp)
                 .titulo("Lembrete de Agendamento")
                 .mensagem(mensagem)
                 .build();
@@ -496,7 +499,8 @@ public class ManutencaoPreventivaScheduler {
 
     private String getDestinatario(Cliente cliente, CanalNotificacao canal) {
         return switch (canal) {
-            case WHATSAPP, SMS -> cliente.getTelefone();
+            case WHATSAPP, SMS -> cliente.getCelular() != null && !cliente.getCelular().isBlank()
+                ? cliente.getCelular() : cliente.getTelefone();
             case EMAIL -> cliente.getEmail();
             case TELEGRAM -> "TELEGRAM"; // Placeholder - chatId vem da ConfiguracaoNotificacao
             default -> null;

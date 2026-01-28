@@ -234,7 +234,8 @@ export const ClienteFormPage = () => {
                     {...field}
                     mask="phone"
                     label="Celular"
-                    placeholder="(00) 00000-0000"
+                    placeholder="(00) 90000-0000"
+                    required
                     error={errors.celular?.message}
                   />
                 )}

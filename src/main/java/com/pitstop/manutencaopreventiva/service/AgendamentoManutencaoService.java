@@ -422,10 +422,12 @@ public class AgendamentoManutencaoService {
 
         int alertasCriados = 0;
 
-        // WhatsApp
+        // WhatsApp - usa celular (preferencial) ou telefone como fallback
         if (usarWhatsApp && config.temEvolutionApiConfigurada()) {
-            String telefone = cliente.getTelefone();
-            if (telefone != null && !telefone.isBlank()) {
+            String celular = cliente.getCelular() != null && !cliente.getCelular().isBlank()
+                ? cliente.getCelular()
+                : cliente.getTelefone();
+            if (celular != null && !celular.isBlank()) {
                 AlertaManutencao alerta = AlertaManutencao.builder()
                     .oficina(oficina)
                     .agendamento(agendamento)
@@ -434,7 +436,7 @@ public class AgendamentoManutencaoService {
                     .cliente(cliente)
                     .tipoAlerta(TipoAlerta.CONFIRMACAO)
                     .canal(CanalNotificacao.WHATSAPP)
-                    .destinatario(telefone)
+                    .destinatario(celular)
                     .titulo("Confirme seu Agendamento")
                     .mensagem(mensagem)
                     .dadosExtras(dadosExtras)
@@ -450,7 +452,7 @@ public class AgendamentoManutencaoService {
                 }
                 alertasCriados++;
                 feedbackBuilder.addCanal(new NotificacaoFeedbackDTO.CanalFeedbackDTO(
-                    "WhatsApp", true, telefone,
+                    "WhatsApp", true, celular,
                     envioImediato ? "Enviando" : "Agendado",
                     null
                 ));
@@ -459,9 +461,9 @@ public class AgendamentoManutencaoService {
                 feedbackBuilder.addCanal(new NotificacaoFeedbackDTO.CanalFeedbackDTO(
                     "WhatsApp", false, null,
                     "Não criado",
-                    "Cliente não possui telefone cadastrado"
+                    "Cliente não possui celular cadastrado"
                 ));
-                log.warn("Cliente {} não tem telefone para WhatsApp", cliente.getId());
+                log.warn("Cliente {} não tem celular para WhatsApp", cliente.getId());
             }
         } else if (usarWhatsApp) {
             feedbackBuilder.addCanal(new NotificacaoFeedbackDTO.CanalFeedbackDTO(

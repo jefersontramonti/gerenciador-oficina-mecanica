@@ -194,7 +194,7 @@ public class ManutencaoMapper {
         return new AgendamentoManutencaoResponseDTO.ClienteResumoDTO(
             cliente.getId(),
             cliente.getNome(),
-            cliente.getTelefone(),
+            cliente.getCelular(),
             cliente.getEmail()
         );
     }

@@ -121,13 +121,14 @@ public class Cliente implements Serializable {
     private String telefone;
 
     /**
-     * Telefone celular com DDD (formato: (00) 00000-0000).
-     * Ao menos um telefone (fixo ou celular) é obrigatório.
+     * Telefone celular com DDD (formato: (00) 90000-0000).
+     * Campo obrigatório - principal meio de contato e usado para WhatsApp.
      */
-    @Column(name = "celular", length = 20)
+    @Column(name = "celular", nullable = false, length = 20)
+    @NotBlank(message = "Celular é obrigatório")
     @Pattern(
-        regexp = "^(\\(\\d{2}\\)\\s?)?\\d{4,5}-?\\d{4}$",
-        message = "Celular deve estar no formato (00) 00000-0000"
+        regexp = "^\\(\\d{2}\\)\\s?9\\d{4}-\\d{4}$",
+        message = "Celular deve estar no formato (00) 90000-0000 (com DDD e começando com 9)"
     )
     private String celular;
 
@@ -176,9 +177,9 @@ public class Cliente implements Serializable {
             this.oficina = oficina;
         }
 
-        // Valida que ao menos um telefone está preenchido
-        if ((telefone == null || telefone.isBlank()) && (celular == null || celular.isBlank())) {
-            throw new IllegalStateException("Ao menos um telefone (fixo ou celular) deve ser informado");
+        // Valida que celular está preenchido (campo obrigatório)
+        if (celular == null || celular.isBlank()) {
+            throw new IllegalStateException("Celular é obrigatório");
         }
 
         // Valida compatibilidade entre tipo e CPF/CNPJ (apenas tamanho, validação completa virá depois)
