@@ -46,6 +46,7 @@ import {
   MessageSquare,
   ArrowDownCircle,
   Cog,
+  Truck,
 } from 'lucide-react';
 import { cn } from '@/shared/utils/cn';
 import { useWebSocket } from '@/shared/hooks/useWebSocket';
@@ -204,6 +205,12 @@ const navigationGroups: NavigationGroup[] = [
         name: 'Locais de Armazenamento',
         href: '/estoque/locais',
         icon: MapPin,
+      },
+      {
+        name: 'Fornecedores',
+        href: '/fornecedores',
+        icon: Truck,
+        requiredRoles: [PerfilUsuario.ADMIN, PerfilUsuario.GERENTE, PerfilUsuario.ATENDENTE],
       },
     ],
   },

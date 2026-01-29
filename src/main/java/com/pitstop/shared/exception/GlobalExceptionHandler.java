@@ -5,6 +5,7 @@ import com.pitstop.cliente.exception.*;
 import com.pitstop.ordemservico.exception.*;
 import com.pitstop.estoque.exception.*;
 import com.pitstop.anexo.exception.*;
+import com.pitstop.fornecedor.exception.*;
 import com.pitstop.shared.security.feature.FeatureNotEnabledException;
 import com.pitstop.shared.security.tenant.TenantNotSetException;
 import lombok.extern.slf4j.Slf4j;
@@ -392,6 +393,62 @@ public class GlobalExceptionHandler {
         problemDetail.setType(URI.create("https://pitstop.com/errors/local-com-pecas-vinculadas"));
         problemDetail.setProperty("timestamp", Instant.now());
         problemDetail.setProperty("quantidadePecas", ex.getQuantidadePecas());
+
+        return problemDetail;
+    }
+
+    // ========== EXCEÇÕES DO MÓDULO DE FORNECEDOR ==========
+
+    @ExceptionHandler(FornecedorNotFoundException.class)
+    public ProblemDetail handleFornecedorNotFoundException(
+            FornecedorNotFoundException ex,
+            WebRequest request
+    ) {
+        log.warn("Fornecedor não encontrado: {}", ex.getMessage());
+
+        ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(
+                HttpStatus.NOT_FOUND,
+                ex.getMessage()
+        );
+        problemDetail.setTitle("Fornecedor Não Encontrado");
+        problemDetail.setType(URI.create("https://pitstop.com/errors/fornecedor-not-found"));
+        problemDetail.setProperty("timestamp", Instant.now());
+
+        return problemDetail;
+    }
+
+    @ExceptionHandler(CpfCnpjFornecedorDuplicadoException.class)
+    public ProblemDetail handleCpfCnpjFornecedorDuplicadoException(
+            CpfCnpjFornecedorDuplicadoException ex,
+            WebRequest request
+    ) {
+        log.warn("CPF/CNPJ de fornecedor duplicado: {}", ex.getMessage());
+
+        ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(
+                HttpStatus.CONFLICT,
+                ex.getMessage()
+        );
+        problemDetail.setTitle("CPF/CNPJ de Fornecedor Duplicado");
+        problemDetail.setType(URI.create("https://pitstop.com/errors/cpf-cnpj-fornecedor-duplicado"));
+        problemDetail.setProperty("timestamp", Instant.now());
+
+        return problemDetail;
+    }
+
+    @ExceptionHandler(FornecedorValidationException.class)
+    public ProblemDetail handleFornecedorValidationException(
+            FornecedorValidationException ex,
+            WebRequest request
+    ) {
+        log.warn("Erro de validação de fornecedor: {}", ex.getMessage());
+
+        ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(
+                HttpStatus.BAD_REQUEST,
+                ex.getMessage()
+        );
+        problemDetail.setTitle("Erro de Validação de Fornecedor");
+        problemDetail.setType(URI.create("https://pitstop.com/errors/fornecedor-validation-error"));
+        problemDetail.setProperty("timestamp", Instant.now());
 
         return problemDetail;
     }

@@ -4,6 +4,7 @@ import com.pitstop.estoque.domain.Peca;
 import com.pitstop.estoque.dto.CreatePecaDTO;
 import com.pitstop.estoque.dto.PecaResponseDTO;
 import com.pitstop.estoque.dto.UpdatePecaDTO;
+import com.pitstop.fornecedor.domain.Fornecedor;
 import org.mapstruct.*;
 
 /**
@@ -27,6 +28,7 @@ public interface PecaMapper {
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "oficina", ignore = true)
     @Mapping(target = "localArmazenamento", ignore = true) // Gerenciado separadamente
+    @Mapping(target = "fornecedor", ignore = true) // Gerenciado separadamente no controller
     @Mapping(target = "quantidadeAtual", constant = "0") // Estoque inicial é 0
     @Mapping(target = "ativo", constant = "true")
     @Mapping(target = "createdAt", ignore = true)
@@ -46,6 +48,7 @@ public interface PecaMapper {
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "oficina", ignore = true)
     @Mapping(target = "localArmazenamento", ignore = true) // Gerenciado separadamente
+    @Mapping(target = "fornecedor", ignore = true) // Gerenciado separadamente no controller
     @Mapping(target = "quantidadeAtual", ignore = true) // NÃO atualiza estoque por este DTO
     @Mapping(target = "ativo", ignore = true)
     @Mapping(target = "createdAt", ignore = true)
@@ -66,5 +69,19 @@ public interface PecaMapper {
     @Mapping(source = "atingiuPontoPedido", target = "atingiuPontoPedido")
     @Mapping(source = "margemLucro", target = "margemLucro")
     @Mapping(source = "valorTotalEstoque", target = "valorTotalEstoque")
+    @Mapping(source = "fornecedor.id", target = "fornecedorId")
+    @Mapping(source = "fornecedor", target = "fornecedor", qualifiedByName = "toFornecedorResumo")
     PecaResponseDTO toResponseDTO(Peca peca);
+
+    @Named("toFornecedorResumo")
+    default PecaResponseDTO.FornecedorResumoDTO toFornecedorResumo(Fornecedor fornecedor) {
+        if (fornecedor == null) {
+            return null;
+        }
+        return new PecaResponseDTO.FornecedorResumoDTO(
+            fornecedor.getId(),
+            fornecedor.getNomeFantasia(),
+            fornecedor.getCpfCnpj()
+        );
+    }
 }

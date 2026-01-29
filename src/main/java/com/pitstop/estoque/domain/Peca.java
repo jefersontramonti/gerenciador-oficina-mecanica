@@ -1,5 +1,6 @@
 package com.pitstop.estoque.domain;
 
+import com.pitstop.fornecedor.domain.Fornecedor;
 import com.pitstop.oficina.domain.Oficina;
 import com.pitstop.shared.security.tenant.TenantContext;
 import jakarta.persistence.*;
@@ -173,10 +174,17 @@ public class Peca {
     private Integer pontoPedido;
 
     /**
-     * Fornecedor principal da peça.
+     * Fornecedor principal da peça (texto livre legado).
      */
     @Column(name = "fornecedor_principal", length = 200)
     private String fornecedorPrincipal;
+
+    /**
+     * Fornecedor vinculado (referência ao cadastro de fornecedores).
+     */
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "fornecedor_id")
+    private Fornecedor fornecedor;
 
     /**
      * Observações gerais sobre a peça.

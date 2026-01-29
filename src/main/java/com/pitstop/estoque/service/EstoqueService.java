@@ -5,6 +5,7 @@ import com.pitstop.estoque.domain.UnidadeMedida;
 import com.pitstop.estoque.exception.CodigoPecaDuplicadoException;
 import com.pitstop.estoque.exception.PecaNotFoundException;
 import com.pitstop.estoque.repository.PecaRepository;
+import com.pitstop.fornecedor.domain.Fornecedor;
 import com.pitstop.shared.security.tenant.TenantContext;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -385,6 +386,36 @@ public class EstoqueService {
         } else {
             peca.setLocalArmazenamento(null);
             log.info("Localização removida da peça {}", pecaId);
+        }
+
+        return pecaRepository.save(peca);
+    }
+
+    /**
+     * Define ou altera o fornecedor vinculado a uma peça.
+     * Se fornecedorId for NULL, remove o vínculo.
+     *
+     * @param pecaId ID da peça
+     * @param fornecedorId ID do fornecedor (NULL para remover)
+     * @return peça atualizada
+     * @throws PecaNotFoundException se peça não encontrada
+     */
+    @Transactional
+    public Peca definirFornecedorPeca(UUID pecaId, UUID fornecedorId) {
+        log.info("Definindo fornecedor da peça {} para {}", pecaId, fornecedorId);
+
+        UUID oficinaId = TenantContext.getTenantId();
+        Peca peca = pecaRepository.findByOficinaIdAndId(oficinaId, pecaId)
+                .orElseThrow(() -> new PecaNotFoundException(pecaId));
+
+        if (fornecedorId != null) {
+            Fornecedor fornecedor = new Fornecedor();
+            fornecedor.setId(fornecedorId);
+            peca.setFornecedor(fornecedor);
+            log.info("Fornecedor definido para peça {}", pecaId);
+        } else {
+            peca.setFornecedor(null);
+            log.info("Fornecedor removido da peça {}", pecaId);
         }
 
         return pecaRepository.save(peca);

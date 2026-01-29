@@ -64,6 +64,11 @@ public class EstoqueController {
             pecaCriada = estoqueService.definirLocalizacaoPeca(pecaCriada.getId(), dto.localArmazenamentoId());
         }
 
+        // Define fornecedor se informado
+        if (dto.fornecedorId() != null) {
+            pecaCriada = estoqueService.definirFornecedorPeca(pecaCriada.getId(), dto.fornecedorId());
+        }
+
         // Registra entrada inicial se quantidade informada
         if (dto.quantidadeInicial() != null && dto.quantidadeInicial() > 0) {
             UUID usuarioId = SecurityUtils.getCurrentUserId();
@@ -156,6 +161,9 @@ public class EstoqueController {
 
         // Atualiza localização (pode ser null para remover)
         peca = estoqueService.definirLocalizacaoPeca(id, dto.localArmazenamentoId());
+
+        // Atualiza fornecedor (pode ser null para remover)
+        peca = estoqueService.definirFornecedorPeca(id, dto.fornecedorId());
 
         PecaResponseDTO response = pecaMapper.toResponseDTO(peca);
 

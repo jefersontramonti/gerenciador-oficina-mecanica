@@ -78,6 +78,8 @@ public record CreatePecaDTO(
 
         String observacoes,
 
+        UUID fornecedorId,
+
         @Min(value = 0, message = "Quantidade inicial não pode ser negativa")
         Integer quantidadeInicial
 ) {

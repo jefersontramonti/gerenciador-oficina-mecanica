@@ -1233,7 +1233,7 @@ export const OrdemServicoFormPage = () => {
             loadingText={uploadingFiles ? 'Enviando fotos...' : (isEditMode ? 'Atualizando...' : 'Salvando...')}
             successMessage={isEditMode ? 'OS atualizada com sucesso!' : 'OS criada com sucesso!'}
             errorMessage="Verifique os campos destacados em vermelho"
-            onSuccess={() => navigate('/ordens-servico')}
+            onSuccess={() => navigate('/ordens-servico', { replace: true })}
             color="blue"
             size="md"
             disabled={isSubmitting}

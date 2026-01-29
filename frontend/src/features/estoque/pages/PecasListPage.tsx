@@ -114,9 +114,9 @@ export const PecasListPage = () => {
   };
 
   return (
-    <div className="p-6">
+    <div className="p-4 sm:p-6">
       {/* Header */}
-      <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+      <div className="mb-4 sm:mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h1 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white">Estoque</h1>
           <p className="mt-1 text-sm text-gray-600 dark:text-gray-400">
@@ -142,8 +142,8 @@ export const PecasListPage = () => {
       </div>
 
       {/* Filtros */}
-      <div className="mb-6 rounded-lg bg-white dark:bg-gray-800 p-4 shadow">
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4 xl:grid-cols-7">
+      <div className="mb-4 sm:mb-6 rounded-lg bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 p-4 shadow">
+        <div className="grid gap-3 sm:gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
           {/* Código */}
           <div>
             <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
@@ -316,7 +316,7 @@ export const PecasListPage = () => {
           data.content.map((peca) => (
             <div
               key={peca.id}
-              className={`rounded-lg bg-white dark:bg-gray-800 p-4 shadow ${!peca.ativo ? 'opacity-50' : ''}`}
+              className={`rounded-lg bg-white dark:bg-gray-800 p-4 shadow border border-gray-200 dark:border-gray-700 ${!peca.ativo ? 'opacity-50' : ''}`}
             >
               <div className="flex items-start justify-between gap-3">
                 <div className="flex-1 min-w-0">
@@ -544,7 +544,7 @@ export const PecasListPage = () => {
 
       {/* Paginação */}
       {data && data.totalPages > 1 && (
-        <div className="mt-4 flex flex-col gap-3 sm:flex-row sm:justify-between sm:items-center">
+        <div className="mt-4 flex flex-col gap-3 sm:flex-row sm:justify-between sm:items-center rounded-lg bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 p-3 sm:p-4 shadow">
           <p className="text-sm text-gray-600 dark:text-gray-400 text-center sm:text-left">
             Mostrando {data.number * data.size + 1} a{' '}
             {Math.min((data.number + 1) * data.size, data.totalElements)} de {data.totalElements}{' '}

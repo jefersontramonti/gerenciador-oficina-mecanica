@@ -24,7 +24,7 @@ import {
 } from '../utils/validation';
 import { UnidadeMedida, UnidadeMedidaLabel, CategoriaPeca, CategoriaPecaLabel, getMargemLucroStatus } from '../types';
 import type { CreatePecaRequest, UpdatePecaRequest } from '../types';
-import { LocalArmazenamentoSelect } from '../components';
+import { LocalArmazenamentoSelect, FornecedorSelect } from '../components';
 import { anexoService } from '@/features/anexos/services/anexoService';
 import type { CategoriaAnexo } from '@/features/anexos/types';
 
@@ -64,6 +64,7 @@ export const PecaFormPage = () => {
       marca: '',
       aplicacao: '',
       localArmazenamentoId: '',
+      fornecedorId: '',
       unidadeMedida: UnidadeMedida.UNIDADE,
       codigoOriginal: '',
       codigoFabricante: '',
@@ -96,6 +97,7 @@ export const PecaFormPage = () => {
         marca: peca.marca || '',
         aplicacao: peca.aplicacao || '',
         localArmazenamentoId: peca.localArmazenamentoId || '',
+        fornecedorId: peca.fornecedorId || '',
         unidadeMedida: peca.unidadeMedida,
         codigoOriginal: peca.codigoOriginal || '',
         codigoFabricante: peca.codigoFabricante || '',
@@ -189,6 +191,7 @@ export const PecaFormPage = () => {
         ...data,
         categoria: (data.categoria || undefined) as CategoriaPeca | undefined,
         localArmazenamentoId: data.localArmazenamentoId || undefined,
+        fornecedorId: data.fornecedorId || undefined,
         codigoOriginal: data.codigoOriginal || undefined,
         codigoFabricante: data.codigoFabricante || undefined,
         codigoBarras: data.codigoBarras || undefined,
@@ -250,7 +253,7 @@ export const PecaFormPage = () => {
   return (
     <div className="p-4 sm:p-6">
       {/* Header */}
-      <div className="mb-6 flex items-start gap-3 sm:gap-4">
+      <div className="mb-4 sm:mb-6 flex items-start gap-3 sm:gap-4">
         <button
           onClick={() => navigate('/estoque')}
           className="rounded-lg p-2 hover:bg-gray-100 dark:hover:bg-gray-700 shrink-0"
@@ -271,12 +274,12 @@ export const PecaFormPage = () => {
 
       {/* Form */}
       <form onSubmit={handleSubmit(onSubmit)} className="mx-auto max-w-4xl">
-        <div className="space-y-6">
+        <div className="space-y-4 sm:space-y-6">
           {/* Seção 1 - Identificação */}
-          <div className="rounded-lg bg-white dark:bg-gray-800 p-6 shadow">
+          <div className="rounded-lg bg-white dark:bg-gray-800 p-4 sm:p-6 shadow">
             <h2 className="mb-4 text-lg font-semibold text-gray-900 dark:text-gray-100">Identificacao</h2>
 
-            <div className="grid gap-4 md:grid-cols-2">
+            <div className="grid gap-4 grid-cols-1 md:grid-cols-2">
               {/* Código */}
               <div>
                 <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
@@ -326,7 +329,7 @@ export const PecaFormPage = () => {
               )}
             </div>
 
-            <div className="mt-4 grid gap-4 md:grid-cols-2">
+            <div className="mt-4 grid gap-4 grid-cols-1 md:grid-cols-2">
               {/* Marca */}
               <div>
                 <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">Marca</label>
@@ -367,7 +370,7 @@ export const PecaFormPage = () => {
               </div>
             </div>
 
-            <div className="mt-4 grid gap-4 md:grid-cols-2">
+            <div className="mt-4 grid gap-4 grid-cols-1 md:grid-cols-2">
               {/* Código Original */}
               <div>
                 <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">Codigo Original</label>
@@ -397,7 +400,7 @@ export const PecaFormPage = () => {
               </div>
             </div>
 
-            <div className="mt-4 grid gap-4 md:grid-cols-2">
+            <div className="mt-4 grid gap-4 grid-cols-1 md:grid-cols-2">
               {/* Código de Barras */}
               <div>
                 <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">Codigo de Barras</label>
@@ -429,10 +432,10 @@ export const PecaFormPage = () => {
           </div>
 
           {/* Seção 2 - Classificação e Localização */}
-          <div className="rounded-lg bg-white dark:bg-gray-800 p-6 shadow">
+          <div className="rounded-lg bg-white dark:bg-gray-800 p-4 sm:p-6 shadow">
             <h2 className="mb-4 text-lg font-semibold text-gray-900 dark:text-gray-100">Classificacao e Localizacao</h2>
 
-            <div className="grid gap-4 md:grid-cols-2">
+            <div className="grid gap-4 grid-cols-1 md:grid-cols-2">
               {/* Categoria */}
               <div>
                 <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">Categoria</label>
@@ -483,10 +486,10 @@ export const PecaFormPage = () => {
           </div>
 
           {/* Seção 3 - Controle de Estoque */}
-          <div className="rounded-lg bg-white dark:bg-gray-800 p-6 shadow">
+          <div className="rounded-lg bg-white dark:bg-gray-800 p-4 sm:p-6 shadow">
             <h2 className="mb-4 text-lg font-semibold text-gray-900 dark:text-gray-100">Controle de Estoque</h2>
 
-            <div className="grid gap-4 md:grid-cols-3">
+            <div className="grid gap-4 grid-cols-1 sm:grid-cols-3">
               {/* Quantidade Mínima */}
               <div>
                 <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
@@ -573,10 +576,10 @@ export const PecaFormPage = () => {
           </div>
 
           {/* Seção 4 - Precificação */}
-          <div className="rounded-lg bg-white dark:bg-gray-800 p-6 shadow">
+          <div className="rounded-lg bg-white dark:bg-gray-800 p-4 sm:p-6 shadow">
             <h2 className="mb-4 text-lg font-semibold text-gray-900 dark:text-gray-100">Precificacao</h2>
 
-            <div className="grid gap-4 md:grid-cols-2">
+            <div className="grid gap-4 grid-cols-1 md:grid-cols-2">
               {/* Valor de Custo */}
               <div>
                 <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
@@ -636,25 +639,40 @@ export const PecaFormPage = () => {
           </div>
 
           {/* Seção 5 - Fornecedor */}
-          <div className="rounded-lg bg-white dark:bg-gray-800 p-6 shadow">
+          <div className="rounded-lg bg-white dark:bg-gray-800 p-4 sm:p-6 shadow">
             <h2 className="mb-4 text-lg font-semibold text-gray-900 dark:text-gray-100">Fornecedor</h2>
 
-            <div>
-              <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">Fornecedor Principal</label>
-              <input
-                {...register('fornecedorPrincipal')}
-                type="text"
-                placeholder="Nome do fornecedor principal"
-                className="w-full rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 px-3 py-2 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+            <div className="grid gap-4 grid-cols-1 sm:grid-cols-2">
+              <Controller
+                name="fornecedorId"
+                control={control}
+                render={({ field }) => (
+                  <FornecedorSelect
+                    {...field}
+                    label="Fornecedor Cadastrado"
+                    placeholder="Selecione um fornecedor"
+                    error={errors.fornecedorId?.message}
+                  />
+                )}
               />
-              {errors.fornecedorPrincipal && (
-                <p className="mt-1 text-sm text-red-500 dark:text-red-400">{errors.fornecedorPrincipal.message}</p>
-              )}
+
+              <div>
+                <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">Fornecedor (texto livre)</label>
+                <input
+                  {...register('fornecedorPrincipal')}
+                  type="text"
+                  placeholder="Nome do fornecedor"
+                  className="w-full rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 px-3 py-2 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+                />
+                {errors.fornecedorPrincipal && (
+                  <p className="mt-1 text-sm text-red-500 dark:text-red-400">{errors.fornecedorPrincipal.message}</p>
+                )}
+              </div>
             </div>
           </div>
 
           {/* Seção 6 - Informações Adicionais */}
-          <div className="rounded-lg bg-white dark:bg-gray-800 p-6 shadow">
+          <div className="rounded-lg bg-white dark:bg-gray-800 p-4 sm:p-6 shadow">
             <h2 className="mb-4 text-lg font-semibold text-gray-900 dark:text-gray-100">Informacoes Adicionais</h2>
 
             <div>
@@ -669,7 +687,7 @@ export const PecaFormPage = () => {
           </div>
 
           {/* Seção 7 - Fotos da Peça */}
-          <div className="rounded-lg bg-white dark:bg-gray-800 p-6 shadow">
+          <div className="rounded-lg bg-white dark:bg-gray-800 p-4 sm:p-6 shadow">
             <h2 className="mb-4 text-lg font-semibold text-gray-900 dark:text-gray-100 flex items-center gap-2">
               <Image className="h-5 w-5 text-blue-600" />
               Fotos da Peca
@@ -682,7 +700,7 @@ export const PecaFormPage = () => {
             {/* Área de Upload */}
             <div
               onClick={() => fileInputRef.current?.click()}
-              className="border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg p-6 text-center cursor-pointer hover:border-blue-500 dark:hover:border-blue-400 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors"
+              className="border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg p-4 sm:p-6 text-center cursor-pointer hover:border-blue-500 dark:hover:border-blue-400 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors"
             >
               <input
                 ref={fileInputRef}
@@ -707,7 +725,7 @@ export const PecaFormPage = () => {
                 <p className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                   {pendingFiles.length} imagem(ns) selecionada(s)
                 </p>
-                <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-3">
+                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
                   {pendingFiles.map((pf) => (
                     <div key={pf.id} className="relative group">
                       <img
@@ -730,7 +748,7 @@ export const PecaFormPage = () => {
           </div>
 
           {/* Botões */}
-          <div className="flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
+          <div className="flex flex-col-reverse gap-3 sm:gap-4 sm:flex-row sm:justify-end">
             <Button type="button" variant="outline" onClick={() => navigate('/estoque')} className="w-full sm:w-auto">
               Cancelar
             </Button>

@@ -20,7 +20,12 @@
       "Bash(tasklist)",
       "Bash(git -C \"C:\\\\Users\\\\maninho\\\\Desktop\\\\Projeto oficina mecanica\\\\PitStop\" status --short)",
       "Bash(cat:*)",
-      "Bash(./mvnw.cmd:*)"
+      "Bash(./mvnw.cmd:*)",
+      "Bash(ssh root@86.48.22.177 \"cd /opt/pitstop && docker compose down && docker compose up -d --force-recreate --remove-orphans 2>&1\")",
+      "Bash(ssh root@86.48.22.177:*)",
+      "Bash(dir /b \"C:\\\\Users\\\\maninho\\\\Desktop\\\\Projeto oficina mecanica\\\\PitStop\\\\src\\\\main\\\\resources\\\\db\\\\changelog\\\\migrations\")",
+      "Bash(.mvnw.cmd spring-boot:run:*)",
+      "Bash(cmd.exe /c \"mvnw.cmd spring-boot:run\")"
     ],
     "deny": [],
     "ask": []

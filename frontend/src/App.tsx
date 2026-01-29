@@ -39,6 +39,11 @@ const UsuariosListPage = lazy(() => import('./features/usuarios/pages').then(m =
 const UsuarioFormPage = lazy(() => import('./features/usuarios/pages').then(m => ({ default: m.UsuarioFormPage })));
 const UsuarioDetailPage = lazy(() => import('./features/usuarios/pages').then(m => ({ default: m.UsuarioDetailPage })));
 
+// Fornecedores
+const FornecedoresListPage = lazy(() => import('./features/fornecedores/pages/FornecedoresListPage').then(m => ({ default: m.FornecedoresListPage })));
+const FornecedorFormPage = lazy(() => import('./features/fornecedores/pages/FornecedorFormPage').then(m => ({ default: m.FornecedorFormPage })));
+const FornecedorDetailPage = lazy(() => import('./features/fornecedores/pages/FornecedorDetailPage').then(m => ({ default: m.FornecedorDetailPage })));
+
 // Estoque - Peças
 const PecasListPage = lazy(() => import('./features/estoque/pages').then(m => ({ default: m.PecasListPage })));
 const PecaFormPage = lazy(() => import('./features/estoque/pages').then(m => ({ default: m.PecaFormPage })));
@@ -258,6 +263,50 @@ function App() {
                   requiredRoles={[PerfilUsuario.ADMIN, PerfilUsuario.GERENTE, PerfilUsuario.ATENDENTE]}
                 >
                   <VeiculoFormPage />
+                </ProtectedRoute>
+              }
+            />
+          </Route>
+
+          {/* Fornecedores - ADMIN, GERENTE, ATENDENTE */}
+          <Route path="fornecedores">
+            <Route
+              index
+              element={
+                <ProtectedRoute
+                  requiredRoles={[PerfilUsuario.ADMIN, PerfilUsuario.GERENTE, PerfilUsuario.ATENDENTE]}
+                >
+                  <FornecedoresListPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="novo"
+              element={
+                <ProtectedRoute
+                  requiredRoles={[PerfilUsuario.ADMIN, PerfilUsuario.GERENTE, PerfilUsuario.ATENDENTE]}
+                >
+                  <FornecedorFormPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path=":id"
+              element={
+                <ProtectedRoute
+                  requiredRoles={[PerfilUsuario.ADMIN, PerfilUsuario.GERENTE, PerfilUsuario.ATENDENTE]}
+                >
+                  <FornecedorDetailPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path=":id/editar"
+              element={
+                <ProtectedRoute
+                  requiredRoles={[PerfilUsuario.ADMIN, PerfilUsuario.GERENTE, PerfilUsuario.ATENDENTE]}
+                >
+                  <FornecedorFormPage />
                 </ProtectedRoute>
               }
             />

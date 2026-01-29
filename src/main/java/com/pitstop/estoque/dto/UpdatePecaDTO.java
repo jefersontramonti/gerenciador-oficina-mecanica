@@ -77,6 +77,8 @@ public record UpdatePecaDTO(
         @Size(max = 200, message = "Fornecedor principal deve ter no máximo 200 caracteres")
         String fornecedorPrincipal,
 
-        String observacoes
+        String observacoes,
+
+        UUID fornecedorId
 ) {
 }

@@ -82,7 +82,7 @@ export const PecaDetailPage = () => {
   return (
     <div className="p-4 sm:p-6">
       {/* Header */}
-      <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+      <div className="mb-4 sm:mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex items-center gap-3 sm:gap-4">
           <button
             onClick={() => navigate('/estoque')}
@@ -136,9 +136,9 @@ export const PecaDetailPage = () => {
       </div>
 
       {/* Content */}
-      <div className="grid gap-6 lg:grid-cols-3">
+      <div className="grid gap-4 sm:gap-6 lg:grid-cols-3">
         {/* Main Info */}
-        <div className="lg:col-span-2 space-y-6">
+        <div className="lg:col-span-2 space-y-4 sm:space-y-6">
           {/* Estoque */}
           <div className="rounded-lg bg-white dark:bg-gray-800 p-4 sm:p-6 shadow">
             <h2 className="mb-4 text-lg font-semibold text-gray-900 dark:text-gray-100">Estoque</h2>
@@ -387,7 +387,7 @@ export const PecaDetailPage = () => {
         </div>
 
         {/* Sidebar */}
-        <div className="space-y-6">
+        <div className="space-y-4 sm:space-y-6">
           {/* Status */}
           <div className="rounded-lg bg-white dark:bg-gray-800 p-4 sm:p-6 shadow">
             <h3 className="mb-4 text-sm font-semibold text-gray-700 dark:text-gray-300">Status</h3>

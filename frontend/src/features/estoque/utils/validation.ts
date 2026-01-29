@@ -40,6 +40,11 @@ export const createPecaSchema = z.object({
     .uuid('ID do local de armazenamento inválido')
     .optional()
     .or(z.literal('')),
+  fornecedorId: z
+    .string()
+    .uuid('ID do fornecedor inválido')
+    .optional()
+    .or(z.literal('')),
   unidadeMedida: z.enum([
     UnidadeMedida.UNIDADE,
     UnidadeMedida.LITRO,

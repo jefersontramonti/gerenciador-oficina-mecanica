@@ -35,6 +35,46 @@ public class DespesaService {
 
     private final DespesaRepository despesaRepository;
 
+    // ==================== CRIAÇÃO PROGRAMÁTICA ====================
+
+    /**
+     * Cria despesa automática vinculada a uma movimentação de estoque.
+     * Chamado internamente pelo módulo de estoque ao registrar entrada.
+     */
+    @Transactional
+    @CacheEvict(value = {"fluxoCaixa", "dre", "despesasResumo"}, allEntries = true)
+    public Despesa criarDespesaEstoque(
+            String descricao,
+            BigDecimal valor,
+            String fornecedor,
+            UUID movimentacaoEstoqueId,
+            String observacoes
+    ) {
+        UUID oficinaId = TenantContext.getTenantId();
+
+        Oficina oficina = new Oficina();
+        oficina.setId(oficinaId);
+
+        Despesa despesa = Despesa.builder()
+            .oficina(oficina)
+            .categoria(CategoriaDespesa.COMPRA_PECAS)
+            .descricao(descricao)
+            .valor(valor)
+            .dataVencimento(LocalDate.now())
+            .fornecedor(fornecedor)
+            .observacoes(observacoes)
+            .recorrente(false)
+            .status(StatusDespesa.PENDENTE)
+            .movimentacaoEstoqueId(movimentacaoEstoqueId)
+            .build();
+
+        despesa = despesaRepository.save(despesa);
+        log.info("Despesa automática criada ID: {} para movimentação estoque: {}",
+                 despesa.getId(), movimentacaoEstoqueId);
+
+        return despesa;
+    }
+
     // ==================== CRUD ====================
 
     /**

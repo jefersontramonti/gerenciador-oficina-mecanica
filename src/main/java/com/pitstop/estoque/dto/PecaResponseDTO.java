@@ -41,9 +41,17 @@ public record PecaResponseDTO(
         BigDecimal margemLucro,
         BigDecimal valorTotalEstoque,
         String fornecedorPrincipal,
+        UUID fornecedorId,
+        FornecedorResumoDTO fornecedor,
         String observacoes,
         Boolean ativo,
         LocalDateTime createdAt,
         LocalDateTime updatedAt
 ) {
+    public record FornecedorResumoDTO(
+            UUID id,
+            String nomeFantasia,
+            String cpfCnpj
+    ) {
+    }
 }

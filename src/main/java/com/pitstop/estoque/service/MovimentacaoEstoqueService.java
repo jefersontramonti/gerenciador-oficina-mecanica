@@ -8,6 +8,7 @@ import com.pitstop.estoque.exception.MovimentacaoInvalidaException;
 import com.pitstop.estoque.exception.PecaNotFoundException;
 import com.pitstop.estoque.repository.MovimentacaoEstoqueRepository;
 import com.pitstop.estoque.repository.PecaRepository;
+import com.pitstop.financeiro.service.DespesaService;
 import com.pitstop.ordemservico.domain.ItemOS;
 import com.pitstop.ordemservico.domain.OrigemPeca;
 import com.pitstop.ordemservico.domain.TipoItem;
@@ -49,6 +50,7 @@ public class MovimentacaoEstoqueService {
 
     private final MovimentacaoEstoqueRepository movimentacaoRepository;
     private final PecaRepository pecaRepository;
+    private final DespesaService despesaService;
 
     /**
      * Registra uma entrada de estoque (compra, devolução de fornecedor, etc).
@@ -101,6 +103,27 @@ public class MovimentacaoEstoqueService {
                 .build();
 
         MovimentacaoEstoque movimentacaoSalva = movimentacaoRepository.save(movimentacao);
+
+        // Gerar despesa automática para compra de peças
+        try {
+            String descricaoDespesa = String.format("Compra de peça: %s - %s (x%d)",
+                    peca.getCodigo(),
+                    peca.getNome() != null ? peca.getNome() : peca.getDescricao(),
+                    quantidade);
+
+            despesaService.criarDespesaEstoque(
+                    descricaoDespesa,
+                    movimentacaoSalva.getValorTotal(),
+                    peca.getFornecedorPrincipal(),
+                    movimentacaoSalva.getId(),
+                    motivo
+            );
+
+            log.info("Despesa automática gerada para entrada de estoque - Peça: {}, Valor: {}",
+                    peca.getCodigo(), movimentacaoSalva.getValorTotal());
+        } catch (Exception e) {
+            log.error("Erro ao gerar despesa automática para entrada de estoque: {}", e.getMessage(), e);
+        }
 
         log.info("ENTRADA registrada com sucesso - Peça: {} ({}), Estoque: {} -> {}",
                 peca.getCodigo(), peca.getDescricao(), quantidadeAnterior, quantidadeNova);

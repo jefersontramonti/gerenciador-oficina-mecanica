@@ -127,6 +127,8 @@ export interface Peca {
   categoria?: CategoriaPeca;
   localArmazenamentoId?: string;
   localArmazenamento?: LocalArmazenamentoResumo;
+  fornecedorId?: string;
+  fornecedor?: { id: string; nomeFantasia: string; cpfCnpj?: string };
   unidadeMedida: UnidadeMedida;
   quantidadeAtual: number;
   quantidadeMinima: number;
@@ -162,6 +164,7 @@ export interface CreatePecaRequest {
   marca?: string;
   aplicacao?: string;
   localArmazenamentoId?: string;
+  fornecedorId?: string;
   unidadeMedida: UnidadeMedida;
   codigoOriginal?: string;
   codigoFabricante?: string;
@@ -185,6 +188,7 @@ export interface UpdatePecaRequest {
   marca?: string;
   aplicacao?: string;
   localArmazenamentoId?: string;
+  fornecedorId?: string;
   unidadeMedida?: UnidadeMedida;
   codigoOriginal?: string;
   codigoFabricante?: string;
